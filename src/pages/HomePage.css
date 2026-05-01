@@ -1,0 +1,45 @@
+.home-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.home-hero {
+  padding: 56px 0 32px;
+  border-bottom: 1px solid #e6e6e6;
+  margin-bottom: 0;
+}
+
+.home-hero-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #191919;
+  margin: 0 0 12px;
+  letter-spacing: -0.5px;
+}
+
+.home-hero-title span {
+  color: #ff9900;
+}
+
+.home-hero-sub {
+  font-size: 17px;
+  color: #6b6b6b;
+  line-height: 1.65;
+  margin: 0;
+  max-width: 560px;
+}
+
+.post-list {
+  margin-top: 0;
+}
+
+@media (max-width: 600px) {
+  .home-hero-title {
+    font-size: 28px;
+  }
+
+  .home-hero {
+    padding: 36px 0 24px;
+  }
+}

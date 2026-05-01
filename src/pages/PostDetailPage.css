@@ -1,0 +1,171 @@
+.post-detail-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.post-article {
+  padding-top: 48px;
+}
+
+.post-header {
+  margin-bottom: 40px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.post-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.tag {
+  font-size: 12px;
+  font-weight: 500;
+  color: #ff9900;
+  background: #fff8ec;
+  border: 1px solid #ffe0a0;
+  border-radius: 20px;
+  padding: 3px 10px;
+  letter-spacing: 0.2px;
+}
+
+.post-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #191919;
+  line-height: 1.25;
+  margin: 0 0 20px;
+  letter-spacing: -0.5px;
+}
+
+.post-meta {
+  font-size: 15px;
+  color: #6b6b6b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meta-sep {
+  color: #e6e6e6;
+}
+
+/* ── Article body typography ── */
+.post-body {
+  font-size: 18px;
+  line-height: 1.8;
+  color: #191919;
+}
+
+.post-body h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 48px 0 16px;
+  color: #191919;
+  letter-spacing: -0.3px;
+}
+
+.post-body h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 32px 0 12px;
+  color: #191919;
+}
+
+.post-body p {
+  margin: 0 0 20px;
+}
+
+.post-body ul,
+.post-body ol {
+  margin: 0 0 20px;
+  padding-left: 28px;
+}
+
+.post-body li {
+  margin-bottom: 8px;
+}
+
+.post-body strong {
+  font-weight: 600;
+  color: #191919;
+}
+
+.post-body em {
+  font-style: italic;
+}
+
+.post-body code {
+  font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+  font-size: 0.88em;
+  background: #f5f5f5;
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: #d44000;
+}
+
+.post-body pre {
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin: 24px 0;
+}
+
+.post-body pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #d4d4d4;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.post-body a {
+  color: #ff9900;
+  text-decoration: underline;
+}
+
+.post-body a:hover {
+  color: #e68a00;
+}
+
+/* ── Footer ── */
+.post-footer {
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid #e6e6e6;
+}
+
+.back-link {
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b6b6b;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s;
+}
+
+.back-link:hover {
+  color: #ff9900;
+}
+
+@media (max-width: 600px) {
+  .post-title {
+    font-size: 26px;
+  }
+
+  .post-body {
+    font-size: 16px;
+  }
+
+  .post-body h2 {
+    font-size: 22px;
+  }
+}

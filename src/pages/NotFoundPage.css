@@ -1,0 +1,44 @@
+.not-found-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.not-found-inner {
+  padding: 100px 0 80px;
+  text-align: center;
+}
+
+.not-found-code {
+  font-size: 80px;
+  font-weight: 800;
+  color: #e6e6e6;
+  line-height: 1;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.not-found-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #191919;
+  margin: 0 0 16px;
+}
+
+.not-found-message {
+  font-size: 16px;
+  color: #6b6b6b;
+  margin: 0 0 32px;
+  line-height: 1.65;
+}
+
+.not-found-home-link {
+  font-size: 15px;
+  font-weight: 500;
+  color: #ff9900;
+  text-decoration: none;
+}
+
+.not-found-home-link:hover {
+  text-decoration: underline;
+}
