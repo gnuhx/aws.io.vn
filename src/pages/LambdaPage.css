@@ -1,0 +1,78 @@
+.lambda-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.lambda-header {
+  padding-top: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #e6e6e6;
+  margin-bottom: 28px;
+}
+
+.lambda-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.lambda-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #191919;
+  line-height: 1.25;
+  margin: 0 0 16px;
+  letter-spacing: -0.5px;
+}
+
+.lambda-subtitle {
+  font-size: 18px;
+  line-height: 1.75;
+  color: #444;
+  margin: 0 0 16px;
+  max-width: 760px;
+}
+
+.lambda-meta {
+  font-size: 15px;
+  color: #6b6b6b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lambda-meta-sep {
+  color: #e6e6e6;
+}
+
+.lambda-chart-scroll {
+  overflow-x: auto;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.lambda-legend {
+  margin-top: 32px;
+  padding: 20px 24px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.lambda-footer {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid #e6e6e6;
+}
+
+@media (max-width: 600px) {
+  .lambda-title {
+    font-size: 26px;
+  }
+
+  .lambda-subtitle {
+    font-size: 16px;
+  }
+}

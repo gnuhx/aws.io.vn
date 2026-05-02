@@ -2,6 +2,26 @@ import type { Post } from '../types/post';
 
 export const posts: Post[] = [
   {
+    id: 'aws-lambda-ghost-kitchen',
+    title: 'AWS Lambda — Pho24h Ghost Kitchen',
+    excerpt:
+      'An interactive visual map of AWS Lambda — from triggers (API Gateway, EventBridge, SQS) to execution environments, concurrency, cold starts, and destinations — told through ghost chefs who appear only when an order arrives.',
+    date: '2025-05-02',
+    readTime: 15,
+    tags: ['Lambda', 'Serverless', 'Interactive', 'SAA-C03'],
+    content: '',
+  },
+  {
+    id: 'aws-vpc-pho24h',
+    title: 'AWS VPC — Pho24h Factory',
+    excerpt:
+      'An interactive visual map of all 15 AWS VPC components — from Internet Gateway to NAT Gateway — told through the lens of a Vietnamese pho restaurant factory. Click any component to explore its concept, a real-world example, and a funny factory story.',
+    date: '2025-05-01',
+    readTime: 15,
+    tags: ['VPC', 'Networking', 'Interactive', 'SAA-C03'],
+    content: '',
+  },
+  {
     id: 'aws-iam-basics',
     title: 'Getting Started with AWS IAM: Users, Groups, and Policies',
     excerpt:

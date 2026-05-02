@@ -1,0 +1,111 @@
+.vpc-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.vpc-header {
+  padding-top: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #e6e6e6;
+  margin-bottom: 28px;
+}
+
+.vpc-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.vpc-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #191919;
+  line-height: 1.25;
+  margin: 0 0 16px;
+  letter-spacing: -0.5px;
+}
+
+.vpc-subtitle {
+  font-size: 18px;
+  line-height: 1.75;
+  color: #444;
+  margin: 0 0 16px;
+  max-width: 760px;
+}
+
+.vpc-meta {
+  font-size: 15px;
+  color: #6b6b6b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vpc-meta-sep {
+  color: #e6e6e6;
+}
+
+.vpc-chart-scroll {
+  overflow-x: auto;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.vpc-legend {
+  margin-top: 32px;
+  padding: 20px 24px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.legend-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 14px;
+  font-family: system-ui, -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.legend-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4b5563;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.legend-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid;
+  flex-shrink: 0;
+}
+
+.vpc-footer {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid #e6e6e6;
+}
+
+@media (max-width: 600px) {
+  .vpc-title {
+    font-size: 26px;
+  }
+
+  .vpc-subtitle {
+    font-size: 16px;
+  }
+}
