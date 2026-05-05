@@ -6,4 +6,5 @@ export interface Post {
   date: string;    // ISO date string
   readTime: number; // minutes
   tags: string[];
+  path?: string;
 }

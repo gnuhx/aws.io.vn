@@ -1,0 +1,99 @@
+.lazier-privacy-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.lazier-privacy-article {
+  padding-top: 40px;
+}
+
+.lazier-privacy-back {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 28px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b6b6b;
+  text-decoration: none;
+}
+
+.lazier-privacy-back:hover {
+  color: #ff9900;
+}
+
+.lazier-privacy-header {
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.lazier-privacy-header h1 {
+  margin: 0 0 10px;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  color: #191919;
+}
+
+.lazier-privacy-updated {
+  margin: 0;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+
+.lazier-privacy-section + .lazier-privacy-section {
+  margin-top: 32px;
+}
+
+.lazier-privacy-section h2 {
+  margin: 0 0 12px;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #191919;
+}
+
+.lazier-privacy-section p,
+.lazier-privacy-section li {
+  font-size: 18px;
+  line-height: 1.8;
+  color: #191919;
+}
+
+.lazier-privacy-section p {
+  margin: 0;
+}
+
+.lazier-privacy-section ul {
+  margin: 0;
+  padding-left: 28px;
+}
+
+.lazier-privacy-section li + li {
+  margin-top: 10px;
+}
+
+.lazier-privacy-section a {
+  color: #ff9900;
+}
+
+.lazier-privacy-section a:hover {
+  color: #e68a00;
+}
+
+@media (max-width: 600px) {
+  .lazier-privacy-header h1 {
+    font-size: 30px;
+  }
+
+  .lazier-privacy-section p,
+  .lazier-privacy-section li {
+    font-size: 16px;
+  }
+
+  .lazier-privacy-section h2 {
+    font-size: 22px;
+  }
+}

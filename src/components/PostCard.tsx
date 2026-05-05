@@ -15,6 +15,8 @@ function formatDate(iso: string): string {
 }
 
 export default function PostCard({ post }: Props) {
+  const linkTarget = post.path ?? `/post/${post.id}`;
+
   return (
     <article className="post-card">
       <div className="post-card-tags">
@@ -24,7 +26,7 @@ export default function PostCard({ post }: Props) {
           </span>
         ))}
       </div>
-      <Link to={`/post/${post.id}`} className="post-card-title-link">
+      <Link to={linkTarget} className="post-card-title-link">
         <h2 className="post-card-title">{post.title}</h2>
       </Link>
       <p className="post-card-excerpt">{post.excerpt}</p>

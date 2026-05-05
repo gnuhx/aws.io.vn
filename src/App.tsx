@@ -5,6 +5,8 @@ import PostDetailPage from './pages/PostDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
 import VpcPage from './pages/VpcPage';
 import LambdaPage from './pages/LambdaPage';
+import LazierPage from './pages/LazierPage';
+import LazierPrivacyPage from './pages/LazierPrivacyPage';
 
 export default function App() {
   return (
@@ -14,6 +16,11 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/post/aws-vpc-pho24h" element={<VpcPage />} />
         <Route path="/post/aws-lambda-ghost-kitchen" element={<LambdaPage />} />
+        <Route path="/projects/lazier" element={<LazierPage />} />
+        <Route
+          path="/projects/lazier/privacy"
+          element={<LazierPrivacyPage />}
+        />
         <Route path="/post/:id" element={<PostDetailPage />} />
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<NotFoundPage />} />

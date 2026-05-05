@@ -2,6 +2,17 @@ import type { Post } from '../types/post';
 
 export const posts: Post[] = [
   {
+    id: 'lazier-showcase',
+    title: 'Lazier — Habit Tracker for Android',
+    excerpt:
+      'A simple project showcase for Lazier, including the app overview, key features, and the privacy policy page used for Google Play listing details.',
+    date: '2025-05-05',
+    readTime: 4,
+    tags: ['Android', 'Product', 'Privacy Policy'],
+    content: '',
+    path: '/projects/lazier',
+  },
+  {
     id: 'aws-lambda-ghost-kitchen',
     title: 'AWS Lambda — Pho24h Ghost Kitchen',
     excerpt:
