@@ -7,6 +7,7 @@ import VpcPage from './pages/VpcPage';
 import LambdaPage from './pages/LambdaPage';
 import LazierPage from './pages/LazierPage';
 import LazierPrivacyPage from './pages/LazierPrivacyPage';
+import LazierDeleteAccountPage from './pages/LazierDeleteAccountPage';
 
 export default function App() {
   return (
@@ -20,6 +21,10 @@ export default function App() {
         <Route
           path="/projects/lazier/privacy"
           element={<LazierPrivacyPage />}
+        />
+        <Route
+          path="/projects/lazier/delete-account"
+          element={<LazierDeleteAccountPage />}
         />
         <Route path="/post/:id" element={<PostDetailPage />} />
         <Route path="/404" element={<NotFoundPage />} />

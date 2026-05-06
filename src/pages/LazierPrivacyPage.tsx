@@ -77,8 +77,11 @@ export default function LazierPrivacyPage() {
           <h2>Your rights</h2>
           <p>
             You can stop cloud sync at any time by signing out of your account.
-            To request deletion of your account and associated data, contact us
-            at the email below.
+            To request deletion of your account and associated data, visit our{' '}
+            <Link to="/projects/lazier/delete-account">
+              account deletion page
+            </Link>{' '}
+            or contact us at the email below.
           </p>
         </section>
 

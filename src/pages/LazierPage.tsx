@@ -44,6 +44,12 @@ export default function LazierPage() {
           >
             Privacy Policy
           </Link>
+          <Link
+            className="lazier-button lazier-button-secondary"
+            to="/projects/lazier/delete-account"
+          >
+            Delete Account
+          </Link>
         </div>
       </section>
 
@@ -78,6 +84,8 @@ export default function LazierPage() {
       <footer className="lazier-footer">
         <span>© 2025 Gnuh Le · </span>
         <Link to="/projects/lazier/privacy">Privacy Policy</Link>
+        <span> · </span>
+        <Link to="/projects/lazier/delete-account">Delete Account</Link>
       </footer>
     </main>
   );
