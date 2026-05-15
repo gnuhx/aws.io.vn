@@ -60,10 +60,6 @@ export default function LearningTreeView({ tree }: Props) {
     );
   }, [completedLessonIds, completedStorageKey]);
 
-  const completedCount = completedLessonIds.size;
-  const progressPercent =
-    Math.round((completedCount / lessonEntries.length) * 100) || 0;
-
   const selectedEntry =
     lessonEntries.find((entry) => entry.lesson.id === selectedLessonId) ??
     lessonEntries[0];
@@ -82,15 +78,7 @@ export default function LearningTreeView({ tree }: Props) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
       >
-        <div className="learning-tree-intro__eyebrow">Learning Roadmap</div>
         <h1>{tree.title}</h1>
-        <p>{tree.description}</p>
-        <div className="learning-tree-intro__meta">
-          <span>{progressPercent}% complete</span>
-          <span>{completedCount} of {lessonEntries.length} lessons</span>
-          <span>{tree.estimatedHours}</span>
-          <span>{tree.level}</span>
-        </div>
       </motion.section>
 
       <section className="learning-tree-layout">
