@@ -17,9 +17,13 @@ export interface LearningTreeTopic {
 
 export interface LearningTree {
   id: string;
+  path: string;
   title: string;
+  excerpt: string;
   description: string;
   estimatedHours: string;
   level: string;
+  date: string;
+  tags: string[];
   topics: LearningTreeTopic[];
 }

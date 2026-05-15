@@ -3,7 +3,9 @@ import { posts } from '../data/posts';
 import './HomePage.css';
 
 export default function HomePage() {
-  const sorted = [...posts].sort(
+  const sorted = posts
+    .filter((post) => post.isListed !== false)
+    .sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 

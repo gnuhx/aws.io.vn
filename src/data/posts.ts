@@ -5,10 +5,10 @@ export const posts: Post[] = [
     id: 'stupid-dev-learns-aws',
     title: 'Stupid Dev Learns AWS',
     excerpt:
-      'A special learning-tree blog that turns AWS study notes into an interactive roadmap with progress tracking, expandable branches, and lesson previews.',
-    date: '2025-05-15',
-    readTime: 12,
-    tags: ['Learning Tree', 'AWS', 'Interactive'],
+      'A big AWS learning blog that groups topics into focused roadmaps, starting with IAM.',
+    date: '2026-05-15',
+    readTime: 6,
+    tags: ['Learning Tree', 'AWS'],
     content: '',
     path: '/learning/stupid-dev-learns-aws',
   },
@@ -42,6 +42,591 @@ export const posts: Post[] = [
     readTime: 15,
     tags: ['VPC', 'Networking', 'Interactive', 'SAA-C03'],
     content: '',
+  },
+  {
+    id: 'iam-secure-root-account',
+    title: 'Secure your Root Account',
+    excerpt:
+      'Placeholder lesson for securing the AWS root account before building out IAM access patterns.',
+    date: '2026-05-15',
+    readTime: 8,
+    tags: ['IAM', 'Security', 'Roadmap'],
+    content: `
+      <h2>Concept</h2>
+      <p>
+        The <strong>root account</strong> is the god-mode identity created when you first sign up for AWS.
+        It has unrestricted access to everything: billing, account deletion, IAM, and every AWS service.
+        No normal permission boundary can meaningfully protect you from careless root usage.
+      </p>
+      <p>
+        The safest pattern is simple: enable MFA, avoid using root for daily work, delete root access keys,
+        and treat the credentials like a vault key rather than a regular login.
+      </p>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li><strong>Enable MFA</strong> on the root account immediately.</li>
+        <li><strong>Never use root for daily tasks</strong>; create IAM users or roles instead.</li>
+        <li><strong>Delete root access keys</strong>, or better, never create them in the first place.</li>
+        <li><strong>Store root credentials safely</strong> in a password manager or another controlled vault.</li>
+      </ul>
+
+      <h2>What Happens Without It?</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr>
+            <th>Risk</th>
+            <th>Consequence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No MFA on root</td>
+            <td>One leaked password can expose the entire AWS account.</td>
+          </tr>
+          <tr>
+            <td>Root used daily</td>
+            <td>Every phishing or laptop compromise becomes much more dangerous.</td>
+          </tr>
+          <tr>
+            <td>Root access keys exist</td>
+            <td>A leaked key can hand complete AWS control to an attacker.</td>
+          </tr>
+          <tr>
+            <td>No monitoring on root</td>
+            <td>Abuse may stay invisible until the bill or damage becomes obvious.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        A common real-world failure mode is crypto mining abuse: attackers spin up huge numbers of
+        EC2 or GPU instances and leave you with a catastrophic bill before anyone notices.
+      </p>
+
+      <h2>Sample in a Real Project</h2>
+      <p>
+        Imagine you are building a fintech app on AWS. The root account exists because the AWS account exists,
+        but it should not become the account people casually sign into every day.
+      </p>
+      <ol>
+        <li>Create the AWS account, then immediately secure the root identity.</li>
+        <li>Enable <strong>MFA on root</strong> with an authenticator app or hardware key.</li>
+        <li>Create an <strong>IAM admin user</strong> for normal work.</li>
+        <li>Attach admin permissions to that IAM identity, not to root usage habits.</li>
+        <li>Store the root password in a password manager with strict access control.</li>
+        <li>Alert on root sign-ins so unusual activity is visible quickly.</li>
+        <li>Use root only for rare account-level tasks or emergencies.</li>
+      </ol>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        At <strong>CloudFactory Inc.</strong>, the factory has one <strong>Master Key</strong> that unlocks
+        every room: the vault, the machines, the boss's office, and everything else.
+      </p>
+      <p>
+        Bob, the new intern, decided to use the Master Key every day because it felt convenient. Then he
+        left his bag at a coffee shop. The next morning, a stranger had unlocked every room, repainted
+        the walls, fired all the robots, ordered 10,000 rubber ducks on the company credit card, and
+        locked everyone out.
+      </p>
+
+      <div class="story-chart" aria-label="Funny Factory Story diagram">
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">Master Key</div>
+          <div class="story-chart__label">Should stay in the safe</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">Bob uses it daily</div>
+          <div class="story-chart__label">Convenience over safety</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">Bag lost at coffee shop</div>
+          <div class="story-chart__label">Credential exposure</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">Factory chaos</div>
+          <div class="story-chart__label">Robots gone, ducks arrive</div>
+        </div>
+      </div>
+
+      <p>
+        The lesson is the same in AWS: the root account is the Master Key. Daily work should use
+        a normal employee badge, meaning an IAM user or role. The Master Key should only come out
+        for emergencies, with MFA protecting it.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Exam tip:</strong> The secure answer is always the same pattern:
+          enable MFA on root, do not use root for daily tasks, and delete root access keys.
+        </p>
+      </blockquote>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'iam-policy-documents',
+    title: 'Use IAM Policy Documents to Control Access Rights',
+    excerpt:
+      'Placeholder lesson for explaining IAM policy document structure and permission logic.',
+    date: '2026-05-15',
+    readTime: 10,
+    tags: ['IAM', 'Policies', 'Roadmap'],
+    content: `
+      <h2>Concept</h2>
+      <p>
+        An <strong>IAM policy document</strong> is a JSON document that defines who can do what to which
+        resource in AWS. This is the main language AWS uses for access control.
+      </p>
+      <p>
+        Every policy is really answering three questions:
+      </p>
+      <ul>
+        <li><strong>Who?</strong> The principal, such as a user, role, or service.</li>
+        <li><strong>What?</strong> The AWS actions being allowed or denied.</li>
+        <li><strong>Which resource?</strong> The specific AWS resource identified by ARN.</li>
+      </ul>
+
+      <p>A basic policy document looks like this:</p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::my-bucket/*"
+    }
+  ]
+}</code></pre>
+
+      <h2>Key Ideas</h2>
+      <ul>
+        <li><strong>Effect</strong> is either <code>Allow</code> or <code>Deny</code>.</li>
+        <li><strong>Action</strong> defines the AWS API operations covered by the rule.</li>
+        <li><strong>Resource</strong> limits the policy to specific objects, buckets, functions, or other services.</li>
+        <li><strong>Explicit Deny always wins</strong>, even when another statement says allow.</li>
+      </ul>
+
+      <h2>Policy Types</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Identity-based</td>
+            <td>Attached to a user, group, or role.</td>
+          </tr>
+          <tr>
+            <td>Resource-based</td>
+            <td>Attached directly to a resource such as an S3 bucket.</td>
+          </tr>
+          <tr>
+            <td>AWS Managed</td>
+            <td>Prebuilt by AWS, such as <code>AdministratorAccess</code>.</td>
+          </tr>
+          <tr>
+            <td>Customer Managed</td>
+            <td>Written and controlled by your team.</td>
+          </tr>
+          <tr>
+            <td>Inline</td>
+            <td>Embedded inside one identity; usually harder to reuse and audit.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>What Happens Without It?</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr>
+            <th>Risk</th>
+            <th>Consequence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No policies</td>
+            <td>No meaningful access control model across users or workloads.</td>
+          </tr>
+          <tr>
+            <td>Over-permissive policies</td>
+            <td>One compromised identity can affect everything in the account.</td>
+          </tr>
+          <tr>
+            <td>No explicit denies</td>
+            <td>It becomes much harder to block especially sensitive actions.</td>
+          </tr>
+          <tr>
+            <td>Inline policies everywhere</td>
+            <td>Auditing and reusing permissions becomes painful very quickly.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        A single leaked developer identity with <code>"Action": "*", "Resource": "*"</code> can be enough
+        to delete buckets, databases, and running instances across the account.
+      </p>
+
+      <h2>Sample in a Real Project</h2>
+      <p>
+        Imagine a backend API on AWS with a development team, a CI/CD pipeline, and an S3 bucket for file uploads.
+        The goal is not to make one powerful policy. The goal is to give each actor exactly what it needs.
+      </p>
+
+      <p><strong>Developer team policy</strong>: can read logs but cannot touch production uploads.</p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:GetLogEvents",
+        "logs:DescribeLogStreams"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:123456789:log-group:/app/dev/*"
+    },
+    {
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "arn:aws:s3:::prod-uploads/*"
+    }
+  ]
+}</code></pre>
+
+      <p><strong>CI/CD role policy</strong>: can update one Lambda function and nothing else.</p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:UpdateFunctionCode",
+        "lambda:PublishVersion"
+      ],
+      "Resource": "arn:aws:lambda:us-east-1:123456789:function:my-api"
+    }
+  ]
+}</code></pre>
+
+      <p>
+        If the pipeline is compromised, the blast radius is still contained because the role only has the
+        permissions needed for deployment.
+      </p>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        At <strong>CloudFactory Inc.</strong>, nobody had job boundaries. Every worker could walk into any room
+        and press any button.
+      </p>
+      <p>
+        Dave from accounting wandered into the machine room and pressed the big red button labeled
+        <em>DO NOT PRESS</em>. Conveyor belts stopped, the inventory system vanished, and yet more rubber ducks
+        were ordered.
+      </p>
+
+      <div class="story-chart" aria-label="Funny Factory Story diagram">
+        <div class="story-chart__column">
+          <div class="story-chart__box">No job boundaries</div>
+          <div class="story-chart__label">Everyone can enter every room</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">Dave presses the wrong button</div>
+          <div class="story-chart__label">Too much permission for one person</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">Factory chaos</div>
+          <div class="story-chart__label">Systems stop, ducks multiply</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">Access badges</div>
+          <div class="story-chart__label">Each worker gets only the right room</div>
+        </div>
+      </div>
+
+      <p>
+        IAM policies are those access badges. Accountants should not operate production machines, developers
+        should not need billing control, and automation should only have the permissions required for one job.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Exam tip:</strong> Remember three rules: explicit deny always wins, the default is deny,
+          and least privilege means specific actions on specific resources, not <code>*:*</code>.
+        </p>
+      </blockquote>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'iam-users-and-permanent-credentials',
+    title: 'Managing IAM Users and AWS Resource Access',
+    excerpt:
+      'Placeholder lesson for managing IAM users, groups, and long-term credentials.',
+    date: '2026-05-15',
+    readTime: 10,
+    tags: ['IAM', 'Users', 'Roadmap'],
+    content: `
+      <h2>Concept</h2>
+      <p>
+        <strong>IAM users</strong> are individual identities created inside your AWS account. Each user
+        represents a person or application that needs to interact with AWS over time.
+      </p>
+      <p>
+        AWS resource access is usually managed through a combination of users, groups, roles, and policies:
+      </p>
+      <ul>
+        <li><strong>IAM Users</strong> for humans or apps with long-term credentials.</li>
+        <li><strong>IAM Groups</strong> for collections of users with shared permissions.</li>
+        <li><strong>IAM Roles</strong> for temporary access assumed by users, services, or applications.</li>
+        <li><strong>IAM Policies</strong> for the actual permission rules attached to those identities.</li>
+      </ul>
+
+      <pre><code>IAM User -> belongs to -> IAM Group -> has attached -> IAM Policy
+IAM User -> can assume -> IAM Role -> has attached -> IAM Policy
+AWS Service -> assumes -> IAM Role -> to access -> AWS Resource</code></pre>
+
+      <h2>Key Rules</h2>
+      <ul>
+        <li><strong>One user equals one person</strong>; never share credentials.</li>
+        <li><strong>Assign permissions through groups</strong> instead of attaching everything directly to users.</li>
+        <li><strong>Use roles for AWS services</strong> like EC2 or Lambda instead of embedding access keys in code.</li>
+        <li><strong>Follow least privilege</strong> by granting only what is actually needed.</li>
+      </ul>
+
+      <h2>What Happens Without It?</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr>
+            <th>Risk</th>
+            <th>Consequence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sharing IAM users</td>
+            <td>You lose accountability because many people appear as one identity.</td>
+          </tr>
+          <tr>
+            <td>No groups, only direct policies</td>
+            <td>Permission management becomes inconsistent and hard to scale.</td>
+          </tr>
+          <tr>
+            <td>Access keys in code</td>
+            <td>A public leak can become an immediate breach.</td>
+          </tr>
+          <tr>
+            <td>Using root instead of IAM users</td>
+            <td>The most powerful identity is exposed during ordinary daily work.</td>
+          </tr>
+          <tr>
+            <td>No roles for EC2 or Lambda</td>
+            <td>Applications end up depending on hardcoded credentials.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        A very common real-world mistake is hardcoding an AWS access key into frontend or application code,
+        pushing it to GitHub, and watching bots discover it within minutes.
+      </p>
+
+      <h2>Sample in a Real Project</h2>
+      <p>
+        Imagine a startup with several developers, one DevOps engineer, one data analyst, and a Lambda
+        function that reads files from S3.
+      </p>
+
+      <p><strong>Step 1: Create groups with policies</strong></p>
+      <pre><code>Group: Developers      -> Policy: PowerUserAccess (no IAM)
+Group: DevOps          -> Policy: AdministratorAccess
+Group: DataAnalysts    -> Policy: AmazonAthenaFullAccess + S3 read-only</code></pre>
+
+      <p><strong>Step 2: Create users and assign them to groups</strong></p>
+      <pre><code>alice -> Developers
+bob   -> Developers
+carol -> DevOps
+dave  -> DataAnalysts</code></pre>
+
+      <p><strong>Step 3: Create a role for Lambda, not a user</strong></p>
+      <pre><code>{
+  "Effect": "Allow",
+  "Action": ["s3:GetObject"],
+  "Resource": "arn:aws:s3:::data-bucket/*"
+}</code></pre>
+      <p>
+        Lambda assumes this role automatically, which means there are no hardcoded keys to rotate or leak.
+      </p>
+
+      <p><strong>Step 4:</strong> Enable MFA for all human users.</p>
+      <p><strong>Step 5:</strong> Rotate access keys regularly, or better, replace them with roles where possible.</p>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        At <strong>CloudFactory Inc.</strong>, everyone shared one worker badge named
+        <strong> admin@factory.com</strong>.
+      </p>
+      <p>
+        Alice used it to check reports. Bob used it to fix machines. Dave used it to order supplies.
+        Then one day somebody ordered 10,000 more rubber ducks, and the logs simply said
+        <em> admin </em> again and again.
+      </p>
+
+      <div class="story-chart" aria-label="Funny Factory Story diagram">
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">One shared badge</div>
+          <div class="story-chart__label">Everyone acts as the same identity</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">No clear audit trail</div>
+          <div class="story-chart__label">Nobody knows who did what</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">Duck order appears</div>
+          <div class="story-chart__label">Still no accountable person</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">Named badges + robot passes</div>
+          <div class="story-chart__label">Users for people, roles for machines</div>
+        </div>
+      </div>
+
+      <p>
+        The fix is the IAM model itself: every human gets a named badge, people are grouped by job,
+        and factory robots get temporary robot passes instead of human credentials.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Exam tip:</strong> IAM users are for humans with long-term credentials, roles are for
+          services or temporary access, groups cannot be nested, and one IAM user can belong to multiple groups.
+        </p>
+      </blockquote>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'iam-policy-management-part-1',
+    title: 'Practice Policy Management, Users, and Groups - Part 1',
+    excerpt:
+      'Placeholder lesson for the first hands-on IAM policy and permissions exercise.',
+    date: '2026-05-15',
+    readTime: 12,
+    tags: ['IAM', 'Practice', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Add the first hands-on exercise for creating policies and attaching them to IAM users or groups.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'iam-policy-management-part-2',
+    title: 'Practice Policy Management, Users, and Groups - Part 2',
+    excerpt:
+      'Placeholder lesson for the second hands-on IAM policy and permissions exercise.',
+    date: '2026-05-15',
+    readTime: 12,
+    tags: ['IAM', 'Practice', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Continue the exercise sequence here with more realistic access-control scenarios.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'iam-policy-management-part-3',
+    title: 'Practice Policy Management, Users, and Groups - Part 3',
+    excerpt:
+      'Placeholder lesson for the third hands-on IAM policy and permissions exercise.',
+    date: '2026-05-15',
+    readTime: 12,
+    tags: ['IAM', 'Practice', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Use this page to finish the permission exercises and summarize the main patterns you want to remember.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'iam-assume-roles-part-1',
+    title: 'Practice Creating and Assuming Roles - Part 1',
+    excerpt:
+      'Placeholder lesson for introducing IAM roles and trust relationships.',
+    date: '2026-05-15',
+    readTime: 10,
+    tags: ['IAM', 'Roles', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Introduce IAM roles, trust policies, and why temporary credentials are preferred over long-lived ones.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'iam-assume-roles-part-2',
+    title: 'Practice Creating and Assuming Roles - Part 2',
+    excerpt:
+      'Placeholder lesson for the second IAM role practice exercise.',
+    date: '2026-05-15',
+    readTime: 10,
+    tags: ['IAM', 'Roles', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Continue with role creation, trusted entities, and switching roles across accounts or services.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'iam-assume-roles-part-3',
+    title: 'Practice Creating and Assuming Roles - Part 3',
+    excerpt:
+      'Placeholder lesson for the third IAM role practice exercise.',
+    date: '2026-05-15',
+    readTime: 10,
+    tags: ['IAM', 'Roles', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Wrap up with your final role exercises, edge cases, and a short lesson summary.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'lambda-lesson-1',
+    title: 'Lesson 1 Lambda',
+    excerpt:
+      'Placeholder lesson for the first Lambda topic inside Stupid Dev Learns AWS.',
+    date: '2026-05-15',
+    readTime: 8,
+    tags: ['Lambda', 'Serverless', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Add your first Lambda lesson here.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'lambda-lesson-2',
+    title: 'Lesson 2 Lambda',
+    excerpt:
+      'Placeholder lesson for the second Lambda topic inside Stupid Dev Learns AWS.',
+    date: '2026-05-15',
+    readTime: 10,
+    tags: ['Lambda', 'Serverless', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Add your second Lambda lesson here.</p>
+    `,
+    isListed: false,
   },
   {
     id: 'aws-what-is-aws',

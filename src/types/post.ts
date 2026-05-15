@@ -7,4 +7,5 @@ export interface Post {
   readTime: number; // minutes
   tags: string[];
   path?: string;
+  isListed?: boolean;
 }

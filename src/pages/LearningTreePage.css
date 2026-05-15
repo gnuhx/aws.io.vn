@@ -124,8 +124,8 @@
 
 .learning-tree-item__branch {
   position: relative;
-  flex: 0 0 auto;
-  min-width: 24px;
+  flex: 0 0 56px;
+  width: 56px;
   height: 1px;
   background: currentColor;
   opacity: 0.42;
@@ -274,6 +274,26 @@
   padding-left: 28px;
 }
 
+.learning-tree-article__body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 26px;
+  font-size: 0.88em;
+}
+
+.learning-tree-article__body th,
+.learning-tree-article__body td {
+  padding: 14px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #eceae4;
+}
+
+.learning-tree-article__body th {
+  font-weight: 600;
+  color: #121212;
+}
+
 .learning-tree-article__body li {
   margin-bottom: 10px;
 }
@@ -311,6 +331,70 @@
   color: inherit;
 }
 
+.learning-tree-article__body .story-chart {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  align-items: center;
+  margin: 28px 0;
+  padding: 24px;
+  border: 1px solid #eceae4;
+  border-radius: 14px;
+  background: #faf9f6;
+}
+
+.learning-tree-article__body .story-chart__column {
+  display: grid;
+  gap: 8px;
+}
+
+.learning-tree-article__body .story-chart__box {
+  padding: 14px 12px;
+  border: 1px solid #d8d5ce;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 0.8em;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  color: #121212;
+}
+
+.learning-tree-article__body .story-chart__box--safe {
+  border-color: #cdbf8f;
+  background: #fffaf0;
+}
+
+.learning-tree-article__body .story-chart__box--danger {
+  border-color: #d5b0a4;
+  background: #fff5f1;
+}
+
+.learning-tree-article__body .story-chart__label {
+  font-size: 0.72em;
+  line-height: 1.5;
+  text-align: center;
+  color: #6b6b6b;
+}
+
+.learning-tree-article__body .story-chart__arrow {
+  font-size: 0.9em;
+  text-align: center;
+  color: #8a8a8a;
+}
+
+.learning-tree-article__body .lesson-tip {
+  margin: 28px 0 0;
+  padding: 18px 20px;
+  border-left: 3px solid #d6d3cd;
+  background: #faf9f6;
+  color: #3c3c3c;
+}
+
+.learning-tree-article__body .lesson-tip p {
+  margin: 0;
+}
+
 .learning-tree-article__empty {
   padding: 32px 0;
   color: #6b6b6b;
@@ -346,5 +430,13 @@
 
   .learning-tree-article__body h2 {
     font-size: 28px;
+  }
+
+  .learning-tree-article__body .story-chart {
+    grid-template-columns: 1fr;
+  }
+
+  .learning-tree-article__body .story-chart__arrow {
+    transform: rotate(90deg);
   }
 }

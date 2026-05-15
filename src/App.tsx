@@ -25,7 +25,7 @@ export default function App() {
             element={<LambdaPage />}
           />
           <Route
-            path="/learning/stupid-dev-learns-aws"
+            path="/learning/:id"
             element={<LearningTreePage />}
           />
           <Route path="/projects/lazier" element={<LazierPage />} />
