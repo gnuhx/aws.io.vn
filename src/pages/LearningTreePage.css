@@ -1,0 +1,350 @@
+.learning-tree-body {
+  background: #fdfdfb;
+  color: #242424;
+}
+
+.learning-tree-body .header {
+  background: rgba(253, 253, 251, 0.94);
+  border-bottom-color: #eceae4;
+  backdrop-filter: blur(12px);
+}
+
+.learning-tree-body .header-inner {
+  max-width: 1240px;
+}
+
+.learning-tree-page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 40px 24px 72px;
+}
+
+.learning-tree-intro {
+  max-width: 760px;
+  margin-bottom: 44px;
+}
+
+.learning-tree-intro__eyebrow,
+.learning-tree-topic__kicker,
+.learning-tree-article__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #6b6b6b;
+}
+
+.learning-tree-intro h1 {
+  margin: 12px 0 14px;
+  font-size: clamp(2.5rem, 4vw, 4.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: #121212;
+}
+
+.learning-tree-intro p {
+  margin: 0;
+  font-size: 1.18rem;
+  line-height: 1.8;
+  color: #4d4d4d;
+}
+
+.learning-tree-intro__meta,
+.learning-tree-article__meta,
+.learning-tree-article__eyebrow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.learning-tree-intro__meta {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+
+.learning-tree-intro__meta span::after,
+.learning-tree-article__meta span::after,
+.learning-tree-article__eyebrow span::after {
+  content: '·';
+  margin-left: 10px;
+  color: #b3b3b1;
+}
+
+.learning-tree-intro__meta span:last-child::after,
+.learning-tree-article__meta span:last-child::after,
+.learning-tree-article__eyebrow span:last-child::after {
+  content: '';
+  margin: 0;
+}
+
+.learning-tree-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+
+.learning-tree-roadmap {
+  position: sticky;
+  top: 96px;
+}
+
+.learning-tree-topic + .learning-tree-topic {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid #eceae4;
+}
+
+.learning-tree-topic__header h2 {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+  color: #6b6b6b;
+}
+
+.learning-tree-topic__list {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.learning-tree-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.learning-tree-item__branch {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 24px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.42;
+}
+
+.learning-tree-item__branch::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateY(-50%);
+}
+
+.learning-tree-item__content {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.learning-tree-item__title {
+  font-size: 15px;
+  line-height: 1.4;
+  color: #242424;
+}
+
+.learning-tree-item__meta {
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+.learning-tree-item.is-active .learning-tree-item__title {
+  color: #121212;
+  font-weight: 600;
+}
+
+.learning-tree-item.is-active .learning-tree-item__branch {
+  opacity: 1;
+}
+
+.learning-tree-item.is-completed .learning-tree-item__title,
+.learning-tree-item.is-completed .learning-tree-item__meta {
+  color: #2f6f4f;
+}
+
+.learning-tree-article {
+  max-width: 720px;
+}
+
+.learning-tree-article__header {
+  padding-bottom: 28px;
+  border-bottom: 1px solid #eceae4;
+  margin-bottom: 34px;
+}
+
+.learning-tree-article__header h2 {
+  margin: 14px 0 14px;
+  font-size: clamp(2rem, 3vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  color: #121212;
+}
+
+.learning-tree-article__header p {
+  margin: 0 0 18px;
+  font-size: 1.08rem;
+  line-height: 1.75;
+  color: #4d4d4d;
+}
+
+.learning-tree-article__meta {
+  font-size: 14px;
+  color: #6b6b6b;
+}
+
+.learning-tree-article__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.learning-tree-article__complete,
+.learning-tree-article__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.learning-tree-article__complete {
+  border: 1px solid #d6d3cd;
+  background: #fff;
+  color: #242424;
+  cursor: pointer;
+}
+
+.learning-tree-article__complete.is-completed {
+  border-color: #2f6f4f;
+  color: #2f6f4f;
+  background: #f3faf5;
+}
+
+.learning-tree-article__link {
+  color: #242424;
+  border: 1px solid #eceae4;
+}
+
+.learning-tree-article__body {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 21px;
+  line-height: 1.8;
+  color: #242424;
+}
+
+.learning-tree-article__body h2 {
+  margin: 46px 0 16px;
+  font-size: 32px;
+  line-height: 1.22;
+  letter-spacing: -0.03em;
+  color: #121212;
+}
+
+.learning-tree-article__body h3 {
+  margin: 32px 0 14px;
+  font-size: 24px;
+  line-height: 1.3;
+  color: #121212;
+}
+
+.learning-tree-article__body p {
+  margin: 0 0 22px;
+}
+
+.learning-tree-article__body ul,
+.learning-tree-article__body ol {
+  margin: 0 0 22px;
+  padding-left: 28px;
+}
+
+.learning-tree-article__body li {
+  margin-bottom: 10px;
+}
+
+.learning-tree-article__body strong {
+  color: #121212;
+}
+
+.learning-tree-article__body a {
+  color: #121212;
+  text-decoration-color: #b3b3b1;
+  text-underline-offset: 3px;
+}
+
+.learning-tree-article__body code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 0.82em;
+  background: #f3f2ef;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.learning-tree-article__body pre {
+  margin: 26px 0;
+  padding: 22px;
+  overflow-x: auto;
+  border-radius: 10px;
+  background: #1f1f1f;
+  color: #f5f5f5;
+}
+
+.learning-tree-article__body pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.learning-tree-article__empty {
+  padding: 32px 0;
+  color: #6b6b6b;
+}
+
+@media (max-width: 960px) {
+  .learning-tree-layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .learning-tree-roadmap {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .learning-tree-page {
+    padding: 28px 18px 56px;
+  }
+
+  .learning-tree-intro h1 {
+    font-size: 2.45rem;
+  }
+
+  .learning-tree-article__header h2 {
+    font-size: 2.1rem;
+  }
+
+  .learning-tree-article__body {
+    font-size: 18px;
+  }
+
+  .learning-tree-article__body h2 {
+    font-size: 28px;
+  }
+}
