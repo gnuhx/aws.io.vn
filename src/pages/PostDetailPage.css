@@ -209,6 +209,73 @@
   margin: 0;
 }
 
+/* ── Permission org chart (practice lessons) ── */
+.post-body .perm-chart {
+  margin: 28px 0;
+  padding: 24px;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  background: #fafaf8;
+}
+
+.post-body .perm-chart__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b6b6b;
+  margin-bottom: 16px;
+  text-align: center;
+  letter-spacing: 0.1px;
+}
+
+.post-body .perm-chart__org {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.post-body .perm-chart__group {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.post-body .perm-chart__group-name {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #f5f5f2;
+  border-bottom: 1px solid #e6e6e6;
+  color: #191919;
+  font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+}
+
+.post-body .perm-chart__policies {
+  padding: 8px 14px;
+  font-size: 11px;
+  color: #6b6b6b;
+  border-bottom: 1px solid #f0f0ee;
+  line-height: 1.5;
+}
+
+.post-body .perm-chart__users {
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.post-body .perm-chart__user {
+  padding: 2px 10px;
+  border: 1px solid #ffe0a0;
+  border-radius: 20px;
+  font-size: 11px;
+  background: #fff8ec;
+  color: #a05a00;
+  font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+  font-weight: 500;
+}
+
 .post-body a {
   color: #ff9900;
   text-decoration: underline;
@@ -259,5 +326,9 @@
 
   .post-body .story-chart__arrow {
     transform: rotate(90deg);
+  }
+
+  .post-body .perm-chart__org {
+    grid-template-columns: 1fr;
   }
 }

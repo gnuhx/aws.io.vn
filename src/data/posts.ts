@@ -520,13 +520,131 @@ dave  -> DataAnalysts</code></pre>
     id: 'iam-policy-management-part-1',
     title: 'Practice Policy Management, Users, and Groups - Part 1',
     excerpt:
-      'Placeholder lesson for the first hands-on IAM policy and permissions exercise.',
+      'Hands-on exercise: create IAM groups with managed policies, add users to those groups, and verify the permission boundaries hold.',
     date: '2026-05-15',
     readTime: 12,
     tags: ['IAM', 'Practice', 'Roadmap'],
     content: `
-      <p>This lesson is ready for your content.</p>
-      <p>Add the first hands-on exercise for creating policies and attaching them to IAM users or groups.</p>
+      <h2>What You'll Practice</h2>
+      <p>
+        You just joined a startup as the AWS admin. Your first task: set up the team from scratch —
+        create groups with the right policies, add users to those groups, then verify the permissions hold.
+      </p>
+
+      <h2>Exercise 1.1 — Create IAM Groups</h2>
+      <p>Create three groups and attach the appropriate managed policies to each.</p>
+      <table>
+        <thead>
+          <tr><th>Group</th><th>Attached Policies</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>dev-team</code></td>
+            <td><code>AmazonEC2FullAccess</code> + <code>AmazonS3ReadOnlyAccess</code></td>
+          </tr>
+          <tr>
+            <td><code>data-team</code></td>
+            <td><code>AmazonAthenaFullAccess</code> + <code>AmazonS3ReadOnlyAccess</code></td>
+          </tr>
+          <tr>
+            <td><code>ops-team</code></td>
+            <td><code>AdministratorAccess</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <pre><code>IAM → User Groups → Create Group
+→ Group name: dev-team
+→ Attach policy: AmazonEC2FullAccess
+→ Attach policy: AmazonS3ReadOnlyAccess
+→ Create Group
+
+Repeat for data-team and ops-team.</code></pre>
+
+      <h2>Exercise 1.2 — Create IAM Users</h2>
+      <p>Create four users and assign each to the right group.</p>
+      <table>
+        <thead>
+          <tr><th>Username</th><th>Group</th><th>MFA</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>alice</code></td><td><code>dev-team</code></td><td>Required</td></tr>
+          <tr><td><code>bob</code></td><td><code>dev-team</code></td><td>Required</td></tr>
+          <tr><td><code>carol</code></td><td><code>data-team</code></td><td>Required</td></tr>
+          <tr><td><code>dave</code></td><td><code>ops-team</code></td><td>Required</td></tr>
+        </tbody>
+      </table>
+      <pre><code>IAM → Users → Create User
+→ Username: alice
+→ Access type: AWS Management Console
+→ Add to group: dev-team
+→ Require MFA: Yes</code></pre>
+
+      <h2>Exercise 1.3 — Verify Permissions</h2>
+      <p>Sign in as <code>alice</code> and confirm the boundaries hold:</p>
+      <ul>
+        <li>Can she list EC2 instances? <strong>Yes</strong> — EC2 full access via <code>dev-team</code>.</li>
+        <li>Can she read from S3? <strong>Yes</strong> — S3 read-only via <code>dev-team</code>.</li>
+        <li>Can she create an S3 bucket? <strong>No</strong> — read-only policy blocks writes.</li>
+        <li>Can she access IAM? <strong>No</strong> — no IAM policy attached to <code>dev-team</code>.</li>
+      </ul>
+      <p>Expected: Alice can view EC2 and read S3. Nothing more.</p>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        At <strong>CloudFactory Inc.</strong>, there was no such thing as "your department's door."
+        Everyone had the same keycard. Alice the dev, Bob the dev, Carol the analyst, Dave the ops lead —
+        all four walked into any room they wanted. The rubber duck stockroom. The payroll vault. The server bay.
+      </p>
+      <p>
+        Then one morning, someone had allocated 40 GPU instances overnight. The audit log showed:
+        <em>"alice"</em>. Alice was on holiday. She hadn't touched a computer in five days.
+        Turns out someone found her keycard — which opened everything — and had a productive evening.
+      </p>
+      <p>
+        Dave called the factory to a halt. By end of day, every worker had a department badge.
+      </p>
+
+      <div class="perm-chart" aria-label="CloudFactory department badge system">
+        <div class="perm-chart__title">CloudFactory Inc. — New Badge System</div>
+        <div class="perm-chart__org">
+          <div class="perm-chart__group">
+            <div class="perm-chart__group-name">dev-team</div>
+            <div class="perm-chart__policies">EC2 Full · S3 Read Only</div>
+            <div class="perm-chart__users">
+              <span class="perm-chart__user">alice</span>
+              <span class="perm-chart__user">bob</span>
+            </div>
+          </div>
+          <div class="perm-chart__group">
+            <div class="perm-chart__group-name">data-team</div>
+            <div class="perm-chart__policies">Athena Full · S3 Read Only</div>
+            <div class="perm-chart__users">
+              <span class="perm-chart__user">carol</span>
+            </div>
+          </div>
+          <div class="perm-chart__group">
+            <div class="perm-chart__group-name">ops-team</div>
+            <div class="perm-chart__policies">Administrator Access</div>
+            <div class="perm-chart__users">
+              <span class="perm-chart__user">dave</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        The next incident took eleven seconds to resolve. Someone in <code>dev-team</code> had tried to access IAM.
+        Access denied. Badge logged. Carol from data-team had tried to launch an EC2 instance.
+        Access denied. Badge logged. The rubber duck stockroom stayed untouched.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Key rule:</strong> Attach permissions to groups, never directly to users.
+          When Alice moves to data-team, change her group — not seventeen individual policies.
+          That's the difference between a scalable system and a permission spreadsheet nobody trusts.
+        </p>
+      </blockquote>
     `,
     isListed: false,
   },
@@ -534,13 +652,152 @@ dave  -> DataAnalysts</code></pre>
     id: 'iam-policy-management-part-2',
     title: 'Practice Policy Management, Users, and Groups - Part 2',
     excerpt:
-      'Placeholder lesson for the second hands-on IAM policy and permissions exercise.',
+      'Write three Customer Managed Policies that replace overly broad managed policies with least-privilege access scoped to exactly what each team needs.',
     date: '2026-05-15',
     readTime: 12,
     tags: ['IAM', 'Practice', 'Roadmap'],
     content: `
-      <p>This lesson is ready for your content.</p>
-      <p>Continue the exercise sequence here with more realistic access-control scenarios.</p>
+      <h2>What You'll Practice</h2>
+      <p>
+        AWS managed policies are a good starting point, but they're almost always too broad for real workloads.
+        In this part you'll write three Customer Managed Policies that follow the principle of least privilege.
+      </p>
+
+      <h2>Exercise 2.1 — S3 Read-Only for a Specific Bucket</h2>
+      <p>
+        The <code>data-team</code> currently has <code>AmazonS3ReadOnlyAccess</code>, which grants read access
+        to <em>every</em> S3 bucket in the account. Replace it with a policy scoped to
+        <code>analytics-data-bucket</code> only.
+      </p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowSpecificBucketRead",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::analytics-data-bucket",
+        "arn:aws:s3:::analytics-data-bucket/*"
+      ]
+    }
+  ]
+}</code></pre>
+      <p>
+        Create as a <strong>Customer Managed Policy</strong> named <code>DataTeam-S3-ReadOnly</code>,
+        attach to the <code>data-team</code> group, then remove <code>AmazonS3ReadOnlyAccess</code>.
+      </p>
+
+      <h2>Exercise 2.2 — EC2 Start/Stop, No Terminate</h2>
+      <p>
+        Developers need to start and stop instances — but a mistaken termination wipes the instance permanently.
+        Replace <code>AmazonEC2FullAccess</code> with a policy that explicitly denies terminate.
+      </p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowStartStop",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:StartInstances",
+        "ec2:StopInstances",
+        "ec2:DescribeInstances"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyTerminate",
+      "Effect": "Deny",
+      "Action": "ec2:TerminateInstances",
+      "Resource": "*"
+    }
+  ]
+}</code></pre>
+      <p>
+        Name it <code>DevTeam-EC2-NoTerminate</code>, attach to <code>dev-team</code>,
+        remove <code>AmazonEC2FullAccess</code>.
+      </p>
+
+      <h2>Exercise 2.3 — Self-Service MFA</h2>
+      <p>
+        Every user should be able to enroll their own MFA device — but nothing else in IAM.
+        Attach this policy to all three groups.
+      </p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowSelfMFA",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:GetUser",
+        "iam:ListMFADevices"
+      ],
+      "Resource": "arn:aws:iam::*:user/\${aws:username}"
+    }
+  ]
+}</code></pre>
+      <p>
+        Name it <code>AllUsers-SelfMFA</code>. Attach to <code>dev-team</code>,
+        <code>data-team</code>, and <code>ops-team</code>.
+      </p>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        The department badge system was working. But three weeks in, Carol wandered into the wrong room.
+      </p>
+      <p>
+        Her badge said <strong>AmazonS3ReadOnlyAccess</strong>. It opened every S3 room in the building —
+        the analytics room, the finance room, the audit archive, the rubber duck procurement room.
+        AWS managed badges are written that way: read-only, yes, but across everything.
+      </p>
+      <p>
+        Nobody noticed Carol had been reading the payroll bucket until the compliance scan caught it.
+        Dave the admin sighed and rewrote the badge from scratch.
+      </p>
+
+      <div class="story-chart" aria-label="Least-privilege policy upgrade">
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">Managed badge<br/>AmazonS3ReadOnly<br/>(all buckets)</div>
+          <div class="story-chart__label">Too broad — opens every room</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">Carol reads<br/>payroll-bucket</div>
+          <div class="story-chart__label">Compliance flag raised</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">Custom policy written<br/>DataTeam-S3-ReadOnly</div>
+          <div class="story-chart__label">Scoped to one bucket</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">analytics-data-bucket<br/>only. Every other<br/>door stays shut.</div>
+          <div class="story-chart__label">Least privilege achieved</div>
+        </div>
+      </div>
+
+      <p>
+        The new badge was etched with precision: <code>analytics-data-bucket</code> only.
+        Carol could still do her job. The payroll room stayed closed.
+        Nobody worried about the compliance scan again.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Key rule:</strong> AWS managed policies are a starting point, not a final answer.
+          Use Customer Managed Policies to scope access to exactly the resources and actions each team needs.
+          An explicit <strong>Deny</strong> always wins over any number of Allows — use it deliberately,
+          not accidentally.
+        </p>
+      </blockquote>
     `,
     isListed: false,
   },
@@ -548,13 +805,130 @@ dave  -> DataAnalysts</code></pre>
     id: 'iam-policy-management-part-3',
     title: 'Practice Policy Management, Users, and Groups - Part 3',
     excerpt:
-      'Placeholder lesson for the third hands-on IAM policy and permissions exercise.',
+      'Use the IAM Policy Simulator to pre-test access, the Access Analyzer to find exposure, and a structured debugging process to fix a broken permission.',
     date: '2026-05-15',
     readTime: 12,
     tags: ['IAM', 'Practice', 'Roadmap'],
     content: `
-      <p>This lesson is ready for your content.</p>
-      <p>Use this page to finish the permission exercises and summarize the main patterns you want to remember.</p>
+      <h2>What You'll Practice</h2>
+      <p>
+        Policies are in place. Now something breaks. In this part you'll use the IAM Policy Simulator
+        to pre-test access, the Access Analyzer to find unintended exposure, and a structured debugging
+        process to trace and fix a real permission problem.
+      </p>
+
+      <h2>Exercise 3.1 — IAM Policy Simulator</h2>
+      <p>Test policies before they reach production. Confirm expected Allow and Deny outcomes for each user.</p>
+      <pre><code>AWS Console → IAM → Policy Simulator
+→ Select User: alice
+→ Service: S3
+→ Action: DeleteBucket
+→ Run Simulation
+→ Expected result: DENIED</code></pre>
+      <table>
+        <thead>
+          <tr><th>User</th><th>Action</th><th>Expected</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>alice</code></td><td><code>ec2:TerminateInstances</code></td><td>Deny</td></tr>
+          <tr><td><code>alice</code></td><td><code>ec2:StopInstances</code></td><td>Allow</td></tr>
+          <tr><td><code>carol</code></td><td><code>s3:GetObject</code> on <code>analytics-data-bucket</code></td><td>Allow</td></tr>
+          <tr><td><code>carol</code></td><td><code>s3:GetObject</code> on <code>prod-bucket</code></td><td>Deny</td></tr>
+          <tr><td><code>dave</code></td><td><code>iam:CreateUser</code></td><td>Allow</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Exercise 3.2 — IAM Access Analyzer</h2>
+      <p>Find overly permissive or unused access before it becomes an incident.</p>
+      <pre><code>IAM → Access Analyzer → Create Analyzer
+→ Analyzer name: startup-analyzer
+→ Zone of trust: Current account
+→ Create
+
+Review findings:
+- Any public S3 bucket policies?
+- Any cross-account role trust issues?
+- Any unused access keys older than 90 days?</code></pre>
+
+      <h2>Exercise 3.3 — Troubleshoot a Broken Permission</h2>
+      <p>Bob from <code>dev-team</code> reports he can't list EC2 instances. Walk through the fix.</p>
+      <pre><code>Step 1 → IAM → Users → bob → Permissions tab
+         Check which policies are attached (via group or direct)
+
+Step 2 → IAM → Policy Simulator → select bob
+         Test ec2:DescribeInstances
+         Look for an explicit Deny overriding Allow
+
+Step 3 → IAM → Users → bob → Groups tab
+         Confirm bob is still in dev-team
+
+Step 4 → Open the custom policy
+         Check for typos in Action name or Resource ARN
+
+Step 5 → Fix, re-simulate → confirm Allow</code></pre>
+      <p>Common culprits:</p>
+      <ul>
+        <li>Typo in action name — <code>ec2:DescribeInstance</code> vs <code>ec2:DescribeInstances</code></li>
+        <li>Wrong ARN region or account ID in Resource</li>
+        <li>An explicit <strong>Deny</strong> somewhere overriding the Allow</li>
+        <li>User removed from group accidentally</li>
+      </ul>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        Three months after the new badge system rolled out, Bob filed a complaint:
+        <em>"My badge won't open the EC2 room. I've been climbing through the window for a week."</em>
+      </p>
+      <p>
+        Dave pulled up the Policy Simulator — the digital test lock on every door. He loaded Bob's badge,
+        selected the EC2 room, ran the test: <strong>DENIED</strong>.
+      </p>
+      <p>
+        But Bob was in <code>dev-team</code>. dev-team had <code>DevTeam-EC2-NoTerminate</code>.
+        That policy listed <code>ec2:DescribeInstances</code>. The simulator shouldn't say denied.
+      </p>
+      <p>
+        Dave read the policy JSON one character at a time.
+        Line 9: <code>"ec2:DescribeInstance"</code>. No trailing <em>s</em>.
+        Seven months of policy management, broken by one missing letter.
+      </p>
+
+      <div class="story-chart" aria-label="Permission debugging flow">
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">Bob: access denied<br/>EC2 room locked</div>
+          <div class="story-chart__label">User reports broken access</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">Policy Simulator<br/>test: DENIED</div>
+          <div class="story-chart__label">Problem reproduced</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">Typo found<br/>DescribeInstance<br/>(missing s)</div>
+          <div class="story-chart__label">Root cause isolated</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">Fix applied<br/>Simulator: ALLOW<br/>Bob stops climbing</div>
+          <div class="story-chart__label">Verified and resolved</div>
+        </div>
+      </div>
+
+      <p>
+        The fix took forty seconds. Dave added a rule: every custom policy gets simulator-tested
+        before deployment. Bob was grateful. The window frame was not.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Exam tips across all 3 parts:</strong> An explicit <strong>Deny always wins</strong>,
+          even if ten other policies Allow the action. Use the <strong>Policy Simulator</strong> to test
+          before any policy goes live. <strong>Access Analyzer</strong> finds unintended public or
+          cross-account exposure. Always test with the actual user identity — not just the policy document
+          in isolation.
+        </p>
+      </blockquote>
     `,
     isListed: false,
   },
