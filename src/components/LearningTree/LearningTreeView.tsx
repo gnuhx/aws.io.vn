@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPostById } from '../../data/posts';
+import { getQuizByPostId } from '../../data/quizzes';
 import type { LearningTree, LearningTreeLesson, LearningTreeTopic } from '../../types/learningTree';
 import LessonPickerModal from './LessonPickerModal';
+import LessonQuizComponent from '../LessonQuiz/LessonQuiz';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -82,6 +84,9 @@ export default function LearningTreeView({ tree }: Props) {
     lessonEntries[0];
   const selectedPost = selectedEntry
     ? getPostById(selectedEntry.lesson.postId)
+    : undefined;
+  const selectedQuiz = selectedEntry
+    ? getQuizByPostId(selectedEntry.lesson.postId)
     : undefined;
   const selectedPostLinkLabel = selectedPost?.path?.startsWith('/learning/')
     ? 'Open track'
@@ -246,6 +251,8 @@ export default function LearningTreeView({ tree }: Props) {
                 className="learning-tree-article__body"
                 dangerouslySetInnerHTML={{ __html: selectedPost.content }}
               />
+
+              {selectedQuiz && <LessonQuizComponent quiz={selectedQuiz} />}
             </>
           ) : (
             <div className="learning-tree-article__empty">

@@ -1,5 +1,7 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { getPostById } from '../data/posts';
+import { getQuizByPostId } from '../data/quizzes';
+import LessonQuizComponent from '../components/LessonQuiz/LessonQuiz';
 import './PostDetailPage.css';
 
 function formatDate(iso: string): string {
@@ -13,6 +15,7 @@ function formatDate(iso: string): string {
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const post = id ? getPostById(id) : undefined;
+  const quiz = id ? getQuizByPostId(id) : undefined;
 
   if (!post) {
     return <Navigate to="/404" replace />;
@@ -41,6 +44,8 @@ export default function PostDetailPage() {
           className="post-body"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
+
+        {quiz && <LessonQuizComponent quiz={quiz} />}
 
         <footer className="post-footer">
           <Link to="/" className="back-link">
