@@ -10,7 +10,7 @@ I want to add a new special blog type called:
 This is NOT a normal article page.
 
 Example:
-"Stupid Dev Learns AWS"
+"Stupid Dev Learns AWS 🤡"
 
 The page should visually behave like an interactive roadmap / Git tree / skill tree.
 
@@ -23,7 +23,7 @@ Concept:
 
 Example structure:
 
-Stupid Dev Learns AWS (root)
+Stupid Dev Learns AWS 🤡(root)
 ├── AWS Basics
 │   ├── What is AWS?
 │   ├── IAM Basics
@@ -68,7 +68,7 @@ Data structure example:
 
 export const awsLearningTree = {
   id: "stupid-dev-learns-aws",
-  title: "Stupid Dev Learns AWS",
+  title: "Stupid Dev Learns AWS ",
   topics: [
     {
       id: "aws-basics",

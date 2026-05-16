@@ -4,7 +4,7 @@ export const learningTrees: LearningTree[] = [
   {
     id: 'stupid-dev-learns-aws',
     path: '/learning/stupid-dev-learns-aws',
-    title: 'Stupid Dev Learns AWS',
+    title: 'Stupid Dev Learns AWS 🤡',
     excerpt:
       'A parent learning roadmap for AWS topics, with lessons grouped directly under each topic.',
     description:

@@ -3,7 +3,7 @@ import type { Post } from '../types/post';
 export const posts: Post[] = [
   {
     id: 'stupid-dev-learns-aws',
-    title: 'Stupid Dev Learns AWS',
+    title: 'Stupid Dev Learns AWS 🤡',
     excerpt:
       'A big AWS learning blog that groups topics into focused roadmaps, starting with IAM.',
     date: '2026-05-15',

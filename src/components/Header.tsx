@@ -9,7 +9,7 @@ export default function Header() {
           <span className="header-logo-icon">☁</span>
           <span className="header-logo-text">aws.io.vn</span>
         </Link>
-        <p className="header-tagline">Learning AWS, one service at a time.</p>
+        <p className="header-tagline">A stupid dev learning AWS 🤡</p>
       </div>
     </header>
   );

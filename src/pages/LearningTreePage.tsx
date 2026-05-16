@@ -4,8 +4,9 @@ import LearningTreeView from '../components/LearningTree/LearningTreeView';
 import { getLearningTreeById } from '../data/learningTrees';
 import './LearningTreePage.css';
 
-export default function LearningTreePage() {
-  const { id } = useParams<{ id: string }>();
+export default function LearningTreePage({ defaultId }: { defaultId?: string } = {}) {
+  const { id: paramId } = useParams<{ id: string }>();
+  const id = paramId ?? defaultId;
   const tree = id ? getLearningTreeById(id) : undefined;
 
   useEffect(() => {

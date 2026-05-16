@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
-import HomePage from './pages/HomePage';
 import PostDetailPage from './pages/PostDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
 import VpcPage from './pages/VpcPage';
@@ -18,7 +17,7 @@ export default function App() {
       <Header />
       <Suspense fallback={null}>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LearningTreePage defaultId="stupid-dev-learns-aws" />} />
           <Route path="/post/aws-vpc-pho24h" element={<VpcPage />} />
           <Route
             path="/post/aws-lambda-ghost-kitchen"
