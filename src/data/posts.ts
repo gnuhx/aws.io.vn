@@ -936,13 +936,157 @@ Step 5 → Fix, re-simulate → confirm Allow</code></pre>
     id: 'iam-assume-roles-part-1',
     title: 'Practice Creating and Assuming Roles - Part 1',
     excerpt:
-      'Placeholder lesson for introducing IAM roles and trust relationships.',
+      'IAM Roles issue temporary credentials instead of permanent ones. Learn the trust model, how STS works, and why roles are always preferred over access keys for AWS services.',
     date: '2026-05-15',
     readTime: 10,
     tags: ['IAM', 'Roles', 'Roadmap'],
     content: `
-      <p>This lesson is ready for your content.</p>
-      <p>Introduce IAM roles, trust policies, and why temporary credentials are preferred over long-lived ones.</p>
+      <h2>Concept</h2>
+      <p>
+        An <strong>IAM Role</strong> is an AWS identity with permissions — but unlike a user, it has
+        <strong>no permanent credentials</strong>. Instead, it issues <strong>temporary security
+        credentials</strong> when assumed.
+      </p>
+      <p>Roles are used when:</p>
+      <ul>
+        <li>An AWS service (EC2, Lambda) needs to call other AWS services</li>
+        <li>A user from another AWS account needs access (cross-account)</li>
+        <li>A federated user (Google, Active Directory) logs into AWS</li>
+        <li>You want to temporarily elevate a user's permissions</li>
+      </ul>
+      <p><strong>How assuming a role works:</strong></p>
+      <pre><code>Entity (User / Service / App)
+    → calls sts:AssumeRole
+    → AWS STS issues temporary credentials
+        (AccessKeyId + SecretAccessKey + SessionToken)
+    → Entity uses credentials to access resources
+    → Credentials expire (15 min → 12 hrs)</code></pre>
+
+      <table class="lesson-table">
+        <thead>
+          <tr><th>Component</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Trust Policy</td><td>WHO can assume this role</td></tr>
+          <tr><td>Permission Policy</td><td>WHAT the role can do</td></tr>
+          <tr><td>Session Duration</td><td>HOW LONG the credentials last</td></tr>
+        </tbody>
+      </table>
+
+      <h2>What Happens Without It?</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr><th>Risk</th><th>Consequence</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No roles for EC2/Lambda</td>
+            <td>Must hardcode access keys in code or config</td>
+          </tr>
+          <tr>
+            <td>No cross-account roles</td>
+            <td>Must create IAM users in every account</td>
+          </tr>
+          <tr>
+            <td>No role expiry</td>
+            <td>Compromised credentials live forever</td>
+          </tr>
+          <tr>
+            <td>Using users for services</td>
+            <td>Rotating keys manually = operational nightmare</td>
+          </tr>
+        </tbody>
+      </table>
+      <blockquote class="lesson-tip">
+        <p>
+          Real damage: Lambda with hardcoded keys → dev leaks <code>.env</code> to GitHub → attacker
+          has <strong>permanent credentials</strong> until someone notices. With roles, credentials
+          expire in 1 hour automatically.
+        </p>
+      </blockquote>
+
+      <h2>Sample in a Real Project</h2>
+      <p><strong>Scenario:</strong> An EC2 instance needs to read from S3 and write logs to CloudWatch.</p>
+
+      <p><strong>Step 1 — Create the Role:</strong></p>
+      <pre><code>IAM → Roles → Create Role
+→ Trusted entity: AWS Service → EC2
+→ Attach policy: AmazonS3ReadOnlyAccess
+→ Attach policy: CloudWatchLogsFullAccess
+→ Role name: ec2-app-role</code></pre>
+
+      <p><strong>Step 2 — Trust Policy (auto-generated):</strong></p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "ec2.amazonaws.com" },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}</code></pre>
+
+      <p><strong>Step 3 — Attach role to EC2 instance:</strong></p>
+      <pre><code>EC2 → Instances → Select instance
+→ Actions → Security → Modify IAM Role
+→ Select: ec2-app-role → Save</code></pre>
+
+      <p>
+        <strong>Result:</strong> EC2 app calls S3 and CloudWatch with zero hardcoded credentials.
+        AWS rotates tokens automatically.
+      </p>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        At <strong>CloudFactory Inc.</strong>, the delivery robot needed to enter the warehouse to pick
+        up boxes. But it had no permanent badge — robots aren't trusted with permanent access.
+      </p>
+      <p>
+        So the boss set up a <strong>Temp Pass Kiosk</strong> (AWS STS). Every morning, the robot
+        walks up, scans its ID, and gets a pass valid for 1 hour. It enters the warehouse, grabs the
+        boxes, delivers them, and the pass expires.
+      </p>
+      <p>
+        Dave tried to steal the robot's pass once. He waited 47 minutes to use it. It had already
+        expired. Dave went back to the rubber duck liquidation team. 🦆
+      </p>
+
+      <div class="story-chart" aria-label="IAM Role assumption flow — CloudFactory">
+        <div class="story-chart__column">
+          <div class="story-chart__box">🤖 Robot<br/>(Entity)</div>
+          <div class="story-chart__label">calls sts:AssumeRole</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">🎫 Temp Pass Kiosk<br/>(AWS STS)</div>
+          <div class="story-chart__label">issues 1-hour credentials</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">🏭 Warehouse<br/>(AWS Resource)</div>
+          <div class="story-chart__label">access granted ✅</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">😈 Dave<br/>(Attacker)</div>
+          <div class="story-chart__label">pass expired — denied ❌</div>
+        </div>
+      </div>
+
+      <p>
+        The robot never had a permanent badge. It never needed one. That's the beauty of IAM Roles.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Exam tip (SAA-C03):</strong> Roles = temporary credentials via STS — always prefer
+          over access keys for services. Trust Policy = who can assume; Permission Policy = what it
+          can do. Cross-account access uses roles, not duplicate IAM users. SCP Deny always wins over
+          IAM role permissions. To revoke leaked STS credentials → use <code>aws:TokenIssueTime</code>
+          condition deny.
+        </p>
+      </blockquote>
     `,
     isListed: false,
   },
@@ -950,13 +1094,192 @@ Step 5 → Fix, re-simulate → confirm Allow</code></pre>
     id: 'iam-assume-roles-part-2',
     title: 'Practice Creating and Assuming Roles - Part 2',
     excerpt:
-      'Placeholder lesson for the second IAM role practice exercise.',
+      'Hands-on creation of service roles, cross-account roles, and console role switching — with CLI commands, trust policy patterns, and the 1-hour role-chaining cap.',
     date: '2026-05-15',
     readTime: 10,
     tags: ['IAM', 'Roles', 'Roadmap'],
     content: `
-      <p>This lesson is ready for your content.</p>
-      <p>Continue with role creation, trusted entities, and switching roles across accounts or services.</p>
+      <h2>Concept</h2>
+      <p>
+        Part 2 goes hands-on — creating roles for real scenarios: <strong>service roles,
+        cross-account roles, and role switching</strong> via the AWS Console and CLI.
+      </p>
+      <p>Three core patterns you must know:</p>
+      <pre><code>Pattern 1: Service Role
+EC2 / Lambda → assumes role → accesses AWS resources
+
+Pattern 2: Cross-Account Role
+Account A User → sts:AssumeRole → Role in Account B → accesses Account B resources
+
+Pattern 3: Role Switching (Console)
+IAM User → Switch Role → elevated/scoped access in target account</code></pre>
+
+      <p><strong>Key CLI commands:</strong></p>
+      <pre><code># Assume a role and receive temp credentials
+aws sts assume-role \\
+  --role-arn arn:aws:iam::123456789012:role/my-role \\
+  --role-session-name my-session
+
+# Verify which identity is currently active
+aws sts get-caller-identity
+
+# Export temp credentials for use in the shell
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_SESSION_TOKEN=...</code></pre>
+
+      <h2>What Happens Without It?</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr><th>Risk</th><th>Consequence</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No service role pattern</td>
+            <td>Devs hardcode keys into EC2/Lambda — keys leak</td>
+          </tr>
+          <tr>
+            <td>No cross-account roles</td>
+            <td>IAM users in every account → sprawl, no audit trail</td>
+          </tr>
+          <tr>
+            <td>No role switching</td>
+            <td>Admins use high-privilege accounts daily → large blast radius</td>
+          </tr>
+          <tr>
+            <td>No session naming</td>
+            <td>Can't trace which session did what in CloudTrail</td>
+          </tr>
+        </tbody>
+      </table>
+      <blockquote class="lesson-tip">
+        <p>
+          Real damage: A team managing 5 accounts creates an IAM user in each one for every
+          developer — 20 devs × 5 accounts = <strong>100 credential sets</strong> to rotate, audit,
+          and eventually forget. One stale account gets compromised 8 months later.
+        </p>
+      </blockquote>
+
+      <h2>Sample in a Real Project</h2>
+      <p>
+        <strong>Scenario:</strong> A DevOps team manages 3 accounts — <code>dev</code>,
+        <code>staging</code>, <code>prod</code>. Devs work in <code>dev</code> daily, but a senior
+        engineer can switch into <code>prod</code> for deployments.
+      </p>
+
+      <p><strong>Step 1 — Create deployment role in the prod account:</strong></p>
+      <pre><code>IAM → Roles → Create Role
+→ Trusted entity: Another AWS account
+→ Account ID: [dev account ID]
+→ Attach policy: PowerUserAccess
+→ Role name: prod-deploy-role
+→ Add condition: MFA required</code></pre>
+
+      <p><strong>Trust Policy for prod-deploy-role:</strong></p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "AWS": "arn:aws:iam::DEV_ACCOUNT_ID:root"
+    },
+    "Action": "sts:AssumeRole",
+    "Condition": {
+      "Bool": { "aws:MultiFactorAuthPresent": "true" }
+    }
+  }]
+}</code></pre>
+
+      <p><strong>Step 2 — Grant the engineer permission to assume it (in dev account):</strong></p>
+      <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::PROD_ACCOUNT_ID:role/prod-deploy-role"
+  }]
+}</code></pre>
+
+      <p><strong>Step 3 — Engineer switches role in the console:</strong></p>
+      <pre><code>Top-right menu → Switch Role
+→ Account: PROD_ACCOUNT_ID
+→ Role: prod-deploy-role
+→ Display name: PROD (red)
+→ Switch Role</code></pre>
+
+      <p>
+        <strong>Result:</strong> Engineer works in <code>dev</code> all day. Switches to
+        <code>prod</code> only for deployments — MFA enforced, session logged in CloudTrail,
+        auto-expires in 1 hour.
+      </p>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        <strong>CloudFactory Inc.</strong> now runs 3 buildings — Dev, Staging, and Prod.
+      </p>
+      <p>
+        Junior workers live in the Dev building all day. But one day, Dave wandered into the Prod
+        building, pressed a button, and deployed half-finished rubber duck firmware to 50,000
+        customers. The ducks quacked in Morse code. Nobody ordered that feature.
+      </p>
+      <p>
+        The boss introduced <strong>Role Switching Passes</strong>: junior workers stay in Dev,
+        senior engineers get a Switch Pass only after scanning their MFA fob at the door. The pass
+        lasts 1 hour, logs their name in the CloudTrail ledger, and self-destructs after use.
+      </p>
+      <p>
+        Dave applied for a Switch Pass. He was denied. He remains in Dev, surrounded by ducks that
+        now say "SOS" in Morse code. 🦆📟
+      </p>
+
+      <div class="story-chart" aria-label="Role switching flow — CloudFactory">
+        <div class="story-chart__column">
+          <div class="story-chart__box">🧑‍💼 Senior Engineer<br/>(Dev Account)</div>
+          <div class="story-chart__label">normal daily work</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">🔐 MFA Fob<br/>(STS Kiosk)</div>
+          <div class="story-chart__label">identity verified ✅</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">🎫 1-Hour Switch Pass<br/>(temp credentials)</div>
+          <div class="story-chart__label">logged in CloudTrail</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">🏭 Prod Account<br/>PowerUserAccess</div>
+          <div class="story-chart__label">session expires in 1 hr</div>
+        </div>
+      </div>
+
+      <div class="story-chart" aria-label="Dave denied">
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">😈 Dave<br/>(Dev Account)</div>
+          <div class="story-chart__label">requests Switch Pass</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">🚫 Denied<br/>(not in Trust Policy)</div>
+          <div class="story-chart__label">no credentials issued</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">🦆📟 Dev Building<br/>SOS ducks</div>
+          <div class="story-chart__label">Dave stays put</div>
+        </div>
+      </div>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Exam tips — Part 2:</strong> Switch Role suspends your user session — permissions
+          never combine. Both sides must agree for cross-account access. All 3 STS values are
+          required: AccessKeyId + SecretAccessKey + SessionToken. IMDS at 169.254.169.254 is how
+          EC2 gets credentials automatically. Role chaining hard cap = 1 hour, non-configurable.
+          Removing an OIDC provider stops new sessions but does not revoke active ones.
+        </p>
+      </blockquote>
     `,
     isListed: false,
   },
@@ -964,13 +1287,192 @@ Step 5 → Fix, re-simulate → confirm Allow</code></pre>
     id: 'iam-assume-roles-part-3',
     title: 'Practice Creating and Assuming Roles - Part 3',
     excerpt:
-      'Placeholder lesson for the third IAM role practice exercise.',
+      'Advanced role patterns for production: web identity federation, SAML SSO, permission boundaries, and the correct incident response sequence for a compromised role.',
     date: '2026-05-15',
-    readTime: 10,
+    readTime: 12,
     tags: ['IAM', 'Roles', 'Roadmap'],
     content: `
-      <p>This lesson is ready for your content.</p>
-      <p>Wrap up with your final role exercises, edge cases, and a short lesson summary.</p>
+      <h2>Concept</h2>
+      <p>
+        Part 3 is the final chapter — <strong>advanced role patterns</strong> used in production:
+        federated access, permission boundaries, role chaining strategies, and incident response
+        for compromised roles.
+      </p>
+
+      <pre><code>Pattern 1: Web Identity Federation
+User (Google/Facebook) → OIDC Provider → sts:AssumeRoleWithWebIdentity → AWS Resources
+
+Pattern 2: SAML Federation
+Corporate AD User → SAML IdP → sts:AssumeRoleWithSAML → AWS Console/API
+
+Pattern 3: Permission Boundary
+Effective Permissions = IAM Policy ∩ Permission Boundary
+
+Pattern 4: Incident Response
+Leaked role creds → Deny policy + aws:TokenIssueTime → Full revocation</code></pre>
+
+      <table class="lesson-table">
+        <thead>
+          <tr><th></th><th>SCP</th><th>Permission Boundary</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Scope</td><td>Entire AWS account</td><td>Single IAM user or role</td></tr>
+          <tr><td>Set by</td><td>Org management account</td><td>IAM admin in same account</td></tr>
+          <tr><td>Purpose</td><td>Account-level guardrail</td><td>Delegate admin safely</td></tr>
+        </tbody>
+      </table>
+
+      <h2>What Happens Without It?</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr><th>Risk</th><th>Consequence</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>No federation</td><td>Every contractor needs a permanent IAM user</td></tr>
+          <tr><td>No permission boundaries</td><td>Delegated admins can create roles more powerful than themselves</td></tr>
+          <tr><td>No incident response plan</td><td>Leaked role creds stay active until natural expiry</td></tr>
+          <tr><td>No SAML/SSO</td><td>100-person company = 100 IAM users to manage manually</td></tr>
+        </tbody>
+      </table>
+      <blockquote class="lesson-tip">
+        <p>
+          Real damage: A junior admin is delegated IAM permissions with no permission boundary.
+          They create a role with <code>AdministratorAccess</code> and use it to bypass all
+          restrictions. Classic privilege escalation — a boundary would have made that impossible.
+        </p>
+      </blockquote>
+
+      <h2>Sample in a Real Project</h2>
+
+      <p><strong>Scenario 1 — Web Identity Federation for a mobile app:</strong></p>
+      <pre><code>{
+  "Principal": { "Federated": "cognito-identity.amazonaws.com" },
+  "Action": "sts:AssumeRoleWithWebIdentity",
+  "Condition": {
+    "StringEquals": {
+      "cognito-identity.amazonaws.com:aud": "us-east-1:abc-pool-id"
+    }
+  }
+}</code></pre>
+      <p>
+        Mobile user logs in via Google → Cognito exchanges token → Role issued → User accesses only
+        their own S3 prefix. No IAM user is created.
+      </p>
+
+      <p><strong>Scenario 2 — Permission Boundary for delegated admin:</strong></p>
+      <pre><code>{
+  "Effect": "Allow",
+  "Action": ["s3:*", "ec2:*", "cloudwatch:*"],
+  "Resource": "*"
+}</code></pre>
+      <p>
+        Attach as Permission Boundary to the junior admin's role. They can create any IAM role —
+        but those roles can never exceed S3, EC2, and CloudWatch. Privilege escalation blocked.
+      </p>
+
+      <p><strong>Scenario 3 — Incident response for a leaked role:</strong></p>
+      <pre><code>{
+  "Effect": "Deny",
+  "Action": "*",
+  "Resource": "*",
+  "Condition": {
+    "DateLessThan": {
+      "aws:TokenIssueTime": "2026-05-17T10:30:00Z"
+    }
+  }
+}</code></pre>
+      <p>
+        Attach inline to the role → all sessions issued before 10:30 AM are dead instantly. Then
+        audit CloudTrail by session name for attacker activity.
+      </p>
+
+      <h2>Funny Factory Story</h2>
+      <p>
+        <strong>CloudFactory Inc.</strong> hired a consultant, 3 Google contractors, and a partner
+        company — none of them get permanent badges.
+      </p>
+      <p>
+        The Google contractors log in with their Google accounts. A <strong>Temp Kiosk</strong>
+        (Cognito + OIDC) checks their Google ID and prints a 1-hour badge that only opens their
+        assigned room. The partner company sends a signed note from their HR system (SAML IdP):
+        "These 5 people are verified engineers." The factory hands them badges — no new accounts
+        created.
+      </p>
+      <p>
+        Then Dave (now a "junior admin") was given keys to make new badges. He tried to make himself
+        a Master Key. But the boss had installed a <strong>Permission Boundary</strong> — Dave's
+        badge machine was physically incapable of printing Master Keys. It just beeped sadly.
+      </p>
+      <p>
+        One day a contractor lost their badge. The boss ran the <strong>TokenIssueTime
+        revocation</strong> — every badge issued before 10:30 AM stopped working immediately.
+        The lost badge beeped red. Dave's self-made badge also beeped red. Nobody was surprised.
+        🦆🔐
+      </p>
+
+      <div class="story-chart" aria-label="Web Identity Federation flow">
+        <div class="story-chart__column">
+          <div class="story-chart__box">👷 Google Contractor<br/>(external user)</div>
+          <div class="story-chart__label">logs in with Google</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">🎫 OIDC Kiosk<br/>(Cognito / STS)</div>
+          <div class="story-chart__label">AssumeRoleWithWebIdentity ✅</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">🏭 Assigned Room<br/>(scoped AWS resource)</div>
+          <div class="story-chart__label">1-hour badge — no IAM user</div>
+        </div>
+      </div>
+
+      <div class="story-chart" aria-label="Permission Boundary blocks Dave">
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">😈 Dave<br/>(Junior Admin)</div>
+          <div class="story-chart__label">tries to print Master Key</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">🔒 Permission Boundary<br/>(S3 + EC2 only)</div>
+          <div class="story-chart__label">❌ BEEP — intersection caps it</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">New role effective permissions:<br/>S3 + EC2 only</div>
+          <div class="story-chart__label">AdministratorAccess = irrelevant</div>
+        </div>
+      </div>
+
+      <div class="story-chart" aria-label="TokenIssueTime revocation">
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">🚨 Leaked badge<br/>(active session)</div>
+          <div class="story-chart__label">30 min remaining</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">Inline Deny policy<br/>TokenIssueTime &lt; 10:30 AM</div>
+          <div class="story-chart__label">attached to role immediately</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">All pre-10:30 sessions<br/>→ dead instantly 🚫</div>
+          <div class="story-chart__label">new sessions unaffected ✅</div>
+        </div>
+      </div>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Final exam cheat sheet — all 3 parts:</strong>
+          Roles = temp creds via STS (all 3 required). Role chaining cap = 1 hour.
+          Trust Policy: Principal = who can assume; <code>aws:MultiFactorAuthPresent</code> = MFA;
+          <code>sts:ExternalId</code> = confused deputy protection.
+          Permission Boundary: Effective = IAM Policy ∩ Boundary — never additive.
+          Federation: OIDC → <code>AssumeRoleWithWebIdentity</code>; SAML → <code>AssumeRoleWithSAML</code>.
+          Incident Response: active sessions → <code>aws:TokenIssueTime</code> deny;
+          future sessions → remove Trust Policy principals; never delete the role.
+        </p>
+      </blockquote>
     `,
     isListed: false,
   },

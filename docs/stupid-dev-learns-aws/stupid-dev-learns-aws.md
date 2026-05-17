@@ -68,7 +68,7 @@ Data structure example:
 
 export const awsLearningTree = {
   id: "stupid-dev-learns-aws",
-  title: "Stupid Dev Learns AWS ",
+  title: "Stupid Dev Learns AWS 🤡",
   topics: [
     {
       id: "aws-basics",

@@ -1914,6 +1914,1094 @@ Re-simulate → ALLOWED ✅`,
       },
     ],
   },
+  {
+    postId: 'iam-assume-roles-part-1',
+    questions: [
+      {
+        id: 'roles1-q1', difficulty: 'beginner', topic: 'User vs Role',
+        question: 'What is the main difference between an IAM User and an IAM Role?',
+        options: [
+          { id: 'A', text: 'IAM Users have temporary credentials; Roles have permanent credentials' },
+          { id: 'B', text: 'IAM Roles have no permanent credentials and issue temporary tokens via STS when assumed' },
+          { id: 'C', text: 'IAM Roles can only be used by human users, not AWS services' },
+          { id: 'D', text: 'IAM Users automatically expire after 90 days without credential rotation' },
+        ],
+        correct: 'B',
+        explanation: 'An IAM Role issues temporary credentials (AccessKeyId + SecretAccessKey + SessionToken) via AWS STS when assumed. IAM Users have permanent long-term credentials that must be manually rotated. Roles are preferred for services, automation, and cross-account access.',
+        wrongExplanations: {
+          A: 'This has the relationship exactly backwards — Users hold permanent credentials, Roles hold none.',
+          C: 'Roles are primarily designed for AWS services (EC2, Lambda, ECS) and automated processes, not humans.',
+          D: 'IAM Users do not auto-expire. Access keys must be manually rotated or deactivated.',
+        },
+        flowchart: `IAM User
+  → has permanent credentials (Access Key + Secret)
+  → must be manually rotated
+  → risk: leaked = permanently compromised
+
+IAM Role
+  → NO permanent credentials stored anywhere
+  → calls sts:AssumeRole
+  → receives temporary tokens (15 min → 12 hrs)
+  → leaked token expires automatically ✅`,
+        wrongGuidance: 'Think of it this way: IAM Users are like employee badges that never expire (dangerous). IAM Roles are like visitor passes that expire in an hour (safe).',
+      },
+      {
+        id: 'roles1-q2', difficulty: 'beginner', topic: 'STS',
+        question: 'Which AWS service issues temporary credentials when a role is assumed?',
+        options: [
+          { id: 'A', text: 'AWS IAM — it extends permanent credentials for temporary use' },
+          { id: 'B', text: 'AWS KMS — it generates session tokens for role-based access' },
+          { id: 'C', text: 'AWS Cognito — it federates identity and issues session credentials' },
+          { id: 'D', text: 'AWS STS (Security Token Service) — it issues AccessKeyId, SecretAccessKey, and SessionToken' },
+        ],
+        correct: 'D',
+        explanation: 'AWS STS (Security Token Service) is the dedicated service for issuing short-lived credentials. When sts:AssumeRole is called, STS returns three values: AccessKeyId, SecretAccessKey, and a SessionToken. All three are required together to authenticate API calls.',
+        wrongExplanations: {
+          A: 'IAM manages identities and policies but does not issue temporary credentials itself.',
+          B: 'KMS manages encryption keys; it has no role in issuing session tokens.',
+          C: 'Cognito is for user identity federation (web and mobile apps), not for IAM role assumption by services.',
+        },
+        flowchart: `Entity calls sts:AssumeRole("arn:aws:iam::123:role/my-role")
+         │
+         ▼
+AWS STS validates the Trust Policy
+  → Is this entity listed as a Principal?
+  → Are any Conditions satisfied?
+         │
+         ▼
+STS issues temporary credentials:
+  AccessKeyId:     ASIA...
+  SecretAccessKey: abc123...
+  SessionToken:    FwoGZXIv...
+  Expiration:      2026-05-17T14:00:00Z
+         │
+         ▼
+Entity uses credentials to call AWS APIs ✅`,
+        wrongGuidance: 'STS is the one service dedicated to issuing short-lived credentials. On SAA-C03, whenever you see "temporary credentials" or "assume role," the answer involves STS.',
+      },
+      {
+        id: 'roles1-q3', difficulty: 'beginner', topic: 'Lambda + S3 Access',
+        question: 'A Lambda function needs to read objects from S3. What is the correct approach?',
+        options: [
+          { id: 'A', text: 'Create an IAM User, generate access keys, store them as Lambda environment variables' },
+          { id: 'B', text: 'Use root account credentials passed via a Secrets Manager secret' },
+          { id: 'C', text: 'Create an IAM Role with S3 read permissions and assign it as Lambda\'s execution role' },
+          { id: 'D', text: 'Hardcode access keys directly in the Lambda source code' },
+        ],
+        correct: 'C',
+        explanation: 'Lambda execution roles are the correct pattern. Lambda automatically assumes the role and receives fresh temporary credentials on every invocation. No keys are stored in code or environment variables. If the function is compromised, credentials expire within the hour.',
+        wrongExplanations: {
+          A: 'Environment variables are readable by anyone who can view the Lambda configuration. Long-term keys stored there are a security risk.',
+          B: 'Root credentials should never be used by any application, ever. Storing them in Secrets Manager does not make this acceptable.',
+          D: 'Hardcoded credentials in source code are the #1 way secrets end up on GitHub and get exploited within minutes.',
+        },
+        flowchart: `❌ Wrong approach — hardcoded keys:
+  Lambda code → AWS_ACCESS_KEY_ID = "AKIA..."
+  → Key is static, never rotates
+  → One git push accident = permanent breach
+
+✅ Correct approach — execution role:
+  IAM Role "lambda-s3-reader"
+    → Trust Policy: "Principal": {"Service": "lambda.amazonaws.com"}
+    → Permission: s3:GetObject on my-bucket/*
+  Lambda → assigned this role
+  On invocation → STS issues fresh temp credentials
+  → Credentials expire after 1 hour automatically ✅`,
+        wrongGuidance: 'For any AWS service (Lambda, EC2, ECS, Glue), always use an IAM Role. Never store long-term credentials in environment variables or source code.',
+      },
+      {
+        id: 'roles1-q4', difficulty: 'intermediate', topic: 'Role Components',
+        question: 'What are the two key policies that define an IAM Role?',
+        options: [
+          { id: 'A', text: 'Access Policy and Bucket Policy' },
+          { id: 'B', text: 'Inline Policy and Managed Policy' },
+          { id: 'C', text: 'Trust Policy and Permission Policy' },
+          { id: 'D', text: 'Resource Policy and Identity Policy' },
+        ],
+        correct: 'C',
+        explanation: 'Every IAM Role has two distinct policy types: the Trust Policy controls WHO can call sts:AssumeRole (the principal — a service, user ARN, or account), and the Permission Policy controls WHAT that role can do once assumed (the actions and resources allowed).',
+        wrongExplanations: {
+          A: 'Bucket Policy is an S3 concept, not an IAM Role component.',
+          B: 'Inline vs Managed describes how a permission policy is stored, not the structural components of a role.',
+          D: 'Resource Policy and Identity Policy are broader IAM categories, not the specific role components.',
+        },
+        flowchart: `IAM Role: "ec2-app-role"
+│
+├── Trust Policy (WHO can assume)
+│     {
+│       "Principal": {"Service": "ec2.amazonaws.com"},
+│       "Action": "sts:AssumeRole"
+│     }
+│     → Only EC2 instances can assume this role
+│
+└── Permission Policy (WHAT it can do)
+      {
+        "Action": ["s3:GetObject", "logs:PutLogEvents"],
+        "Resource": "*"
+      }
+      → Can read S3 and write CloudWatch Logs`,
+        wrongGuidance: 'Remember the mnemonic: Trust = WHO, Permission = WHAT. If the Trust Policy is wrong, no one can assume the role. If the Permission Policy is wrong, the role can\'t do its job.',
+      },
+      {
+        id: 'roles1-q5', difficulty: 'intermediate', topic: 'Cross-Account Access',
+        question: 'Company A wants to give Company B\'s IAM users read access to its S3 bucket. What is the correct approach?',
+        options: [
+          { id: 'A', text: 'Create duplicate IAM users for Company B\'s staff inside Company A\'s account' },
+          { id: 'B', text: 'Share Company A\'s root credentials with Company B\'s security team' },
+          { id: 'C', text: 'Use VPC Peering to establish network access between the two accounts' },
+          { id: 'D', text: 'Create a cross-account IAM Role in Company A\'s account, trusting Company B\'s account ID' },
+        ],
+        correct: 'D',
+        explanation: 'Cross-account IAM Roles are the standard pattern. Company A creates a role with S3 read permissions and a Trust Policy that lists Company B\'s account. Company B\'s users call sts:AssumeRole to receive temporary credentials scoped to that role. No credentials are shared, and access can be revoked instantly.',
+        wrongExplanations: {
+          A: 'Creating IAM users in every account is exactly the chaos that cross-account roles were designed to eliminate. It creates audit, offboarding, and credential-rotation problems.',
+          B: 'Sharing root credentials is never acceptable for any reason.',
+          C: 'VPC Peering is a network connectivity tool; it does not control IAM authentication or S3 access.',
+        },
+        flowchart: `Company A's account (123456789)
+  IAM Role: "company-b-s3-reader"
+    Trust Policy:
+      Principal: { "AWS": "arn:aws:iam::987654321:root" }
+      → Allows Company B's account to assume this role
+    Permission Policy:
+      s3:GetObject on company-a-data-bucket/*
+
+Company B's account (987654321)
+  IAM User: "carol"
+  → carol calls sts:AssumeRole
+  → STS issues temporary credentials scoped to the role
+  → carol reads from Company A's bucket ✅
+  → Session expires after 1 hour
+  → No long-term credentials shared`,
+        wrongGuidance: 'Cross-account access always uses roles, never duplicated IAM users. SAA-C03 loves testing this. If two accounts need to share access, a cross-account role is the answer.',
+      },
+      {
+        id: 'roles1-q6', difficulty: 'intermediate', topic: 'Attach Role to Running EC2',
+        question: 'An EC2 instance is running with no IAM role. A developer needs to add DynamoDB access. What should they do?',
+        options: [
+          { id: 'A', text: 'SSH into the instance and run aws configure to store long-term access keys' },
+          { id: 'B', text: 'Attach the IAM role via EC2 → Actions → Security → Modify IAM Role — no reboot required' },
+          { id: 'C', text: 'Terminate the instance and relaunch it with the IAM role attached at launch time' },
+          { id: 'D', text: 'Embed DynamoDB credentials in the application\'s config file and redeploy' },
+        ],
+        correct: 'B',
+        explanation: 'You can attach or replace an IAM role on a running EC2 instance without rebooting. The credentials become available via the Instance Metadata Service (IMDS) at 169.254.169.254/latest/meta-data/iam/ within seconds of attachment.',
+        wrongExplanations: {
+          A: 'Storing keys with aws configure embeds static credentials on the instance. They don\'t rotate and a single snapshot leak exposes them.',
+          C: 'Terminating a running instance causes downtime and data loss risk. It\'s unnecessary — you can attach the role live.',
+          D: 'Config file credentials are static and will be present in every deployment artifact, backup, and AMI snapshot.',
+        },
+        flowchart: `Running EC2 instance (no role attached)
+         │
+EC2 → Actions → Security → Modify IAM Role
+         │
+Select role: "dynamodb-reader"
+Click: Update IAM Role
+         │
+Within seconds:
+  IMDS endpoint becomes active:
+  GET http://169.254.169.254/latest/meta-data/iam/security-credentials/dynamodb-reader
+         │
+App code uses AWS SDK → SDK auto-fetches credentials from IMDS
+         │
+DynamoDB calls succeed ✅
+No reboot. No downtime. No static keys.`,
+        wrongGuidance: 'IMDS (Instance Metadata Service) is what makes this work. The SDK automatically retrieves and refreshes temporary credentials from IMDS when a role is attached.',
+      },
+      {
+        id: 'roles1-q7', difficulty: 'hard', topic: 'Trust Policy — Principal',
+        question: 'What is the purpose of the Principal field in a Role\'s Trust Policy?',
+        options: [
+          { id: 'A', text: 'It defines which AWS resources the role is allowed to access' },
+          { id: 'B', text: 'It sets the maximum session duration for assumed credentials' },
+          { id: 'C', text: 'It determines which AWS region the role is active in' },
+          { id: 'D', text: 'It identifies which entity (user, service, or account) is allowed to call sts:AssumeRole on this role' },
+        ],
+        correct: 'D',
+        explanation: 'The Principal in a Trust Policy answers WHO can assume the role. It can be an AWS service (ec2.amazonaws.com), a specific IAM user ARN, another AWS account, or a federated identity provider. Without a correct Principal, no one can assume the role regardless of what permissions it has.',
+        wrongExplanations: {
+          A: 'What the role can access is controlled by the Permission Policy, not the Trust Policy.',
+          B: 'Session duration is controlled by the MaxSessionDuration property on the role and the --duration-seconds parameter in the AssumeRole call.',
+          C: 'IAM Roles are global — they are not scoped to a specific region.',
+        },
+        flowchart: `Trust Policy examples:
+
+AWS Service assumes the role:
+  "Principal": {"Service": "ec2.amazonaws.com"}
+  "Principal": {"Service": "lambda.amazonaws.com"}
+
+Specific IAM User assumes the role:
+  "Principal": {"AWS": "arn:aws:iam::123:user/alice"}
+
+Another AWS account assumes the role:
+  "Principal": {"AWS": "arn:aws:iam::987654321:root"}
+
+Federated identity (SAML/OIDC):
+  "Principal": {"Federated": "arn:aws:iam::123:saml-provider/MyIdP"}
+
+→ If you're not listed in Principal, sts:AssumeRole is DENIED`,
+        wrongGuidance: 'Trust Policy = the door into the role. Permission Policy = what you can do once inside. You need both to be correct for a role to work.',
+      },
+      {
+        id: 'roles1-q8', difficulty: 'hard', topic: 'SCP vs IAM Role',
+        question: 'A role has AmazonS3FullAccess attached. An SCP on the account denies s3:DeleteObject for all principals. What happens when the role tries to delete an S3 object?',
+        options: [
+          { id: 'A', text: 'Delete succeeds — IAM role permissions always override organization-level controls' },
+          { id: 'B', text: 'Delete is denied — SCPs are evaluated first and act as a hard guardrail that IAM cannot override' },
+          { id: 'C', text: 'Delete succeeds — cross-account roles bypass SCPs in the target account' },
+          { id: 'D', text: 'An IAM evaluation error occurs because SCP and IAM policies conflict' },
+        ],
+        correct: 'B',
+        explanation: 'The IAM authorization evaluation order is: SCP → Resource-based Policy → Identity-based Policy. SCPs define the maximum permissions any identity in the account can have — including IAM roles. An SCP Deny is an absolute ceiling. AmazonS3FullAccess is irrelevant if the SCP blocks the action.',
+        wrongExplanations: {
+          A: 'This is false. SCPs sit above IAM in the evaluation order. IAM cannot override an SCP Deny.',
+          C: 'SCPs apply to all principals in an account, including cross-account role sessions. There is no bypass.',
+          D: 'There is no evaluation error. The SCP Deny is evaluated first, the request is denied cleanly.',
+        },
+        flowchart: `Authorization evaluation order:
+1. SCPs (AWS Organizations)
+   → s3:DeleteObject denied by SCP?
+   → YES → DENIED immediately 🚫
+   (remaining steps never evaluated)
+
+2. Resource-based policies  ← not reached
+3. Identity-based policies  ← not reached
+   (AmazonS3FullAccess = irrelevant)
+
+Key rule: SCP Deny cannot be overridden by any
+IAM policy, permission boundary, or role permission.
+It is a hard organizational guardrail.`,
+        wrongGuidance: 'SCPs are the outermost boundary. They restrict ALL identities in an account — users, roles, even root (in member accounts). No IAM allow can overcome an SCP deny.',
+      },
+      {
+        id: 'roles1-q9', difficulty: 'hard', topic: 'Session Duration',
+        question: 'You need credentials from an EC2 instance\'s assumed role to expire after exactly 2 hours. What controls this?',
+        options: [
+          { id: 'A', text: 'IAM Password Policy → set MaxPasswordAge to 7200 seconds' },
+          { id: 'B', text: 'Set MaxSessionDuration ≥ 7200 on the role, then pass --duration-seconds 7200 in the AssumeRole call' },
+          { id: 'C', text: 'Configure EC2 Instance Metadata Service TTL to 7200 seconds' },
+          { id: 'D', text: 'Create an AWS Config rule with a MaxSessionDuration of 7200 enforcement' },
+        ],
+        correct: 'B',
+        explanation: 'Session duration is controlled by two settings that must both agree: MaxSessionDuration on the role (sets the upper limit, default 1 hour, max 12 hours) and the duration-seconds parameter passed in the AssumeRole API call. If either is below 7200, the shorter limit wins.',
+        wrongExplanations: {
+          A: 'IAM Password Policy controls console login password expiry, not temporary credential session duration.',
+          C: 'IMDS TTL controls how far hops can traverse the metadata endpoint; it has nothing to do with credential expiry.',
+          D: 'AWS Config is a compliance auditing service; it cannot enforce runtime session duration on live credentials.',
+        },
+        flowchart: `To set a 2-hour session:
+
+Step 1: Update the role's MaxSessionDuration
+  IAM → Roles → ec2-app-role → Edit
+  MaxSessionDuration: 7200 (seconds)
+  (must be ≥ requested duration)
+
+Step 2: AssumeRole call with duration
+  aws sts assume-role \\
+    --role-arn arn:aws:iam::123:role/ec2-app-role \\
+    --role-session-name my-session \\
+    --duration-seconds 7200
+
+Step 3: Issued credentials expire at:
+  Expiration: <now + 7200 seconds>
+
+If MaxSessionDuration on role = 3600 and you request 7200:
+  → STS returns error: DurationSeconds exceeds max`,
+        wrongGuidance: 'Both the role\'s MaxSessionDuration AND the --duration-seconds parameter must allow the requested time. The smaller of the two always wins.',
+      },
+      {
+        id: 'roles1-q10',
+        difficulty: 'expert', topic: 'Revoke Leaked Temp Credentials',
+        question: 'Temporary credentials from a Lambda execution role were committed to a public GitHub repo 30 minutes ago. The session has a 1-hour TTL. What is the MOST effective immediate action?',
+        options: [
+          { id: 'A', text: 'Delete the GitHub repository immediately to prevent further credential exposure' },
+          { id: 'B', text: 'Remove all Principal entries from the role\'s Trust Policy to block future sessions' },
+          { id: 'C', text: 'Add an inline deny policy to the role using an aws:TokenIssueTime condition to invalidate all sessions issued before this moment' },
+          { id: 'D', text: 'Generate new access keys for the IAM Role to replace the leaked ones' },
+        ],
+        correct: 'C',
+        explanation: 'Temporary credentials cannot be rotated or deleted directly — they are valid until they expire. The correct technique is to add a Deny policy with the condition: aws:TokenIssueTime < (current time). This invalidates all sessions issued before "now," including the leaked one, while allowing new legitimate sessions to proceed.',
+        wrongExplanations: {
+          A: 'Deleting the repo removes the visible copy but the credentials are already exposed. Attackers may have scraped them within seconds.',
+          B: 'Removing Trust Policy Principals blocks future sts:AssumeRole calls but does NOT revoke in-flight sessions that are already issued and still valid for 30 more minutes.',
+          D: 'IAM Roles do not have access keys to rotate. Temporary credentials are issued by STS and are not "owned" by the role in the same way.',
+        },
+        flowchart: `Leaked temp credentials still valid for 30 min
+         │
+Add inline deny policy to the role:
+{
+  "Effect": "Deny",
+  "Action": "*",
+  "Resource": "*",
+  "Condition": {
+    "DateLessThan": {
+      "aws:TokenIssueTime": "2026-05-17T10:00:00Z"
+        ← (the moment you discovered the leak)
+    }
+  }
+}
+         │
+All sessions issued before 10:00 UTC → DENIED ✅
+Attacker's stolen credentials → immediately invalid
+New Lambda invocations → new tokens (after 10:00) → ALLOWED
+         │
+Next: audit CloudTrail for attacker API activity`,
+        wrongGuidance: 'aws:TokenIssueTime is the emergency kill switch for leaked temporary credentials. Removing Trust Policy principals stops new sessions — but it does NOT kill active ones. Only the condition deny does that.',
+      },
+    ],
+  },
+  {
+    postId: 'iam-assume-roles-part-2',
+    questions: [
+      {
+        id: 'roles2-q1',
+        difficulty: 'beginner',
+        topic: 'Switch Role — Session Behavior',
+        question: 'When you switch roles in the AWS Console, what happens to your original IAM user session?',
+        options: [
+          { id: 'A', text: 'Your original session is permanently deleted and you must log in again to return' },
+          { id: 'B', text: 'Your original session is suspended and resumes the moment you switch back' },
+          { id: 'C', text: 'Both sessions run simultaneously and your permissions are combined' },
+          { id: 'D', text: 'Your original session logs out automatically after 15 minutes of role use' },
+        ],
+        correct: 'B',
+        explanation: 'Role switching in the console suspends your IAM user session — it is preserved in the background. The moment you click "Switch back," your original session resumes exactly where it was. Permissions are never merged between the user session and the role session.',
+        wrongExplanations: {
+          A: 'Sessions are never deleted by switching roles. "Switch back" restores the original session instantly.',
+          C: 'This is the most dangerous misconception. Permissions from your user and the role are completely isolated — they never combine.',
+          D: 'The 15-minute limit does not apply here. Role session duration is separate and is set by MaxSessionDuration on the role.',
+        },
+        flowchart: `Before switch:
+  Active: IAM User alice (dev permissions)
+
+After Switch Role → prod-deploy-role:
+  Active: Role prod-deploy-role (prod permissions)
+  Suspended: IAM User alice ← preserved in background
+
+After Switch Back:
+  Active: IAM User alice (dev permissions) ← restored
+  Closed: prod-deploy-role session
+
+At no point do alice's permissions and the role's
+permissions overlap or combine. ✅`,
+        wrongGuidance: 'Think of Switch Role as stepping into a phone booth and changing costumes. You become the role entirely — your original permissions are dormant until you step back out.',
+      },
+      {
+        id: 'roles2-q2',
+        difficulty: 'beginner',
+        topic: 'Verify Active Identity',
+        question: 'What CLI command tells you which IAM identity is currently active in your shell?',
+        options: [
+          { id: 'A', text: 'aws iam get-user' },
+          { id: 'B', text: 'aws iam list-roles' },
+          { id: 'C', text: 'aws sts get-caller-identity' },
+          { id: 'D', text: 'aws iam whoami' },
+        ],
+        correct: 'C',
+        explanation: 'aws sts get-caller-identity returns three fields: UserId, Account (the 12-digit account number), and ARN. Crucially, it works for both IAM users and assumed roles — so it tells you exactly what identity your current credentials represent.',
+        wrongExplanations: {
+          A: 'aws iam get-user only works for IAM users and errors out when called with assumed role credentials.',
+          B: 'aws iam list-roles lists all roles in the account — it does not tell you which identity you are currently using.',
+          D: '"aws iam whoami" is not a real AWS CLI command. It does not exist.',
+        },
+        flowchart: `$ aws sts get-caller-identity
+
+When you are an IAM user:
+{
+  "UserId":  "AIDAIOSFODNN7EXAMPLE",
+  "Account": "123456789012",
+  "Arn":     "arn:aws:iam::123456789012:user/alice"
+}
+
+When you have assumed a role:
+{
+  "UserId":  "AROAIOSFODNN7EXAMPLE:my-session",
+  "Account": "123456789012",
+  "Arn":     "arn:aws:sts::123456789012:assumed-role/prod-deploy-role/my-session"
+}
+
+Run this after exporting STS credentials to confirm
+the role assumption succeeded. ✅`,
+        wrongGuidance: 'get-caller-identity is the universal identity check. Make it a habit to run it after any sts assume-role to confirm the switch worked before proceeding.',
+      },
+      {
+        id: 'roles2-q3',
+        difficulty: 'beginner',
+        topic: 'Trust Policy — Account Principal',
+        question: 'Which Trust Policy Principal allows any IAM entity in account 123456789012 to attempt assuming a role?',
+        options: [
+          { id: 'A', text: '"Principal": {"AWS": "arn:aws:iam::123456789012:user/*"}' },
+          { id: 'B', text: '"Principal": {"AWS": "arn:aws:iam::123456789012:root"}' },
+          { id: 'C', text: '"Principal": {"Service": "123456789012.amazonaws.com"}' },
+          { id: 'D', text: '"Principal": "*"' },
+        ],
+        correct: 'B',
+        explanation: 'Using :root in a Principal ARN means "any IAM principal in that account." It does not mean the root user specifically — it means the whole account. The entity must still have an explicit sts:AssumeRole Allow in its own IAM policy before the assumption can succeed.',
+        wrongExplanations: {
+          A: 'Wildcards in IAM user ARNs (user/*) are not valid for Principal fields in trust policies. IAM does not support this syntax.',
+          C: 'The Service key is for AWS services (ec2.amazonaws.com, lambda.amazonaws.com), not account-based cross-account trust.',
+          D: '"Principal": "*" means the entire internet can attempt to assume the role. This is almost never intentional and is a critical security misconfiguration.',
+        },
+        flowchart: `Cross-account trust: Account A → Role in Account B
+
+Step 1 — Role in Account B, Trust Policy:
+  "Principal": {"AWS": "arn:aws:iam::ACCOUNT_A_ID:root"}
+  → Allows any principal in Account A to attempt
+
+Step 2 — IAM User in Account A, Permission Policy:
+  { "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::ACCOUNT_B_ID:role/my-role" }
+  → User is explicitly allowed to call AssumeRole
+
+Both must exist. Either alone = access denied.`,
+        wrongGuidance: 'Remember: :root in a trust policy Principal means the entire account, not the root user. The root user is identified differently (as the account without :user/ in the ARN).',
+      },
+      {
+        id: 'roles2-q4',
+        difficulty: 'intermediate',
+        topic: 'STS Credentials — All Three Required',
+        question: 'After sts:AssumeRole returns credentials, which environment variables must ALL be exported for subsequent CLI calls to succeed?',
+        options: [
+          { id: 'A', text: 'Only AWS_ACCESS_KEY_ID — the SDK infers the rest from the default profile' },
+          { id: 'B', text: 'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY — SessionToken is optional for short sessions' },
+          { id: 'C', text: 'Store them permanently in ~/.aws/credentials instead of exporting' },
+          { id: 'D', text: 'AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN — all three are required' },
+        ],
+        correct: 'D',
+        explanation: 'Temporary STS credentials come as a triple: AccessKeyId, SecretAccessKey, and SessionToken. All three are validated together on every API call. If AWS_SESSION_TOKEN is missing, every request returns an AuthFailure error — even if the other two are correct.',
+        wrongExplanations: {
+          A: 'The SDK never infers credentials from a single variable. Missing the other two causes immediate auth failure.',
+          B: 'SessionToken is never optional for STS-issued temporary credentials. It is the component that proves the credentials came from a valid role assumption.',
+          C: 'Storing temp credentials in ~/.aws/credentials works, but they still require all three values under the [profile] entry.',
+        },
+        flowchart: `aws sts assume-role returns:
+{
+  "Credentials": {
+    "AccessKeyId":     "ASIA...",       ← required
+    "SecretAccessKey": "abc123...",    ← required
+    "SessionToken":    "FwoGZX...",    ← required
+    "Expiration":      "2026-05-17T14:00:00Z"
+  }
+}
+
+Export all three:
+  export AWS_ACCESS_KEY_ID=ASIA...
+  export AWS_SECRET_ACCESS_KEY=abc123...
+  export AWS_SESSION_TOKEN=FwoGZX...    ← never skip this
+
+Missing SessionToken → every call returns:
+  AuthFailure: The security token included in the
+  request is invalid.`,
+        wrongGuidance: 'On SAA-C03, if a question says "credentials work but API calls fail with AuthFailure," the missing SessionToken is almost always the answer.',
+      },
+      {
+        id: 'roles2-q5',
+        difficulty: 'intermediate',
+        topic: 'Cross-Account AccessDenied',
+        question: 'Cross-account role assumption fails with AccessDenied even though the user has sts:AssumeRole permission. What is the most likely cause?',
+        options: [
+          { id: 'A', text: 'The user needs AdministratorAccess in their own account' },
+          { id: 'B', text: 'Cross-account roles require MFA to be enabled by default' },
+          { id: 'C', text: 'Account B\'s Trust Policy does not include Account A as a trusted Principal' },
+          { id: 'D', text: 'IAM roles are region-specific and the user must be in the same region as the role' },
+        ],
+        correct: 'C',
+        explanation: 'Cross-account role assumption requires agreement from both sides. Account A grants the user sts:AssumeRole permission on the role ARN. Account B\'s Trust Policy must explicitly trust Account A\'s account ID (or the specific user ARN). If either side is missing, the assumption is denied.',
+        wrongExplanations: {
+          A: 'The user only needs a targeted Allow for sts:AssumeRole on the specific role ARN — AdministratorAccess is unnecessary and over-permissive.',
+          B: 'MFA is not required by default. It is an optional Condition that must be explicitly added to the Trust Policy.',
+          D: 'IAM is a global service. Roles are not scoped to a region and can be assumed from any region.',
+        },
+        flowchart: `Cross-account assumption — both must agree:
+
+Account A (123456789):
+  User alice has:
+  { "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::987654321:role/target-role" }
+  ✅ Account A side: ALLOWED
+
+Account B (987654321):
+  Role "target-role" Trust Policy:
+  "Principal": {"AWS": "arn:aws:iam::123456789:root"}
+  ❌ NOT PRESENT → Account B side: DENIED
+
+Result: AccessDenied
+Fix: Add Account A's ID (or alice's ARN) to the Trust Policy`,
+        wrongGuidance: 'The most common cross-account mistake is adding the user permission but forgetting to update the Trust Policy on the target role. Both sides must explicitly allow the assumption.',
+      },
+      {
+        id: 'roles2-q6',
+        difficulty: 'intermediate',
+        topic: 'EC2 Credentials via IMDS',
+        question: 'How does an application running on EC2 retrieve its role\'s temporary credentials automatically?',
+        options: [
+          { id: 'A', text: 'The application calls IAM directly with the instance ID to receive credentials' },
+          { id: 'B', text: 'Credentials are retrieved from IMDS at http://169.254.169.254/latest/meta-data/iam/security-credentials/<role-name>' },
+          { id: 'C', text: 'Credentials are pre-loaded into the application as environment variables at launch' },
+          { id: 'D', text: 'The application fetches credentials from an S3 bucket configured in the instance user data' },
+        ],
+        correct: 'B',
+        explanation: 'The Instance Metadata Service (IMDS) at the link-local address 169.254.169.254 automatically serves refreshed temporary credentials for the attached role. The AWS SDK calls this endpoint transparently — no code changes or manual STS calls are needed.',
+        wrongExplanations: {
+          A: 'IAM does not accept direct credential requests from instances by instance ID. The IMDS is the purpose-built delivery mechanism.',
+          C: 'Credentials are NOT injected as environment variables. They are fetched on demand from IMDS and auto-refreshed before expiry.',
+          D: 'S3 is never used to distribute role credentials. The IMDS is the sole credential source for EC2 instances.',
+        },
+        flowchart: `EC2 instance with role "ec2-app-role" attached
+
+Application (AWS SDK):
+  → SDK detects no env vars or credential file
+  → SDK queries IMDS automatically:
+     GET http://169.254.169.254/latest/meta-data/
+             iam/security-credentials/ec2-app-role
+  ← Returns:
+     {
+       "AccessKeyId":     "ASIA...",
+       "SecretAccessKey": "xyz...",
+       "Token":           "FwoG...",
+       "Expiration":      "2026-05-17T15:00:00Z"
+     }
+  → SDK uses credentials transparently
+  → SDK refreshes them ~5 min before expiry ✅
+
+No code changes. No hardcoded keys. Automatic.`,
+        wrongGuidance: '169.254.169.254 is a link-local address only reachable from within the EC2 instance. This address is a common SAA-C03 answer for "how does EC2 get its role credentials."',
+      },
+      {
+        id: 'roles2-q7',
+        difficulty: 'hard',
+        topic: 'Time-Based Role Restriction',
+        question: 'How do you restrict a role so it can only be assumed between 09:00–17:00 UTC on weekdays?',
+        options: [
+          { id: 'A', text: 'Set the role\'s MaxSessionDuration to 8 hours (28800 seconds)' },
+          { id: 'B', text: 'Attach an IAM Permission Boundary with a time-based Deny statement' },
+          { id: 'C', text: 'Create an AWS Config rule with a time-window enforcement trigger' },
+          { id: 'D', text: 'Add Condition keys aws:CurrentTime and aws:DayOfWeek to the Trust Policy' },
+        ],
+        correct: 'D',
+        explanation: 'Trust Policy Conditions are evaluated at AssumeRole time. Adding aws:CurrentTime (with DateGreaterThan / DateLessThan) and aws:DayOfWeek conditions means STS will only issue credentials when both conditions pass. If the conditions fail, no credentials are issued — the restriction is enforced before any permissions apply.',
+        wrongExplanations: {
+          A: 'MaxSessionDuration controls how long credentials last after assumption — it does not control when assumption is allowed.',
+          B: 'Permission Boundaries restrict what a role can do once assumed — they cannot prevent the assumption itself.',
+          C: 'AWS Config is a compliance auditing service. It reports violations after the fact; it does not block real-time AssumeRole calls.',
+        },
+        flowchart: `Trust Policy with time-based Condition:
+
+{
+  "Effect": "Allow",
+  "Principal": {"AWS": "arn:aws:iam::123:root"},
+  "Action": "sts:AssumeRole",
+  "Condition": {
+    "DateGreaterThan": {"aws:CurrentTime": "2026-01-01T09:00:00Z"},
+    "DateLessThan":    {"aws:CurrentTime": "2026-01-01T17:00:00Z"},
+    "StringEquals":    {"aws:DayOfWeek": ["Monday","Tuesday",
+                        "Wednesday","Thursday","Friday"]}
+  }
+}
+
+Monday 10:00 UTC → conditions pass → credentials issued ✅
+Saturday 10:00 UTC → DayOfWeek fails → DENIED 🚫
+Monday 20:00 UTC → CurrentTime fails → DENIED 🚫`,
+        wrongGuidance: 'The Trust Policy is evaluated at assumption time — it is the correct place for controls on WHEN a role can be assumed. Permission policies only apply after assumption.',
+      },
+      {
+        id: 'roles2-q8',
+        difficulty: 'hard',
+        topic: 'Nested Role Assumption — Permissions',
+        question: 'A Lambda function (S3 full access) calls sts:AssumeRole and gets credentials for a second role (DynamoDB read-only). What permissions apply when the Lambda uses those second credentials?',
+        options: [
+          { id: 'A', text: 'Both S3 full access and DynamoDB read-only — permissions stack across roles' },
+          { id: 'B', text: 'Only DynamoDB read-only — the second role\'s credentials replace permissions for those API calls' },
+          { id: 'C', text: 'S3 full access only — inner role assumptions are ignored by the AWS authorization engine' },
+          { id: 'D', text: 'No permissions — AWS prohibits role assumption from within a Lambda execution role' },
+        ],
+        correct: 'B',
+        explanation: 'IAM permissions are tied to credentials, not identities. When the Lambda uses the second role\'s credentials (AccessKeyId + SecretAccessKey + SessionToken), those credentials are evaluated against the second role\'s policies only. The Lambda\'s S3 permissions are completely irrelevant for those calls. Each credential set is fully independent.',
+        wrongExplanations: {
+          A: 'Permissions never stack across different credential sets. This is a common misconception that would make least-privilege impossible.',
+          C: 'Lambda can assume other roles from within its execution context. This is a valid and common pattern for cross-account or elevated access flows.',
+          D: 'Lambda execution roles can assume other roles — there is no AWS restriction on this. Role chaining is a supported pattern.',
+        },
+        flowchart: `Lambda invocation:
+  Active credentials: Lambda execution role creds
+    → s3:GetObject → ALLOWED (S3 full access) ✅
+    → dynamodb:GetItem → DENIED (no DynamoDB policy) ❌
+
+Lambda calls sts:AssumeRole → second-role-dynamo
+  Receives new credentials: second-role creds
+
+With second-role creds:
+    → dynamodb:GetItem → ALLOWED (DynamoDB read) ✅
+    → s3:GetObject → DENIED (no S3 policy on second role) ❌
+
+The two credential sets are completely isolated.
+Each call is evaluated against whichever
+credential set signs that request.`,
+        wrongGuidance: 'Credentials and permissions are inseparable. Whichever credential set signs the API call determines which policies are evaluated. Never assume permissions "travel" between credential sets.',
+      },
+      {
+        id: 'roles2-q9',
+        difficulty: 'hard',
+        topic: 'Role Chaining — Session Duration Cap',
+        question: 'Role A assumes Role B, which then assumes Role C. Role C has MaxSessionDuration set to 12 hours. What is the actual maximum session duration for Role C\'s credentials in this chain?',
+        options: [
+          { id: 'A', text: '1 hour — AWS enforces a hard 1-hour cap on all role-chained sessions, regardless of MaxSessionDuration' },
+          { id: 'B', text: '12 hours — same as any directly assumed role' },
+          { id: 'C', text: '6 hours — the default mid-point capped for chained sessions' },
+          { id: 'D', text: 'It inherits the remaining duration from Role B\'s session' },
+        ],
+        correct: 'A',
+        explanation: 'AWS enforces a hard 1-hour maximum on any session produced through role chaining (role assuming another role assuming another role). This cap is non-configurable and cannot be overridden by MaxSessionDuration. It exists to limit the blast radius of role-chain privilege escalation.',
+        wrongExplanations: {
+          B: 'The 12-hour MaxSessionDuration only applies when a human user or a non-role principal directly assumes a role. Role-chained sessions are capped at 1 hour.',
+          C: '6 hours is not a real default for any scenario. The cap for role chaining is exactly 1 hour.',
+          D: 'Role-chained sessions do not inherit duration from the parent role. Each assumption in the chain is independently capped at 1 hour.',
+        },
+        flowchart: `Role chaining (role → role → role):
+
+Role A assumed by user (max 12 hrs if MaxSessionDuration allows)
+  → Role A assumes Role B
+     → Role B's session: capped at 1 hour ⚠️
+        → Role B assumes Role C (MaxSessionDuration: 12 hrs)
+           → Role C's session: capped at 1 hour ⚠️
+
+The 1-hour cap applies the moment a role
+is part of a chain. No configuration can raise it.
+
+This is a deliberate AWS security design — not a bug.
+Chained roles are treated as untrusted by default.`,
+        wrongGuidance: 'Role chaining hard cap = 1 hour. This is one of the trickiest SAA-C03 facts about roles. MaxSessionDuration only matters for direct human → role assumptions.',
+      },
+      {
+        id: 'roles2-q10',
+        difficulty: 'expert',
+        topic: 'OIDC Provider Removal — Active Sessions',
+        question: 'A junior engineer removes an OIDC provider from IAM to immediately revoke all federated users\' access. What actually happens?',
+        options: [
+          { id: 'A', text: 'All active federated sessions are immediately terminated and all credentials become invalid' },
+          { id: 'B', text: 'The role trusting the OIDC provider is automatically deleted along with all its sessions' },
+          { id: 'C', text: 'New AssumeRoleWithWebIdentity calls fail, but existing active sessions remain valid until natural expiry' },
+          { id: 'D', text: 'Nothing changes — OIDC provider configuration is not evaluated at session time' },
+        ],
+        correct: 'C',
+        explanation: 'Removing an OIDC provider prevents STS from validating new web identity tokens — so new AssumeRoleWithWebIdentity calls will fail. However, AWS does not retroactively invalidate temporary credentials that have already been issued. Those in-flight sessions remain fully valid until their Expiration timestamp. Full revocation requires also adding a Deny policy with aws:TokenIssueTime condition.',
+        wrongExplanations: {
+          A: 'AWS does not retroactively invalidate issued temporary credentials. Once STS hands out a credential triple, it remains valid until it expires — even if the source of trust is later removed.',
+          B: 'Removing the OIDC provider does not delete the role or any active sessions. The role stays intact; it just cannot be assumed via that provider anymore.',
+          D: 'Removing the provider does have an effect — it blocks new sessions. But existing sessions are not affected.',
+        },
+        flowchart: `Before OIDC provider removal:
+  Federated users → AssumeRoleWithWebIdentity → credentials issued ✅
+  Existing sessions: active, valid
+
+OIDC provider deleted:
+  New AssumeRoleWithWebIdentity calls:
+    → STS cannot validate the OIDC token
+    → DENIED 🚫 ← new sessions blocked
+
+  Existing sessions:
+    → Already-issued credentials still valid
+    → Remain valid until Expiration timestamp ⚠️
+
+Full revocation requires BOTH:
+  1. Remove OIDC provider (blocks new sessions)
+  2. Add Deny policy with aws:TokenIssueTime < now
+     (kills existing sessions) ✅`,
+        wrongGuidance: 'Removing a trust source (OIDC, Trust Policy principal) only prevents future assumptions. The aws:TokenIssueTime condition deny is the only way to invalidate in-flight temporary credentials.',
+      },
+    ],
+  },
+  {
+    postId: 'iam-assume-roles-part-3',
+    questions: [
+      {
+        id: 'roles3-q1',
+        difficulty: 'beginner',
+        topic: 'Web Identity Federation',
+        question: 'What is the primary purpose of Web Identity Federation in AWS?',
+        options: [
+          { id: 'A', text: 'Allow AWS services to call each other without IAM roles' },
+          { id: 'B', text: 'Create permanent IAM users from social login accounts automatically' },
+          { id: 'C', text: 'Allow external IdPs (Google, Facebook, Cognito) to exchange tokens for temporary AWS credentials' },
+          { id: 'D', text: 'Synchronize Active Directory passwords with AWS IAM' },
+        ],
+        correct: 'C',
+        explanation: 'Web Identity Federation lets users authenticate with an external OIDC provider (Google, Facebook, Cognito) and exchange that identity token for temporary AWS credentials via sts:AssumeRoleWithWebIdentity. No IAM user is ever created — the federated identity maps directly to an IAM Role.',
+        wrongExplanations: {
+          A: 'Service-to-service calls use service roles (ec2.amazonaws.com, lambda.amazonaws.com) — not web identity federation.',
+          B: 'The whole point of federation is that no IAM users are created. The external identity IS the credential.',
+          D: 'Active Directory sync into AWS uses SAML 2.0 federation, not web identity federation.',
+        },
+        flowchart: `Web Identity Federation flow:
+
+1. User authenticates with Google / Facebook / Cognito
+   → Receives an OIDC JWT token
+
+2. App calls:
+   sts:AssumeRoleWithWebIdentity(
+     RoleArn = "arn:aws:iam::123:role/mobile-user-role",
+     WebIdentityToken = <JWT from Google>
+   )
+
+3. STS validates the JWT against the OIDC provider
+   → Checks: Is this token valid? Is the audience correct?
+
+4. STS issues temporary credentials (15 min → 1 hr)
+   → No IAM user created ✅
+   → CloudTrail records: assumed-role/mobile-user-role/<google-sub-id>`,
+        wrongGuidance: 'Web Identity Federation = no IAM users. External tokens → temporary role credentials. This is the pattern for mobile apps, single-page apps, and any system authenticating via a public OIDC provider.',
+      },
+      {
+        id: 'roles3-q2',
+        difficulty: 'beginner',
+        topic: 'Permission Boundary Formula',
+        question: 'What is the formula for effective permissions when a Permission Boundary is applied to a role?',
+        options: [
+          { id: 'A', text: 'Effective = IAM Policy + Permission Boundary (permissions are combined)' },
+          { id: 'B', text: 'Effective = IAM Policy only (the boundary is advisory, not enforced)' },
+          { id: 'C', text: 'Effective = Permission Boundary only (the IAM Policy is overridden by the boundary)' },
+          { id: 'D', text: 'Effective = IAM Policy ∩ Permission Boundary (only the intersection is allowed)' },
+        ],
+        correct: 'D',
+        explanation: 'The effective permission is the intersection of what the IAM Policy allows AND what the Permission Boundary allows. Both must agree. The boundary is a hard ceiling — if it does not allow an action, that action is blocked regardless of what the IAM policy says. Boundaries never expand permissions.',
+        wrongExplanations: {
+          A: 'Boundaries never add permissions. They only constrain what the IAM policy can grant. Addition would defeat the purpose.',
+          B: 'Permission Boundaries are fully enforced, not advisory. An action not in the boundary is always denied.',
+          C: 'If the boundary allows more than the IAM policy, the IAM policy still limits actual permissions. Both must allow.',
+        },
+        flowchart: `Example:
+  IAM Policy allows:   s3:*, ec2:*, rds:*
+  Permission Boundary: s3:*, ec2:*
+
+  Intersection (effective):
+    s3:*  ← both allow ✅
+    ec2:* ← both allow ✅
+    rds:* ← boundary doesn't allow ❌
+
+  Result: rds:* is blocked even though IAM policy allows it.
+
+Visual:
+  IAM Policy  [s3][ec2][rds]
+  Boundary    [s3][ec2]
+  Effective   [s3][ec2]        ← overlap only`,
+        wrongGuidance: 'Permission Boundaries are a restriction tool, not a grant tool. They define what is POSSIBLE for a role — actual permissions still depend on the IAM policy being within that ceiling.',
+      },
+      {
+        id: 'roles3-q3',
+        difficulty: 'beginner',
+        topic: 'SAML Federation STS Action',
+        question: 'Which STS API action is called when a corporate user authenticates via SAML 2.0 SSO into AWS?',
+        options: [
+          { id: 'A', text: 'sts:AssumeRoleWithSAML' },
+          { id: 'B', text: 'sts:AssumeRole' },
+          { id: 'C', text: 'sts:AssumeRoleWithWebIdentity' },
+          { id: 'D', text: 'sts:GetFederationToken' },
+        ],
+        correct: 'A',
+        explanation: 'Corporate SSO using SAML 2.0 (Okta, Active Directory Federation Services, Azure AD) generates a signed SAML assertion. The browser posts this assertion to AWS, which calls sts:AssumeRoleWithSAML internally to issue temporary credentials. No IAM user is created — the SAML attributes map to an IAM Role.',
+        wrongExplanations: {
+          B: 'sts:AssumeRole is used directly by IAM users, roles, or services — not for SAML federation flows.',
+          C: 'AssumeRoleWithWebIdentity is for OIDC tokens (Google, Facebook, Cognito) — not SAML assertions.',
+          D: 'GetFederationToken is an older, less commonly used API for generating credentials for non-IAM principals.',
+        },
+        flowchart: `SAML 2.0 Corporate SSO flow:
+
+1. User → corporate login page (Okta / AD FS)
+   → Authenticates with corporate password + MFA
+
+2. IdP generates signed SAML assertion:
+   "<saml:Attribute Name="Role">
+     arn:aws:iam::123:role/EngineerRole,
+     arn:aws:iam::123:saml-provider/MyIdP
+   </saml:Attribute>"
+
+3. Browser posts assertion to AWS SSO endpoint:
+   https://signin.aws.amazon.com/saml
+
+4. AWS calls sts:AssumeRoleWithSAML internally
+   → Issues temporary credentials
+   → Redirects to AWS Console as the role ✅
+
+No IAM user. No IAM password. No access keys.`,
+        wrongGuidance: 'SAML = corporate SSO (Okta, AD). OIDC = social/developer login (Google, Cognito). Both produce temporary credentials via STS. The STS action name tells you which protocol was used.',
+      },
+      {
+        id: 'roles3-q4',
+        difficulty: 'intermediate',
+        topic: 'Permission Boundary — Privilege Escalation',
+        question: 'A junior admin\'s role has a Permission Boundary allowing only S3 and EC2. They create a new IAM role and attach AdministratorAccess to it. What are the new role\'s effective permissions?',
+        options: [
+          { id: 'A', text: 'AdministratorAccess — the new role inherits the full policy as specified' },
+          { id: 'B', text: 'S3 and EC2 only — the creator\'s boundary is propagated and caps the new role' },
+          { id: 'C', text: 'The CreateRole call fails entirely — admins with boundaries cannot create roles' },
+          { id: 'D', text: 'The new role is auto-deleted by AWS because it exceeds the creator\'s permissions' },
+        ],
+        correct: 'B',
+        explanation: 'Permission Boundaries are specifically designed to prevent privilege escalation. When a bounded admin creates a role, the roles they create are also bound by the same ceiling. The new role\'s AdministratorAccess policy is irrelevant beyond what the boundary allows — S3 and EC2 are the hard cap.',
+        wrongExplanations: {
+          A: 'If this were true, permission boundaries would be useless. Delegated admins could trivially bypass them by creating more powerful roles.',
+          C: 'The CreateRole call succeeds. IAM allows the action — the boundary only caps what the resulting role can actually do.',
+          D: 'AWS does not auto-delete roles. The role is created and exists, it is just effectively constrained to the boundary intersection.',
+        },
+        flowchart: `Junior admin role:
+  IAM Policy: iam:CreateRole, iam:AttachRolePolicy, ...
+  Permission Boundary: s3:*, ec2:*
+
+Junior admin creates new-role with AdministratorAccess:
+
+new-role evaluation:
+  Permission Policy: AdministratorAccess (everything)
+  Permission Boundary: s3:*, ec2:*  ← inherited ceiling
+
+new-role effective permissions:
+  s3:*  ✅
+  ec2:* ✅
+  iam:* ❌ (boundary doesn't include it)
+  rds:* ❌
+  Everything else ❌
+
+Privilege escalation attempt: BLOCKED ✅`,
+        wrongGuidance: 'This is the core use case for Permission Boundaries — safe delegation. Boundaries propagate through role creation, making it impossible for delegated admins to grant themselves or others more than the boundary allows.',
+      },
+      {
+        id: 'roles3-q5',
+        difficulty: 'intermediate',
+        topic: 'MFA Condition on Trust Policy',
+        question: 'Which condition key enforces that the caller must have completed MFA before they can assume a role?',
+        options: [
+          { id: 'A', text: 'aws:SecureTransport: "true"' },
+          { id: 'B', text: 'sts:ExternalId: "mfa-required"' },
+          { id: 'C', text: 'aws:MultiFactorAuthPresent: "true"' },
+          { id: 'D', text: 'iam:MFAPresent: "true"' },
+        ],
+        correct: 'C',
+        explanation: 'aws:MultiFactorAuthPresent is evaluated at AssumeRole time against the caller\'s current session context. If the caller authenticated without MFA (e.g., using access keys only), this condition evaluates to false and the AssumeRole call is denied. It prevents role assumption unless the caller\'s session was MFA-authenticated.',
+        wrongExplanations: {
+          A: 'aws:SecureTransport checks whether the API call was made over HTTPS — it has nothing to do with MFA.',
+          B: 'sts:ExternalId is used for confused deputy protection in cross-account role assumption — not for MFA enforcement.',
+          D: 'iam:MFAPresent does not exist as a condition key. The correct key is aws:MultiFactorAuthPresent.',
+        },
+        flowchart: `Trust Policy with MFA enforcement:
+
+{
+  "Effect": "Allow",
+  "Principal": {"AWS": "arn:aws:iam::123:root"},
+  "Action": "sts:AssumeRole",
+  "Condition": {
+    "Bool": {
+      "aws:MultiFactorAuthPresent": "true"
+    }
+  }
+}
+
+Scenario A — User logs in with password + MFA:
+  Session context: MultiFactorAuthPresent = true
+  AssumeRole call → condition passes → ✅ credentials issued
+
+Scenario B — CLI with access keys (no MFA):
+  Session context: MultiFactorAuthPresent = false
+  AssumeRole call → condition fails → ❌ DENIED
+
+Use case: prod-deploy-role that only senior engineers
+can switch into, and only after MFA authentication.`,
+        wrongGuidance: 'aws:MultiFactorAuthPresent in a Trust Policy Condition is the standard way to gate sensitive role assumption behind MFA. It evaluates the caller\'s session — not a separate MFA check.',
+      },
+      {
+        id: 'roles3-q6',
+        difficulty: 'intermediate',
+        topic: 'Confused Deputy — ExternalId',
+        question: 'What is the "confused deputy" problem and what prevents it?',
+        options: [
+          { id: 'A', text: 'Two roles with the same name causing ambiguity — prevented by IAM unique naming enforcement' },
+          { id: 'B', text: 'EC2 assuming a role it was not assigned — prevented by IMDSv2 hop limit' },
+          { id: 'C', text: 'Users assuming too many roles simultaneously — prevented by session concurrency limits' },
+          { id: 'D', text: 'A third-party SaaS assuming your role on behalf of many customers — prevented by the ExternalId condition' },
+        ],
+        correct: 'D',
+        explanation: 'A confused deputy attack happens when a third-party service (e.g., a monitoring SaaS) is tricked into using its permissions on behalf of an attacker. Since the SaaS knows your role ARN, an attacker who also learns the ARN can trick the SaaS into calling AssumeRole for their benefit. ExternalId is a shared secret only you and the SaaS know, included as a Trust Policy condition — the attacker cannot impersonate you without it.',
+        wrongExplanations: {
+          A: 'IAM does enforce unique role names within an account, but this has nothing to do with the confused deputy problem.',
+          B: 'IMDSv2 hop limit protects against SSRF attacks on the instance metadata service — a different problem entirely.',
+          C: 'IAM has no session concurrency limits for role assumption.',
+        },
+        flowchart: `Without ExternalId (vulnerable):
+  Monitoring SaaS role ARN: arn:aws:iam::999:role/monitor
+  Attacker knows your role ARN: arn:aws:iam::123:role/my-data
+  Attacker tells SaaS: "Monitor account ARN = my-data"
+  SaaS calls AssumeRole(my-data) → accesses your data ⚠️
+
+With ExternalId (protected):
+  Your Trust Policy:
+    "Condition": {
+      "StringEquals": {
+        "sts:ExternalId": "shared-secret-abc123"
+      }
+    }
+  SaaS always sends ExternalId = shared-secret-abc123
+  Attacker cannot fake this — they don't know the secret
+  AssumeRole without correct ExternalId → DENIED ✅`,
+        wrongGuidance: 'ExternalId is a secret handshake between you and the trusted third party. The role ARN is semi-public knowledge — ExternalId ensures only the legitimate third party can use it.',
+      },
+      {
+        id: 'roles3-q7',
+        difficulty: 'hard',
+        topic: 'Cognito Auth vs Unauth — Resource Policy',
+        question: 'A Cognito unauthenticated role has s3:PutObject in its IAM policy. The S3 bucket policy only allows the authenticated role ARN. What happens when an unauthenticated user tries to upload?',
+        options: [
+          { id: 'A', text: 'Upload succeeds — the IAM policy allows s3:PutObject' },
+          { id: 'B', text: 'Upload is denied — the S3 bucket policy does not allow the unauthenticated role ARN' },
+          { id: 'C', text: 'Upload succeeds — Cognito-issued credentials bypass resource-based policies' },
+          { id: 'D', text: 'Upload is denied — unauthenticated Cognito roles can never access S3 under any configuration' },
+        ],
+        correct: 'B',
+        explanation: 'S3 bucket policies are resource-based policies evaluated independently from the caller\'s IAM policy. Both must allow the action. The bucket policy only permits the authenticated role ARN — so the unauthenticated role\'s IAM permission of s3:PutObject is irrelevant. The bucket policy gates it out.',
+        wrongExplanations: {
+          A: 'The IAM policy alone is not sufficient. The bucket policy is a separate evaluation that also runs. Both must allow.',
+          C: 'Cognito credentials are standard STS credentials. They carry no special privileges and do not bypass resource policies.',
+          D: 'Unauthenticated roles CAN access S3 if both the IAM policy AND the bucket policy allow it. This option is too absolute.',
+        },
+        flowchart: `Unauthenticated user → S3 PutObject attempt
+
+Step 1 — IAM Policy evaluation:
+  Unauthenticated role has: s3:PutObject ✅
+  → IAM allows the action
+
+Step 2 — S3 Bucket Policy evaluation (independent):
+  Bucket policy: Allow Principal: arn:aws:iam::123:role/auth-role
+  Caller ARN:   arn:aws:iam::123:role/unauth-role
+  → Principal does NOT match → DENIED 🚫
+
+Result: Access denied despite IAM allowing it.
+
+Fix: Add the unauth role ARN to the bucket policy,
+OR restrict what the unauth role can upload via
+IAM conditions (e.g., only their own S3 prefix).`,
+        wrongGuidance: 'Resource-based policies and identity-based policies are evaluated independently. Both must allow. A bucket policy "allow" does not help if the IAM policy denies, and vice versa.',
+      },
+      {
+        id: 'roles3-q8',
+        difficulty: 'hard',
+        topic: 'Third-Party Auditor Access',
+        question: 'What is the most secure way to grant a third-party auditor read-only AWS access for exactly 24 hours?',
+        options: [
+          { id: 'A', text: 'Create a cross-account IAM role with read-only permissions, MaxSessionDuration 86400s, and an ExternalId condition — revoke after the audit' },
+          { id: 'B', text: 'Create a temporary IAM user with read-only permissions and delete the user after 24 hours' },
+          { id: 'C', text: 'Share root account credentials and change the password immediately after the audit' },
+          { id: 'D', text: 'Create an IAM user with a 24-hour password expiry policy and delete it afterward' },
+        ],
+        correct: 'A',
+        explanation: 'A cross-account role is the correct pattern for third-party access: no credentials are shared (the auditor assumes the role from their own account), all actions are logged in CloudTrail by session name, access is revocable instantly by removing the Trust Policy principal, and ExternalId prevents confused deputy attacks.',
+        wrongExplanations: {
+          B: 'IAM users require sharing long-term credentials (console password or access keys). If the auditor forgets to clean up, credentials linger. Role assumptions produce time-limited credentials automatically.',
+          C: 'Root credentials must never be shared with anyone, for any duration, for any reason.',
+          D: 'Password expiry policies expire the password, not the IAM user or their access keys. The user still exists and may have other credentials.',
+        },
+        flowchart: `Auditor setup (cross-account role):
+
+In YOUR account:
+  IAM Role: "external-auditor-role"
+    Permission: ReadOnlyAccess (managed policy)
+    MaxSessionDuration: 86400 (24 hours)
+    Trust Policy:
+      Principal: arn:aws:iam::AUDITOR_ACCOUNT:root
+      Condition: sts:ExternalId = "audit-2026-05-17"
+
+Auditor in THEIR account:
+  aws sts assume-role \
+    --role-arn arn:aws:iam::YOUR_ACCOUNT:role/external-auditor-role \
+    --external-id "audit-2026-05-17" \
+    --role-session-name "audit-alice" \
+    --duration-seconds 86400
+
+After audit:
+  Remove Trust Policy principal → future access blocked
+  CloudTrail shows everything "audit-alice" did ✅`,
+        wrongGuidance: 'Cross-account roles + ExternalId + short MaxSessionDuration + CloudTrail by session name is the gold standard for temporary third-party access. No credentials are ever shared.',
+      },
+      {
+        id: 'roles3-q9',
+        difficulty: 'hard',
+        topic: 'IAM Policy ∩ Permission Boundary — Calculation',
+        question: 'An IAM policy allows s3:GetObject on my-bucket/*. A Permission Boundary allows s3:* on *. What is the effective permission?',
+        options: [
+          { id: 'A', text: 's3:* on all resources — the boundary expands the IAM policy\'s allowed actions' },
+          { id: 'B', text: 's3:* on my-bucket/* — boundary provides the actions, IAM policy provides the resource scope' },
+          { id: 'C', text: 's3:GetObject on my-bucket/* — the intersection of what both policies allow' },
+          { id: 'D', text: 'No access — the boundary overrides the IAM policy entirely' },
+        ],
+        correct: 'C',
+        explanation: 'The effective permission is strictly the intersection. The IAM policy limits actions to s3:GetObject and resources to my-bucket/*. The boundary allows s3:* on *, which is broader — but the boundary cannot expand beyond what the IAM policy already allows. The result is s3:GetObject on my-bucket/* only.',
+        wrongExplanations: {
+          A: 'Boundaries never grant permissions — they only restrict. A broader boundary does not expand a narrower IAM policy.',
+          B: 'You cannot mix the action set from the boundary with the resource scope from the IAM policy. The intersection applies to the complete permission, not individual components.',
+          D: 'The boundary allows s3:*. The IAM policy allows s3:GetObject. Since s3:GetObject is within s3:*, the intersection is non-empty.',
+        },
+        flowchart: `IAM Policy:
+  Actions: s3:GetObject       ← narrow
+  Resources: my-bucket/*      ← narrow
+
+Permission Boundary:
+  Actions: s3:*               ← broad
+  Resources: *                ← broad
+
+Intersection calculation:
+  Actions: s3:GetObject ∩ s3:* = s3:GetObject     ✅
+  Resources: my-bucket/* ∩ * = my-bucket/*         ✅
+
+Effective permission:
+  s3:GetObject on my-bucket/* only
+
+If IAM policy had s3:DeleteObject too:
+  s3:DeleteObject ∩ s3:* = s3:DeleteObject
+  → Also allowed (boundary includes it)`,
+        wrongGuidance: 'Calculate the intersection action by action, resource by resource. A broader boundary does not grant extra actions — it just means the IAM policy is the binding constraint in that dimension.',
+      },
+      {
+        id: 'roles3-q10',
+        difficulty: 'expert',
+        topic: 'Compromised Role — Incident Response',
+        question: 'A role was compromised 2 hours ago and active sessions are ongoing. You need to stop all access immediately while preserving forensic evidence. What is the correct sequence?',
+        options: [
+          { id: 'A', text: 'Delete the role immediately — this terminates all active sessions and all future assumptions' },
+          { id: 'B', text: 'Detach all permission policies from the role — active sessions will no longer have any permissions' },
+          { id: 'C', text: 'Change the role\'s Trust Policy to remove all Principal entries — this revokes active sessions' },
+          { id: 'D', text: '1) Add inline Deny + aws:TokenIssueTime condition → 2) Remove Trust Policy principals → 3) Audit CloudTrail by session name — in that order' },
+        ],
+        correct: 'D',
+        explanation: 'Each step has a distinct purpose and order matters. The TokenIssueTime deny kills in-flight sessions immediately — this is the first priority. Removing Trust Policy principals stops new assumptions. Auditing CloudTrail reveals what the attacker accessed. Deleting the role would destroy all CloudTrail-linked evidence and should never be the first action.',
+        wrongExplanations: {
+          A: 'Deleting the role permanently removes it from CloudTrail lookups and makes forensic investigation much harder. Always exhaust non-destructive remediation first.',
+          B: 'Detaching permission policies stops future API calls from succeeding, but in-flight sessions still hold valid credentials. The TokenIssueTime deny is faster and more thorough.',
+          C: 'Removing Trust Policy principals stops new role assumptions — but it does NOT revoke already-issued temporary credentials that are still within their TTL.',
+        },
+        flowchart: `Role compromised at T=0, now T+2hrs
+
+Step 1 — Kill active sessions (FIRST):
+  Add inline Deny to role:
+  { "Effect": "Deny", "Action": "*", "Resource": "*",
+    "Condition": {
+      "DateLessThan": {
+        "aws:TokenIssueTime": "2026-05-17T12:00:00Z"  ← now
+      }
+    }
+  }
+  → All sessions issued before now → DEAD instantly ✅
+
+Step 2 — Block future assumptions:
+  Edit Trust Policy → remove all Principal entries
+  → sts:AssumeRole calls → DENIED ✅
+
+Step 3 — Forensics:
+  CloudTrail → filter by RoleSessionName
+  → Reconstruct every API call the attacker made
+  → Identify affected resources
+
+DO NOT delete the role.
+DO NOT start with forensics (attacker still active).`,
+        wrongGuidance: 'Incident response priority: contain first (TokenIssueTime deny), block future access second (Trust Policy), investigate third. Deletion is a last resort — it destroys the audit trail.',
+      },
+    ],
+  },
 ];
 
 export function getQuizByPostId(postId: string): LessonQuiz | undefined {
