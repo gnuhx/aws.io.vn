@@ -1505,6 +1505,62 @@ Leaked role creds → Deny policy + aws:TokenIssueTime → Full revocation</code
     isListed: false,
   },
   {
+    id: 'mcp-lesson-1',
+    title: 'Lesson 1 MCP',
+    excerpt:
+      'Placeholder lesson for the first topic inside Study MCP.',
+    date: '2026-07-25',
+    readTime: 8,
+    tags: ['MCP', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Add your first MCP lesson here.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'mcp-lesson-2',
+    title: 'Lesson 2 MCP',
+    excerpt:
+      'Placeholder lesson for the second topic inside Study MCP.',
+    date: '2026-07-25',
+    readTime: 10,
+    tags: ['MCP', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Add your second MCP lesson here.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'react-lesson-1',
+    title: 'Lesson 1 React',
+    excerpt:
+      'Placeholder lesson for the first topic inside Study React.',
+    date: '2026-07-25',
+    readTime: 8,
+    tags: ['React', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Add your first React lesson here.</p>
+    `,
+    isListed: false,
+  },
+  {
+    id: 'react-lesson-2',
+    title: 'Lesson 2 React',
+    excerpt:
+      'Placeholder lesson for the second topic inside Study React.',
+    date: '2026-07-25',
+    readTime: 10,
+    tags: ['React', 'Roadmap'],
+    content: `
+      <p>This lesson is ready for your content.</p>
+      <p>Add your second React lesson here.</p>
+    `,
+    isListed: false,
+  },
+  {
     id: 'aws-what-is-aws',
     title: 'What is AWS? A Simple Mental Model Before the Acronyms Attack',
     excerpt:

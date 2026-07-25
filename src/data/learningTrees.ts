@@ -133,6 +133,80 @@ export const learningTrees: LearningTree[] = [
       },
     ],
   },
+  {
+    id: 'study-mcp',
+    path: '/learning/study-mcp',
+    title: 'Study MCP 🔌',
+    excerpt: 'A roadmap for learning the Model Context Protocol — servers, clients, tools, and resources.',
+    description: 'A reusable learning blog for MCP concepts and hands-on lessons.',
+    estimatedHours: 'Growing series',
+    level: 'Beginner to Advanced',
+    date: '2026-07-25',
+    tags: ['Learning Tree', 'MCP'],
+    topics: [
+      {
+        id: 'mcp-basics',
+        title: 'MCP Basics',
+        description: 'Placeholder MCP track so you can add lessons next.',
+        accent: '#6d6f8d',
+        lessons: [
+          {
+            id: 'mcp-lesson-1',
+            title: 'Lesson 1 MCP',
+            postId: 'mcp-lesson-1',
+            summary: 'Placeholder for your first MCP lesson.',
+            duration: '8 min',
+            difficulty: 'Beginner',
+          },
+          {
+            id: 'mcp-lesson-2',
+            title: 'Lesson 2 MCP',
+            postId: 'mcp-lesson-2',
+            summary: 'Placeholder for your second MCP lesson.',
+            duration: '10 min',
+            difficulty: 'Beginner',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'study-react',
+    path: '/learning/study-react',
+    title: 'Study React ⚛️',
+    excerpt: 'A roadmap for learning React — components, hooks, routing, and state management.',
+    description: 'A reusable learning blog for React concepts and hands-on lessons.',
+    estimatedHours: 'Growing series',
+    level: 'Beginner to Advanced',
+    date: '2026-07-25',
+    tags: ['Learning Tree', 'React'],
+    topics: [
+      {
+        id: 'react-basics',
+        title: 'React Basics',
+        description: 'Placeholder React track so you can add lessons next.',
+        accent: '#6d6f8d',
+        lessons: [
+          {
+            id: 'react-lesson-1',
+            title: 'Lesson 1 React',
+            postId: 'react-lesson-1',
+            summary: 'Placeholder for your first React lesson.',
+            duration: '8 min',
+            difficulty: 'Beginner',
+          },
+          {
+            id: 'react-lesson-2',
+            title: 'Lesson 2 React',
+            postId: 'react-lesson-2',
+            summary: 'Placeholder for your second React lesson.',
+            duration: '10 min',
+            difficulty: 'Beginner',
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export function getLearningTreeById(id: string): LearningTree | undefined {
