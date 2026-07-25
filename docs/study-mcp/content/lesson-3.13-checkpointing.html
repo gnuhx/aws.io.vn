@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3.13 — Checkpointing Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f14;
+    --bg-card:#12151c;
+    --bg-card2:#171b24;
+    --border:#232837;
+    --text:#e6e9ef;
+    --text-dim:#8b92a4;
+    --accent:#4ade80;
+    --accent-dim:#1e3a2a;
+    --accent-glow:rgba(74,222,128,0.15);
+    --red:#f87171;
+    --yellow:#fbbf24;
+    --blue:#60a5fa;
+    --purple:#c084fc;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk',sans-serif;
+    line-height:1.6;
+  }
+  code, pre, .mono{font-family:'JetBrains Mono',monospace;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
+
+  header{
+    padding:28px 24px 20px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, #10131a 0%, var(--bg) 100%);
+    position:sticky; top:0; z-index:50;
+  }
+  .header-inner{max-width:1100px;margin:0 auto;}
+  .eyebrow{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+  h1{margin:6px 0 4px;font-size:26px;font-weight:700;}
+  .subtitle{color:var(--text-dim);font-size:14px;}
+  .meta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;}
+  .meta-pill{
+    background:var(--bg-card2);
+    border:1px solid var(--border);
+    padding:5px 12px;
+    border-radius:20px;
+    font-size:12px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .meta-pill b{color:var(--accent);}
+
+  nav{
+    display:flex;
+    gap:4px;
+    max-width:1100px;
+    margin:16px auto 0;
+    overflow-x:auto;
+    padding-bottom:2px;
+  }
+  .tab-btn{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    padding:10px 16px;
+    border-radius:10px 10px 0 0;
+    cursor:pointer;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    white-space:nowrap;
+    transition:all .15s ease;
+    border-bottom:none;
+  }
+  .tab-btn:hover{color:var(--text);background:var(--bg-card2);}
+  .tab-btn.active{
+    color:var(--accent);
+    background:var(--bg-card);
+    border-color:var(--border);
+    box-shadow:inset 0 2px 0 var(--accent);
+  }
+
+  main{max-width:1100px;margin:0 auto;padding:28px 24px 80px;}
+  .tab-panel{display:none;animation:fadein .25s ease;}
+  .tab-panel.active{display:block;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  section.block{margin-bottom:34px;}
+  h2{font-size:20px;color:var(--accent);border-left:3px solid var(--accent);padding-left:12px;margin-bottom:16px;}
+  h3{font-size:16px;color:var(--text);margin-bottom:10px;}
+
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px 20px;
+    margin-bottom:14px;
+  }
+  .card-title{font-weight:700;color:var(--text);margin-bottom:6px;font-size:15px;}
+  .card-title .icon{margin-right:6px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:720px){.grid2{grid-template-columns:1fr;}}
+
+  pre.code{
+    background:#0a0c11;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px 18px;
+    overflow-x:auto;
+    font-size:13px;
+    margin:10px 0;
+    position:relative;
+  }
+  pre.code .c1{color:#6b7280;}
+  pre.code .kw{color:var(--purple);}
+  pre.code .str{color:var(--yellow);}
+  pre.code .fn{color:var(--blue);}
+  pre.code .num{color:#fb923c;}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px;}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;}
+  th{background:var(--bg-card2);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:.5px;}
+  tr:nth-child(even) td{background:rgba(255,255,255,0.015);}
+
+  .flow{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:16px 0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+  }
+  .flow .node{
+    background:var(--bg-card2);
+    border:1px solid var(--border);
+    padding:8px 14px;
+    border-radius:8px;
+  }
+  .flow .node.hl{border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px var(--accent-glow);}
+  .flow .arrow{color:var(--text-dim);}
+
+  .warn{
+    background:rgba(248,113,113,0.08);
+    border:1px solid rgba(248,113,113,0.35);
+    border-radius:10px;
+    padding:14px 16px;
+    margin:14px 0;
+    font-size:13.5px;
+  }
+  .warn b{color:var(--red);}
+  .tip{
+    background:var(--accent-glow);
+    border:1px solid rgba(74,222,128,0.35);
+    border-radius:10px;
+    padding:14px 16px;
+    margin:14px 0;
+    font-size:13.5px;
+  }
+  .tip b{color:var(--accent);}
+
+  /* Mindmap */
+  #mindmap-wrap{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px;
+  }
+  #mindmap-svg{width:100%;height:auto;display:block;}
+  .mm-node rect{fill:var(--bg-card2);stroke:var(--border);stroke-width:1.5;transition:all .15s ease;cursor:pointer;}
+  .mm-node:hover rect{stroke:var(--accent);}
+  .mm-node.root rect{fill:var(--accent-dim);stroke:var(--accent);}
+  .mm-node text{fill:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;pointer-events:none;}
+  .mm-node.root text{fill:var(--accent);font-weight:700;}
+  .mm-link{stroke:var(--border);stroke-width:1.5;fill:none;}
+  #mindmap-detail{
+    margin-top:14px;
+    padding:14px 16px;
+    background:var(--bg-card2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    font-size:13.5px;
+    min-height:50px;
+  }
+  #mindmap-detail b{color:var(--accent);}
+
+  /* Quiz */
+  .quiz-progress{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-dim);
+  }
+  .quiz-score{color:var(--accent);font-weight:700;}
+  .q-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+  .q-type{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:2px 8px;margin-bottom:10px;
+  }
+  .q-text{font-size:15px;font-weight:600;margin-bottom:14px;}
+  .q-options{display:flex;flex-direction:column;gap:8px;}
+  .q-opt{
+    background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;
+    padding:11px 14px;cursor:pointer;font-size:14px;transition:all .15s ease;
+  }
+  .q-opt:hover{border-color:var(--accent);}
+  .q-opt.correct{border-color:var(--accent);background:rgba(74,222,128,0.12);color:var(--accent);}
+  .q-opt.wrong{border-color:var(--red);background:rgba(248,113,113,0.12);color:var(--red);}
+  .q-opt.disabled{pointer-events:none;}
+  .q-fill input{
+    width:100%;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;
+    color:var(--text);padding:11px 14px;font-family:'JetBrains Mono',monospace;font-size:14px;
+  }
+  .q-submit-btn{
+    margin-top:12px;background:var(--accent);color:#0a0c11;border:none;border-radius:8px;
+    padding:9px 18px;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;
+  }
+  .q-explain{
+    margin-top:12px;padding:12px 14px;border-radius:8px;font-size:13.5px;
+    background:var(--bg-card2);border:1px solid var(--border);display:none;
+  }
+  .q-seq-list{display:flex;flex-direction:column;gap:8px;}
+  .q-seq-item{
+    background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;
+    padding:10px 14px;cursor:grab;font-size:13.5px;display:flex;align-items:center;gap:10px;
+  }
+  .q-seq-item .num{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;}
+  #quiz-final{
+    display:none;text-align:center;padding:30px;background:var(--bg-card);
+    border:1px solid var(--accent);border-radius:14px;
+  }
+  #quiz-final .big-score{font-size:42px;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;}
+  .retry-btn{
+    margin-top:16px;background:transparent;border:1px solid var(--accent);color:var(--accent);
+    padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:700;font-family:'Space Grotesk',sans-serif;
+  }
+
+  /* Cheat sheet */
+  .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:720px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-cmd{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:13px;}
+
+  /* Story mode */
+  .story-box{
+    background:linear-gradient(160deg, #171b24 0%, #12151c 100%);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    border-radius:12px;
+    padding:20px 22px;
+    margin-bottom:18px;
+    font-size:14.5px;
+  }
+  .story-box b{color:var(--accent);}
+  .story-tag{
+    display:inline-block;background:var(--accent-dim);color:var(--accent);
+    font-family:'JetBrains Mono',monospace;font-size:11px;border-radius:6px;
+    padding:2px 8px;margin:2px 4px 2px 0;
+  }
+  .map-table td:first-child{color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700;white-space:nowrap;}
+  .verified-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--accent-dim);color:var(--accent);
+    border:1px solid var(--accent);border-radius:20px;
+    padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">Course 2 · Module 3 · LangGraph Core</div>
+    <h1>Lesson 3.13 — Checkpointing Deep Dive</h1>
+    <div class="subtitle">Hands-on: Checkpointing Deep Dive + Checkpoint Internals Deep Dive</div>
+    <div class="meta-row">
+      <div class="meta-pill">⏱ <b>16:05 + 7:08</b></div>
+      <div class="meta-pill">📚 Prereq: <b>Lesson 3.12</b></div>
+      <div class="meta-pill">⭐ <b>Critical lesson</b></div>
+    </div>
+  </div>
+  <nav id="tab-nav">
+    <button class="tab-btn active" data-tab="theory">📖 01. Lý thuyết</button>
+    <button class="tab-btn" data-tab="mindmap">🧠 02. Mindmap</button>
+    <button class="tab-btn" data-tab="quiz">📝 03. Quiz</button>
+    <button class="tab-btn" data-tab="cheat">⚡ 04. Cheat Sheet</button>
+    <button class="tab-btn" data-tab="story">🍡 05. Story Mode</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ================= TAB 1: THEORY ================= -->
+  <div class="tab-panel active" id="theory">
+
+    <section class="block">
+      <h2>Khái niệm</h2>
+      <div class="card">
+        <div class="card-title">💾 Checkpointing là gì?</div>
+        <p><b>Checkpointing</b> là cơ chế LangGraph tự động lưu lại toàn bộ <b>state</b> sau mỗi <b>super step</b> (1 nhịp thực thi). Mỗi lần lưu tạo ra 1 <b>checkpoint</b> — giống save file trong game.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">🎮 Ví dụ đời sống: Dark Souls</div>
+          <p>Chạm <b>bonfire</b> → tự lưu tiến trình (checkpoint). Chết → respawn tại bonfire gần nhất (resume). Nhiều file save cho nhiều nhân vật → mỗi save là 1 <b>thread_id</b> riêng.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">💬 Ví dụ: Chat đa lượt</div>
+          <p>ChatGPT/Claude giữ ngữ cảnh khi đóng tab, mở lại — nhờ mỗi hội thoại có <b>thread_id</b>, mỗi tin nhắn là 1 checkpoint lưu vào DB.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>Vị trí trong hệ thống</h2>
+      <div class="flow">
+        <div class="node">3.1–3.7 Graph cơ bản</div><div class="arrow">→</div>
+        <div class="node">3.8–3.11 Conditional / Loop</div><div class="arrow">→</div>
+        <div class="node">3.12 Human in the Loop</div><div class="arrow">→</div>
+        <div class="node hl">3.13 Checkpointing ⭐</div><div class="arrow">→</div>
+        <div class="node">3.14 Tổng kết Module 3</div>
+      </div>
+      <div class="tip"><b>Liên kết quan trọng:</b> <code>interrupt()</code> ở Lesson 3.12 <b>cần checkpointer</b> để lưu state tại điểm dừng — Checkpointing là nền tảng bên dưới human-in-the-loop.</div>
+    </section>
+
+    <section class="block">
+      <h2>Lệnh quan trọng</h2>
+
+      <h3>A. Khởi tạo checkpointer</h3>
+      <pre class="code"><span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> MemorySaver
+
+checkpointer = MemorySaver()  <span class="c1"># in-memory, mất khi restart — dev/test</span>
+app = graph.compile(checkpointer=checkpointer)</pre>
+
+      <pre class="code"><span class="kw">from</span> langgraph.checkpoint.sqlite <span class="kw">import</span> SqliteSaver
+<span class="kw">import</span> sqlite3
+
+conn = sqlite3.connect(<span class="str">"checkpoints.db"</span>, check_same_thread=<span class="kw">False</span>)
+checkpointer = SqliteSaver(conn)  <span class="c1"># lưu ra file .db — sống sót qua restart</span>
+app = graph.compile(checkpointer=checkpointer)</pre>
+
+      <table>
+        <tr><th>Flag / Option</th><th>Ý nghĩa</th></tr>
+        <tr><td class="mono">checkpointer=checkpointer</td><td>Bắt buộc truyền vào <code>.compile()</code>, nếu không graph sẽ không lưu gì</td></tr>
+        <tr><td class="mono">check_same_thread=False</td><td>Bắt buộc khi dùng SQLite đa luồng</td></tr>
+        <tr><td class="mono">SqliteSaver.from_conn_string(":memory:")</td><td>Tạo Sqlite in-memory nhanh để test</td></tr>
+      </table>
+
+      <h3>B. Thread ID — cô lập session</h3>
+      <pre class="code">config = {<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: <span class="str">"user_42_session_7"</span>}}
+app.invoke(initial_state, config)</pre>
+      <div class="warn"><b>⚠️ Cảnh báo:</b> Không có <code>thread_id</code> → không thể tra cứu / time travel đúng ý, mỗi invoke như một phiên hoàn toàn mới.</div>
+
+      <h3>C. Time travel — xem lịch sử</h3>
+      <pre class="code">history = <span class="fn">list</span>(app.get_state_history(config))
+<span class="kw">for</span> snap <span class="kw">in</span> history:
+    <span class="fn">print</span>(snap.values)   <span class="c1"># state tại checkpoint đó</span>
+    <span class="fn">print</span>(snap.next)     <span class="c1"># node kế tiếp nếu resume</span>
+    <span class="fn">print</span>(snap.config)   <span class="c1"># chứa checkpoint_id để resume chính xác</span></pre>
+
+      <table>
+        <tr><th>Field</th><th>Ý nghĩa</th></tr>
+        <tr><td class="mono">snap.values</td><td>state dict tại thời điểm đó</td></tr>
+        <tr><td class="mono">snap.next</td><td>tuple tên node kế tiếp (rỗng nếu đã kết thúc)</td></tr>
+        <tr><td class="mono">snap.config</td><td>thread_id + checkpoint_id — dùng để resume chính xác</td></tr>
+        <tr><td class="mono">snap.metadata</td><td>step số mấy, writes gì, source (input/loop/fork)</td></tr>
+        <tr><td class="mono">snap.parent_config</td><td>config của checkpoint cha</td></tr>
+      </table>
+
+      <h3>D. Replay / Fork từ checkpoint cũ</h3>
+      <pre class="code">target_snapshot = history[1]
+<span class="c1"># invoke(None, ...) = tiếp tục chạy, không thêm input mới</span>
+result = app.invoke(<span class="kw">None</span>, target_snapshot.config)</pre>
+      <pre class="code"><span class="c1"># Time travel có SỬA state trước khi chạy tiếp</span>
+new_config = app.update_state(
+    target_snapshot.config,
+    {<span class="str">"so_luot_luyen"</span>: <span class="num">99</span>},
+)
+result = app.invoke(<span class="kw">None</span>, new_config)</pre>
+
+      <table>
+        <tr><th>Lệnh</th><th>Giải thích</th></tr>
+        <tr><td class="mono">get_state(config)</td><td>State hiện tại mới nhất của 1 thread</td></tr>
+        <tr><td class="mono">get_state_history(config)</td><td>Toàn bộ lịch sử checkpoint của 1 thread</td></tr>
+        <tr><td class="mono">update_state(config, values)</td><td>Ghi đè 1 phần state, tạo checkpoint mới (con)</td></tr>
+        <tr><td class="mono">invoke(None, config)</td><td>Resume graph từ checkpoint chỉ định</td></tr>
+      </table>
+
+      <h3>E. Checkpoint Internals (nâng cao)</h3>
+      <pre class="code">CheckpointTuple(
+    config,          <span class="c1"># thread_id + checkpoint_id</span>
+    checkpoint,      <span class="c1"># channel_values, channel_versions, versions_seen</span>
+    metadata,        <span class="c1"># source: "input" | "loop" | "fork", step, writes</span>
+    parent_config,   <span class="c1"># config checkpoint cha (None nếu gốc)</span>
+)</pre>
+      <p><b>Super step</b>: 1 nhịp thực thi — tất cả node chạy song song trong 1 nhịp chỉ tạo <b>1 checkpoint duy nhất</b>, không phải 1/node.</p>
+    </section>
+
+    <section class="block">
+      <h2>File cấu hình quan trọng</h2>
+      <table>
+        <tr><th>File / Object</th><th>Vai trò</th></tr>
+        <tr><td class="mono">checkpoints.db</td><td>File SQLite vật lý chứa toàn bộ checkpoint</td></tr>
+        <tr><td class="mono">config.configurable.thread_id</td><td>"Khóa chính" bắt buộc trong mọi request production</td></tr>
+        <tr><td class="mono">.env → DATABASE_URL</td><td>Connection string cho <code>PostgresSaver</code> khi production cần concurrent-safe</td></tr>
+      </table>
+    </section>
+
+    <section class="block">
+      <h2>Ứng dụng thực tế</h2>
+      <div class="grid2">
+        <div class="card"><div class="card-title">💬 Chatbot đa lượt</div><p>ChatGPT, Claude, trợ lý nội bộ — lưu state theo <code>thread_id</code> = conversation_id.</p></div>
+        <div class="card"><div class="card-title">✅ Human-in-the-loop approval</div><p>Duyệt email/giao dịch tài chính — agent dừng, checkpoint giữ state, resume sau vài giờ.</p></div>
+        <div class="card"><div class="card-title">🔍 Debug & audit production</div><p><code>get_state_history()</code> để "tua lại" tìm đúng node/input gây lỗi — quan trọng cho compliance.</p></div>
+        <div class="card"><div class="card-title">🧪 A/B test decision branch</div><p>Fork từ 1 checkpoint để thử 2 hướng xử lý khác nhau, so sánh kết quả.</p></div>
+      </div>
+      <div class="tip"><b>Project của bạn (Exam Generator v3):</b> <code>thread_id = f"{student_id}_{exam_session_id}"</code> + <code>SqliteSaver</code> → học sinh refine đề qua nhiều lượt, tắt app mở lại vẫn nhớ. Production đổi sang <code>PostgresSaver</code> vì Lambda cần concurrent-safe.</div>
+    </section>
+  </div>
+
+  <!-- ================= TAB 2: MINDMAP ================= -->
+  <div class="tab-panel" id="mindmap">
+    <section class="block">
+      <h2>Mindmap tương tác — bấm vào node để xem chi tiết</h2>
+      <div id="mindmap-wrap">
+        <svg id="mindmap-svg" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div id="mindmap-detail">👆 Bấm vào 1 node trong sơ đồ để xem giải thích chi tiết tại đây.</div>
+    </section>
+  </div>
+
+  <!-- ================= TAB 3: QUIZ ================= -->
+  <div class="tab-panel" id="quiz">
+    <section class="block">
+      <h2>Quiz — 10 câu ôn tập</h2>
+      <div class="quiz-progress">
+        <span>Câu <span id="q-current">1</span> / <span id="q-total">10</span></span>
+        <span class="quiz-score">Điểm: <span id="q-score">0</span>/10</span>
+      </div>
+      <div id="quiz-container"></div>
+      <div id="quiz-final">
+        <div>🎉 Hoàn thành Quiz!</div>
+        <div class="big-score"><span id="final-score">0</span>/10</div>
+        <div id="final-msg" style="color:var(--text-dim);margin-top:6px;"></div>
+        <button class="retry-btn" onclick="restartQuiz()">↺ Làm lại</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= TAB 4: CHEAT SHEET ================= -->
+  <div class="tab-panel" id="cheat">
+    <section class="block">
+      <h2>⚡ Cheat Sheet — tra cứu nhanh</h2>
+      <div class="cheat-grid">
+        <div class="card">
+          <div class="card-title">Khởi tạo checkpointer</div>
+          <p class="cheat-cmd">MemorySaver()</p><p style="color:var(--text-dim);font-size:13px;">dev/test, RAM only</p>
+          <p class="cheat-cmd">SqliteSaver(conn)</p><p style="color:var(--text-dim);font-size:13px;">persistence local file</p>
+          <p class="cheat-cmd">PostgresSaver(conn)</p><p style="color:var(--text-dim);font-size:13px;">production, concurrent-safe</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Thread & Config</div>
+          <p class="cheat-cmd">{"configurable":{"thread_id": ...}}</p><p style="color:var(--text-dim);font-size:13px;">cô lập session/user</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Time travel</div>
+          <p class="cheat-cmd">app.get_state(config)</p><p style="color:var(--text-dim);font-size:13px;">state mới nhất</p>
+          <p class="cheat-cmd">app.get_state_history(config)</p><p style="color:var(--text-dim);font-size:13px;">toàn bộ lịch sử</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Replay / Fork</div>
+          <p class="cheat-cmd">app.invoke(None, snap.config)</p><p style="color:var(--text-dim);font-size:13px;">resume đúng checkpoint</p>
+          <p class="cheat-cmd">app.update_state(config, values)</p><p style="color:var(--text-dim);font-size:13px;">sửa rồi tạo checkpoint mới</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:20px;">File quan trọng</h3>
+      <table>
+        <tr><th>File</th><th>Vai trò</th></tr>
+        <tr><td class="mono">checkpoints.db</td><td>SQLite lưu checkpoint</td></tr>
+        <tr><td class="mono">.env DATABASE_URL</td><td>Postgres connection string</td></tr>
+        <tr><td class="mono">requirements.txt</td><td>langgraph-checkpoint-sqlite / -postgres</td></tr>
+      </table>
+
+      <h3 style="margin-top:20px;">Lab Steps tóm tắt</h3>
+      <table>
+        <tr><th>#</th><th>Bước</th></tr>
+        <tr><td>1</td><td>pip install langgraph langchain-core</td></tr>
+        <tr><td>2</td><td>Build graph 3 node + MemorySaver</td></tr>
+        <tr><td>3</td><td>invoke() lần đầu, quan sát state cuối</td></tr>
+        <tr><td>4</td><td>get_state_history() → chọn checkpoint giữa chừng</td></tr>
+        <tr><td>5</td><td>invoke(None, target.config) → verify kết quả replay khớp</td></tr>
+      </table>
+
+      <div class="warn" style="margin-top:20px;"><b>Dễ sai nhất:</b> quên <code>checkpointer=</code> trong <code>.compile()</code>, quên <code>thread_id</code>, dùng <code>invoke(initial_state, ...)</code> thay vì <code>invoke(None, ...)</code> khi resume.</div>
+    </section>
+  </div>
+
+  <!-- ================= TAB 5: STORY MODE ================= -->
+  <div class="tab-panel" id="story">
+    <section class="block">
+      <h2>🍡 Story Mode — Tanjiro và Vết Khắc Trên Kiếm Nichirin</h2>
+
+      <div class="story-box">
+        <p>Tanjiro nhận nhiệm vụ <b>hạ gục một con quỷ</b> trong rừng tre. Mỗi khi hoàn thành 1 giai đoạn — khởi hành, luyện thở, báo cáo lên Đoàn Diệt Quỷ — cây <b>kiếm Nichirin</b> của cậu tự động khắc lại một <b>vết chuẩn</b> vào lưỡi kiếm. Đây chính là <b>Checkpointer</b>: nó không quan tâm câu chuyện là gì, chỉ âm thầm lưu lại "mọi thứ đang ở đâu" sau mỗi bước.</p>
+        <p>🐛 <b>Bug hài hước:</b> Zenitsu (đồng đội) hoảng loạn <b>ngất xỉu ngay trước khi báo cáo</b>, làm gián đoạn flow giữa chừng. Nhưng vì kiếm đã khắc đủ vết chuẩn, Tanjiro không cần luyện thở lại từ đầu — cậu tra lại <b>vết khắc gần nhất trước bước báo cáo</b> và tiếp tục đúng từ đó.</p>
+        <p>Mỗi nhiệm vụ có một <b>mã nhiệm vụ riêng</b> (<code>thread_id = "tanjiro_001"</code>) để không lẫn với nhiệm vụ song song của Inosuke hay Zenitsu.</p>
+      </div>
+
+      <h3>Ánh xạ khái niệm</h3>
+      <table class="map-table">
+        <tr><th>Khái niệm gốc</th><th>Chi tiết trong truyện</th></tr>
+        <tr><td>Checkpointer</td><td>Vết khắc tự động trên kiếm Nichirin sau mỗi giai đoạn nhiệm vụ</td></tr>
+        <tr><td>Thread ID</td><td>Mã nhiệm vụ riêng của từng thành viên Đoàn Diệt Quỷ (không lẫn lộn)</td></tr>
+        <tr><td>get_state_history()</td><td>Tra lại toàn bộ các vết khắc theo thời gian trên kiếm</td></tr>
+        <tr><td>snap.next</td><td>"Bước tiếp theo cần làm" ghi kèm mỗi vết khắc</td></tr>
+        <tr><td>Resume / Fork (invoke(None, config))</td><td>Tiếp tục nhiệm vụ đúng từ vết khắc đã chọn, không lặp từ đầu</td></tr>
+        <tr><td>Bug hài hước</td><td>Zenitsu ngất xỉu ngay trước bước báo cáo → tình huống cần time travel để cứu tiến trình</td></tr>
+      </table>
+
+      <h3 style="margin-top:22px;">Code (đã chạy kiểm chứng thật)</h3>
+      <pre class="code"><span class="kw">from</span> typing <span class="kw">import</span> TypedDict
+<span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+<span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> MemorySaver
+
+
+<span class="kw">class</span> <span class="fn">NhiemVuState</span>(TypedDict):
+    ten_nhiem_vu: <span class="fn">str</span>      <span class="c1"># Tên nhiệm vụ diệt quỷ</span>
+    so_luot_luyen: <span class="fn">int</span>     <span class="c1"># Số lần luyện thở trong lúc thực hiện nhiệm vụ</span>
+    log: <span class="fn">list</span>               <span class="c1"># Nhật ký nhiệm vụ, giống các "vết khắc" trên kiếm</span>
+
+
+<span class="kw">def</span> <span class="fn">khoi_dong</span>(state: NhiemVuState) -> <span class="fn">dict</span>:
+    <span class="c1"># Bước 1: Tanjiro nhận nhiệm vụ -> vết khắc đầu tiên trên kiếm</span>
+    <span class="kw">return</span> {<span class="str">"log"</span>: state.get(<span class="str">"log"</span>, []) + [<span class="str">f"Bắt đầu nhiệm vụ: {state['ten_nhiem_vu']}"</span>]}
+
+
+<span class="kw">def</span> <span class="fn">luyen_tap</span>(state: NhiemVuState) -> <span class="fn">dict</span>:
+    <span class="c1"># Bước 2: Luyện "Nhất Thể Hô Hấp" -> vết khắc thứ hai</span>
+    so_luot = state[<span class="str">"so_luot_luyen"</span>] + <span class="num">1</span>
+    <span class="kw">return</span> {<span class="str">"so_luot_luyen"</span>: so_luot, <span class="str">"log"</span>: state[<span class="str">"log"</span>] + [<span class="str">f"Luyện tập lần {so_luot}"</span>]}
+
+
+<span class="kw">def</span> <span class="fn">bao_cao</span>(state: NhiemVuState) -> <span class="fn">dict</span>:
+    <span class="c1"># Bước 3: Zenitsu lẽ ra phải báo cáo, nhưng có thể "ngất xỉu" giữa chừng</span>
+    <span class="c1"># trong kịch bản thật -> checkpoint trước đó sẽ cứu tiến trình (xem phần replay)</span>
+    <span class="kw">return</span> {<span class="str">"log"</span>: state[<span class="str">"log"</span>] + [<span class="str">"Báo cáo hoàn tất nhiệm vụ"</span>]}
+
+
+graph = StateGraph(NhiemVuState)
+graph.add_node(<span class="str">"khoi_dong"</span>, khoi_dong)
+graph.add_node(<span class="str">"luyen_tap"</span>, luyen_tap)
+graph.add_node(<span class="str">"bao_cao"</span>, bao_cao)
+graph.add_edge(START, <span class="str">"khoi_dong"</span>)
+graph.add_edge(<span class="str">"khoi_dong"</span>, <span class="str">"luyen_tap"</span>)
+graph.add_edge(<span class="str">"luyen_tap"</span>, <span class="str">"bao_cao"</span>)
+graph.add_edge(<span class="str">"bao_cao"</span>, END)
+
+<span class="c1"># Checkpointer = "kiếm Nichirin" tự động khắc vết sau mỗi super step</span>
+checkpointer = MemorySaver()
+app = graph.compile(checkpointer=checkpointer)
+
+<span class="c1"># thread_id = mã nhiệm vụ riêng của Tanjiro, không lẫn Zenitsu/Inosuke</span>
+config = {<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: <span class="str">"tanjiro_001"</span>}}
+
+result = app.invoke(
+    {<span class="str">"ten_nhiem_vu"</span>: <span class="str">"Ha guc Ma quy"</span>, <span class="str">"so_luot_luyen"</span>: <span class="num">0</span>, <span class="str">"log"</span>: []}, config
+)
+<span class="fn">print</span>(<span class="str">"=== KET QUA CUOI ==="</span>)
+<span class="fn">print</span>(result)
+
+<span class="fn">print</span>(<span class="str">"\n=== TIME TRAVEL: tra lai cac vet khac tren kiem ==="</span>)
+history = <span class="fn">list</span>(app.get_state_history(config))
+<span class="kw">for</span> i, snap <span class="kw">in</span> <span class="fn">enumerate</span>(history):
+    <span class="fn">print</span>(<span class="str">f"[{i}] next={snap.next} values={snap.values}"</span>)
+
+<span class="fn">print</span>(<span class="str">"\n=== ZENITSU NGAT XIU: chon vet khac TRUOC luc bao cao ==="</span>)
+target = <span class="fn">next</span>(s <span class="kw">for</span> s <span class="kw">in</span> history <span class="kw">if</span> s.next == (<span class="str">"bao_cao"</span>,))
+<span class="fn">print</span>(<span class="str">"Checkpoint duoc chon de replay:"</span>, target.values, <span class="str">"| next:"</span>, target.next)
+
+replayed = app.invoke(<span class="kw">None</span>, target.config)
+<span class="fn">print</span>(<span class="str">"\n=== KET QUA SAU KHI TIEP TUC NHIEM VU TU VET KHAC CU ==="</span>)
+<span class="fn">print</span>(replayed)</pre>
+
+      <h3 style="margin-top:20px;">Output <span class="verified-badge">✅ Output thật, đã chạy kiểm chứng</span></h3>
+      <pre class="code">=== KET QUA CUOI ===
+{'ten_nhiem_vu': 'Ha guc Ma quy', 'so_luot_luyen': 1, 'log': ['Bắt đầu nhiệm vụ: Ha guc Ma quy', 'Luyện tập lần 1', 'Báo cáo hoàn tất nhiệm vụ']}
+
+=== TIME TRAVEL: tra lai cac vet khac tren kiem ===
+[0] next=() values={'ten_nhiem_vu': 'Ha guc Ma quy', 'so_luot_luyen': 1, 'log': ['Bắt đầu nhiệm vụ: Ha guc Ma quy', 'Luyện tập lần 1', 'Báo cáo hoàn tất nhiệm vụ']}
+[1] next=('bao_cao',) values={'ten_nhiem_vu': 'Ha guc Ma quy', 'so_luot_luyen': 1, 'log': ['Bắt đầu nhiệm vụ: Ha guc Ma quy', 'Luyện tập lần 1']}
+[2] next=('luyen_tap',) values={'ten_nhiem_vu': 'Ha guc Ma quy', 'so_luot_luyen': 0, 'log': ['Bắt đầu nhiệm vụ: Ha guc Ma quy']}
+[3] next=('khoi_dong',) values={'ten_nhiem_vu': 'Ha guc Ma quy', 'so_luot_luyen': 0, 'log': []}
+[4] next=('__start__',) values={}
+
+=== ZENITSU NGAT XIU: chon vet khac TRUOC luc bao cao ===
+Checkpoint duoc chon de replay: {'ten_nhiem_vu': 'Ha guc Ma quy', 'so_luot_luyen': 1, 'log': ['Bắt đầu nhiệm vụ: Ha guc Ma quy', 'Luyện tập lần 1']} | next: ('bao_cao',)
+
+=== KET QUA SAU KHI TIEP TUC NHIEM VU TU VET KHAC CU ===
+{'ten_nhiem_vu': 'Ha guc Ma quy', 'so_luot_luyen': 1, 'log': ['Bắt đầu nhiệm vụ: Ha guc Ma quy', 'Luyện tập lần 1', 'Báo cáo hoàn tất nhiệm vụ']}</pre>
+
+      <div class="tip">
+        <b>Tại sao code này chạy được:</b> LangGraph không hề biết và không quan tâm state tên là <code>ten_nhiem_vu</code> hay câu chuyện là Tanjiro. Với LangGraph, state chỉ là 1 dict theo <code>TypedDict</code>, checkpointer chỉ làm đúng 1 việc cơ học: serialize dict đó + tên node kế tiếp, sau mỗi super step, gắn với 1 <code>thread_id</code>. Time travel hoạt động được vì (1) mỗi checkpoint lưu đủ thông tin để biết node nào chạy tiếp (<code>snap.next</code>), nên <code>invoke(None, config)</code> chỉ là "tiếp tục đúng vị trí trong graph đã compile"; (2) <code>thread_id</code> chỉ là 1 khóa tra cứu trong storage — đổi tên biến, đổi ngôn ngữ kể chuyện không ảnh hưởng gì. Đây là lý do bạn có thể đổi <code>NhiemVuState</code> thành <code>ExamGenState</code> (roadmap Exam Generator v3) mà toàn bộ logic checkpoint/time-travel giữ nguyên y hệt.
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<script>
+// ---------- TAB SWITCHING ----------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- MINDMAP ----------
+const mmData = [
+  {id:'root', x:400, y:280, w:180, h:50, label:'Checkpointing', root:true,
+   detail:'<b>Checkpointing</b>: cơ chế LangGraph tự động lưu toàn bộ state sau mỗi super step, tạo ra 1 checkpoint — nền tảng cho persistence, time travel, và human-in-the-loop.'},
+
+  {id:'saver', x:120, y:80, w:170, h:46, label:'Checkpointer',
+   detail:'<b>Checkpointer</b>: object lưu/đọc checkpoint. 3 loại chính: <code>MemorySaver</code> (RAM, dev), <code>SqliteSaver</code> (file, nhẹ), <code>PostgresSaver</code> (production, concurrent-safe).'},
+  {id:'thread', x:120, y:280, w:170, h:46, label:'Thread ID',
+   detail:'<b>Thread ID</b>: khóa định danh 1 phiên/session, truyền qua <code>config["configurable"]["thread_id"]</code>. Cô lập lịch sử giữa các user/nhiệm vụ khác nhau.'},
+  {id:'travel', x:120, y:480, w:170, h:46, label:'Time Travel',
+   detail:'<b>Time Travel</b>: dùng <code>get_state_history(config)</code> để xem lại toàn bộ checkpoint, mỗi cái là 1 <code>StateSnapshot</code> gồm values/next/config/metadata.'},
+
+  {id:'memsaver', x:680, y:40, w:180, h:44, label:'MemorySaver',
+   detail:'<code>MemorySaver()</code>: lưu trong RAM, mất khi restart process. Chỉ dùng cho dev/test, không dùng production.'},
+  {id:'sqlsaver', x:680, y:110, w:180, h:44, label:'SqliteSaver',
+   detail:'<code>SqliteSaver(conn)</code>: lưu ra file .db, sống sót qua restart. Cần <code>check_same_thread=False</code> khi đa luồng.'},
+
+  {id:'getstate', x:680, y:230, w:180, h:44, label:'get_state()',
+   detail:'<code>app.get_state(config)</code>: lấy state hiện tại mới nhất của 1 thread — KHÔNG phải toàn bộ lịch sử.'},
+  {id:'gethistory', x:680, y:300, w:180, h:44, label:'get_state_history()',
+   detail:'<code>app.get_state_history(config)</code>: trả về list <code>StateSnapshot</code>, mới nhất → cũ nhất, dùng để "tua lại" thời gian.'},
+
+  {id:'resume', x:680, y:420, w:180, h:44, label:'invoke(None, cfg)',
+   detail:'<code>app.invoke(None, target.config)</code>: resume/fork graph từ checkpoint chỉ định — không truyền input mới.'},
+  {id:'update', x:680, y:490, w:180, h:44, label:'update_state()',
+   detail:'<code>app.update_state(config, values)</code>: sửa 1 phần state tại checkpoint, tạo ra checkpoint mới làm con của nó (source="fork").'},
+];
+
+const mmLinks = [
+  ['root','saver'], ['root','thread'], ['root','travel'],
+  ['saver','memsaver'], ['saver','sqlsaver'],
+  ['travel','getstate'], ['travel','gethistory'],
+  ['travel','resume'], ['travel','update'],
+];
+
+function renderMindmap(){
+  const svg = document.getElementById('mindmap-svg');
+  let html = '';
+  mmLinks.forEach(([a,b]) => {
+    const na = mmData.find(n=>n.id===a), nb = mmData.find(n=>n.id===b);
+    const x1 = na.x + na.w/2, y1 = na.y + na.h/2;
+    const x2 = nb.x + nb.w/2, y2 = nb.y + nb.h/2;
+    const mx = (x1+x2)/2;
+    html += `<path class="mm-link" d="M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}"/>`;
+  });
+  mmData.forEach(n => {
+    html += `<g class="mm-node ${n.root?'root':''}" data-id="${n.id}" transform="translate(${n.x},${n.y})">
+      <rect width="${n.w}" height="${n.h}" rx="10"></rect>
+      <text x="${n.w/2}" y="${n.h/2+5}" text-anchor="middle">${n.label}</text>
+    </g>`;
+  });
+  svg.innerHTML = html;
+  svg.querySelectorAll('.mm-node').forEach(g => {
+    g.addEventListener('click', () => {
+      const node = mmData.find(n => n.id === g.dataset.id);
+      document.getElementById('mindmap-detail').innerHTML = node.detail;
+    });
+  });
+}
+renderMindmap();
+
+// ---------- QUIZ ----------
+const quizData = [
+  {type:'mc', q:'Checkpoint được tạo ra vào thời điểm nào trong LangGraph?',
+   options:['Trước khi graph bắt đầu chạy','Sau mỗi "super step"','Chỉ khi gọi .compile()','Chỉ khi có lỗi xảy ra'],
+   correct:1, explain:'Checkpoint được tạo sau mỗi super step (1 nhịp thực thi), không phải mỗi node riêng lẻ.'},
+
+  {type:'tf', q:'MemorySaver phù hợp để dùng trong môi trường production cần concurrent-safe.',
+   options:['True','False'], correct:1,
+   explain:'False — MemorySaver chỉ lưu trong RAM, mất khi restart process, chỉ dùng cho dev/test.'},
+
+  {type:'fill', q:'Để cô lập lịch sử giữa các cuộc hội thoại khác nhau, ta phải truyền __________ vào trong config["configurable"].',
+   answer:'thread_id', explain:'Đáp án: thread_id — khóa định danh session/thread, bắt buộc để cô lập lịch sử.'},
+
+  {type:'mc', q:'Method nào dùng để lấy toàn bộ lịch sử các checkpoint của một thread?',
+   options:['app.get_state(config)','app.get_state_history(config)','app.update_state(config)','app.stream(config)'],
+   correct:1, explain:'get_state_history() trả về toàn bộ list StateSnapshot; get_state() chỉ trả state mới nhất.'},
+
+  {type:'tf', q:'interrupt() (Lesson 3.12) hoạt động độc lập, không cần checkpointer.',
+   options:['True','False'], correct:1,
+   explain:'False — interrupt() cần checkpointer để lưu state tại điểm dừng, nếu không graph không biết resume từ đâu.'},
+
+  {type:'seq', q:'Sắp xếp đúng thứ tự để "time travel" và fork từ 1 checkpoint cũ:',
+   items:['Gọi app.invoke(None, target_snapshot.config)','Chọn 1 snapshot mong muốn từ list đó','Gọi app.get_state_history(config) để lấy lịch sử'],
+   correctOrder:[2,1,0],
+   explain:'Đúng thứ tự: lấy lịch sử (get_state_history) → chọn snapshot → invoke resume.'},
+
+  {type:'mc', q:'snap.next trong StateSnapshot cho biết điều gì?',
+   options:['Giá trị state hiện tại','Node nào sẽ chạy kế tiếp nếu resume từ checkpoint này','Thời gian tạo checkpoint','Số lượng checkpoint còn lại'],
+   correct:1, explain:'snap.next là tuple tên node kế tiếp sẽ chạy nếu resume từ checkpoint đó.'},
+
+  {type:'fill', q:'Trong production cần nhiều worker/Lambda cùng ghi đồng thời an toàn, nên dùng checkpointer là __________ thay vì SqliteSaver.',
+   answer:'PostgresSaver', explain:'Đáp án: PostgresSaver — concurrent-safe cho nhiều worker/Lambda cùng ghi.'},
+
+  {type:'tf', q:'app.update_state(config, values) sẽ ghi đè trực tiếp lên checkpoint cũ, không tạo checkpoint mới.',
+   options:['True','False'], correct:1,
+   explain:'False — update_state() tạo ra một checkpoint MỚI (con của checkpoint cũ), không ghi đè.'},
+
+  {type:'mc', q:'metadata["source"] của một checkpoint có thể nhận giá trị nào sau đây?',
+   options:['"input", "loop", "fork"','"start", "end", "error"','"read", "write", "delete"','"sync", "async", "stream"'],
+   correct:0, explain:'source có thể là "input" (checkpoint đầu), "loop" (bình thường), hoặc "fork" (do update_state/replay).'},
+];
+
+let currentQ = 0, score = 0, answered = [];
+
+function renderQuiz(){
+  const q = quizData[currentQ];
+  const container = document.getElementById('quiz-container');
+  document.getElementById('q-current').textContent = currentQ+1;
+  document.getElementById('q-score').textContent = score;
+
+  const typeLabels = {mc:'Multiple Choice', tf:'True / False', fill:'Fill in the blank', seq:'Sequence'};
+  let html = `<div class="q-card"><div class="q-type">${typeLabels[q.type]}</div><div class="q-text">${q.q}</div>`;
+
+  if(q.type === 'mc' || q.type === 'tf'){
+    html += '<div class="q-options">';
+    q.options.forEach((opt,i) => {
+      html += `<div class="q-opt" data-idx="${i}" onclick="answerMC(${i})">${opt}</div>`;
+    });
+    html += '</div>';
+  } else if(q.type === 'fill'){
+    html += `<div class="q-fill"><input type="text" id="fill-input" placeholder="Nhập câu trả lời..."/></div>
+              <button class="q-submit-btn" onclick="answerFill()">Submit</button>`;
+  } else if(q.type === 'seq'){
+    html += '<div class="q-seq-list" id="seq-list">';
+    q.items.forEach((item,i) => {
+      html += `<div class="q-seq-item" draggable="true" data-orig="${i}"><span class="num">::</span>${item}</div>`;
+    });
+    html += '</div><button class="q-submit-btn" onclick="answerSeq()">Submit thứ tự</button>';
+  }
+
+  html += `<div class="q-explain" id="q-explain">${q.explain}</div></div>`;
+  container.innerHTML = html;
+
+  if(q.type === 'seq') setupDragDrop();
+}
+
+function lockOptions(){
+  document.querySelectorAll('.q-opt').forEach(o => o.classList.add('disabled'));
+}
+
+function showExplainAndNext(isCorrect){
+  if(isCorrect) score++;
+  document.getElementById('q-score').textContent = score;
+  document.getElementById('q-explain').style.display = 'block';
+  setTimeout(() => {
+    currentQ++;
+    if(currentQ < quizData.length){ renderQuiz(); }
+    else { finishQuiz(); }
+  }, 1600);
+}
+
+function answerMC(idx){
+  const q = quizData[currentQ];
+  const opts = document.querySelectorAll('.q-opt');
+  opts[idx].classList.add(idx===q.correct ? 'correct' : 'wrong');
+  if(idx!==q.correct) opts[q.correct].classList.add('correct');
+  lockOptions();
+  showExplainAndNext(idx===q.correct);
+}
+
+function answerFill(){
+  const q = quizData[currentQ];
+  const val = document.getElementById('fill-input').value.trim().toLowerCase();
+  const correct = val.includes(q.answer.toLowerCase());
+  document.getElementById('fill-input').style.borderColor = correct ? 'var(--accent)' : 'var(--red)';
+  document.querySelector('.q-submit-btn').setAttribute('onclick','');
+  showExplainAndNext(correct);
+}
+
+let dragSrc = null;
+function setupDragDrop(){
+  const items = document.querySelectorAll('.q-seq-item');
+  items.forEach(it => {
+    it.addEventListener('dragstart', () => dragSrc = it);
+    it.addEventListener('dragover', e => e.preventDefault());
+    it.addEventListener('drop', () => {
+      const list = document.getElementById('seq-list');
+      const all = Array.from(list.children);
+      const srcIdx = all.indexOf(dragSrc);
+      const tgtIdx = all.indexOf(it);
+      if(srcIdx < tgtIdx) it.after(dragSrc); else it.before(dragSrc);
+    });
+  });
+}
+
+function answerSeq(){
+  const q = quizData[currentQ];
+  const list = document.getElementById('seq-list');
+  const order = Array.from(list.children).map(el => parseInt(el.dataset.orig));
+  const correct = JSON.stringify(order) === JSON.stringify(q.correctOrder);
+  list.style.borderRadius='8px';
+  list.querySelectorAll('.q-seq-item').forEach(el => el.style.borderColor = correct ? 'var(--accent)' : 'var(--red)');
+  showExplainAndNext(correct);
+}
+
+function finishQuiz(){
+  document.getElementById('quiz-container').style.display = 'none';
+  document.querySelector('.quiz-progress').style.display = 'none';
+  document.getElementById('quiz-final').style.display = 'block';
+  document.getElementById('final-score').textContent = score;
+  const msg = score >= 8 ? '🔥 Xuất sắc! Bạn nắm rất chắc Checkpointing.' :
+              score >= 5 ? '👍 Khá tốt, nên xem lại phần Time Travel.' :
+              '📚 Nên ôn lại lý thuyết trước khi qua bài tiếp theo.';
+  document.getElementById('final-msg').textContent = msg;
+}
+
+function restartQuiz(){
+  currentQ = 0; score = 0;
+  document.getElementById('quiz-container').style.display = 'block';
+  document.querySelector('.quiz-progress').style.display = 'flex';
+  document.getElementById('quiz-final').style.display = 'none';
+  renderQuiz();
+}
+
+renderQuiz();
+</script>
+
+</body>
+</html>

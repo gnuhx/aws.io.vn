@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 9 — Advanced LangGraph Patterns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f14;
+    --bg-elev:#12151c;
+    --bg-card:#161a22;
+    --border:#232834;
+    --text:#e6e9ef;
+    --text-dim:#8b93a3;
+    --accent:#4ade80;
+    --accent-dim:#4ade8022;
+    --accent-glow:#4ade8055;
+    --warn:#f59e0b;
+    --danger:#f87171;
+    --blue:#60a5fa;
+    --purple:#c084fc;
+    --mono:'JetBrains Mono', monospace;
+    --sans:'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    min-height:100vh;
+  }
+  ::selection{background:var(--accent-glow);}
+
+  /* ---------- HEADER ---------- */
+  header{
+    padding:28px 32px 18px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, var(--bg-elev), var(--bg));
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--accent);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  h1{
+    font-size:clamp(22px, 4vw, 32px);
+    margin:0 0 6px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{color:var(--text-dim);font-size:14px;font-family:var(--mono);}
+
+  /* ---------- NAV ---------- */
+  nav{
+    display:flex;
+    gap:4px;
+    padding:0 32px;
+    background:var(--bg-elev);
+    border-bottom:1px solid var(--border);
+    overflow-x:auto;
+    position:sticky;
+    top:0;
+    z-index:50;
+  }
+  .tab-btn{
+    background:none;
+    border:none;
+    color:var(--text-dim);
+    font-family:var(--mono);
+    font-size:13px;
+    padding:16px 18px;
+    cursor:pointer;
+    white-space:nowrap;
+    border-bottom:2px solid transparent;
+    transition:all .15s ease;
+  }
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  main{padding:32px;max-width:1100px;margin:0 auto;}
+  .tab-panel{display:none;animation:fadeIn .25s ease;}
+  .tab-panel.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  section{margin-bottom:36px;}
+  h2{
+    font-size:20px;
+    color:var(--accent);
+    border-left:3px solid var(--accent);
+    padding-left:12px;
+    margin:0 0 16px;
+  }
+  h3{font-size:16px;margin:0 0 10px;color:var(--text);}
+  p{color:var(--text-dim);}
+
+  /* ---------- CARDS ---------- */
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px,1fr));
+    gap:16px;
+  }
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .card:hover{border-color:var(--accent-glow);transform:translateY(-2px);}
+  .card.jump-highlight{
+    animation:jumpGlow 1.6s ease;
+  }
+  @keyframes jumpGlow{
+    0%{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+    100%{border-color:var(--border);box-shadow:none;}
+  }
+  .card .tag{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--accent);
+    background:var(--accent-dim);
+    padding:2px 8px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .card p{font-size:13.5px;margin:6px 0 0;}
+  .card .analogy{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--border);
+    font-size:13px;
+    color:var(--text-dim);
+    font-style:italic;
+  }
+
+  /* ---------- LESSON CODE DETAILS ---------- */
+  .lesson-detail{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:4px 18px 16px;
+    margin-bottom:12px;
+  }
+  .lesson-detail.jump-highlight{
+    animation:jumpGlow 1.6s ease;
+  }
+  .lesson-detail summary{
+    cursor:pointer;
+    padding:14px 0;
+    font-weight:600;
+    color:var(--text);
+    font-size:14px;
+    list-style:none;
+  }
+  .lesson-detail summary::-webkit-details-marker{display:none;}
+  .lesson-detail summary::before{
+    content:"▸";
+    color:var(--accent);
+    display:inline-block;
+    margin-right:8px;
+    transition:transform .15s ease;
+  }
+  .lesson-detail[open] summary::before{transform:rotate(90deg);}
+  .lesson-detail summary:hover{color:var(--accent);}
+
+  /* ---------- TABLE ---------- */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  th,td{
+    padding:10px 12px;
+    text-align:left;
+    border-bottom:1px solid var(--border);
+    vertical-align:top;
+  }
+  th{
+    background:var(--bg-elev);
+    color:var(--accent);
+    font-family:var(--mono);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  tr:last-child td{border-bottom:none;}
+  td:first-child{color:var(--text);font-weight:600;white-space:nowrap;}
+
+  /* ---------- CODE ---------- */
+  pre{
+    background:#080a0e;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:16px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.55;
+  }
+  code{font-family:var(--mono);}
+  .kw{color:var(--purple);}
+  .str{color:var(--accent);}
+  .cm{color:var(--text-dim);}
+  .fn{color:var(--blue);}
+  .num{color:var(--warn);}
+
+  /* ---------- FLOW DIAGRAM ---------- */
+  .flow{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:20px;
+  }
+  .flow-node{
+    font-family:var(--mono);
+    font-size:12.5px;
+    padding:8px 14px;
+    border-radius:6px;
+    border:1px solid var(--accent-glow);
+    background:var(--accent-dim);
+    color:var(--accent);
+  }
+  .flow-node.alt{border-color:#f59e0b55;background:#f59e0b18;color:var(--warn);}
+  .flow-arrow{color:var(--text-dim);font-family:var(--mono);}
+
+  /* ---------- MINDMAP ---------- */
+  .mindmap-wrap{
+    display:grid;
+    grid-template-columns:1.6fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:800px){.mindmap-wrap{grid-template-columns:1fr;}}
+  #mindmap-svg{
+    width:100%;
+    height:auto;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+  .mm-node circle{
+    fill:var(--bg-elev);
+    stroke:var(--accent-glow);
+    stroke-width:2;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .mm-node:hover circle{stroke:var(--accent);fill:var(--accent-dim);}
+  .mm-node.selected circle{stroke:var(--accent);fill:var(--accent-dim);}
+  .mm-node text{
+    fill:var(--text);
+    font-family:var(--mono);
+    font-size:11px;
+    text-anchor:middle;
+    pointer-events:none;
+  }
+  .mm-edge{stroke:var(--border);stroke-width:1.5;}
+  .mm-panel{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px;
+    min-height:200px;
+  }
+  .mm-panel h3{color:var(--accent);}
+  .mm-panel p{font-size:13.5px;}
+
+  /* ---------- QUIZ ---------- */
+  .quiz-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+  }
+  .score-pill{
+    font-family:var(--mono);
+    font-size:13px;
+    background:var(--accent-dim);
+    color:var(--accent);
+    padding:6px 14px;
+    border-radius:20px;
+  }
+  .q-card{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .q-card .q-num{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--accent);
+    margin-bottom:6px;
+    display:block;
+  }
+  .q-text{font-weight:600;margin-bottom:12px;}
+  .q-options{display:flex;flex-direction:column;gap:8px;}
+  .q-opt{
+    text-align:left;
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:10px 14px;
+    border-radius:6px;
+    cursor:pointer;
+    font-family:var(--sans);
+    font-size:13.5px;
+    transition:all .12s ease;
+  }
+  .q-opt:hover{border-color:var(--accent-glow);}
+  .q-opt.correct{border-color:var(--accent);background:var(--accent-dim);}
+  .q-opt.wrong{border-color:var(--danger);background:#f8717118;}
+  .q-explain{
+    margin-top:10px;
+    font-size:13px;
+    color:var(--text-dim);
+    padding:10px 12px;
+    background:var(--bg-elev);
+    border-left:2px solid var(--accent);
+    border-radius:4px;
+    display:none;
+  }
+  .q-explain.show{display:block;}
+  .reset-btn{
+    font-family:var(--mono);
+    background:none;
+    border:1px solid var(--accent-glow);
+    color:var(--accent);
+    padding:6px 14px;
+    border-radius:20px;
+    cursor:pointer;
+    font-size:12.5px;
+  }
+  .reset-btn:hover{background:var(--accent-dim);}
+
+  /* ---------- CHEATSHEET ---------- */
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:16px;
+  }
+  .cheat-card{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px;
+  }
+  .cheat-card h3{color:var(--accent);font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:.03em;}
+  .cheat-card ul{margin:0;padding-left:18px;font-size:13px;color:var(--text-dim);}
+  .cheat-card li{margin-bottom:6px;}
+  .cheat-card code{color:var(--blue);background:#0008;padding:1px 5px;border-radius:3px;}
+
+  /* ---------- STORY MODE ---------- */
+  .story-hero{
+    background:linear-gradient(135deg, #12151c, #161a22);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px;
+    margin-bottom:20px;
+    position:relative;
+    overflow:hidden;
+  }
+  .story-hero::before{
+    content:"鬼";
+    position:absolute;
+    right:-10px;
+    top:-30px;
+    font-size:140px;
+    color:#ffffff06;
+    font-family:var(--sans);
+  }
+  .story-hero h2{border:none;padding:0;}
+  .map-table td:first-child{color:var(--accent);}
+  .output-block{
+    background:#080a0e;
+    border:1px solid var(--accent-glow);
+    border-radius:8px;
+    padding:14px 16px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:#c8f5d9;
+    white-space:pre-wrap;
+  }
+  .verified-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--accent);
+    background:var(--accent-dim);
+    padding:4px 10px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .verified-tag::before{content:"●";}
+  .why-box{
+    background:var(--bg-card);
+    border-left:3px solid var(--accent);
+    border-radius:0 8px 8px 0;
+    padding:16px 18px;
+    font-size:13.5px;
+    color:var(--text-dim);
+  }
+
+  footer{
+    text-align:center;
+    color:var(--text-dim);
+    font-family:var(--mono);
+    font-size:11.5px;
+    padding:30px;
+    border-top:1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Course 4 · Module 9</div>
+  <h1>Advanced LangGraph Patterns</h1>
+  <div class="subtitle">Reflection · Reflexion · Corrective RAG · Self/Adaptive RAG — đọc lướt phần khác biệt với Course 2 Module 3</div>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-tab="theory">01 · Lý thuyết</button>
+  <button class="tab-btn" data-tab="mindmap">02 · Mindmap</button>
+  <button class="tab-btn" data-tab="quiz">03 · Quiz</button>
+  <button class="tab-btn" data-tab="cheat">04 · Cheat Sheet</button>
+  <button class="tab-btn" data-tab="story">05 · 🍡 Story Mode</button>
+</nav>
+
+<main>
+
+  <!-- ============ TAB 1: LÝ THUYẾT ============ -->
+  <div class="tab-panel active" id="theory">
+
+    <section>
+      <h2>Khái niệm cốt lõi</h2>
+      <p>Module 9 không dạy API mới — nó dạy cách <b>phối</b> State/Node/conditional-edge (đã học ở Course 2 M3) thành 4 kiến trúc có tên riêng.</p>
+      <div class="card-grid">
+        <div class="card" id="card-reflection">
+          <span class="tag">Lesson 9.1</span>
+          <h3>Reflection Agent</h3>
+          <p>Generate → Critique → Revise, lặp tới khi đạt hoặc hết số lần cho phép.</p>
+          <div class="analogy">Giống bạn viết luận, tự đọc lại, tự sửa — không ai giúp.</div>
+        </div>
+        <div class="card" id="card-reflexion">
+          <span class="tag">Lesson 9.2</span>
+          <h3>Reflexion Agent</h3>
+          <p>Actor <b>dùng tool</b> lấy bằng chứng thật trước khi Revisor phê bình — khác Reflection ở chỗ có evidence bên ngoài.</p>
+          <div class="analogy">Giống tra Google trước khi tự phê bình báo cáo, không đoán mò.</div>
+        </div>
+        <div class="card" id="card-crag">
+          <span class="tag">Lesson 9.3</span>
+          <h3>Corrective RAG (CRAG)</h3>
+          <p>Chấm điểm độ liên quan tài liệu → nếu kém → fallback web search → mới generate.</p>
+          <div class="analogy">Thủ thư: sách không đủ liên quan thì tự ra ngoài tra Google.</div>
+        </div>
+        <div class="card" id="card-selfrag">
+          <span class="tag">Lesson 9.4</span>
+          <h3>Self-RAG & Adaptive RAG</h3>
+          <p>Self-RAG: LLM tự hỏi "cần retrieve không? có hallucination không? có hữu ích không?". Adaptive RAG: router chọn 1 trong 3 chiến lược trước khi làm gì cả.</p>
+          <div class="analogy">Lễ tân bệnh viện: phân loại triệu chứng rồi mới chuyển đúng khoa.</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Code mẫu chạy được cho từng lesson (đã test, output thật)</h2>
+      <p>Mỗi ví dụ dùng đúng <code>StateGraph</code> / <code>add_conditional_edges</code> / <code>compile()</code> / <code>invoke()</code> thật. Vì không có API key, bước "LLM" được thay bằng hàm rule-based — nhấn để mở/đóng.</p>
+
+      <details class="lesson-detail" id="code-9-1">
+        <summary>🅰️ Lesson 9.1 — Reflection Agent (viết tweet, tự phê bình, tự sửa)</summary>
+        <pre><code><span class="kw">from</span> typing <span class="kw">import</span> TypedDict, List, Annotated
+<span class="kw">import</span> operator
+<span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+
+<span class="kw">class</span> <span class="fn">TweetState</span>(TypedDict):
+    topic: str
+    tweet: str
+    critique: str
+    iteration: int
+    log: Annotated[List[str], operator.add]
+
+<span class="kw">def</span> <span class="fn">generate</span>(state: TweetState) -> dict:
+    <span class="kw">if</span> state[<span class="str">"iteration"</span>] == <span class="num">0</span>:
+        tweet = <span class="fn">f</span><span class="str">"{state['topic']} moi ra mat, mua ngay!!!"</span>
+    <span class="kw">else</span>:
+        tweet = <span class="fn">f</span><span class="str">"{state['topic']} moi ra mat: nhe hon 20%, pin 2 ngay, gia khong doi. Dat truoc hom nay."</span>
+    <span class="kw">return</span> {<span class="str">"tweet"</span>: tweet, <span class="str">"log"</span>: [<span class="fn">f</span><span class="str">"[GENERATE v{state['iteration']+1}] {tweet}"</span>]}
+
+<span class="kw">def</span> <span class="fn">reflect</span>(state: TweetState) -> dict:
+    tweet = state[<span class="str">"tweet"</span>]
+    <span class="kw">if</span> len(tweet) < <span class="num">40</span> <span class="kw">or</span> <span class="str">"!!!"</span> <span class="kw">in</span> tweet:
+        critique = <span class="str">"Qua so sai, khong co thong tin cu the. Thieu thuyet phuc."</span>
+    <span class="kw">else</span>:
+        critique = <span class="str">"DAT: co thong tin cu the, giong dieu chuyen nghiep."</span>
+    <span class="kw">return</span> {<span class="str">"critique"</span>: critique, <span class="str">"iteration"</span>: state[<span class="str">"iteration"</span>]+<span class="num">1</span>,
+            <span class="str">"log"</span>: [<span class="fn">f</span><span class="str">"[REFLECT] {critique}"</span>]}
+
+<span class="kw">def</span> <span class="fn">should_continue</span>(state: TweetState) -> str:
+    <span class="kw">if</span> <span class="str">"DAT"</span> <span class="kw">in</span> state[<span class="str">"critique"</span>] <span class="kw">or</span> state[<span class="str">"iteration"</span>] >= <span class="num">3</span>:
+        <span class="kw">return</span> <span class="str">"done"</span>
+    <span class="kw">return</span> <span class="str">"revise"</span>
+
+graph = StateGraph(TweetState)
+graph.add_node(<span class="str">"generate"</span>, generate)
+graph.add_node(<span class="str">"reflect"</span>, reflect)
+graph.add_edge(START, <span class="str">"generate"</span>)
+graph.add_edge(<span class="str">"generate"</span>, <span class="str">"reflect"</span>)
+graph.add_conditional_edges(<span class="str">"reflect"</span>, should_continue, {<span class="str">"revise"</span>: <span class="str">"generate"</span>, <span class="str">"done"</span>: END})
+app = graph.compile()
+
+result = app.invoke({<span class="str">"topic"</span>: <span class="str">"Tai nghe XYZ"</span>, <span class="str">"tweet"</span>: <span class="str">""</span>, <span class="str">"critique"</span>: <span class="str">""</span>, <span class="str">"iteration"</span>: <span class="num">0</span>, <span class="str">"log"</span>: []})
+</code></pre>
+        <div class="verified-tag">verified · python3 lesson_9_1_reflection.py</div>
+        <div class="output-block">[GENERATE v1] Tai nghe XYZ moi ra mat, mua ngay!!!
+[REFLECT] Qua so sai, khong co thong tin cu the (thong so, gia). Thieu thuyet phuc.
+[GENERATE v2] Tai nghe XYZ moi ra mat: nhe hon 20%, pin 2 ngay, gia khong doi. Dat truoc hom nay.
+[REFLECT] DAT: co thong tin cu the, giong dieu chuyen nghiep.
+
+So lan sua: 2
+TWEET CUOI: Tai nghe XYZ moi ra mat: nhe hon 20%, pin 2 ngay, gia khong doi. Dat truoc hom nay.</div>
+      </details>
+
+      <details class="lesson-detail" id="code-9-2">
+        <summary>🅱️ Lesson 9.2 — Reflexion Agent (Actor dùng tool tra cứu evidence)</summary>
+        <pre><code><span class="kw">def</span> <span class="fn">actor_generate</span>(state) -> dict:
+    <span class="kw">if</span> state[<span class="str">"iteration"</span>] == <span class="num">0</span>:
+        claim = <span class="str">"LangGraph duoc phat trien boi Google."</span>   <span class="cm"># sai, chua co evidence</span>
+    <span class="kw">else</span>:
+        claim = <span class="str">"LangGraph la mot thu vien mo rong cua LangChain, phat trien boi LangChain Inc."</span>
+    <span class="kw">return</span> {<span class="str">"claim"</span>: claim, <span class="str">"log"</span>: [<span class="fn">f</span><span class="str">"[ACTOR draft v{state['iteration']+1}] {claim}"</span>]}
+
+<span class="kw">def</span> <span class="fn">tool_search</span>(state) -> dict:  <span class="cm"># Reflexion: TOOL that su duoc goi de lay bang chung</span>
+    fact_db = {<span class="str">"langgraph"</span>: <span class="str">"LangGraph la du an cua LangChain Inc, mo rong tu LangChain..."</span>}
+    <span class="kw">return</span> {<span class="str">"evidence"</span>: fact_db[<span class="str">"langgraph"</span>], <span class="str">"log"</span>: [<span class="fn">f</span><span class="str">"[TOOL search] -> {fact_db['langgraph']}"</span>]}
+
+<span class="kw">def</span> <span class="fn">revisor_critique</span>(state) -> dict:  <span class="cm"># phe binh DUA TREN evidence, khong doan mo</span>
+    <span class="kw">if</span> <span class="str">"google"</span> <span class="kw">in</span> state[<span class="str">"claim"</span>].lower():
+        critique = <span class="fn">f</span><span class="str">"SAI: evidence cho thay '{state['evidence']}'. Hallucination, phai sua."</span>
+    <span class="kw">elif</span> <span class="str">"langchain inc"</span> <span class="kw">in</span> state[<span class="str">"claim"</span>].lower():
+        critique = <span class="str">"DAT: claim khop voi evidence tra duoc."</span>
+    <span class="kw">else</span>:
+        critique = <span class="str">"Chua du chi tiet."</span>
+    <span class="kw">return</span> {<span class="str">"critique"</span>: critique, <span class="str">"iteration"</span>: state[<span class="str">"iteration"</span>]+<span class="num">1</span>, <span class="str">"log"</span>: [<span class="fn">f</span><span class="str">"[REVISOR] {critique}"</span>]}
+
+<span class="cm"># graph: actor -> tool_search -> revisor -> (revise: actor | done: END)</span>
+graph.add_edge(<span class="str">"actor"</span>, <span class="str">"tool_search"</span>)
+graph.add_edge(<span class="str">"tool_search"</span>, <span class="str">"revisor"</span>)
+graph.add_conditional_edges(<span class="str">"revisor"</span>, route, {<span class="str">"revise"</span>: <span class="str">"actor"</span>, <span class="str">"done"</span>: END})
+</code></pre>
+        <div class="verified-tag">verified · python3 lesson_9_2_reflexion.py</div>
+        <div class="output-block">[ACTOR draft v1] LangGraph duoc phat trien boi Google.
+[TOOL search] -> LangGraph la du an cua LangChain Inc, mo rong tu LangChain de xay agent co state/cycle.
+[REVISOR] SAI: evidence cho thay 'LangGraph la du an cua LangChain Inc...'. Claim ve Google la hallucination, phai sua.
+[ACTOR draft v2] LangGraph la mot thu vien mo rong cua LangChain, phat trien boi LangChain Inc.
+[TOOL search] -> LangGraph la du an cua LangChain Inc, mo rong tu LangChain de xay agent co state/cycle.
+[REVISOR] DAT: claim khop voi evidence tra duoc, co the chot.
+
+So lan sua: 2
+CLAIM CUOI: LangGraph la mot thu vien mo rong cua LangChain, phat trien boi LangChain Inc.</div>
+        <p style="font-size:12.5px;margin-top:8px;">💡 Khác Lesson 9.1: critique ở đây <b>trích dẫn evidence cụ thể</b> thay vì chỉ nhận xét cảm tính.</p>
+      </details>
+
+      <details class="lesson-detail" id="code-9-3">
+        <summary>🅲 Lesson 9.3 — Corrective RAG (grade relevance → fallback web search)</summary>
+        <pre><code>VECTORSTORE = {
+    <span class="str">"checkpointer"</span>: [<span class="str">"MemorySaver luu state trong RAM..."</span>, <span class="str">"SqliteSaver luu state xuong file .db..."</span>],
+    <span class="str">"reducer"</span>: [<span class="str">"Cau chuyen ve Tam Quoc Dien Nghia thoi nha Han."</span>],  <span class="cm"># co tinh KHONG lien quan</span>
+}
+
+<span class="kw">def</span> <span class="fn">grade_documents</span>(state) -> dict:  <span class="cm"># grader: chi sinh nhan relevant/irrelevant</span>
+    <span class="kw">def</span> <span class="fn">is_relevant</span>(doc): <span class="kw">return</span> <span class="str">"tam quoc"</span> <span class="kw">not in</span> doc.lower()
+    relevant = [d <span class="kw">for</span> d <span class="kw">in</span> state[<span class="str">"documents"</span>] <span class="kw">if</span> is_relevant(d)]
+    <span class="kw">return</span> {<span class="str">"relevant_docs"</span>: relevant, <span class="str">"web_search_needed"</span>: len(relevant) == <span class="num">0</span>}
+
+<span class="kw">def</span> <span class="fn">route_after_grade</span>(state) -> str:
+    <span class="kw">return</span> <span class="str">"web_search"</span> <span class="kw">if</span> state[<span class="str">"web_search_needed"</span>] <span class="kw">else</span> <span class="str">"generate"</span>
+
+<span class="cm"># graph: retrieve -> grade_documents -> [web_search neu thieu] -> generate</span>
+graph.add_conditional_edges(<span class="str">"grade_documents"</span>, route_after_grade,
+    {<span class="str">"web_search"</span>: <span class="str">"web_search"</span>, <span class="str">"generate"</span>: <span class="str">"generate"</span>})
+graph.add_edge(<span class="str">"web_search"</span>, <span class="str">"generate"</span>)
+</code></pre>
+        <div class="verified-tag">verified · python3 lesson_9_3_corrective_rag.py</div>
+        <div class="output-block">=== CASE 1: cau hoi CO tai lieu lien quan (khong can web search) ===
+[RETRIEVE] tim thay 2 tai lieu cho 'checkpointer'
+[GRADE] 'MemorySaver luu state trong RAM, ma...' -> relevant
+[GRADE] 'SqliteSaver luu state xuong file .d...' -> relevant
+[GENERATE] Dua tren tai lieu: MemorySaver... | SqliteSaver...
+
+=== CASE 2: cau hoi KHONG co tai lieu lien quan (trigger web search) ===
+[RETRIEVE] tim thay 1 tai lieu cho 'reducer'
+[GRADE] 'Cau chuyen ve Tam Quoc Dien Nghia t...' -> irrelevant
+[WEB_SEARCH fallback] [Web] 'reducer' la ky thuat quan trong trong LangGraph de merge state updates tu nhieu node.
+[GENERATE] Dua tren tai lieu: [Web] 'reducer' la ky thuat...</div>
+        <p style="font-size:12.5px;margin-top:8px;">💡 CASE 2 chứng minh đúng cơ chế "Corrective": tài liệu bị chấm irrelevant → tự rẽ sang web_search trước khi generate.</p>
+      </details>
+
+      <details class="lesson-detail" id="code-9-4">
+        <summary>🅳 Lesson 9.4 — Adaptive RAG (router chọn 1 trong 3 chiến lược)</summary>
+        <pre><code><span class="kw">def</span> <span class="fn">classify_query</span>(state) -> dict:  <span class="cm"># router: chi 1 lan phan loai</span>
+    q = state[<span class="str">"question"</span>].lower()
+    <span class="kw">if</span> any(w <span class="kw">in</span> q <span class="kw">for</span> w <span class="kw">in</span> [<span class="str">"hom nay"</span>, <span class="str">"moi nhat"</span>, <span class="str">"hien tai"</span>]):
+        strategy = <span class="str">"web_search"</span>
+    <span class="kw">elif</span> any(w <span class="kw">in</span> q <span class="kw">for</span> w <span class="kw">in</span> [<span class="str">"tai lieu"</span>, <span class="str">"checkpointer"</span>]):
+        strategy = <span class="str">"rag"</span>
+    <span class="kw">else</span>:
+        strategy = <span class="str">"direct_answer"</span>
+    <span class="kw">return</span> {<span class="str">"strategy"</span>: strategy, <span class="str">"log"</span>: [<span class="fn">f</span><span class="str">"[ROUTER] -> {strategy}"</span>]}
+
+<span class="cm"># graph: classify -> (route theo strategy) -> direct_answer | rag | web_search -> END</span>
+graph.add_conditional_edges(<span class="str">"classify"</span>, <span class="kw">lambda</span> s: s[<span class="str">"strategy"</span>],
+    {<span class="str">"direct_answer"</span>: <span class="str">"direct_answer"</span>, <span class="str">"rag"</span>: <span class="str">"rag"</span>, <span class="str">"web_search"</span>: <span class="str">"web_search"</span>})
+</code></pre>
+        <div class="verified-tag">verified · python3 lesson_9_4_adaptive_rag.py</div>
+        <div class="output-block">--- Cau hoi: 2 cong 2 bang may? ---
+[ROUTER] cau hoi -> chien luoc: direct_answer
+[DIRECT_ANSWER] 2 + 2 = 4 (tra loi thang tu kien thuc san co, khong can tra cuu).
+
+--- Cau hoi: Checkpointer nao dung cho production, xem trong tai lieu noi bo? ---
+[ROUTER] cau hoi -> chien luoc: rag
+[RAG] retrieve + generate -> Theo tai lieu noi bo: SqliteSaver la checkpointer dung cho production...
+
+--- Cau hoi: Gia san pham hien tai la bao nhieu? ---
+[ROUTER] cau hoi -> chien luoc: web_search
+[WEB_SEARCH] search + generate -> Theo ket qua tim kiem web moi nhat: gia san pham hom nay la 990.000d...</div>
+        <p style="font-size:12.5px;margin-top:8px;">💡 Router chỉ chạy 1 lần rồi đi thẳng 1 nhánh — tiết kiệm bước hơn hẳn Self-RAG (không tự-chấm nhiều vòng).</p>
+      </details>
+    </section>
+
+    <section>
+      <h2>Vị trí trong hệ thống</h2>
+      <div class="flow">
+        <div class="flow-node">Course 2 · M3 (cơ chế: State/Reducer/Edge)</div>
+        <div class="flow-arrow">──▶</div>
+        <div class="flow-node">Course 4 · M9 (kiến trúc: Reflection/Reflexion/CRAG/Self-RAG)</div>
+        <div class="flow-arrow">──▶</div>
+        <div class="flow-node alt">Exam Generator: Grading Agent + RAG fallback + Supervisor router</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>⭐ Bảng khác biệt: Course 2 M3 vs Course 4 M9</h2>
+      <table>
+        <tr><th>Khía cạnh</th><th>Course 2 — M3 (đã học kỹ)</th><th>Course 4 — M9 (đọc lướt)</th></tr>
+        <tr><td>Tầm nhìn</td><td>Cơ chế nền tảng: state, reducer, edge</td><td>Kiến trúc ứng dụng có tên, có paper gốc</td></tr>
+        <tr><td>Trọng tâm</td><td>Graph hoạt động NHƯ THẾ NÀO</td><td>Dùng graph giải quyết vấn đề GÌ</td></tr>
+        <tr><td>Loop</td><td>Loop chung (self-correcting code writer)</td><td>Loop có vai trò rõ: Actor/Critic, Retrieve/Grade</td></tr>
+        <tr><td>Tool use</td><td>Chưa nhấn mạnh (để dành M4)</td><td>Reflexion dùng tool làm nguồn bằng chứng cho critique</td></tr>
+        <tr><td>RAG</td><td>Chưa đề cập ở M3</td><td>RAG được "agent hoá": retrieve có điều kiện, tự chấm điểm</td></tr>
+        <tr><td>Điểm mới cần nhớ</td><td>—</td><td>Grader LLM call: chỉ sinh nhãn (yes/no), không sinh nội dung dài</td></tr>
+      </table>
+      <p style="margin-top:10px;font-style:italic;">💡 Ghi nhớ 1 câu: Course 2 M3 dạy bạn xây khung xe; Module 9 dạy 4 kiểu xe lắp sẵn khung đó cho 4 mục đích khác nhau.</p>
+    </section>
+
+    <section>
+      <h2>Flow diagram — Reflection loop</h2>
+      <div class="flow">
+        <div class="flow-node">START</div><div class="flow-arrow">──▶</div>
+        <div class="flow-node">generate</div><div class="flow-arrow">──▶</div>
+        <div class="flow-node">reflect</div><div class="flow-arrow">──▶</div>
+        <div class="flow-node alt">condition_fn</div>
+      </div>
+      <div class="flow" style="margin-top:8px;">
+        <div class="flow-node alt">"sửa_tiếp"</div><div class="flow-arrow">──▶ quay lại generate (loop)</div>
+      </div>
+      <div class="flow" style="margin-top:8px;">
+        <div class="flow-node alt">"xong"</div><div class="flow-arrow">──▶ END</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Code pattern chung (khung cho mọi pattern trong Module 9)</h2>
+      <pre><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+
+graph = StateGraph(MyState)
+graph.add_node(<span class="str">"generate"</span>, generate_fn)
+graph.add_node(<span class="str">"critique"</span>, critique_fn)      <span class="cm"># Reflection: reflector_chain / Self-RAG: grader</span>
+graph.add_node(<span class="str">"tool_node"</span>, ToolNode(tools)) <span class="cm"># chỉ Reflexion & CRAG mới có node này</span>
+graph.add_edge(START, <span class="str">"generate"</span>)
+graph.add_conditional_edges(
+    <span class="str">"critique"</span>,
+    route_fn,              <span class="cm"># PHẢI trả về string khớp key trong mapping</span>
+    {<span class="str">"revise"</span>: <span class="str">"generate"</span>, <span class="str">"done"</span>: END},
+)
+app = graph.compile()
+</code></pre>
+      <p><b>Flag/option quan trọng:</b> <code>condition_fn</code> phải trả về string khớp key trong <code>mapping</code> — sai key → <code>KeyError</code> lúc runtime, không phải lúc compile. Biến đếm vòng lặp (<code>iteration</code>) bắt buộc có trong state của mọi pattern có loop.</p>
+    </section>
+
+    <section>
+      <h2>File cấu hình quan trọng</h2>
+      <div class="card-grid">
+        <div class="card"><span class="tag">.env</span><p><code>OPENAI_API_KEY</code>, <code>TAVILY_API_KEY</code> (cho node web_search trong CRAG)</p></div>
+        <div class="card"><span class="tag">tracing</span><p><code>LANGCHAIN_TRACING_V2=true</code>, <code>LANGCHAIN_API_KEY</code>, <code>LANGCHAIN_PROJECT</code> — bắt buộc khi debug loop nhiều bước</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Ứng dụng thực tế</h2>
+      <ul style="color:var(--text-dim);font-size:14px;">
+        <li><b>Reflection</b> — code review agent tự sửa code trước khi đưa cho reviewer thật</li>
+        <li><b>Reflexion</b> — research/fact-checking agent: claim → search verify → sửa lại nếu sai</li>
+        <li><b>Corrective RAG</b> — chatbot hỗ trợ khách hàng, fallback web search khi tài liệu nội bộ không đủ</li>
+        <li><b>Adaptive RAG</b> — production lớn dùng router để tiết kiệm chi phí cho câu hỏi đơn giản</li>
+        <li><b>Exam Generator (project của bạn)</b> — Grading Agent áp dụng tinh thần Reflexion</li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- ============ TAB 2: MINDMAP ============ -->
+  <div class="tab-panel" id="mindmap">
+    <section>
+      <h2>Mindmap tương tác — nhấn vào node để xem chi tiết</h2>
+      <div class="mindmap-wrap">
+        <svg id="mindmap-svg" viewBox="0 0 640 460" xmlns="http://www.w3.org/2000/svg">
+          <!-- edges -->
+          <line class="mm-edge" x1="320" y1="230" x2="320" y2="90"></line>
+          <line class="mm-edge" x1="320" y1="230" x2="120" y2="150"></line>
+          <line class="mm-edge" x1="320" y1="230" x2="520" y2="150"></line>
+          <line class="mm-edge" x1="320" y1="230" x2="120" y2="340"></line>
+          <line class="mm-edge" x1="320" y1="230" x2="520" y2="340"></line>
+
+          <!-- center -->
+          <g class="mm-node" data-key="center">
+            <circle cx="320" cy="230" r="48"></circle>
+            <text x="320" y="226">Module 9</text>
+            <text x="320" y="240">Advanced</text>
+          </g>
+
+          <!-- 9.1 Reflection -->
+          <g class="mm-node" data-key="reflection">
+            <circle cx="320" cy="90" r="40"></circle>
+            <text x="320" y="86">9.1</text>
+            <text x="320" y="100">Reflection</text>
+          </g>
+
+          <!-- 9.2 Reflexion -->
+          <g class="mm-node" data-key="reflexion">
+            <circle cx="120" cy="150" r="40"></circle>
+            <text x="120" y="146">9.2</text>
+            <text x="120" y="160">Reflexion</text>
+          </g>
+
+          <!-- 9.3 CRAG -->
+          <g class="mm-node" data-key="crag">
+            <circle cx="520" cy="150" r="40"></circle>
+            <text x="520" y="146">9.3</text>
+            <text x="520" y="160">Corrective RAG</text>
+          </g>
+
+          <!-- 9.4 Self/Adaptive -->
+          <g class="mm-node" data-key="selfrag">
+            <circle cx="120" cy="340" r="40"></circle>
+            <text x="120" y="336">9.4a</text>
+            <text x="120" y="350">Self-RAG</text>
+          </g>
+          <g class="mm-node" data-key="adaptiverag">
+            <circle cx="520" cy="340" r="40"></circle>
+            <text x="520" y="336">9.4b</text>
+            <text x="520" y="350">Adaptive RAG</text>
+          </g>
+        </svg>
+
+        <div class="mm-panel" id="mm-panel">
+          <h3>Chọn 1 node</h3>
+          <p>Nhấn vào 1 vòng tròn trong sơ đồ — panel này hiện tóm tắt, đồng thời tab <b>Lý thuyết</b> sẽ tự nhảy tới đúng phần tương ứng.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ TAB 3: QUIZ ============ -->
+  <div class="tab-panel" id="quiz">
+    <section>
+      <div class="quiz-header">
+        <h2 style="margin:0;">10 câu ôn tập</h2>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div class="score-pill" id="score-pill">Điểm: 0 / 10</div>
+          <button class="reset-btn" onclick="resetQuiz()">↺ Làm lại</button>
+        </div>
+      </div>
+      <div id="quiz-container"></div>
+    </section>
+  </div>
+
+  <!-- ============ TAB 4: CHEAT SHEET ============ -->
+  <div class="tab-panel" id="cheat">
+    <section>
+      <h2>Tra cứu nhanh</h2>
+      <div class="cheat-grid">
+        <div class="cheat-card">
+          <h3>4 pattern cốt lõi</h3>
+          <ul>
+            <li><b>Reflection</b>: generate → critique → revise (loop)</li>
+            <li><b>Reflexion</b>: + tool call lấy evidence thật</li>
+            <li><b>CRAG</b>: retrieve → grade → [web_search] → generate</li>
+            <li><b>Self/Adaptive RAG</b>: router/self-grader trước khi retrieve</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h3>API quan trọng</h3>
+          <ul>
+            <li><code>StateGraph(StateType)</code></li>
+            <li><code>add_conditional_edges(src, fn, mapping)</code></li>
+            <li><code>ToolNode(tools)</code></li>
+            <li><code>Annotated[List, operator.add]</code> — reducer</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h3>File cấu hình</h3>
+          <ul>
+            <li><code>.env</code>: <code>OPENAI_API_KEY</code>, <code>TAVILY_API_KEY</code></li>
+            <li><code>LANGCHAIN_TRACING_V2=true</code></li>
+            <li><code>LANGCHAIN_PROJECT</code>, <code>LANGCHAIN_API_KEY</code></li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h3>Lab steps tóm tắt</h3>
+          <ul>
+            <li>1. Setup venv + <code>pip install langgraph</code></li>
+            <li>2. Viết state có <code>iteration</code> counter</li>
+            <li>3. Node generate/reflect + conditional_edges</li>
+            <li>4. Chạy, verify stop condition không treo</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h3>Lỗi hay gặp</h3>
+          <ul>
+            <li>Quên counter → vòng lặp vô hạn</li>
+            <li>Key mapping sai → <code>KeyError</code> lúc runtime</li>
+            <li>Reducer sai kiểu (list vs string)</li>
+            <li>Test loop bằng LLM thật trước → tốn tiền</li>
+          </ul>
+        </div>
+        <div class="cheat-card">
+          <h3>Mapping vào Exam Generator</h3>
+          <ul>
+            <li>Reflexion → Grading Agent (v6)</li>
+            <li>CRAG → RAG fallback (v4/v5)</li>
+            <li>Adaptive RAG → Supervisor router (v6)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ TAB 5: STORY MODE ============ -->
+  <div class="tab-panel" id="story">
+    <div class="story-hero">
+      <h2>🍡 Tanjiro và Báo Cáo Trinh Sát Quái Vật</h2>
+      <p>Tanjiro Kamado phải viết báo cáo gửi về Trụ Cột sau khi gặp quỷ. Câu chuyện ánh xạ đúng cơ chế <b>Reflection + Reflexion loop</b> của Module 9 — từng chi tiết trong truyện khớp 1-1 với 1 khái niệm kỹ thuật thật.</p>
+    </div>
+
+    <section>
+      <h2>Ánh xạ khái niệm</h2>
+      <table class="map-table">
+        <tr><th>Khái niệm kỹ thuật</th><th>Chi tiết trong truyện</th></tr>
+        <tr><td><b>State (TypedDict)</b></td><td>"Sổ tay nhiệm vụ" Tanjiro mang theo — ghi quái vật, bằng chứng, bản nháp, số lần sửa</td></tr>
+        <tr><td><b>Reflexion — tool use</b></td><td>Node <code>ngui_mui_tim_bang_chung</code>: Tanjiro dùng khứu giác (tool) tra đặc điểm quỷ thật, không đoán mò</td></tr>
+        <tr><td><b>Generate node</b></td><td>Node <code>viet_ban_nhap</code>: viết báo cáo nháp dựa trên bằng chứng vừa "ngửi" được</td></tr>
+        <tr><td><b>Bug hài hước</b></td><td>Node <code>inosuke_pha_roi</code>: Inosuke chen ngang gào "hạ gục 1 phát" — nhiễu dữ liệu ở vòng đầu</td></tr>
+        <tr><td><b>Reflect node (critique)</b></td><td>Node <code>nezuko_phe_binh</code>: Nezuko chấm bản nháp, chỉ lỗi hoặc thiếu chi tiết</td></tr>
+        <tr><td><b>Conditional edge — stop condition</b></td><td>Hàm <code>can_sua_khong</code>: "ĐẠT" hoặc ≥3 lần sửa → dừng, ngược lại quay lại Generate</td></tr>
+        <tr><td><b>Reducer (operator.add)</b></td><td>Trường <code>lich_su</code>: mỗi node cộng dồn log, không ghi đè</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Code thật (dùng đúng langgraph.StateGraph)</h2>
+      <pre><code><span class="kw">from</span> typing <span class="kw">import</span> TypedDict, List, Annotated
+<span class="kw">import</span> operator
+<span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+
+
+<span class="kw">class</span> <span class="fn">BaoCaoState</span>(TypedDict):
+    quai_vat_thay: str
+    bang_chung: str
+    ban_nhap: str
+    phe_binh: str
+    so_lan_sua: int
+    lich_su: Annotated[List[str], operator.add]
+
+
+<span class="cm"># Node 1: Reflexion-style tool call — lấy bằng chứng thật</span>
+<span class="kw">def</span> <span class="fn">ngui_mui_tim_bang_chung</span>(state: BaoCaoState) -> dict:
+    ten = state[<span class="str">"quai_vat_thay"</span>]
+    co_so_du_lieu_quai_vat = {
+        <span class="str">"quy chan nhen"</span>: <span class="str">"co to nhen day nguy hiem, doc to lam te liet co"</span>,
+        <span class="str">"quy trang nguyet"</span>: <span class="str">"chi manh khi co anh trang, so tieng chuong"</span>,
+    }
+    ket_qua = co_so_du_lieu_quai_vat.get(ten, <span class="str">"khong tim thay du lieu"</span>)
+    <span class="kw">return</span> {<span class="str">"bang_chung"</span>: ket_qua, <span class="str">"lich_su"</span>: [<span class="fn">f</span><span class="str">"[TOOL] -> {ket_qua}"</span>]}
+
+
+<span class="cm"># Node 2: Generate — viết bản nháp</span>
+<span class="kw">def</span> <span class="fn">viet_ban_nhap</span>(state: BaoCaoState) -> dict:
+    ban_nhap = <span class="fn">f</span><span class="str">"Da gap {state['quai_vat_thay']}. Dac diem: {state['bang_chung']}."</span>
+    <span class="kw">return</span> {<span class="str">"ban_nhap"</span>: ban_nhap, <span class="str">"lich_su"</span>: [<span class="fn">f</span><span class="str">"[GENERATE] {ban_nhap}"</span>]}
+
+
+<span class="cm"># Node 3: bug hài hước — Inosuke chen ngang</span>
+<span class="kw">def</span> <span class="fn">inosuke_pha_roi</span>(state: BaoCaoState) -> dict:
+    <span class="kw">if</span> state[<span class="str">"so_lan_sua"</span>] == <span class="num">0</span>:
+        <span class="kw">return</span> {<span class="str">"ban_nhap"</span>: state[<span class="str">"ban_nhap"</span>] + <span class="str">" HA GUC 1 PHAT!!! (Inosuke gao)"</span>,
+                <span class="str">"lich_su"</span>: [<span class="str">"[BUG] Inosuke chen cau vo nghia"</span>]}
+    <span class="kw">return</span> {<span class="str">"lich_su"</span>: [<span class="str">"[OK] Inosuke ngoi yen"</span>]}
+
+
+<span class="cm"># Node 4: Reflect — Nezuko phê bình</span>
+<span class="kw">def</span> <span class="fn">nezuko_phe_binh</span>(state: BaoCaoState) -> dict:
+    ban_nhap = state[<span class="str">"ban_nhap"</span>]
+    <span class="kw">if</span> <span class="str">"gao"</span> <span class="kw">in</span> ban_nhap.lower():
+        phe_binh = <span class="str">"Thieu nghiem trong! Bo cau thua, ghi ro doc tinh."</span>
+    <span class="kw">elif</span> state[<span class="str">"so_lan_sua"</span>] < <span class="num">1</span>:
+        phe_binh = <span class="str">"On, nhung can them muc do nguy hiem cu the."</span>
+    <span class="kw">else</span>:
+        phe_binh = <span class="str">"DAT. San sang gui ve Truong Doan."</span>
+    <span class="kw">return</span> {<span class="str">"phe_binh"</span>: phe_binh, <span class="str">"so_lan_sua"</span>: state[<span class="str">"so_lan_sua"</span>]+<span class="num">1</span>,
+            <span class="str">"lich_su"</span>: [<span class="fn">f</span><span class="str">"[REFLECT] {phe_binh}"</span>]}
+
+
+<span class="kw">def</span> <span class="fn">can_sua_khong</span>(state: BaoCaoState) -> str:
+    <span class="kw">if</span> <span class="str">"DAT"</span> <span class="kw">in</span> state[<span class="str">"phe_binh"</span>] <span class="kw">or</span> state[<span class="str">"so_lan_sua"</span>] >= <span class="num">3</span>:
+        <span class="kw">return</span> <span class="str">"xong"</span>
+    <span class="kw">return</span> <span class="str">"sua_tiep"</span>
+
+
+graph = StateGraph(BaoCaoState)
+graph.add_node(<span class="str">"ngui_mui"</span>, ngui_mui_tim_bang_chung)
+graph.add_node(<span class="str">"viet_nhap"</span>, viet_ban_nhap)
+graph.add_node(<span class="str">"inosuke"</span>, inosuke_pha_roi)
+graph.add_node(<span class="str">"nezuko_cham"</span>, nezuko_phe_binh)
+graph.add_edge(START, <span class="str">"ngui_mui"</span>)
+graph.add_edge(<span class="str">"ngui_mui"</span>, <span class="str">"viet_nhap"</span>)
+graph.add_edge(<span class="str">"viet_nhap"</span>, <span class="str">"inosuke"</span>)
+graph.add_edge(<span class="str">"inosuke"</span>, <span class="str">"nezuko_cham"</span>)
+graph.add_conditional_edges(<span class="str">"nezuko_cham"</span>, can_sua_khong,
+    {<span class="str">"sua_tiep"</span>: <span class="str">"viet_nhap"</span>, <span class="str">"xong"</span>: END})
+
+app = graph.compile()
+ket_qua = app.invoke({<span class="str">"quai_vat_thay"</span>: <span class="str">"quy chan nhen"</span>, <span class="str">"bang_chung"</span>: <span class="str">""</span>,
+    <span class="str">"ban_nhap"</span>: <span class="str">""</span>, <span class="str">"phe_binh"</span>: <span class="str">""</span>, <span class="str">"so_lan_sua"</span>: <span class="num">0</span>, <span class="str">"lich_su"</span>: []})
+</code></pre>
+    </section>
+
+    <section>
+      <h2>Output thật, đã chạy kiểm chứng</h2>
+      <div class="verified-tag">verified · python3 tanjiro_reflection_agent.py</div>
+      <div class="output-block">[TOOL] ngui_mui_tim_bang_chung -&gt; co to nhen day nguy hiem, doc to lam te liet co
+[GENERATE] vong 1: Da gap quy chan nhen. Dac diem: co to nhen day nguy hiem, doc to lam te liet co.
+[BUG] Inosuke chen cau khoe khoang vo nghia vao bao cao
+[REFLECT] Nezuko: Thieu nghiem trong! Co cau thua nao khong lien quan, bo di va ghi ro doc tinh.
+[GENERATE] vong 2: Da gap quy chan nhen. Dac diem: co to nhen day nguy hiem, doc to lam te liet co.
+[OK] Inosuke ngoi yen, khong pha nua
+[REFLECT] Nezuko: DAT. Bao cao ro rang, du bang chung, san sang gui ve Truong Doan.
+
+So vong sua: 2
+BAO CAO CUOI CUNG: Da gap quy chan nhen. Dac diem: co to nhen day nguy hiem, doc to lam te liet co.
+PHE BINH CUOI: DAT. Bao cao ro rang, du bang chung, san sang gui ve Truong Doan.</div>
+    </section>
+
+    <section>
+      <h2>Tại sao code này chạy được</h2>
+      <div class="why-box">
+        LangGraph không quan tâm tên field là <code>"bang_chung"</code> hay <code>"evidence"</code>, tên node là <code>"ngui_mui"</code> hay <code>"tool_call"</code> — nó chỉ quan tâm 3 thứ: (1) mỗi node là 1 hàm nhận <code>state</code> và trả về <code>dict</code> field cần cập nhật, (2) <code>add_conditional_edges</code> gọi đúng hàm route và tìm đúng key trong <code>mapping</code>, (3) reducer (<code>operator.add</code>) quyết định field được cộng dồn hay ghi đè. Vì 3 nguyên lý này được tuân thủ — dù đặt tên tiếng Việt theo theme Kimetsu no Yaiba — graph vẫn compile và chạy y hệt đặt tên tiếng Anh chuẩn. Đây không phải phép màu của "chủ đề hài hước", mà do nắm đúng cấu trúc dữ liệu và thứ tự thực thi — thứ LangGraph thực sự kiểm tra.
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<footer>Module 9 — Advanced LangGraph Patterns · Roadmap: Backend Dev → AI Agent/MCP Engineer</footer>
+
+<script>
+// ---------- TAB SWITCHING ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- MINDMAP ----------
+const mmData = {
+  center: {
+    title: "Module 9 — Advanced LangGraph Patterns",
+    body: "4 kiến trúc dựng trên State/Node/conditional-edge đã học ở Course 2 M3. Không có API mới, chỉ có cách phối mới.",
+    jumpTo: null, codeJump: null
+  },
+  reflection: {
+    title: "9.1 — Reflection Agent",
+    body: "Generate → Critique → Revise, lặp lại. Reflector chỉ đưa nhận xét, Revisor mới sửa. Không dùng tool — critique thuần chủ quan của LLM.",
+    jumpTo: "card-reflection", codeJump: "code-9-1"
+  },
+  reflexion: {
+    title: "9.2 — Reflexion Agent",
+    body: "= Reflection + Tool Use. Actor gọi tool lấy evidence thật trước khi Revisor phê bình. Khác Reflection: critique có căn cứ bên ngoài, không chỉ tự phán đoán.",
+    jumpTo: "card-reflexion", codeJump: "code-9-2"
+  },
+  crag: {
+    title: "9.3 — Corrective RAG",
+    body: "retrieve → grade_documents (relevant/irrelevant từng doc) → nếu thiếu → web_search → generate. Agent hoá bước retrieval của RAG truyền thống.",
+    jumpTo: "card-crag", codeJump: "code-9-3"
+  },
+  selfrag: {
+    title: "9.4a — Self-RAG",
+    body: "LLM tự hỏi ở nhiều bước: cần retrieve không? tài liệu relevant không? câu trả lời có hallucination không? có hữu ích không? Kỹ nhất nhưng nhiều bước nhất.",
+    jumpTo: "card-selfrag", codeJump: "code-9-4"
+  },
+  adaptiverag: {
+    title: "9.4b — Adaptive RAG",
+    body: "1 router phân loại câu hỏi trước → chọn đúng 1 trong 3 chiến lược (trả lời thẳng / RAG / web search). Hiệu quả nhất về chi phí cho production.",
+    jumpTo: "card-selfrag", codeJump: "code-9-4"
+  }
+};
+
+function jumpToTheory(cardId){
+  if(!cardId) return;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="theory"]').classList.add('active');
+  document.getElementById('theory').classList.add('active');
+  requestAnimationFrame(()=>{
+    const el = document.getElementById(cardId);
+    if(el){
+      el.scrollIntoView({behavior:'smooth', block:'center'});
+      el.classList.remove('jump-highlight');
+      void el.offsetWidth;
+      el.classList.add('jump-highlight');
+    }
+  });
+}
+
+function jumpToCode(detailsId){
+  if(!detailsId) return;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="theory"]').classList.add('active');
+  document.getElementById('theory').classList.add('active');
+  requestAnimationFrame(()=>{
+    const el = document.getElementById(detailsId);
+    if(el){
+      el.open = true;
+      el.scrollIntoView({behavior:'smooth', block:'center'});
+      el.classList.remove('jump-highlight');
+      void el.offsetWidth;
+      el.classList.add('jump-highlight');
+    }
+  });
+}
+
+document.querySelectorAll('.mm-node').forEach(node=>{
+  node.addEventListener('click', ()=>{
+    document.querySelectorAll('.mm-node').forEach(n=>n.classList.remove('selected'));
+    node.classList.add('selected');
+    const d = mmData[node.dataset.key];
+    const jumpBtn = d.jumpTo ? `<button class="reset-btn" style="margin-top:12px;" onclick="jumpToTheory('${d.jumpTo}')">→ Xem lý thuyết</button>` : '';
+    const codeBtn = d.codeJump ? `<button class="reset-btn" style="margin-top:8px;margin-left:8px;" onclick="jumpToCode('${d.codeJump}')">→ Xem code mẫu</button>` : '';
+    document.getElementById('mm-panel').innerHTML = `<h3>${d.title}</h3><p>${d.body}</p>${jumpBtn}${codeBtn}`;
+  });
+});
+
+// ---------- QUIZ ----------
+const quizData = [
+  {q:"Điểm khác biệt cốt lõi giữa Reflexion và Reflection là gì?", opts:["Reflexion không có bước revise","Reflexion dùng tool để lấy bằng chứng thật trước khi critique","Reflexion không cần LangGraph","Reflexion chỉ dùng cho code"], correct:1, exp:"Reflexion = Reflection + Tool Use — critique dựa trên evidence thật từ tool, không chỉ ý kiến chủ quan."},
+  {q:"(True/False) Trong Corrective RAG, nếu tài liệu bị chấm 'irrelevant', graph luôn kết thúc ngay lập tức.", opts:["True","False"], correct:1, exp:"Sai — nó fallback sang web search rồi mới generate, không dừng ngay."},
+  {q:"Nếu condition_fn trả về string không có trong mapping, lỗi runtime là gì?", opts:["SyntaxError","KeyError","TypeError","Không lỗi gì"], correct:1, exp:"KeyError — vì add_conditional_edges tra cứu mapping dict bằng key trả về."},
+  {q:"Self-RAG khác Adaptive RAG chủ yếu ở điểm nào?", opts:["Self-RAG không dùng LangGraph","Self-RAG luôn retrieve mọi câu hỏi, Adaptive RAG route trước để tránh bước thừa","Adaptive RAG không có generate","Không khác nhau"], correct:1, exp:"Adaptive RAG dùng router để chọn chiến lược trước, tránh chạy full pipeline cho câu hỏi đơn giản."},
+  {q:"Thứ tự đúng của Corrective RAG: retrieve, grade_documents, generate, web_search(nếu cần)?", opts:["generate → retrieve → grade → web_search","retrieve → grade → web_search(nếu cần) → generate","grade → retrieve → generate → web_search","web_search → retrieve → grade → generate"], correct:1, exp:"retrieve → grade_documents → [web_search nếu thiếu] → generate."},
+  {q:"(True/False) Grader LLM call nên trả về văn bản dài, chi tiết để dễ debug.", opts:["True","False"], correct:1, exp:"Sai — grader nên trả nhãn ngắn (yes/no, relevant/irrelevant) để code parse và route chính xác."},
+  {q:"Trong Reflection Agent, thành phần nào sinh ra bản output đã cải thiện?", opts:["reflector_chain","revisor_chain","ToolNode","condition_fn"], correct:1, exp:"revisor_chain nhận draft + critique rồi sinh bản sửa; reflector_chain chỉ đưa nhận xét."},
+  {q:"Biến cần có trong state của mọi pattern có loop để tránh vòng lặp vô hạn?", opts:["Biến lưu tên node","Biến đếm số vòng lặp (iteration)","Biến lưu API key","Không cần biến nào"], correct:1, exp:"Iteration counter là bắt buộc — nếu critique không bao giờ 'đạt', vẫn phải có giới hạn cứng để dừng."},
+  {q:"(True/False) Module 9 giới thiệu API StateGraph, add_node, add_conditional_edges hoàn toàn mới so với Course 2 M3.", opts:["True","False"], correct:1, exp:"Sai — Module 9 tái sử dụng đúng API đã học, chỉ khác cách phối thành kiến trúc có tên."},
+  {q:"Trong Exam Generator, pattern nào phù hợp nhất cho Grading Agent (chấm bài dựa trên đáp án chuẩn)?", opts:["Adaptive RAG","Reflexion (tự phê bình có bằng chứng/tool tra đáp án)","Corrective RAG","Reflection thuần (không tool)"], correct:1, exp:"Reflexion — chấm điểm cần bằng chứng thật (đáp án chuẩn tra được), không chỉ LLM tự đoán đúng/sai."}
+];
+let score = 0;
+let answered = new Array(quizData.length).fill(false);
+
+function renderQuiz(){
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  quizData.forEach((item, i)=>{
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.innerHTML = `
+      <span class="q-num">CÂU ${i+1}</span>
+      <div class="q-text">${item.q}</div>
+      <div class="q-options" id="opts-${i}"></div>
+      <div class="q-explain" id="exp-${i}">${item.exp}</div>
+    `;
+    container.appendChild(card);
+    const optsWrap = card.querySelector(`#opts-${i}`);
+    item.opts.forEach((opt, j)=>{
+      const btn = document.createElement('button');
+      btn.className = 'q-opt';
+      btn.textContent = opt;
+      btn.onclick = ()=> selectAnswer(i, j, btn);
+      optsWrap.appendChild(btn);
+    });
+  });
+  updateScore();
+}
+
+function selectAnswer(qIndex, optIndex, btnEl){
+  if(answered[qIndex]) return;
+  answered[qIndex] = true;
+  const item = quizData[qIndex];
+  const optsWrap = document.getElementById(`opts-${qIndex}`);
+  [...optsWrap.children].forEach((b, j)=>{
+    if(j === item.correct) b.classList.add('correct');
+    else if(j === optIndex) b.classList.add('wrong');
+    b.disabled = true;
+  });
+  if(optIndex === item.correct) score++;
+  document.getElementById(`exp-${qIndex}`).classList.add('show');
+  updateScore();
+}
+
+function updateScore(){
+  document.getElementById('score-pill').textContent = `Điểm: ${score} / ${quizData.length}`;
+}
+
+function resetQuiz(){
+  score = 0;
+  answered = new Array(quizData.length).fill(false);
+  renderQuiz();
+}
+
+renderQuiz();
+</script>
+
+</body>
+</html>

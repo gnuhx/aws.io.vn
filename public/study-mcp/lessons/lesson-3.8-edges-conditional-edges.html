@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3.8 — Edges & Conditional Edges</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0d0f14;
+    --bg-panel: #12151c;
+    --bg-card: #171b24;
+    --border: #232836;
+    --text: #e6e9ef;
+    --text-dim: #8a92a3;
+    --accent: #4ade80;
+    --accent-dim: #4ade8022;
+    --accent-2: #60a5fa;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.65;
+    min-height:100vh;
+  }
+  ::selection{ background: var(--accent-dim); color: var(--accent); }
+
+  .app{ max-width:1080px; margin:0 auto; padding: 28px 20px 80px; }
+
+  header.top{
+    display:flex; flex-direction:column; gap:6px;
+    padding-bottom:20px; margin-bottom:8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .eyebrow{
+    font-family: var(--mono); font-size:12px; letter-spacing:.12em;
+    color: var(--accent); text-transform:uppercase;
+  }
+  h1{ font-size: clamp(22px,4vw,32px); font-weight:700; letter-spacing:-.01em;}
+  .meta{ display:flex; flex-wrap:wrap; gap:14px; margin-top:6px; font-family:var(--mono); font-size:12.5px; color:var(--text-dim);}
+  .meta span b{ color:var(--text); font-weight:500;}
+
+  nav.tabs{
+    display:flex; gap:4px; margin: 22px 0 26px;
+    background: var(--bg-panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:4px;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    flex:1 1 auto; white-space:nowrap;
+    background:transparent; border:none; color:var(--text-dim);
+    font-family:var(--sans); font-weight:600; font-size:13.5px;
+    padding:10px 14px; border-radius:9px; cursor:pointer;
+    transition: all .15s ease;
+  }
+  nav.tabs button:hover{ color:var(--text); background:#1c212c; }
+  nav.tabs button.active{ background: var(--accent); color:#06210f; }
+
+  section.pane{ display:none; animation: fade .25s ease; }
+  section.pane.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  h2.section-title{
+    font-size:20px; font-weight:700; margin: 30px 0 12px;
+    display:flex; align-items:center; gap:9px;
+  }
+  h2.section-title:first-child{ margin-top:4px; }
+  h2.section-title .tag{
+    font-family:var(--mono); font-size:11px; color:var(--accent);
+    background:var(--accent-dim); border:1px solid #4ade8040;
+    padding:2px 7px; border-radius:6px;
+  }
+
+  .card{
+    background: var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px 20px;
+    margin-bottom:14px;
+  }
+  .card h3{ font-size:15.5px; margin-bottom:8px; color:var(--text);}
+  .card p{ color:#c3c9d6; font-size:14.5px; }
+  .card p + p{ margin-top:8px;}
+
+  .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:14px;}
+  @media (max-width:700px){ .grid2{ grid-template-columns:1fr; } }
+
+  .lifelike{
+    border-left:3px solid var(--accent);
+    background: linear-gradient(90deg, #4ade8014, transparent 60%);
+  }
+
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.theory{ margin-bottom:14px; }
+  th,td{ text-align:left; padding:9px 10px; border-bottom:1px solid var(--border); }
+  th{ color:var(--accent); font-family:var(--mono); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em;}
+  td{ color:#c3c9d6; }
+  tr:last-child td{ border-bottom:none; }
+  td code, p code, li code{
+    font-family:var(--mono); background:#1d2230; color:var(--accent-2);
+    padding:1px 6px; border-radius:5px; font-size:12.5px;
+  }
+
+  pre{
+    background:#0a0c11; border:1px solid var(--border); border-radius:10px;
+    padding:16px; overflow-x:auto; margin: 10px 0 16px; font-size:13px;
+    font-family: var(--mono); line-height:1.6;
+  }
+  pre .c1{color:#6b7280;}
+  pre .kw{color:#c792ea;}
+  pre .fn{color:#82aaff;}
+  pre .str{color:#c3e88d;}
+  pre .num{color:#f78c6c;}
+  pre .accent{color:var(--accent);}
+
+  .flow{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    font-family:var(--mono); font-size:13px; margin:14px 0 20px;
+    padding: 16px; background:#0a0c11; border:1px solid var(--border); border-radius:12px;
+  }
+  .flow .node{
+    background:#171b24; border:1px solid #2a3040; border-radius:8px;
+    padding:8px 12px; color:var(--text);
+  }
+  .flow .node.end{ border-color: var(--accent); color:var(--accent); }
+  .flow .arrow{ color: var(--text-dim); }
+  .flow .cond{ color: var(--warn); font-size:11px; }
+
+  .pill-row{ display:flex; flex-wrap:wrap; gap:8px; margin: 6px 0 4px;}
+  .pill{
+    font-family:var(--mono); font-size:11.5px; padding:4px 10px;
+    border-radius:20px; border:1px solid var(--border); color:var(--text-dim);
+  }
+
+  .warn-box{
+    border:1px solid #fbbf2440; background:#fbbf2410; border-radius:12px;
+    padding:14px 16px; margin:16px 0; font-size:14px; color:#f5d78e;
+  }
+  .warn-box b{ color: var(--warn); }
+
+  /* MINDMAP */
+  .mindmap-wrap{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:16px;
+    padding:10px; display:flex; flex-direction:column; gap:12px;
+  }
+  #mindmap-svg{ width:100%; height:auto; display:block; }
+  .mm-node circle, .mm-node rect{ cursor:pointer; transition: all .2s ease; }
+  .mm-node:hover circle, .mm-node:hover rect{ filter: brightness(1.3); }
+  .mm-node text{ font-family:var(--sans); font-weight:600; pointer-events:none; }
+  .mm-link{ stroke:#2a3040; stroke-width:2; fill:none; }
+  #mm-detail{
+    background: var(--bg-card); border:1px solid var(--border); border-radius:12px;
+    padding:16px 18px; min-height:90px; font-size:14px; color:#c3c9d6;
+  }
+  #mm-detail h4{ color:var(--accent); font-size:15px; margin-bottom:6px; font-family:var(--mono);}
+
+  /* QUIZ */
+  .quiz-progress{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:13px; color:var(--text-dim); margin-bottom:14px;
+  }
+  .quiz-progress b{ color:var(--accent); }
+  .qcard{ background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:20px; }
+  .qcard .qtype{
+    font-family:var(--mono); font-size:11px; color:var(--accent-2);
+    background:#60a5fa1a; border:1px solid #60a5fa40; padding:2px 8px; border-radius:6px;
+    display:inline-block; margin-bottom:10px;
+  }
+  .qcard .qtext{ font-size:16px; font-weight:600; margin-bottom:14px; }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt{
+    text-align:left; background:#171b24; border:1px solid var(--border); color:var(--text);
+    padding:11px 14px; border-radius:10px; cursor:pointer; font-family:var(--sans); font-size:14px;
+    transition: all .15s ease;
+  }
+  .opt:hover{ border-color:#3a4356; }
+  .opt.correct{ border-color:var(--accent); background:#4ade8018; color:var(--accent); }
+  .opt.wrong{ border-color:var(--danger); background:#f8717118; color:#ffb3ab; }
+  .fill-input{
+    width:100%; background:#171b24; border:1px solid var(--border); color:var(--text);
+    padding:12px 14px; border-radius:10px; font-family:var(--mono); font-size:14px;
+  }
+  .fill-input:focus{ outline:none; border-color:var(--accent); }
+  .seq-item{
+    background:#171b24; border:1px solid var(--border); border-radius:10px;
+    padding:10px 12px; margin-bottom:6px; cursor:grab; font-family:var(--mono); font-size:13.5px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .seq-item .idx{ color:var(--accent); font-weight:700; }
+  .qactions{ display:flex; gap:10px; margin-top:16px; }
+  .btn{
+    font-family:var(--sans); font-weight:600; font-size:13.5px; padding:10px 18px;
+    border-radius:9px; border:1px solid var(--border); background:#171b24; color:var(--text); cursor:pointer;
+  }
+  .btn.primary{ background:var(--accent); color:#06210f; border-color:var(--accent); }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .explain{
+    margin-top:14px; padding:12px 14px; border-radius:10px; font-size:13.5px;
+    background:#12151c; border:1px solid var(--border); color:#c3c9d6; display:none;
+  }
+  .explain.show{ display:block; }
+  .quiz-result{ text-align:center; padding: 30px 10px; }
+  .quiz-result .score{ font-family:var(--mono); font-size:44px; color:var(--accent); font-weight:700; }
+
+  /* CHEATSHEET */
+  .cs-section{ margin-bottom:22px; }
+  .cs-title{
+    font-family:var(--mono); font-size:12px; color:var(--accent); text-transform:uppercase;
+    letter-spacing:.08em; margin-bottom:8px; border-bottom:1px dashed var(--border); padding-bottom:6px;
+  }
+  .steps-mini{ list-style:none; counter-reset:step; }
+  .steps-mini li{
+    counter-increment:step; padding:8px 0 8px 32px; position:relative; font-size:13.5px; color:#c3c9d6;
+    border-bottom:1px solid var(--border);
+  }
+  .steps-mini li:last-child{ border-bottom:none; }
+  .steps-mini li::before{
+    content: counter(step); position:absolute; left:0; top:8px;
+    width:20px; height:20px; border-radius:6px; background:var(--accent-dim); color:var(--accent);
+    font-family:var(--mono); font-size:11px; display:flex; align-items:center; justify-content:center;
+  }
+
+  /* STORY MODE */
+  .story-wrap{
+    background: radial-gradient(circle at 20% 0%, #4ade8018, transparent 55%), var(--bg-panel);
+    border:1px solid var(--border); border-radius:16px; padding:6px;
+  }
+  .story-header{
+    display:flex; align-items:center; gap:12px; padding:16px 18px 10px;
+  }
+  .story-avatar{
+    width:46px; height:46px; border-radius:12px; background:#1c212c; border:1px solid var(--accent);
+    display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;
+  }
+  .story-header h3{ font-size:16px; }
+  .story-header span{ display:block; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); }
+  .story-body{ padding: 4px 18px 18px; }
+  .story-beat{
+    background: var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--accent);
+    border-radius:10px; padding:14px 16px; margin-bottom:12px;
+  }
+  .story-beat .say{ font-size:14.5px; color:#e6e9ef; font-style:italic; }
+  .story-beat .map{
+    margin-top:8px; padding-top:8px; border-top:1px dashed var(--border);
+    font-family:var(--mono); font-size:12px; color:var(--accent-2);
+  }
+  .story-beat .map b{ color: var(--accent); }
+  .breath-code{
+    font-family:var(--mono); font-size:12.5px; color:var(--accent); background:#0a0c11;
+    border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-top:8px;
+  }
+
+  footer.foot{
+    margin-top:40px; text-align:center; color:var(--text-dim); font-family:var(--mono); font-size:12px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="eyebrow">LangChain &amp; LangGraph — Production AI Engineering · Module 3</div>
+    <h1>Lesson 3.8 — Edges &amp; Conditional Edges</h1>
+    <div class="meta">
+      <span>⏱ <b>4:24</b></span>
+      <span>📚 Prereq: <b>Lesson 3.7</b></span>
+      <span>➡️ Tiếp theo: <b>Lesson 3.9 — Routing Patterns</b></span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="active" data-tab="theory">📖 Lý thuyết</button>
+    <button data-tab="mindmap">🧠 Mindmap</button>
+    <button data-tab="quiz">📝 Quiz</button>
+    <button data-tab="cheatsheet">⚡ Cheat Sheet</button>
+    <button data-tab="story">🍡 Story Mode</button>
+  </nav>
+
+  <!-- ================= THEORY ================= -->
+  <section class="pane active" id="pane-theory">
+
+    <h2 class="section-title"><span class="tag">01</span> Khái niệm + ví dụ đời sống</h2>
+    <div class="card">
+      <p>Một LangGraph gồm <b>State</b> (dữ liệu), <b>Nodes</b> (xử lý) và <b>Edges</b> (đường đi). Có 2 loại edge:</p>
+    </div>
+    <table class="theory">
+      <tr><th>Loại</th><th>Định nghĩa</th><th>Đi đâu?</th></tr>
+      <tr><td><b>Normal edge</b></td><td>Nối cứng A → B</td><td>Cố định, không đổi</td></tr>
+      <tr><td><b>Conditional edge</b></td><td>Hàm đọc state → quyết định node kế</td><td>Động, tuỳ dữ liệu</td></tr>
+    </table>
+    <div class="card lifelike">
+      <h3>🏭 Ví dụ đời sống</h3>
+      <p><b>Normal edge</b> giống <b>dây chuyền nhà máy</b>: sơn → sấy → đóng gói, luôn đúng thứ tự.</p>
+      <p><b>Conditional edge</b> giống <b>quầy tiếp nhận hồ sơ ngân hàng</b>: đọc hồ sơ (state) → thiếu giấy tờ thì trả lại quầy bổ sung, đủ thì chuyển quầy duyệt vay, có vấn đề thì chuyển thẳng phòng từ chối (<code>END</code>).</p>
+    </div>
+    <div class="flow">
+      <div class="node">check_quality</div>
+      <div class="arrow">──cond──▶</div>
+      <div class="node">generate_answer <span class="cond">(retry)</span></div>
+      <div class="arrow">/</div>
+      <div class="node end">END <span class="cond">(finalize)</span></div>
+    </div>
+
+    <h2 class="section-title"><span class="tag">02</span> Vị trí trong hệ thống</h2>
+    <div class="card">
+      <p><b>3.7 Full Workflow</b> → ghép sẵn State+Nodes+Edges nhưng chỉ dùng normal edge. <b>3.8 (bài này)</b> dạy thay 1 normal edge bằng conditional edge. <b>3.9 Routing</b> và <b>3.10 Cycles</b> là ứng dụng trực tiếp — không có conditional edge thì không routing/loop được.</p>
+      <p>Trong dự án Exam Generator (roadmap cá nhân): dùng để "nếu thiếu subject/topic → quay lại hỏi user". Ở Module 4, <code>tools_condition</code> thực chất chỉ là 1 conditional edge có sẵn.</p>
+    </div>
+
+    <h2 class="section-title"><span class="tag">03</span> Lệnh quan trọng</h2>
+    <pre><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+
+graph.add_edge(<span class="str">"A"</span>, <span class="str">"B"</span>)              <span class="c1"># normal edge — luôn A → B</span>
+graph.add_edge(START, <span class="str">"A"</span>)             <span class="c1"># khai báo entry point</span>
+graph.add_edge(<span class="str">"Z"</span>, END)                <span class="c1"># END = node built-in, kết thúc graph</span>
+
+graph.add_conditional_edges(
+    <span class="str">"check_quality"</span>,          <span class="c1"># source node</span>
+    route_by_quality,          <span class="c1"># condition_fn: đọc state, trả về string</span>
+    {
+        <span class="str">"retry"</span>: <span class="str">"generate_answer"</span>,  <span class="c1"># mapping: giá trị -> tên node thật</span>
+        <span class="str">"finalize"</span>: END,
+    }
+)</pre>
+    <div class="grid2">
+      <div class="card">
+        <h3>condition_fn</h3>
+        <p>Function Python thuần, <b>không phải node</b>, không update state — chỉ đọc và trả về 1 string quyết định route.</p>
+      </div>
+      <div class="card">
+        <h3>mapping (dict)</h3>
+        <p>Ánh xạ giá trị trả về → tên node thật. Bỏ qua thì LangGraph coi giá trị trả về <b>chính là</b> tên node.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title"><span class="tag">04</span> Lệnh nâng cao</h2>
+    <table class="theory">
+      <tr><th>Kỹ thuật</th><th>Giải thích</th></tr>
+      <tr><td><code>Literal["retry","finalize"]</code></td><td>Type hint cho return type của condition_fn → IDE + Studio autocomplete/visualize đúng</td></tr>
+      <tr><td>Multi-target mapping</td><td>1 condition_fn route tới &gt;2 node (xem 3.9)</td></tr>
+      <tr><td>Trỏ về chính source</td><td>Cách tạo <b>cycle/loop</b> (xem 3.10)</td></tr>
+      <tr><td><code>app.get_graph().draw_mermaid_png()</code></td><td>Xuất ảnh graph để kiểm tra edge trực quan</td></tr>
+      <tr><td><code>app.stream(state)</code></td><td>Trace từng node/edge real-time để debug</td></tr>
+    </table>
+    <div class="warn-box">⚠️ <b>Lỗi hay gặp:</b> quên map <code>END</code> → graph chạy vô hạn nếu nằm trong cycle · <code>condition_fn</code> trả về giá trị không có trong <code>mapping</code> → <code>KeyError</code> · nhầm <code>add_edge</code> với <code>add_conditional_edges</code>.</div>
+
+    <h2 class="section-title"><span class="tag">05</span> File cấu hình quan trọng</h2>
+    <div class="card">
+      <p>Bản thân edge <b>không cần file config riêng</b>. Nhưng threshold/max-retry dùng trong <code>condition_fn</code> nên tách ra <code>config.py</code> thay vì hard-code:</p>
+      <pre><span class="c1"># config.py</span>
+QUALITY_THRESHOLD = <span class="num">7.0</span>
+MAX_RETRIES = <span class="num">3</span></pre>
+    </div>
+
+    <h2 class="section-title"><span class="tag">06</span> Ứng dụng thực tế</h2>
+    <table class="theory">
+      <tr><th>Use case</th><th>Conditional edge làm gì</th></tr>
+      <tr><td>RAG quality gate</td><td>Câu trả lời không liên quan → route sang re-retrieve</td></tr>
+      <tr><td>Customer support agent</td><td>Route theo intent: billing / technical / human_handoff</td></tr>
+      <tr><td>Self-correcting code writer</td><td>Lỗi → quay lại fix_code; pass → END</td></tr>
+      <tr><td>Content moderation</td><td>Flag toxic → reject; sạch → publish</td></tr>
+      <tr><td>Exam Generator (project bạn)</td><td>Thiếu field → ask_user; đủ → generate_exam</td></tr>
+      <tr><td>Approval workflow</td><td>Số tiền &gt; ngưỡng → manager_approval; ngược lại → auto_approve</td></tr>
+    </table>
+    <div class="pill-row">
+      <span class="pill">LangChain (chính chủ)</span>
+      <span class="pill">Customer support automation</span>
+      <span class="pill">Coding agents</span>
+      <span class="pill">Financial workflows</span>
+    </div>
+  </section>
+
+  <!-- ================= MINDMAP ================= -->
+  <section class="pane" id="pane-mindmap">
+    <h2 class="section-title"><span class="tag">MAP</span> Mindmap tương tác — bấm vào node</h2>
+    <div class="mindmap-wrap">
+      <svg id="mindmap-svg" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="mm-detail"><h4>👋 Chào</h4><p>Bấm vào 1 node trong mindmap để xem giải thích chi tiết.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= QUIZ ================= -->
+  <section class="pane" id="pane-quiz">
+    <div class="quiz-progress">
+      <span>Câu <b id="q-current">1</b>/10</span>
+      <span>Điểm: <b id="q-score">0</b>/10</span>
+    </div>
+    <div id="quiz-area"></div>
+  </section>
+
+  <!-- ================= CHEATSHEET ================= -->
+  <section class="pane" id="pane-cheatsheet">
+    <h2 class="section-title"><span class="tag">⚡</span> Cheat Sheet tra cứu nhanh</h2>
+
+    <div class="cs-section">
+      <div class="cs-title">Lệnh cốt lõi</div>
+      <table class="theory">
+        <tr><th>Lệnh</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>add_edge(A, B)</code></td><td>Normal edge, luôn A→B</td></tr>
+        <tr><td><code>add_edge(START, "A")</code></td><td>Khai báo entry point</td></tr>
+        <tr><td><code>add_edge("Z", END)</code></td><td>Kết thúc graph</td></tr>
+        <tr><td><code>add_conditional_edges(src, fn, mapping)</code></td><td>Rẽ nhánh động theo state</td></tr>
+        <tr><td><code>get_graph().draw_mermaid_png()</code></td><td>Visualize graph</td></tr>
+        <tr><td><code>app.stream(state)</code></td><td>Trace real-time từng node</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-section">
+      <div class="cs-title">File cấu hình</div>
+      <table class="theory">
+        <tr><td><code>config.py</code></td><td>Chứa <code>QUALITY_THRESHOLD</code>, <code>MAX_RETRIES</code> — không hard-code trong condition_fn</td></tr>
+        <tr><td><code>.env</code></td><td>API keys (OPENAI_API_KEY...)</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-section">
+      <div class="cs-title">Lab steps tóm tắt</div>
+      <ol class="steps-mini">
+        <li>Cài <code>langgraph</code>, tạo <code>.env</code></li>
+        <li>Định nghĩa <code>State(TypedDict)</code>: question, answer, quality_score, attempts</li>
+        <li>Viết node <code>generate_answer</code> + <code>check_quality</code></li>
+        <li>Viết <code>condition_fn route_by_quality</code></li>
+        <li>Build graph: normal edges + 1 conditional edge (retry / finalize→END)</li>
+        <li>Compile, invoke, verify bằng <code>draw_mermaid_png</code> và <code>stream</code></li>
+      </ol>
+    </div>
+
+    <div class="warn-box">⚠️ Luôn set <b>MAX_RETRIES</b> + tăng <code>attempts</code> mỗi lần chạy lại — quên 1 trong 2 là nguyên nhân #1 gây vòng lặp vô hạn / tốn API.</div>
+  </section>
+
+  <!-- ================= STORY MODE ================= -->
+  <section class="pane" id="pane-story">
+    <div class="story-wrap">
+      <div class="story-header">
+        <div class="story-avatar">🌊</div>
+        <div>
+          <h3>Tanjiro Kamado kể chuyện: "Hơi Thở Nào Cho Con Quái Vật Này?"</h3>
+          <span>🍡 Story Mode · ẩn dụ Thanh Gươm Diệt Quỷ cho Edges &amp; Conditional Edges</span>
+        </div>
+      </div>
+      <div class="story-body">
+
+        <div class="story-beat">
+          <p class="say">"Này Nezuko, em nhìn kìa — con đường từ nhà mình xuống chợ làng than lúc nào cũng y chang một đường: qua cầu, rẽ trái, tới giếng nước. Dù trời mưa hay nắng, anh vẫn đi đúng đường đó, không bao giờ đổi."</p>
+          <div class="map"><b>= Normal edge.</b> <code>graph.add_edge("nhà", "cầu")</code> → luôn A đến B, không có logic điều kiện nào can thiệp.</div>
+        </div>
+
+        <div class="story-beat">
+          <p class="say">"Nhưng khi gặp quỷ thì khác hoàn toàn. Anh phải dùng <b>Toàn Tập Trung Hơi Thở</b> để 'đọc' con quỷ trước: máu nó đang chảy kiểu gì (Huyết Quỷ Thuật gì), cơ thể nó yếu ở đâu. Dựa vào cái anh 'đọc' được đó — chứ không phải cứ thấy quỷ là chém y hệt nhau — anh mới quyết định dùng Hình Thức Thứ Mấy của Hơi Thở Nước."</p>
+          <div class="map"><b>= Conditional edge.</b> <code>condition_fn(state)</code> đọc dữ liệu hiện tại (giống Tanjiro đọc hơi thở của quỷ) rồi mới quyết định bước tiếp theo, không cố định trước.</div>
+          <div class="breath-code">def doc_hoi_tho(state): <br>&nbsp;&nbsp;if state["quy_con_manh"]: return "hinh_thuc_9"<br>&nbsp;&nbsp;else: return "hinh_thuc_1"</div>
+        </div>
+
+        <div class="story-beat">
+          <p class="say">"Sư huynh Giyu từng dạy: đừng chỉ nói 'mạnh thì dùng chiêu mạnh' suông — phải viết rõ ra: hơi thở '<i>quỷ máu độc</i>' thì dẫn tới hình thức <b>Vẩy Nước Đục</b>, hơi thở '<i>quỷ tái sinh</i>' thì dẫn tới hình thức <b>Trăng Vỡ Đầu Tiên</b>. Không thể để tự Tanjiro đoán mò, phải có sổ ghi rõ ràng chiêu nào đi với tình huống nào."</p>
+          <div class="map"><b>= mapping (dict) trong add_conditional_edges.</b> <code>{"quy_doc": "vay_nuoc_duc", "quy_tai_sinh": "trang_vo_dau_tien"}</code> — ánh xạ rõ ràng giá trị trả về → node/chiêu thức thật.</div>
+        </div>
+
+        <div class="story-beat">
+          <p class="say">"Và nếu chiêu đầu tiên chưa hạ được quỷ, quỷ vẫn đứng đó gừ gừ? Tanjiro không được đứng im — phải <b>quay lại thế thủ, đọc hơi thở lại từ đầu, rồi tung chiêu tiếp</b>. Cứ thế lặp, cho tới khi mặt trời báo lên hoặc quỷ gục xuống. Nhưng nếu cứ lặp mãi không dứt điểm được, sức sẽ cạn — phải tự đặt giới hạn cho bản thân: tối đa 3 lần né rồi phải tổng lực."</p>
+          <div class="map"><b>= Cycle qua conditional edge + giới hạn retry (MAX_RETRIES).</b> Route trỏ ngược lại chính node trước đó tạo vòng lặp — luôn phải có điều kiện dừng, nếu không sẽ "đánh vô hạn" giống graph chạy mãi không dừng.</div>
+        </div>
+
+        <div class="story-beat">
+          <p class="say">"Khi quỷ gục xuống và mặt trời ló dạng — đó là lúc câu chuyện của đêm đó <b>kết thúc thật sự</b>. Không có 'kết thúc tạm', không có đường vòng nào khác nữa. Một khi đã tới đó, không tung chiêu gì thêm."</p>
+          <div class="map"><b>= END.</b> Node đặc biệt, built-in, đánh dấu graph dừng lại hoàn toàn — không phải node do Tanjiro (dev) tự viết ra.</div>
+        </div>
+
+        <div class="story-beat">
+          <p class="say">"Bài học của Sư huynh Giyu, tóm gọn bằng một câu Tanjiro luôn tự nhắc: 'Đường tới chợ thì đi mãi một lối (normal edge). Đường đánh quỷ thì phải tuỳ con quỷ mà chọn hơi thở (conditional edge) — và luôn nhớ mang theo giới hạn sức lực của mình, kẻo lặp vô hạn mà gục trước cả khi mặt trời lên.'"</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">Lesson 3.8 · LangGraph Core · made for self-study 🌱</footer>
+</div>
+
+<script>
+  // ---------- TABS ----------
+  const tabButtons = document.querySelectorAll('#tabs button');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---------- MINDMAP ----------
+  const mmData = [
+    { id:'core', x:400, y:60, r:44, label:['Edges &','Cond. Edges'], color:'#4ade80', text:'#06210f',
+      detail: { title:'Edges & Conditional Edges', body:'2 loại: Normal edge (cố định A→B) và Conditional edge (hàm đọc state, quyết định node kế tiếp).'} },
+    { id:'normal', x:150, y:200, r:38, label:['Normal','edge'], color:'#171b24', text:'#e6e9ef', stroke:'#2a3040',
+      detail: { title:'add_edge(A, B)', body:'Luôn đi từ A → B, không có logic điều kiện. Ví dụ: dây chuyền nhà máy — sơn → sấy → đóng gói.'} },
+    { id:'cond', x:400, y:220, r:40, label:['Conditional','edge'], color:'#171b24', text:'#e6e9ef', stroke:'#4ade80',
+      detail: { title:'add_conditional_edges(source, condition_fn, mapping)', body:'Hàm condition_fn đọc state hiện tại và trả về string, mapping ánh xạ string đó → tên node thật. Đây là cơ chế trung tâm của bài học.'} },
+    { id:'end', x:650, y:200, r:38, label:['END','node'], color:'#171b24', text:'#4ade80', stroke:'#4ade80',
+      detail: { title:'END', body:'Node đặc biệt, built-in trong LangGraph, đánh dấu graph kết thúc hoàn toàn. Quên map END trong 1 cycle → graph chạy vô hạn.'} },
+    { id:'mapping', x:280, y:360, r:36, label:['mapping','(dict)'], color:'#171b24', text:'#e6e9ef', stroke:'#60a5fa',
+      detail: { title:'mapping', body:'Dict ánh xạ giá trị trả về của condition_fn → tên node. Bỏ qua thì LangGraph coi giá trị trả về chính là tên node.'} },
+    { id:'cycle', x:520, y:360, r:36, label:['Cycle /','Loop'], color:'#171b24', text:'#e6e9ef', stroke:'#fbbf24',
+      detail: { title:'Cycle (Lesson 3.10)', body:'Conditional edge trỏ về chính node nguồn (hoặc node trước đó) tạo ra vòng lặp — nền tảng của self-correcting code writer, iterative research agent.'} },
+    { id:'routing', x:400, y:440, r:34, label:['Routing','(3.9)'], color:'#171b24', text:'#e6e9ef', stroke:'#8a92a3',
+      detail: { title:'Routing Patterns — Lesson 3.9', body:'Ứng dụng trực tiếp: multi-path routing, 1 condition_fn route tới >2 node khác nhau.'} },
+  ];
+  const mmLinks = [ ['core','normal'], ['core','cond'], ['core','end'], ['cond','mapping'], ['cond','cycle'], ['cond','routing'] ];
+
+  const svg = document.getElementById('mindmap-svg');
+  const ns = 'http://www.w3.org/2000/svg';
+
+  mmLinks.forEach(([a,b]) => {
+    const na = mmData.find(n=>n.id===a), nb = mmData.find(n=>n.id===b);
+    const line = document.createElementNS(ns,'path');
+    const midY = (na.y+nb.y)/2;
+    line.setAttribute('d', `M${na.x},${na.y} C${na.x},${midY} ${nb.x},${midY} ${nb.x},${nb.y}`);
+    line.setAttribute('class','mm-link');
+    svg.appendChild(line);
+  });
+
+  mmData.forEach(n => {
+    const g = document.createElementNS(ns,'g');
+    g.setAttribute('class','mm-node');
+    g.setAttribute('transform', `translate(${n.x},${n.y})`);
+
+    const circle = document.createElementNS(ns,'circle');
+    circle.setAttribute('r', n.r);
+    circle.setAttribute('fill', n.color);
+    if(n.stroke){ circle.setAttribute('stroke', n.stroke); circle.setAttribute('stroke-width','2'); }
+    g.appendChild(circle);
+
+    n.label.forEach((line, i) => {
+      const t = document.createElementNS(ns,'text');
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('y', (i - (n.label.length-1)/2) * 13 + 4);
+      t.setAttribute('font-size', n.id==='core' ? '13' : '11.5');
+      t.setAttribute('fill', n.text);
+      t.textContent = line;
+      g.appendChild(t);
+    });
+
+    g.addEventListener('click', () => {
+      document.getElementById('mm-detail').innerHTML =
+        `<h4>${n.detail.title}</h4><p>${n.detail.body}</p>`;
+    });
+    svg.appendChild(g);
+  });
+
+  // ---------- QUIZ ----------
+  const quizData = [
+    { type:'mc', q:'Normal edge (add_edge) khác conditional edge ở điểm nào?',
+      opts:['Normal edge chạy nhanh hơn','Normal edge luôn đi tới 1 node cố định, không có logic điều kiện','Normal edge không thể dùng với START','Normal edge chỉ dùng được trong Module 4'],
+      correct:1, explain:'Normal edge là kết nối cứng A→B, không có hàm điều kiện nào can thiệp.' },
+    { type:'fill', q:'Hàm dùng để đăng ký conditional edge trong LangGraph là graph.________()',
+      answer:'add_conditional_edges', explain:'graph.add_conditional_edges(source, condition_fn, mapping).' },
+    { type:'tf', q:'condition_fn truyền vào add_conditional_edges được phép trực tiếp sửa đổi (mutate) state.',
+      answer:false, explain:'condition_fn chỉ đọc state để quyết định route, không phải node và không update state.' },
+    { type:'mc', q:'Nếu bỏ tham số mapping khi gọi add_conditional_edges, điều gì xảy ra?',
+      opts:['LangGraph tự động dùng node đầu tiên','Giá trị trả về của condition_fn được coi luôn là tên node thật','Graph sẽ báo lỗi ngay lập tức','Conditional edge trở thành normal edge'],
+      correct:1, explain:'Không có mapping, LangGraph coi string trả về chính là tên node có thật trong graph.' },
+    { type:'fill', q:'END trong LangGraph là một ________ đặc biệt, built-in, dùng để đánh dấu graph kết thúc.',
+      answer:'node', explain:'END là node built-in, không phải do bạn viết.' },
+    { type:'tf', q:'Một condition_fn chỉ có thể route tới tối đa 2 node khác nhau.',
+      answer:false, explain:'Có thể route tới nhiều node — multi-path routing (xem Lesson 3.9).' },
+    { type:'seq', q:'Sắp xếp đúng thứ tự khi build 1 graph có conditional edge:',
+      items:['graph.compile()','graph.add_conditional_edges("check", condition_fn, mapping)','graph.add_node("check", check_fn)','app.invoke(initial_state)'],
+      correctOrder:[2,1,0,3], explain:'Add node trước → add conditional edges → compile → invoke.' },
+    { type:'mc', q:'Cơ chế nào cho phép LangGraph tạo ra một vòng lặp (cycle), ví dụ self-correcting code writer?',
+      opts:['add_edge trỏ ngược về chính nó','Conditional edge trỏ về node trước đó (hoặc chính source)','MessagesState','START'],
+      correct:1, explain:'Conditional edge route về chính node nguồn hoặc node trước đó tạo ra cycle.' },
+    { type:'tf', q:'Quên map END vào trong mapping của conditional edge có thể khiến graph chạy vô hạn nếu nhánh đó nằm trong 1 cycle.',
+      answer:true, explain:'Đúng — đây là lỗi production hay gặp nhất, cực kỳ tốn API nếu dùng LLM thật.' },
+    { type:'fill', q:'Để kiểm tra trực quan graph dưới dạng hình ảnh, ta dùng lệnh app.get_graph().________()',
+      answer:'draw_mermaid_png', explain:'app.get_graph().draw_mermaid_png() xuất graph ra ảnh PNG.' },
+  ];
+
+  let qIndex = 0, qScore = 0, answered = false;
+  const quizArea = document.getElementById('quiz-area');
+
+  function renderQuiz(){
+    document.getElementById('q-current').textContent = qIndex+1;
+    document.getElementById('q-score').textContent = qScore;
+    answered = false;
+    const q = quizData[qIndex];
+    let html = `<div class="qcard"><span class="qtype">${labelType(q.type)}</span><div class="qtext">${q.q}</div>`;
+
+    if(q.type === 'mc'){
+      html += `<div class="options">` + q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('') + `</div>`;
+    } else if(q.type === 'tf'){
+      html += `<div class="options"><button class="opt" data-i="true">True</button><button class="opt" data-i="false">False</button></div>`;
+    } else if(q.type === 'fill'){
+      html += `<input type="text" class="fill-input" id="fill-input" placeholder="Gõ đáp án..."><div class="qactions"><button class="btn primary" id="submit-fill">Kiểm tra</button></div>`;
+    } else if(q.type === 'seq'){
+      html += `<div id="seq-list">` + q.items.map((it,i)=>`<div class="seq-item" draggable="true" data-orig="${i}"><span class="idx">${i+1}</span><span>${it}</span></div>`).join('') + `</div>
+      <div class="qactions"><button class="btn primary" id="submit-seq">Kiểm tra thứ tự</button></div>`;
+    }
+
+    html += `<div class="explain" id="explain-box"></div>`;
+    if(q.type !== 'fill' && q.type !== 'seq'){
+      html += `<div class="qactions"><button class="btn" id="next-btn" disabled>Câu tiếp →</button></div>`;
+    } else {
+      html += `<div class="qactions" id="next-wrap" style="display:none"><button class="btn" id="next-btn2">Câu tiếp →</button></div>`;
+    }
+    html += `</div>`;
+    quizArea.innerHTML = html;
+
+    if(q.type === 'mc' || q.type === 'tf'){
+      quizArea.querySelectorAll('.opt').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if(answered) return;
+          answered = true;
+          const chosen = btn.dataset.i;
+          let isCorrect;
+          if(q.type === 'mc'){ isCorrect = parseInt(chosen) === q.correct; }
+          else { isCorrect = (chosen === String(q.answer)); }
+          if(isCorrect){ btn.classList.add('correct'); qScore++; }
+          else {
+            btn.classList.add('wrong');
+            if(q.type==='mc') quizArea.querySelectorAll('.opt')[q.correct].classList.add('correct');
+            else quizArea.querySelectorAll('.opt')[q.answer ? 0 : 1].classList.add('correct');
+          }
+          document.getElementById('q-score').textContent = qScore;
+          showExplain(q.explain);
+          document.getElementById('next-btn').disabled = false;
+        });
+      });
+      document.getElementById('next-btn').addEventListener('click', nextQuestion);
+    }
+
+    if(q.type === 'fill'){
+      document.getElementById('submit-fill').addEventListener('click', () => {
+        if(answered) return;
+        answered = true;
+        const val = document.getElementById('fill-input').value.trim().toLowerCase().replace(/`/g,'');
+        const ok = val === q.answer.toLowerCase();
+        if(ok) qScore++;
+        document.getElementById('q-score').textContent = qScore;
+        showExplain((ok ? '✅ Chính xác! ' : `❌ Đáp án đúng: ${q.answer}. `) + q.explain);
+        document.getElementById('next-wrap').style.display = 'flex';
+        document.getElementById('submit-fill').disabled = true;
+      });
+      document.getElementById('next-btn2').addEventListener('click', nextQuestion);
+    }
+
+    if(q.type === 'seq'){
+      let dragEl = null;
+      const list = document.getElementById('seq-list');
+      list.querySelectorAll('.seq-item').forEach(item => {
+        item.addEventListener('dragstart', () => { dragEl = item; item.style.opacity='.4'; });
+        item.addEventListener('dragend', () => { item.style.opacity='1'; renumber(); });
+        item.addEventListener('dragover', e => {
+          e.preventDefault();
+          const after = getAfterElement(list, e.clientY);
+          if(after == null) list.appendChild(dragEl); else list.insertBefore(dragEl, after);
+        });
+      });
+      function getAfterElement(container, y){
+        const els = [...container.querySelectorAll('.seq-item:not([style*="opacity: 0.4"])')];
+        return els.reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height/2;
+          if(offset < 0 && offset > closest.offset) return { offset, element: child };
+          return closest;
+        }, { offset: -Infinity }).element;
+      }
+      function renumber(){
+        list.querySelectorAll('.seq-item').forEach((el,i) => el.querySelector('.idx').textContent = i+1);
+      }
+      document.getElementById('submit-seq').addEventListener('click', () => {
+        if(answered) return;
+        answered = true;
+        const order = [...list.querySelectorAll('.seq-item')].map(el => parseInt(el.dataset.orig));
+        const ok = JSON.stringify(order) === JSON.stringify(q.correctOrder);
+        if(ok) qScore++;
+        document.getElementById('q-score').textContent = qScore;
+        showExplain((ok ? '✅ Đúng thứ tự! ' : '❌ Thứ tự chưa đúng. ') + q.explain);
+        document.getElementById('next-wrap').style.display = 'flex';
+        document.getElementById('submit-seq').disabled = true;
+      });
+      document.getElementById('next-btn2').addEventListener('click', nextQuestion);
+    }
+  }
+
+  function showExplain(text){
+    const box = document.getElementById('explain-box');
+    box.textContent = '💡 ' + text;
+    box.classList.add('show');
+  }
+  function labelType(t){
+    return { mc:'Multiple Choice', fill:'Fill in the blank', tf:'True / False', seq:'Sequence' }[t];
+  }
+  function nextQuestion(){
+    if(qIndex < quizData.length - 1){ qIndex++; renderQuiz(); }
+    else { showResult(); }
+  }
+  function showResult(){
+    quizArea.innerHTML = `<div class="qcard quiz-result">
+      <div class="score">${qScore}/10</div>
+      <p style="margin-top:10px; color:#c3c9d6;">${resultMsg(qScore)}</p>
+      <div class="qactions" style="justify-content:center;"><button class="btn primary" id="retry-btn">Làm lại</button></div>
+    </div>`;
+    document.getElementById('retry-btn').addEventListener('click', () => { qIndex=0; qScore=0; renderQuiz(); });
+  }
+  function resultMsg(s){
+    if(s>=9) return '🌊 Hơi Thở Nước hoàn hảo — bạn nắm chắc Edges & Conditional Edges rồi!';
+    if(s>=7) return '👍 Khá tốt — xem lại vài điểm về mapping và cycle nhé.';
+    return '📖 Nên đọc lại phần Lý thuyết trước khi làm lại quiz.';
+  }
+  renderQuiz();
+</script>
+</body>
+</html>

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3.5 — Multi-Node Pipelines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f14;
+    --bg-elev:#12151d;
+    --bg-card:#161a23;
+    --border:#232838;
+    --text:#e6e9f0;
+    --text-dim:#8b93a7;
+    --accent:#4ade80;
+    --accent-dim:#1c3a2a;
+    --accent-glow: rgba(74,222,128,.18);
+    --danger:#f87171;
+    --warn:#fbbf24;
+    --blue:#60a5fa;
+    --purple:#c084fc;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--text); font-family:var(--font-display);}
+  body{
+    min-height:100vh;
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(74,222,128,.06), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(96,165,250,.05), transparent 40%);
+  }
+  ::selection{background:var(--accent-glow); color:var(--accent);}
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg-elev);}
+  ::-webkit-scrollbar-thumb{background:#2a3040; border-radius:6px;}
+  ::-webkit-scrollbar-thumb:hover{background:#38405a;}
+
+  .wrap{max-width:1080px; margin:0 auto; padding:28px 20px 80px;}
+
+  header.top{
+    display:flex; flex-direction:column; gap:6px;
+    padding-bottom:22px; margin-bottom:20px;
+    border-bottom:1px solid var(--border);
+  }
+  .eyebrow{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.14em;
+    color:var(--accent); text-transform:uppercase; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:''; width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent);}
+  h1{font-size:28px; font-weight:700; letter-spacing:-.01em;}
+  .subtitle{color:var(--text-dim); font-size:14px; font-family:var(--font-mono);}
+
+  nav.tabs{
+    display:flex; gap:4px; margin-bottom:26px; flex-wrap:wrap;
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:12px; padding:5px;
+  }
+  nav.tabs button{
+    flex:1; min-width:120px;
+    background:transparent; border:none; color:var(--text-dim);
+    font-family:var(--font-mono); font-size:13px; font-weight:500;
+    padding:11px 10px; border-radius:8px; cursor:pointer;
+    transition:all .18s ease;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  nav.tabs button:hover{color:var(--text); background:#1a1f2b;}
+  nav.tabs button.active{
+    background:var(--accent-dim); color:var(--accent);
+    box-shadow:inset 0 0 0 1px rgba(74,222,128,.35);
+  }
+  .tabnum{opacity:.6; font-size:11px;}
+
+  section.panel{display:none; animation:fadein .25s ease;}
+  section.panel.active{display:block;}
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .card{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:14px;
+    padding:22px 24px; margin-bottom:18px;
+  }
+  .card h2{font-size:19px; margin-bottom:12px; display:flex; align-items:center; gap:10px;}
+  .card h2 .num{
+    font-family:var(--font-mono); font-size:12px; color:var(--accent);
+    background:var(--accent-dim); padding:3px 8px; border-radius:6px;
+  }
+  .card h3{font-size:15px; margin:16px 0 8px; color:var(--accent);}
+  .card p, .card li{font-size:14.5px; line-height:1.7; color:#c7cddb;}
+  .card ul, .card ol{padding-left:20px; margin-bottom:8px;}
+  .card ul li, .card ol li{margin-bottom:5px;}
+  strong{color:var(--text); font-weight:600;}
+  .muted{color:var(--text-dim);}
+
+  .badge-row{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 4px;}
+  .badge{
+    font-family:var(--font-mono); font-size:12px; padding:4px 10px; border-radius:20px;
+    background:#1a1f2b; border:1px solid var(--border); color:var(--text-dim);
+  }
+  .badge.accent{color:var(--accent); border-color:rgba(74,222,128,.35);}
+
+  pre{
+    background:#0a0c11; border:1px solid var(--border); border-radius:10px;
+    padding:16px 18px; overflow-x:auto; margin:10px 0 16px;
+    font-family:var(--font-mono); font-size:13px; line-height:1.6;
+  }
+  code{font-family:var(--font-mono); font-size:13px;}
+  .card code:not(pre code){
+    background:#1a1f2b; color:var(--accent); padding:1px 6px; border-radius:4px;
+  }
+  .tok-kw{color:#c084fc;} .tok-str{color:#4ade80;} .tok-com{color:#5c6478; font-style:italic;}
+  .tok-fn{color:#60a5fa;} .tok-num{color:#fbbf24;}
+
+  table{width:100%; border-collapse:collapse; margin:10px 0 18px; font-size:13.5px;}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--border);}
+  th{color:var(--accent); font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:.04em;}
+  td{color:#c7cddb;}
+  tr:hover td{background:#161b26;}
+
+  .flow{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:16px 0; font-family:var(--font-mono); font-size:13px;
+  }
+  .flow .node{
+    background:#151a24; border:1px solid var(--border); border-radius:8px;
+    padding:9px 14px; color:var(--text);
+  }
+  .flow .node.start, .flow .node.end{color:var(--accent); border-color:rgba(74,222,128,.4);}
+  .flow .arrow{color:var(--text-dim);}
+
+  /* ---- Mindmap ---- */
+  .mindmap-wrap{display:flex; gap:18px; flex-wrap:wrap;}
+  #mindmap-svg{flex:1 1 560px; min-width:300px; background:#0a0c11; border:1px solid var(--border); border-radius:14px;}
+  .mm-node circle, .mm-node rect{ transition: all .18s ease; cursor:pointer; }
+  .mm-node:hover circle, .mm-node:hover rect{ filter:drop-shadow(0 0 8px var(--accent)); }
+  .mm-node text{ font-family:var(--font-mono); fill:var(--text); pointer-events:none; }
+  .mm-node.root text{ fill:#0d0f14; font-weight:700; }
+  .mm-edge{ stroke:#2a3040; stroke-width:1.5; fill:none; }
+  #mm-detail{
+    flex:1 1 260px; background:var(--bg-card); border:1px solid var(--border);
+    border-radius:14px; padding:20px; min-height:200px;
+  }
+  #mm-detail h3{color:var(--accent); margin-bottom:8px; font-size:16px;}
+  #mm-detail p{font-size:13.5px; color:#c7cddb; line-height:1.65;}
+  #mm-detail .hint{color:var(--text-dim); font-family:var(--font-mono); font-size:12.5px;}
+
+  /* ---- Quiz ---- */
+  .quiz-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+  .score-pill{
+    font-family:var(--font-mono); background:var(--accent-dim); color:var(--accent);
+    padding:8px 16px; border-radius:20px; font-size:14px; font-weight:600;
+    border:1px solid rgba(74,222,128,.35);
+  }
+  .q-card{background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:20px 22px; margin-bottom:14px;}
+  .q-top{display:flex; gap:10px; align-items:baseline; margin-bottom:10px;}
+  .q-idx{font-family:var(--font-mono); color:var(--accent); font-size:13px;}
+  .q-type{font-family:var(--font-mono); font-size:11px; color:var(--text-dim); background:#1a1f2b; padding:2px 8px; border-radius:10px;}
+  .q-text{font-size:15px; margin-bottom:12px; line-height:1.6;}
+  .q-options{display:flex; flex-direction:column; gap:8px;}
+  .opt{
+    text-align:left; background:#12151d; border:1px solid var(--border); color:var(--text);
+    border-radius:9px; padding:11px 14px; font-family:var(--font-display); font-size:14px;
+    cursor:pointer; transition:all .15s ease;
+  }
+  .opt:hover{border-color:#39415a;}
+  .opt.correct{border-color:var(--accent); background:var(--accent-dim); color:var(--accent);}
+  .opt.wrong{border-color:var(--danger); background:#2a1518; color:var(--danger);}
+  .opt:disabled{cursor:default;}
+  .fill-row{display:flex; gap:8px;}
+  .fill-row input{
+    flex:1; background:#12151d; border:1px solid var(--border); color:var(--text);
+    border-radius:9px; padding:11px 14px; font-family:var(--font-mono); font-size:14px;
+  }
+  .fill-row button, .tf-row button{
+    background:var(--accent); color:#0d0f14; border:none; border-radius:9px;
+    padding:11px 18px; font-family:var(--font-display); font-weight:600; cursor:pointer;
+  }
+  .tf-row{display:flex; gap:10px;}
+  .explain{
+    display:none; margin-top:12px; padding:12px 14px; border-radius:9px;
+    background:#0f1420; border:1px solid rgba(74,222,128,.25); font-size:13.5px; color:#c7cddb;
+  }
+  .explain.show{display:block;}
+  .explain b{color:var(--accent);}
+  #quiz-reset{
+    background:transparent; border:1px solid var(--border); color:var(--text-dim);
+    padding:8px 14px; border-radius:9px; font-family:var(--font-mono); font-size:12.5px; cursor:pointer;
+  }
+  #quiz-reset:hover{color:var(--text); border-color:#39415a;}
+
+  /* ---- Cheat sheet ---- */
+  .cheat-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:760px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-grid .card{margin-bottom:0;}
+
+  /* ---- Story mode ---- */
+  .story-hero{
+    display:flex; gap:16px; align-items:center; margin-bottom:6px; flex-wrap:wrap;
+  }
+  .story-hero .emoji{font-size:34px;}
+  .map-table th{color:var(--purple);}
+  .bug-box{
+    border:1px dashed var(--warn); background:#221c0d; border-radius:10px;
+    padding:12px 16px; margin:12px 0; font-size:13.5px; color:#e8d9ad;
+  }
+  .why-box{
+    border-left:3px solid var(--accent); background:#0f1420; border-radius:0 10px 10px 0;
+    padding:14px 18px; margin-top:14px; font-size:14px; line-height:1.7; color:#c7cddb;
+  }
+
+  footer{text-align:center; color:var(--text-dim); font-family:var(--font-mono); font-size:12px; margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Course 2 · Module 3 · LangGraph Core</div>
+    <h1>Lesson 3.5 — Multi-Node Pipelines</h1>
+    <div class="subtitle">Hands-on: Multi-Node Pipelines - Chaining LLM Calls &nbsp;·&nbsp; ⏱ 15:17 &nbsp;·&nbsp; Prereq: Lesson 3.4</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="theory"><span class="tabnum">01</span> Lý thuyết</button>
+    <button class="tab-btn" data-tab="mindmap"><span class="tabnum">02</span> Mindmap</button>
+    <button class="tab-btn" data-tab="quiz"><span class="tabnum">03</span> Quiz</button>
+    <button class="tab-btn" data-tab="cheat"><span class="tabnum">04</span> Cheat Sheet</button>
+    <button class="tab-btn" data-tab="story"><span class="tabnum">05</span> 🍡 Story Mode</button>
+  </nav>
+
+  <!-- ================= TAB 1: LÝ THUYẾT ================= -->
+  <section class="panel active" id="panel-theory">
+
+    <div class="card">
+      <h2><span class="num">01</span> Khái niệm + Ví dụ đời sống</h2>
+      <p><strong>Multi-Node Pipeline</strong> là một <code>StateGraph</code> gồm nhiều node nối tiếp, trong đó
+      <strong>output của node A trở thành input của node B</strong>, còn mọi state trung gian được lưu chung vào một
+      <code>State</code> object xuyên suốt graph.</p>
+      <h3>Ví dụ dây chuyền nhà máy</h3>
+      <p>Mỗi trạm không cần biết trạm trước làm gì — chỉ cần đọc đúng field trong "phiếu theo dõi đơn hàng" (state) và ghi thêm dữ liệu của mình. Đây là <strong>decoupling</strong>: các node độc lập, dễ test riêng, dễ thêm/bớt trạm.</p>
+      <div class="flow">
+        <div class="node start">START</div><div class="arrow">→</div>
+        <div class="node">classify</div><div class="arrow">→</div>
+        <div class="node">route</div><div class="arrow">→</div>
+        <div class="node">process</div><div class="arrow">→</div>
+        <div class="node">format</div><div class="arrow">→</div>
+        <div class="node end">END</div>
+      </div>
+      <h3>Ví dụ đời sống khác — khám bệnh viện</h3>
+      <p>Tiếp nhận (ghi hồ sơ = state) → Đo sinh hiệu (thêm nhiệt độ, huyết áp) → Bác sĩ khám (thêm chẩn đoán) → Nhà thuốc (đọc chẩn đoán, in đơn thuốc). Hồ sơ chảy xuyên suốt 4 trạm — đúng bản chất "state chảy qua node".</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">02</span> Vị trí trong hệ thống</h2>
+      <p>Nằm giữa <strong>Module 3 — LangGraph Core</strong>: sau khi đã hiểu State/Node/Edge cơ bản (3.1-3.4), 3.5 là bước ghép nhiều node thành pipeline thật.</p>
+      <table>
+        <tr><th>Bài</th><th>Nội dung</th><th>Quan hệ với 3.5</th></tr>
+        <tr><td>3.2, 3.3, 3.4</td><td>Simple graph, Reducers, Message State</td><td>Kiến thức nền bắt buộc trước</td></tr>
+        <tr><td><strong>3.5</strong></td><td><strong>Multi-Node Pipelines</strong></td><td>Bạn đang ở đây</td></tr>
+        <tr><td>3.6, 3.7</td><td>Build node exercise, Full workflow</td><td>Áp dụng trực tiếp 3.5</td></tr>
+        <tr><td>3.8</td><td>Conditional Edges</td><td>Pipeline nhưng node kế tiếp được chọn động</td></tr>
+      </table>
+      <p class="muted">Trong roadmap cá nhân: đây là nền cho <code>START → parse_request → generate_exam → END</code> ở "Port to Exam Generator — v1".</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">03</span> Lệnh quan trọng + nâng cao</h2>
+      <h3>1. Khai báo State</h3>
+      <pre><span class="tok-kw">from</span> typing <span class="tok-kw">import</span> TypedDict, List
+
+<span class="tok-kw">class</span> <span class="tok-fn">MyState</span>(TypedDict):
+    input_text: <span class="tok-kw">str</span>
+    classification: <span class="tok-kw">str</span>
+    result: <span class="tok-kw">str</span>
+    log: List[<span class="tok-kw">str</span>]</pre>
+
+      <h3>2. Node function</h3>
+      <pre><span class="tok-kw">def</span> <span class="tok-fn">classify_node</span>(state: MyState) -> <span class="tok-kw">dict</span>:
+    text = state[<span class="tok-str">"input_text"</span>]
+    label = <span class="tok-str">"spam"</span> <span class="tok-kw">if</span> <span class="tok-str">"buy now"</span> <span class="tok-kw">in</span> text <span class="tok-kw">else</span> <span class="tok-str">"normal"</span>
+    <span class="tok-kw">return</span> {<span class="tok-str">"classification"</span>: label}  <span class="tok-com"># chỉ trả field cần update</span></pre>
+
+      <table>
+        <tr><th>Thành phần</th><th>Giải thích</th></tr>
+        <tr><td><code>state: MyState</code></td><td>Node luôn nhận toàn bộ state hiện tại</td></tr>
+        <tr><td>Return <code>dict</code></td><td>Chỉ field cần update — LangGraph tự merge phần còn lại</td></tr>
+        <tr><td>Không mutate trực tiếp</td><td>Best practice: tạo dict mới, không sửa state["x"] rồi return state</td></tr>
+      </table>
+
+      <h3>3. Build & compile graph</h3>
+      <pre><span class="tok-kw">from</span> langgraph.graph <span class="tok-kw">import</span> StateGraph, START, END
+
+graph = StateGraph(MyState)
+graph.add_node(<span class="tok-str">"classify"</span>, classify_node)
+graph.add_node(<span class="tok-str">"process"</span>, process_node)
+graph.add_node(<span class="tok-str">"format"</span>, format_node)
+
+graph.add_edge(START, <span class="tok-str">"classify"</span>)
+graph.add_edge(<span class="tok-str">"classify"</span>, <span class="tok-str">"process"</span>)   <span class="tok-com"># output A -> input B</span>
+graph.add_edge(<span class="tok-str">"process"</span>, <span class="tok-str">"format"</span>)
+graph.add_edge(<span class="tok-str">"format"</span>, END)
+
+app = graph.compile()</pre>
+
+      <table>
+        <tr><th>Lệnh</th><th>Flag/Option</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>StateGraph(MyState)</code></td><td>class TypedDict</td><td>Khởi tạo graph với schema state</td></tr>
+        <tr><td><code>add_node(name, fn)</code></td><td>name, fn</td><td>Đăng ký 1 trạm xử lý</td></tr>
+        <tr><td><code>add_edge(a, b)</code></td><td>tên node/START/END</td><td>Nối cứng từ a → b</td></tr>
+        <tr><td><code>compile()</code></td><td>—</td><td>Biến graph thành object immutable, invoke được nhiều lần</td></tr>
+      </table>
+
+      <h3>4. Chạy graph</h3>
+      <pre>result = app.invoke({<span class="tok-str">"input_text"</span>: <span class="tok-str">"buy now!!!"</span>, ...})</pre>
+
+      <h3>⚡ Lệnh nâng cao</h3>
+      <pre><span class="tok-com"># Xem từng bước state real-time</span>
+<span class="tok-kw">for</span> step <span class="tok-kw">in</span> app.stream({...}):
+    <span class="tok-fn">print</span>(step)
+
+<span class="tok-com"># Visualize graph ra ảnh</span>
+app.get_graph().draw_mermaid_png()
+
+<span class="tok-com"># Debug thủ công ngay trong node</span>
+<span class="tok-kw">def</span> <span class="tok-fn">classify_node</span>(state: MyState) -> <span class="tok-kw">dict</span>:
+    <span class="tok-fn">print</span>(<span class="tok-str">"DEBUG state:"</span>, state)</pre>
+      <table>
+        <tr><th>Nâng cao</th><th>Giải thích</th></tr>
+        <tr><td><code>app.stream(input)</code></td><td>Generator, mỗi item là state sau 1 super-step</td></tr>
+        <tr><td><code>draw_mermaid_png()</code></td><td>Sinh sơ đồ Mermaid — hữu ích khi pipeline >3 node</td></tr>
+        <tr><td>Parallel nodes</td><td>Node không phụ thuộc nhau có thể chạy song song trong 1 super-step</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">04</span> File cấu hình quan trọng</h2>
+      <table>
+        <tr><th>File</th><th>Vai trò</th></tr>
+        <tr><td><code>requirements.txt</code></td><td>Pin version <code>langgraph</code> — API từng đổi giữa các bản, tránh vỡ pipeline khi upgrade</td></tr>
+        <tr><td><code>.env</code></td><td>Nếu node gọi LLM thật cần <code>OPENAI_API_KEY</code>/<code>ANTHROPIC_API_KEY</code></td></tr>
+      </table>
+      <p class="muted">Checkpointer/config runtime chưa xuất hiện ở bài này — sẽ học ở Lesson 3.13.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">05</span> Ứng dụng thực tế</h2>
+      <div class="badge-row">
+        <span class="badge accent">Content moderation pipeline</span>
+        <span class="badge accent">Customer support triage</span>
+        <span class="badge accent">Document OCR → summarize → export</span>
+        <span class="badge accent">Lead enrichment (sales/marketing)</span>
+      </div>
+      <p>Bất cứ task nào có <strong>≥3 bước tuần tự</strong>, mỗi bước cần loại xử lý khác nhau (rule-based / LLM / API call), multi-node pipeline là pattern tự nhiên nhất — dễ debug hơn 1 hàm khổng lồ.</p>
+    </div>
+
+  </section>
+
+  <!-- ================= TAB 2: MINDMAP ================= -->
+  <section class="panel" id="panel-mindmap">
+    <div class="card">
+      <h2><span class="num">02</span> Mindmap tương tác</h2>
+      <p class="muted">Nhấn vào từng node để xem chi tiết bên phải.</p>
+    </div>
+    <div class="mindmap-wrap">
+      <svg id="mindmap-svg" viewBox="0 0 560 460" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="mm-detail">
+        <p class="hint">← Nhấn 1 node trên mindmap</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TAB 3: QUIZ ================= -->
+  <section class="panel" id="panel-quiz">
+    <div class="quiz-header">
+      <div class="score-pill" id="score-pill">Điểm: 0 / 10</div>
+      <button id="quiz-reset">↻ Làm lại từ đầu</button>
+    </div>
+    <div id="quiz-container"></div>
+  </section>
+
+  <!-- ================= TAB 4: CHEAT SHEET ================= -->
+  <section class="panel" id="panel-cheat">
+    <div class="cheat-grid">
+      <div class="card">
+        <h2><span class="num">⚡</span> Lệnh cốt lõi</h2>
+        <table>
+          <tr><th>Lệnh</th><th>Dùng để</th></tr>
+          <tr><td><code>StateGraph(State)</code></td><td>Khởi tạo graph</td></tr>
+          <tr><td><code>add_node(name, fn)</code></td><td>Thêm 1 trạm xử lý</td></tr>
+          <tr><td><code>add_edge(a, b)</code></td><td>Nối cứng a → b</td></tr>
+          <tr><td><code>graph.compile()</code></td><td>Biên dịch, tạo <code>app</code></td></tr>
+          <tr><td><code>app.invoke(state)</code></td><td>Chạy 1 lần, trả state cuối</td></tr>
+          <tr><td><code>app.stream(state)</code></td><td>Xem từng bước real-time</td></tr>
+          <tr><td><code>app.get_graph().draw_mermaid_png()</code></td><td>Vẽ sơ đồ graph</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h2><span class="num">📁</span> File quan trọng</h2>
+        <table>
+          <tr><th>File</th><th>Vai trò</th></tr>
+          <tr><td><code>requirements.txt</code></td><td>Pin version langgraph</td></tr>
+          <tr><td><code>.env</code></td><td>API key nếu node gọi LLM</td></tr>
+        </table>
+        <h2 style="margin-top:20px;"><span class="num">🔗</span> Vị trí bài học</h2>
+        <p>3.4 Message State → <strong>3.5 Multi-Node Pipelines</strong> → 3.6 Exercise → 3.7 Full Workflow → 3.8 Conditional Edges</p>
+      </div>
+      <div class="card" style="grid-column:1/-1;">
+        <h2><span class="num">🧪</span> Lab steps tóm tắt</h2>
+        <ol>
+          <li><code>python3 -m venv venv && source venv/bin/activate</code></li>
+          <li><code>pip install langgraph</code></li>
+          <li>Viết 4 node: <code>classify → route → process → format</code>, mỗi node <code>return dict</code></li>
+          <li>Nối bằng <code>add_edge</code> theo đúng thứ tự, <code>compile()</code></li>
+          <li>Test với 5 input khác nhau bằng <code>app.invoke()</code></li>
+          <li>Verify: <code>python3 -c "from pipeline import app; print(type(app))"</code></li>
+        </ol>
+        <div class="bug-box">⚠️ Dễ sai nhất: quên <code>add_edge</code> nối node vào graph → node "mồ côi", không exception rõ ràng, chỉ thấy field thiếu khi print state.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TAB 5: STORY MODE ================= -->
+  <section class="panel" id="panel-story">
+
+    <div class="card">
+      <div class="story-hero">
+        <div class="emoji">🍡⚔️</div>
+        <div>
+          <h2 style="margin-bottom:2px;">Đường Ray Hơi Thở — Tanjiro và Pipeline Diệt Quỷ</h2>
+          <p class="muted" style="font-size:13px;">Story Mode · Lesson 3.5 — Multi-Node Pipelines</p>
+        </div>
+      </div>
+      <p>Sau khi thấm nhuần State, Node, Edge (3.1-3.4), <strong>Tanjiro Kamado</strong> được giao nhiệm vụ đầu tiên
+      như một "chuỗi hơi thở nối tiếp" — không phải 1 chiêu đơn lẻ, mà là <strong>4 bước liên hoàn</strong>, mỗi bước
+      đọc kết quả của bước trước để quyết định hành động tiếp theo. Đây chính là bản chất của
+      <strong>Multi-Node Pipeline</strong>: output node A → input node B.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">🗺️</span> Ánh xạ khái niệm ↔ chi tiết truyện</h2>
+      <table class="map-table">
+        <tr><th>Khái niệm kỹ thuật</th><th>Chi tiết trong truyện</th></tr>
+        <tr><td><strong>State (TypedDict)</strong></td><td>"Sổ Tay Diệt Quỷ" — cuốn sổ chung mà mọi chiêu thở (node) đọc/ghi vào</td></tr>
+        <tr><td><strong>Node function</strong></td><td>Từng "chiêu thở" riêng biệt — nhận sổ tay hiện tại, trả về phần cập nhật</td></tr>
+        <tr><td><strong>classify_node</strong></td><td>Khả năng <strong>ngửi mùi</strong> đặc trưng của Tanjiro để phân loại quỷ</td></tr>
+        <tr><td><strong>route_node</strong></td><td>Tanjiro <strong>chọn kỹ thuật thở</strong> phù hợp — dựa vào kết quả ngửi mùi ở node trước (đúng "output A → input B")</td></tr>
+        <tr><td><strong>process_node</strong></td><td>Tanjiro <strong>thi triển</strong> chiêu thức để hạ gục quỷ</td></tr>
+        <tr><td><strong>format_node</strong></td><td>Đóng gói kết quả thành <strong>báo cáo chuẩn gửi Trụ Cột (Hashira)</strong></td></tr>
+        <tr><td><strong>return dict (chỉ field update)</strong></td><td>Mỗi chiêu thở chỉ ghi thêm dòng mới vào sổ tay, không xé bỏ trang cũ</td></tr>
+      </table>
+      <div class="bug-box">
+        🐗 <strong>Bug hài hước:</strong> field <code>log</code> trong state chính là "camera giám sát" ghi lại đúng thứ tự
+        chiêu thở đã chạy. Nếu Inosuke (heo rừng) xông vào đánh trước khi Tanjiro kịp ngửi mùi, <code>log</code> sẽ lộ ngay
+        vì thứ tự dòng ghi không khớp với graph đã định nghĩa — pipeline không "lười" phát hiện sai thứ tự, mà đơn giản là
+        edges chỉ cho phép 1 con đường duy nhất từ START đến END.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">💻</span> Code thật (LangGraph API thật, đã chạy)</h2>
+      <pre><span class="tok-kw">from</span> typing <span class="tok-kw">import</span> TypedDict, List
+<span class="tok-kw">from</span> langgraph.graph <span class="tok-kw">import</span> StateGraph, START, END
+
+
+<span class="tok-kw">class</span> <span class="tok-fn">SoTayDietQuy</span>(TypedDict):
+    quai_vat: <span class="tok-kw">str</span>
+    loai_quy: <span class="tok-kw">str</span>
+    ky_thuat: <span class="tok-kw">str</span>
+    ket_qua: <span class="tok-kw">str</span>
+    log: List[<span class="tok-kw">str</span>]
+
+
+<span class="tok-kw">def</span> <span class="tok-fn">ngui_mui_node</span>(state: SoTayDietQuy) -> <span class="tok-kw">dict</span>:
+    <span class="tok-com"># Node 1 - CLASSIFY: ngui mui phan loai quy</span>
+    quai_vat = state[<span class="tok-str">"quai_vat"</span>]
+    <span class="tok-kw">if</span> <span class="tok-str">"nhen"</span> <span class="tok-kw">in</span> quai_vat.lower():
+        loai = <span class="tok-str">"quy_nhen_gia_toc"</span>
+    <span class="tok-kw">elif</span> <span class="tok-str">"vo han"</span> <span class="tok-kw">in</span> quai_vat.lower():
+        loai = <span class="tok-str">"quy_bat_tu"</span>
+    <span class="tok-kw">else</span>:
+        loai = <span class="tok-str">"quy_thuong"</span>
+    <span class="tok-kw">return</span> {
+        <span class="tok-str">"loai_quy"</span>: loai,
+        <span class="tok-str">"log"</span>: state[<span class="tok-str">"log"</span>] + [<span class="tok-fn">f</span><span class="tok-str">"[ngui_mui] phan loai '{quai_vat}' -> {loai}"</span>],
+    }
+
+
+<span class="tok-kw">def</span> <span class="tok-fn">chon_chieu_tho_node</span>(state: SoTayDietQuy) -> <span class="tok-kw">dict</span>:
+    <span class="tok-com"># Node 2 - ROUTE: output node truoc -> input node nay</span>
+    loai_quy = state[<span class="tok-str">"loai_quy"</span>]
+    <span class="tok-kw">if</span> loai_quy == <span class="tok-str">"quy_bat_tu"</span>:
+        ky_thuat = <span class="tok-str">"Tho Mat Troi - Chi Nhat Kagura"</span>
+    <span class="tok-kw">elif</span> loai_quy == <span class="tok-str">"quy_nhen_gia_toc"</span>:
+        ky_thuat = <span class="tok-str">"Tho Nuoc - De Nhat Hinh: Mien Nuoc Chay"</span>
+    <span class="tok-kw">else</span>:
+        ky_thuat = <span class="tok-str">"Tho Nuoc - De Nhi Hinh: Boc Nuoc Xoay"</span>
+    <span class="tok-kw">return</span> {
+        <span class="tok-str">"ky_thuat"</span>: ky_thuat,
+        <span class="tok-str">"log"</span>: state[<span class="tok-str">"log"</span>] + [<span class="tok-fn">f</span><span class="tok-str">"[chon_chieu_tho] {loai_quy} -> {ky_thuat}"</span>],
+    }
+
+
+<span class="tok-kw">def</span> <span class="tok-fn">thi_trien_node</span>(state: SoTayDietQuy) -> <span class="tok-kw">dict</span>:
+    <span class="tok-com"># Node 3 - PROCESS: thuc thi ky thuat</span>
+    ky_thuat = state[<span class="tok-str">"ky_thuat"</span>]
+    <span class="tok-kw">return</span> {
+        <span class="tok-str">"ket_qua"</span>: <span class="tok-fn">f</span><span class="tok-str">"Da ha guc bang [{ky_thuat}]"</span>,
+        <span class="tok-str">"log"</span>: state[<span class="tok-str">"log"</span>] + [<span class="tok-fn">f</span><span class="tok-str">"[thi_trien] executing '{ky_thuat}'"</span>],
+    }
+
+
+<span class="tok-kw">def</span> <span class="tok-fn">bao_cao_hashira_node</span>(state: SoTayDietQuy) -> <span class="tok-kw">dict</span>:
+    <span class="tok-com"># Node 4 - FORMAT: dong goi bao cao cuoi</span>
+    bao_cao = (
+        <span class="tok-fn">f</span><span class="tok-str">"BAO CAO NHIEM VU\n"</span>
+        <span class="tok-fn">f</span><span class="tok-str">"- Doi tuong    : {state['quai_vat']}\n"</span>
+        <span class="tok-fn">f</span><span class="tok-str">"- Phan loai    : {state['loai_quy']}\n"</span>
+        <span class="tok-fn">f</span><span class="tok-str">"- Ky thuat dung: {state['ky_thuat']}\n"</span>
+        <span class="tok-fn">f</span><span class="tok-str">"- Ket qua      : {state['ket_qua']}"</span>
+    )
+    <span class="tok-kw">return</span> {<span class="tok-str">"ket_qua"</span>: bao_cao, <span class="tok-str">"log"</span>: state[<span class="tok-str">"log"</span>] + [<span class="tok-str">"[bao_cao_hashira] da dong goi bao cao"</span>]}
+
+
+graph = StateGraph(SoTayDietQuy)
+graph.add_node(<span class="tok-str">"ngui_mui"</span>, ngui_mui_node)
+graph.add_node(<span class="tok-str">"chon_chieu_tho"</span>, chon_chieu_tho_node)
+graph.add_node(<span class="tok-str">"thi_trien"</span>, thi_trien_node)
+graph.add_node(<span class="tok-str">"bao_cao_hashira"</span>, bao_cao_hashira_node)
+
+graph.add_edge(START, <span class="tok-str">"ngui_mui"</span>)
+graph.add_edge(<span class="tok-str">"ngui_mui"</span>, <span class="tok-str">"chon_chieu_tho"</span>)
+graph.add_edge(<span class="tok-str">"chon_chieu_tho"</span>, <span class="tok-str">"thi_trien"</span>)
+graph.add_edge(<span class="tok-str">"thi_trien"</span>, <span class="tok-str">"bao_cao_hashira"</span>)
+graph.add_edge(<span class="tok-str">"bao_cao_hashira"</span>, END)
+
+app = graph.compile()
+
+ket_qua = app.invoke({<span class="tok-str">"quai_vat"</span>: <span class="tok-str">"Quy Nhen (Nui Tu Nhien)"</span>, <span class="tok-str">"loai_quy"</span>: <span class="tok-str">""</span>,
+                       <span class="tok-str">"ky_thuat"</span>: <span class="tok-str">""</span>, <span class="tok-str">"ket_qua"</span>: <span class="tok-str">""</span>, <span class="tok-str">"log"</span>: []})
+<span class="tok-fn">print</span>(ket_qua[<span class="tok-str">"ket_qua"</span>])</pre>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">✅</span> Output thật, đã chạy kiểm chứng</h2>
+      <p class="muted" style="margin-bottom:8px;">Môi trường: Python 3, langgraph 1.2.9 — chạy trực tiếp bằng <code>python3 tanjiro_pipeline.py</code></p>
+      <pre>===== TEST CASE 1: input='Quy Nhen (Nui Tu Nhien)' =====
+>> THU TU NODE DA CHAY (log, chung minh dung pipeline order):
+    [ngui_mui] phan loai 'Quy Nhen (Nui Tu Nhien)' -> quy_nhen_gia_toc
+    [chon_chieu_tho] quy_nhen_gia_toc -> Tho Nuoc - De Nhat Hinh: Mien Nuoc Chay
+    [thi_trien] executing 'Tho Nuoc - De Nhat Hinh: Mien Nuoc Chay'
+    [bao_cao_hashira] da dong goi bao cao
+>> BAO CAO CUOI CUNG:
+BAO CAO NHIEM VU
+- Doi tuong    : Quy Nhen (Nui Tu Nhien)
+- Phan loai    : quy_nhen_gia_toc
+- Ky thuat dung: Tho Nuoc - De Nhat Hinh: Mien Nuoc Chay
+- Ket qua      : Da ha guc bang [Tho Nuoc - De Nhat Hinh: Mien Nuoc Chay]
+
+===== TEST CASE 2: input='Quy Vo Han (12 Ki Thuong)' =====
+>> THU TU NODE DA CHAY:
+    [ngui_mui] phan loai 'Quy Vo Han (12 Ki Thuong)' -> quy_bat_tu
+    [chon_chieu_tho] quy_bat_tu -> Tho Mat Troi - Chi Nhat Kagura
+    [thi_trien] executing 'Tho Mat Troi - Chi Nhat Kagura'
+    [bao_cao_hashira] da dong goi bao cao
+>> KET QUA: Da ha guc bang [Tho Mat Troi - Chi Nhat Kagura]
+
+===== TEST CASE 3: input='Quy la thuong' =====
+>> THU TU NODE DA CHAY:
+    [ngui_mui] phan loai 'Quy la thuong' -> quy_thuong
+    [chon_chieu_tho] quy_thuong -> Tho Nuoc - De Nhi Hinh: Boc Nuoc Xoay
+    [thi_trien] executing 'Tho Nuoc - De Nhi Hinh: Boc Nuoc Xoay'
+    [bao_cao_hashira] da dong goi bao cao
+>> KET QUA: Da ha guc bang [Tho Nuoc - De Nhi Hinh: Boc Nuoc Xoay]</pre>
+
+      <div class="why-box">
+        <strong style="color:var(--accent);">🤔 Tại sao code này chạy được?</strong><br><br>
+        <code>StateGraph</code> của LangGraph <strong>không hề quan tâm</strong> field trong <code>TypedDict</code> tên
+        là <code>quai_vat</code> hay <code>input_text</code>, hay logic trong node là "ngửi mùi quỷ" hay "phân loại
+        email spam" — với framework, tất cả chỉ là <strong>1 dict Python được truyền tuần tự qua các node theo đúng
+        thứ tự <code>add_edge</code> đã khai báo</strong>, mỗi node trả về phần cập nhật, framework tự merge lại.
+        Nói cách khác: tên biến/hàm là ẩn dụ cho người đọc, còn bản chất kỹ thuật chỉ là
+        <strong>data (state) chảy qua graph theo thứ tự cạnh nối (edges)</strong> — không phải phép màu của "Hơi Thở".
+        Vì vậy bạn có thể đổi toàn bộ theme Tanjiro sang theme "xử lý ticket khách hàng" mà code chạy y hệt, không đổi
+        1 dòng logic graph.
+      </div>
+    </div>
+
+  </section>
+
+  <footer>Lesson 3.5 · Multi-Node Pipelines · Roadmap AI Agent &amp; Context</footer>
+</div>
+
+<script>
+/* ---------------- Tabs ---------------- */
+const tabBtns = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.panel');
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------------- Mindmap ---------------- */
+const mmData = [
+  {id:'root', x:280, y:230, r:46, label:['Multi-Node','Pipeline'], root:true,
+    detail:{title:'Multi-Node Pipeline', text:'StateGraph gồm nhiều node nối tiếp: output node A trở thành input node B. State chung được truyền và cập nhật xuyên suốt.'}},
+  {id:'state', x:90, y:80, r:36, label:['State'],
+    detail:{title:'State (TypedDict)', text:'Schema chung mọi node đọc/ghi. Node chỉ return dict chứa field cần update — LangGraph tự merge phần còn lại.'}},
+  {id:'node', x:470, y:80, r:36, label:['Node fn'],
+    detail:{title:'Node function', text:'Nhận toàn bộ state hiện tại làm tham số, trả về dict update. Không mutate state trực tiếp — luôn tạo dict mới.'}},
+  {id:'edge', x:90, y:380, r:36, label:['Edge'],
+    detail:{title:'add_edge(a, b)', text:'Nối cứng từ node a sang node b, định nghĩa thứ tự chạy cố định trong pipeline. START/END là node đặc biệt bắt buộc.'}},
+  {id:'compile', x:470, y:380, r:36, label:['Compile','& Invoke'],
+    detail:{title:'compile() / invoke()', text:'graph.compile() tạo app immutable. app.invoke(state) chạy 1 lần trả state cuối. app.stream(state) xem từng bước real-time.'}},
+  {id:'debug', x:280, y:60, r:30, label:['Debug'],
+    detail:{title:'Debug pipeline', text:'print(state) ngay trong node là cách đơn giản nhất. draw_mermaid_png() để visualize graph khi >3 node.'}},
+  {id:'parallel', x:280, y:400, r:30, label:['Parallel'],
+    detail:{title:'Parallel nodes', text:'Nếu 2 node không phụ thuộc nhau (không chung field, không nối tiếp), LangGraph có thể chạy song song trong cùng 1 super-step.'}},
+];
+const mmEdges = [['root','state'],['root','node'],['root','edge'],['root','compile'],['state','debug'],['node','debug'],['edge','parallel'],['compile','parallel']];
+
+const svg = document.getElementById('mindmap-svg');
+const NS = 'http://www.w3.org/2000/svg';
+mmEdges.forEach(([a,b])=>{
+  const na = mmData.find(n=>n.id===a), nb = mmData.find(n=>n.id===b);
+  const line = document.createElementNS(NS,'line');
+  line.setAttribute('x1', na.x); line.setAttribute('y1', na.y);
+  line.setAttribute('x2', nb.x); line.setAttribute('y2', nb.y);
+  line.setAttribute('class','mm-edge');
+  svg.appendChild(line);
+});
+mmData.forEach(n=>{
+  const g = document.createElementNS(NS,'g');
+  g.setAttribute('class','mm-node'+(n.root?' root':''));
+  g.setAttribute('data-id', n.id);
+  const circle = document.createElementNS(NS,'circle');
+  circle.setAttribute('cx', n.x); circle.setAttribute('cy', n.y); circle.setAttribute('r', n.r);
+  circle.setAttribute('fill', n.root ? '#4ade80' : '#161a23');
+  circle.setAttribute('stroke', n.root ? '#4ade80' : '#2a3040');
+  circle.setAttribute('stroke-width', '2');
+  g.appendChild(circle);
+  n.label.forEach((line,i)=>{
+    const text = document.createElementNS(NS,'text');
+    text.setAttribute('x', n.x); text.setAttribute('y', n.y + (i - (n.label.length-1)/2)*13 + 4);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('font-size', n.root ? '13' : '11');
+    text.textContent = line;
+    g.appendChild(text);
+  });
+  g.addEventListener('click', ()=>{
+    document.getElementById('mm-detail').innerHTML =
+      `<h3>${n.detail.title}</h3><p>${n.detail.text}</p>`;
+  });
+  svg.appendChild(g);
+});
+
+/* ---------------- Quiz ---------------- */
+const quizData = [
+  {type:'mc', q:"Khi node function return {\"result\": \"abc\"}, điều gì xảy ra với các field khác trong state?",
+   opts:["Toàn bộ state bị xóa, chỉ còn field result","Các field khác giữ nguyên giá trị cũ (trừ khi có reducer khác)","Graph báo lỗi vì thiếu field","Tất cả field tự động reset về mặc định"],
+   correct:1, explain:"LangGraph merge dict trả về vào state hiện tại — field không được nhắc tới vẫn giữ nguyên giá trị cũ."},
+  {type:'tf', q:"Node function phải nhận toàn bộ state hiện tại làm tham số, kể cả khi chỉ cần đọc 1 field.",
+   correct:true, explain:"Đúng — signature của node function luôn là (state) -> dict, dù chỉ dùng 1-2 field bên trong."},
+  {type:'fill', q:"Lệnh để nối 2 node theo thứ tự cố định (không điều kiện) là graph.____(node_a, node_b).",
+   answer:"add_edge", explain:"graph.add_edge(node_a, node_b) — nối cứng, khác với add_conditional_edges (routing động)."},
+  {type:'mc', q:"Đâu là lý do chính khiến ta thích multi-node pipeline hơn 1 hàm xử lý khổng lồ?",
+   opts:["Chạy nhanh hơn tuyệt đối","Dễ test/debug/thay thế từng bước riêng lẻ","Tốn ít RAM hơn","Bắt buộc phải dùng LLM ở mỗi bước"],
+   correct:1, explain:"Tách nhỏ theo node giúp mỗi bước độc lập, dễ unit test, dễ swap logic mà không ảnh hưởng bước khác."},
+  {type:'seq', q:"Sắp xếp đúng thứ tự để build pipeline 3 node A→B→C (nhấn theo đúng thứ tự):",
+   items:["StateGraph(MyState)","graph.add_node() cho từng node","graph.add_edge() nối các node","graph.compile()","app.invoke(initial_state)"],
+   correctOrder:[0,1,2,3,4],
+   explain:"Khởi tạo graph → đăng ký node → nối edge → compile → invoke. Sai thứ tự (vd compile trước khi add_edge) sẽ thiếu path."},
+  {type:'tf', q:"app.stream() và app.invoke() luôn trả về cùng một định dạng kết quả.",
+   correct:false, explain:"invoke() trả state cuối cùng (dict); stream() trả về generator, mỗi item là state sau 1 super-step."},
+  {type:'fill', q:"Nếu 2 node không phụ thuộc nhau, LangGraph có thể chạy chúng ____ trong cùng một super-step.",
+   answer:"song song", explain:"Đáp án: song song (parallel). Điều kiện: không chung field đọc/ghi và không có edge nối tiếp."},
+  {type:'mc', q:"Trong pipeline parse_request → retrieve_samples → generate_exam, nếu retrieve_samples cần field 'subject' do parse_request tạo ra, điều gì bắt buộc?",
+   opts:["retrieve_samples phải định nghĩa trước parse_request trong code","Field subject phải nằm trong schema State chung","Phải dùng interrupt() giữa 2 node","Phải dùng checkpointer để truyền field"],
+   correct:1, explain:"State là TypedDict chung cho toàn graph — miễn field có trong schema, node nào cũng đọc được, không phụ thuộc thứ tự định nghĩa hàm trong code."},
+  {type:'tf', q:"Cách debug đơn giản nhất khi pipeline chạy sai là print(state) ngay trong node nghi ngờ có lỗi.",
+   correct:true, explain:"Đúng, đây là cách nhanh nhất trước khi cần tới draw_mermaid_png() hay LangSmith tracing."},
+  {type:'fill', q:"Gọi graph.compile() biến định nghĩa graph thành một object ____ và có thể invoke được nhiều lần.",
+   answer:"immutable", explain:"Đáp án: immutable (bất biến) — compile 1 lần, tái sử dụng object app nhiều lần, không nên compile lại mỗi request."},
+];
+
+let score = 0;
+const answered = new Array(quizData.length).fill(false);
+const container = document.getElementById('quiz-container');
+const scorePill = document.getElementById('score-pill');
+
+function updateScore(){ scorePill.textContent = `Điểm: ${score} / ${quizData.length}`; }
+
+function renderQuiz(){
+  container.innerHTML = '';
+  quizData.forEach((q, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    const typeLabel = {mc:'Multiple Choice', tf:'True / False', fill:'Fill-in', seq:'Sequence'}[q.type];
+    card.innerHTML = `<div class="q-top"><span class="q-idx">Câu ${idx+1}</span><span class="q-type">${typeLabel}</span></div>
+      <div class="q-text">${q.q}</div>`;
+
+    if(q.type==='mc'){
+      const optWrap = document.createElement('div'); optWrap.className='q-options';
+      q.opts.forEach((opt,i)=>{
+        const b = document.createElement('button'); b.className='opt'; b.textContent=opt;
+        b.onclick=()=>{
+          if(answered[idx]) return;
+          answered[idx]=true;
+          const btns = optWrap.querySelectorAll('.opt');
+          btns.forEach((bb,j)=>{ bb.disabled=true; if(j===q.correct) bb.classList.add('correct'); });
+          if(i===q.correct) score++; else b.classList.add('wrong');
+          updateScore();
+          card.querySelector('.explain').classList.add('show');
+        };
+        optWrap.appendChild(b);
+      });
+      card.appendChild(optWrap);
+    } else if(q.type==='tf'){
+      const row = document.createElement('div'); row.className='tf-row';
+      ['True','False'].forEach(label=>{
+        const b = document.createElement('button'); b.textContent=label;
+        b.onclick=()=>{
+          if(answered[idx]) return;
+          answered[idx]=true;
+          const val = label==='True';
+          row.querySelectorAll('button').forEach(bb=>bb.disabled=true);
+          if(val===q.correct){ b.style.background='#1c3a2a'; b.style.color='#4ade80'; score++; }
+          else { b.style.background='#2a1518'; b.style.color='#f87171'; }
+          updateScore();
+          card.querySelector('.explain').classList.add('show');
+        };
+        row.appendChild(b);
+      });
+      card.appendChild(row);
+    } else if(q.type==='fill'){
+      const row = document.createElement('div'); row.className='fill-row';
+      const input = document.createElement('input'); input.placeholder='Nhập đáp án...';
+      const btn = document.createElement('button'); btn.textContent='Kiểm tra';
+      btn.onclick=()=>{
+        if(answered[idx]) return;
+        answered[idx]=true;
+        input.disabled=true; btn.disabled=true;
+        const ok = input.value.trim().toLowerCase().includes(q.answer.toLowerCase());
+        if(ok){ input.style.borderColor='#4ade80'; score++; } else { input.style.borderColor='#f87171'; }
+        updateScore();
+        card.querySelector('.explain').classList.add('show');
+      };
+      row.appendChild(input); row.appendChild(btn);
+      card.appendChild(row);
+    } else if(q.type==='seq'){
+      const wrap = document.createElement('div'); wrap.className='q-options';
+      const picked = [];
+      const remaining = q.items.map((t,i)=>({t,i}));
+      function renderSeq(){
+        wrap.innerHTML = '';
+        if(picked.length>0){
+          const p = document.createElement('div'); p.className='badge accent';
+          p.style.marginBottom='8px';
+          p.textContent = 'Đã chọn: ' + picked.map(i=>i+1).join(' → ');
+          wrap.appendChild(p);
+        }
+        remaining.forEach(item=>{
+          const b = document.createElement('button'); b.className='opt';
+          b.textContent = `${item.i+1}. ${item.t}`;
+          b.onclick=()=>{
+            if(answered[idx]) return;
+            picked.push(item.i);
+            remaining.splice(remaining.indexOf(item),1);
+            if(remaining.length===0){
+              answered[idx]=true;
+              const correct = JSON.stringify(picked)===JSON.stringify(q.correctOrder);
+              if(correct) score++;
+              updateScore();
+              wrap.innerHTML = `<p style="color:${correct?'#4ade80':'#f87171'};font-family:var(--font-mono);font-size:13px;">
+                Thứ tự bạn chọn: ${picked.map(i=>i+1).join(' → ')} ${correct ? '✓ Chính xác!' : '✗ Chưa đúng. Đáp án: ' + q.correctOrder.map(i=>i+1).join(' → ')}</p>`;
+              card.querySelector('.explain').classList.add('show');
+            } else { renderSeq(); }
+          };
+          wrap.appendChild(b);
+        });
+      }
+      renderSeq();
+      card.appendChild(wrap);
+    }
+
+    const explain = document.createElement('div'); explain.className='explain';
+    explain.innerHTML = `<b>Giải thích:</b> ${q.explain}`;
+    card.appendChild(explain);
+    container.appendChild(card);
+  });
+}
+document.getElementById('quiz-reset').onclick = ()=>{
+  score = 0; answered.fill(false); updateScore(); renderQuiz();
+};
+renderQuiz(); updateScore();
+</script>
+</body>
+</html>

@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3.10 — Cycles & Self-Correcting Code Writer</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg-raised: #12151c;
+    --bg-card: #161a22;
+    --border: #232936;
+    --text: #e6e9ef;
+    --text-dim: #8a93a3;
+    --accent: #4ade80;
+    --accent-dim: #1f4d33;
+    --accent-glow: rgba(74, 222, 128, 0.15);
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #c084fc;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+  }
+
+  ::selection { background: var(--accent-glow); color: var(--accent); }
+
+  a { color: var(--accent); }
+
+  header {
+    padding: 28px 32px 0;
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(ellipse at top left, rgba(74,222,128,0.06), transparent 55%),
+      var(--bg);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+  }
+  .meta-row span b { color: var(--text); font-weight: 500; }
+
+  nav.tabs {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    padding: 12px 18px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 32px;
+  }
+
+  .tab-panel { display: none; animation: fadeIn .25s ease; }
+  .tab-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 36px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2:first-child { margin-top: 0; }
+  h2::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  h3 {
+    font-size: 15px;
+    color: var(--accent);
+    font-family: var(--mono);
+    margin: 22px 0 10px;
+  }
+
+  p { color: var(--text); font-size: 14.5px; }
+  p.dim, .dim { color: var(--text-dim); }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  pre {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+  }
+  code {
+    font-family: var(--mono);
+    background: rgba(74,222,128,0.08);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+  pre code { background: none; color: var(--text); padding: 0; }
+
+  .tok-kw { color: #c084fc; }
+  .tok-str { color: #fbbf24; }
+  .tok-fn { color: #60a5fa; }
+  .tok-com { color: #6b7280; font-style: italic; }
+  .tok-num { color: #f97316; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-bottom: 16px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    margin: 16px 0;
+  }
+  .flow .box {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 6px;
+  }
+  .flow .box.cycle { border-color: var(--accent); color: var(--accent); }
+  .flow .arrow { color: var(--text-dim); }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+  .badge.important { border-color: var(--accent); color: var(--accent); }
+  .badge.warn { border-color: var(--warn); color: var(--warn); }
+
+  ul, ol { padding-left: 20px; }
+  li { margin-bottom: 6px; font-size: 14.5px; }
+
+  /* Mindmap */
+  #mindmap-svg { width: 100%; height: auto; }
+  .mm-node circle, .mm-node rect {
+    fill: var(--bg-card);
+    stroke: var(--border);
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: stroke .15s, fill .15s;
+  }
+  .mm-node:hover circle, .mm-node:hover rect { stroke: var(--accent); fill: var(--accent-glow); }
+  .mm-node.root circle { fill: var(--accent-glow); stroke: var(--accent); stroke-width: 2; }
+  .mm-node text {
+    fill: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .mm-node.root text { fill: var(--accent); font-weight: 700; font-size: 13px; }
+  .mm-link { stroke: var(--border); stroke-width: 1.5; fill: none; }
+
+  #mm-detail {
+    margin-top: 18px;
+    min-height: 90px;
+  }
+  #mm-detail .card-title { color: var(--accent); }
+
+  /* Quiz */
+  .quiz-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .quiz-score { color: var(--accent); font-weight: 700; }
+  .q-block { display: none; }
+  .q-block.active { display: block; animation: fadeIn .2s ease; }
+  .q-text { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+  .q-type {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.06em;
+  }
+  .option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 14px;
+    transition: border-color .15s, background .15s;
+  }
+  .option:hover:not(.locked) { border-color: var(--accent); }
+  .option.correct { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); }
+  .option.wrong { border-color: var(--danger); background: rgba(248,113,113,0.1); color: var(--danger); }
+  .option.locked { cursor: default; }
+
+  .fillin-input {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .fillin-input:focus { outline: none; border-color: var(--accent); }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--accent);
+    color: #0d0f14;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity .15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn.secondary {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  .explain-box {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+    background: var(--bg-card);
+    font-size: 13.5px;
+    color: var(--text-dim);
+    display: none;
+  }
+  .explain-box.show { display: block; }
+  .explain-box b { color: var(--accent); }
+
+  .quiz-nav { display: flex; gap: 10px; margin-top: 20px; }
+
+  .quiz-result {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .quiz-result.show { display: block; }
+  .quiz-result .big-score {
+    font-family: var(--mono);
+    font-size: 48px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* Cheat sheet */
+  .cheat-cmd { font-family: var(--mono); color: var(--blue); }
+
+  /* Story mode */
+  .story-panel {
+    border: 1px solid var(--accent-dim);
+    background: linear-gradient(180deg, rgba(74,222,128,0.04), transparent 30%), var(--bg-card);
+  }
+  .story-line { margin-bottom: 10px; }
+  .story-line .who { color: var(--accent); font-family: var(--mono); font-weight: 700; }
+  .map-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    background: rgba(96,165,250,0.12);
+    color: var(--blue);
+    border: 1px solid rgba(96,165,250,0.3);
+    padding: 1px 8px;
+    border-radius: 999px;
+    margin: 0 2px;
+  }
+  .bug-note {
+    border: 1px dashed var(--warn);
+    color: var(--warn);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin: 14px 0;
+  }
+
+  footer {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Course 2 · Module 3 · LangGraph Core</div>
+  <h1>Lesson 3.10 — Cycles & Self-Correcting Code Writer</h1>
+  <div class="subtitle">Hands-on: Cycles and Loops – Self-Correcting Code Writer</div>
+  <div class="meta-row">
+    <span>⏱ <b>8:54</b></span>
+    <span>📚 Prereq: <b>Lesson 3.9 — Routing Patterns</b></span>
+    <span>➡ Next: <b>Lesson 3.11 — Iterative Research Agent</b></span>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="theory">📘 Lý thuyết</button>
+    <button class="tab-btn" data-tab="mindmap">🧠 Mindmap</button>
+    <button class="tab-btn" data-tab="quiz">📝 Quiz</button>
+    <button class="tab-btn" data-tab="cheatsheet">⚡ Cheat Sheet</button>
+    <button class="tab-btn" data-tab="story">🍡 Story Mode</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ TAB 1: LÝ THUYẾT ============ -->
+  <section class="tab-panel active" id="theory">
+
+    <h2>1. Khái niệm</h2>
+    <div class="card">
+      <div class="card-title">Cycle trong LangGraph</div>
+      <p><b>Cycle</b> là khi một node được phép <b>quay lại một node đã chạy trước đó</b>, thay vì luôn đi tới trước như một DAG (Directed Acyclic Graph). Đây là lý do LangGraph tồn tại tách biệt với LangChain: <code>chain</code> = luôn đi thẳng, <code>graph</code> = cho phép có chu trình.</p>
+      <div class="flow">
+        <div class="box">generate_code</div>
+        <span class="arrow">→</span>
+        <div class="box">run_tests</div>
+        <span class="arrow">→ (fail) →</span>
+        <div class="box cycle">quay lại generate_code</div>
+        <span class="arrow">→ ... → (pass) →</span>
+        <div class="box">END</div>
+      </div>
+      <p class="dim">Self-Correcting Code Writer = ứng dụng kinh điển của cycle: LLM viết code → chạy thử → lỗi được đưa ngược lại cho LLM → LLM sửa dựa trên lỗi cụ thể → lặp tới khi pass hoặc hết lượt.</p>
+    </div>
+
+    <h3>Ví dụ đời sống</h3>
+    <div class="card">
+      <p>Học sinh giải bài tập → nộp → giáo viên chấm sai và ghi chú lỗi cụ thể → học sinh <b>đọc chú thích, sửa đúng chỗ sai đó</b> (không làm lại từ đầu) → nộp lại → lặp tối đa 3 lần, nếu vẫn sai thì giáo viên dừng lại và hướng dẫn trực tiếp.</p>
+      <p class="dim">Điểm mấu chốt: đây không phải lặp mù quáng, mà lặp có <b>feedback cụ thể</b> + <b>điều kiện dừng rõ ràng</b>.</p>
+    </div>
+
+    <h2>2. Vị trí trong hệ thống</h2>
+    <table>
+      <tr><th>Bài học</th><th>Liên hệ</th></tr>
+      <tr><td>3.8 — Conditional Edges</td><td>Cycle bắt buộc dùng <code>add_conditional_edges</code> để rẽ nhánh retry / dừng.</td></tr>
+      <tr><td>3.9 — Routing Patterns</td><td>Giới thiệu <i>Conditional Looping</i> — 3.10 là bài hands-on áp dụng vào project thật.</td></tr>
+      <tr><td>3.11 — Iterative Research Agent</td><td>Y hệt pattern cycle, đổi domain: "research chưa đủ → tìm thêm".</td></tr>
+      <tr><td>6.15/6.16 — Worker-Evaluator</td><td>Mở rộng: tách 1 node "evaluator" chấm điểm thay vì assert đơn giản.</td></tr>
+      <tr><td>9.1 — Reflection Agent</td><td>Cùng triết lý Generate → Critique → Revise → loop.</td></tr>
+    </table>
+    <p class="dim">→ 3.10 là nền tảng của mọi self-correcting / feedback-loop agent trong roadmap.</p>
+
+    <h2>3. Thành phần & API quan trọng</h2>
+
+    <h3>State fields</h3>
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">CodeWriterState</span>(TypedDict):
+    code: <span class="tok-kw">str</span>                  <span class="tok-com"># code hiện tại</span>
+    error: Optional[<span class="tok-kw">str</span>]       <span class="tok-com"># lỗi lần gần nhất (None nếu pass)</span>
+    attempts: <span class="tok-kw">int</span>              <span class="tok-com"># đếm số lần đã thử</span>
+    max_attempts: <span class="tok-kw">int</span>          <span class="tok-com"># giới hạn — tránh infinite loop</span>
+    success: <span class="tok-kw">bool</span></code></pre>
+
+    <h3>Conditional edge tạo ra cycle</h3>
+    <pre><code>graph.add_conditional_edges(
+    <span class="tok-str">"run_tests"</span>,              <span class="tok-com"># node nguồn</span>
+    check_result,              <span class="tok-com"># hàm điều kiện -> trả string</span>
+    {
+        <span class="tok-str">"done"</span>: END,
+        <span class="tok-str">"give_up"</span>: END,
+        <span class="tok-str">"retry"</span>: <span class="tok-str">"generate_code"</span>,   <span class="tok-com"># <-- dòng này tạo CYCLE</span>
+    },
+)</code></pre>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">source node</div>
+        <p class="dim">Node mà sau khi chạy xong sẽ gọi hàm điều kiện.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">condition_fn</div>
+        <p class="dim">Nhận <code>state</code>, trả về <b>1 string literal</b> — LangGraph tra string này trong <code>mapping</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">mapping (dict)</div>
+        <p class="dim">Map string → tên node tiếp theo hoặc <code>END</code>. Key trỏ về node cũ = tạo cycle.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">recursion_limit <span class="badge important">nâng cao</span></div>
+        <p class="dim"><code>app.invoke(state, config={"recursion_limit": 20})</code> — giới hạn cứng ở tầng framework, độc lập với <code>max_attempts</code> tự track trong state.</p>
+      </div>
+    </div>
+
+    <h3>2 cách chạy/test code trong node</h3>
+    <pre><code><span class="tok-com"># Cách 1: exec() - nhanh, KHÔNG an toàn với code không tin cậy</span>
+exec(code_string, namespace)
+
+<span class="tok-com"># Cách 2: subprocess - an toàn hơn, chạy process riêng, có timeout</span>
+<span class="tok-kw">import</span> subprocess
+result = subprocess.run(
+    [<span class="tok-str">"python3"</span>, <span class="tok-str">"-c"</span>, code_string],
+    capture_output=<span class="tok-kw">True</span>, text=<span class="tok-kw">True</span>, timeout=<span class="tok-num">5</span>
+)</code></pre>
+
+    <h2>4. File cấu hình quan trọng</h2>
+    <table>
+      <tr><th>Cấu hình</th><th>Vị trí</th><th>Ý nghĩa</th></tr>
+      <tr><td><span class="cheat-cmd">max_attempts</span></td><td>trong <code>initial_state</code></td><td>giới hạn nghiệp vụ ("thử tối đa N lần")</td></tr>
+      <tr><td><span class="cheat-cmd">recursion_limit</span></td><td>trong <code>config={}</code> khi invoke/stream</td><td>giới hạn framework, chặn infinite loop cứng</td></tr>
+    </table>
+
+    <h2>5. Ứng dụng thực tế</h2>
+    <ul>
+      <li><b>Cursor / Windsurf / Replit Agent:</b> agent viết code, tự chạy test, tự sửa khi lỗi — cycle pattern ở quy mô lớn hơn.</li>
+      <li><b>CI/CD self-healing:</b> agent nhận log lỗi build fail → tự generate patch → push lại → CI chạy lại (retry loop có giới hạn).</li>
+      <li><b>Code review bot nội bộ:</b> generate code từ spec → chạy unit test có sẵn → fail thì gửi lại error cho LLM, lặp tối đa N lần trước khi escalate cho human.</li>
+      <li><b>Exam Generator (project của bạn):</b> pattern nền cho "v2: Clarify + Refine loop" — user feedback → quay lại <code>generate_exam</code> với constraint mới, tối đa N lần refine.</li>
+    </ul>
+
+  </section>
+
+  <!-- ============ TAB 2: MINDMAP ============ -->
+  <section class="tab-panel" id="mindmap">
+    <h2>Mindmap — Cycles & Self-Correcting Code Writer</h2>
+    <p class="dim">Nhấn vào từng node để xem chi tiết.</p>
+
+    <svg id="mindmap-svg" viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">
+      <!-- links -->
+      <path class="mm-link" d="M380,230 L150,90"></path>
+      <path class="mm-link" d="M380,230 L380,60"></path>
+      <path class="mm-link" d="M380,230 L610,90"></path>
+      <path class="mm-link" d="M380,230 L130,340"></path>
+      <path class="mm-link" d="M380,230 L380,410"></path>
+      <path class="mm-link" d="M380,230 L630,350"></path>
+
+      <!-- root -->
+      <g class="mm-node root" data-key="root">
+        <circle cx="380" cy="230" r="52"></circle>
+        <text x="380" y="226">Lesson 3.10</text>
+        <text x="380" y="242">Cycles</text>
+      </g>
+
+      <!-- children -->
+      <g class="mm-node" data-key="state">
+        <circle cx="150" cy="90" r="42"></circle>
+        <text x="150" y="86">State</text>
+        <text x="150" y="100">fields</text>
+      </g>
+
+      <g class="mm-node" data-key="nodes">
+        <circle cx="380" cy="60" r="42"></circle>
+        <text x="380" y="56">2 Nodes</text>
+        <text x="380" y="70">chính</text>
+      </g>
+
+      <g class="mm-node" data-key="conditional">
+        <circle cx="610" cy="90" r="42"></circle>
+        <text x="610" y="86">Conditional</text>
+        <text x="610" y="100">edge</text>
+      </g>
+
+      <g class="mm-node" data-key="termination">
+        <circle cx="130" cy="340" r="42"></circle>
+        <text x="130" y="336">Termination</text>
+        <text x="130" y="350">(2 loại limit)</text>
+      </g>
+
+      <g class="mm-node" data-key="lienhe">
+        <circle cx="380" cy="410" r="42"></circle>
+        <text x="380" y="406">Liên hệ</text>
+        <text x="380" y="420">bài khác</text>
+      </g>
+
+      <g class="mm-node" data-key="ungdung">
+        <circle cx="630" cy="350" r="42"></circle>
+        <text x="630" y="346">Ứng dụng</text>
+        <text x="630" y="360">thực tế</text>
+      </g>
+    </svg>
+
+    <div class="card" id="mm-detail">
+      <div class="card-title">👆 Chọn 1 node để xem chi tiết</div>
+      <p class="dim" id="mm-detail-text">Node gốc là chu trình generate → test → fix → retry đặc trưng của bài học này.</p>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: QUIZ ============ -->
+  <section class="tab-panel" id="quiz">
+    <h2>Quiz — 10 câu ôn tập</h2>
+    <div class="quiz-progress">
+      <span>Câu <span id="q-current">1</span>/10</span>
+      <span class="quiz-score">Điểm: <span id="q-score">0</span>/10</span>
+    </div>
+
+    <div id="quiz-body"></div>
+
+    <div class="quiz-nav">
+      <button class="btn secondary" id="q-prev">← Trước</button>
+      <button class="btn" id="q-next">Tiếp →</button>
+    </div>
+
+    <div class="quiz-result" id="quiz-result">
+      <div class="big-score" id="final-score">0/10</div>
+      <p class="dim" id="final-msg">Hoàn thành quiz!</p>
+      <button class="btn" id="q-restart">Làm lại</button>
+    </div>
+  </section>
+
+  <!-- ============ TAB 4: CHEAT SHEET ============ -->
+  <section class="tab-panel" id="cheatsheet">
+    <h2>⚡ Cheat Sheet</h2>
+
+    <h3>Lệnh & API tra nhanh</h3>
+    <table>
+      <tr><th>Lệnh</th><th>Ý nghĩa</th></tr>
+      <tr><td><span class="cheat-cmd">graph.add_conditional_edges(src, fn, mapping)</span></td><td>Tạo rẽ nhánh; key trong mapping trỏ về node cũ = cycle</td></tr>
+      <tr><td><span class="cheat-cmd">app.invoke(state, config={"recursion_limit": N})</span></td><td>Giới hạn cứng số transition, chặn infinite loop</td></tr>
+      <tr><td><span class="cheat-cmd">exec(code, namespace)</span></td><td>Chạy code nhanh, KHÔNG an toàn với input ngoài</td></tr>
+      <tr><td><span class="cheat-cmd">subprocess.run([...], timeout=5)</span></td><td>Chạy code an toàn hơn, có timeout</td></tr>
+      <tr><td><span class="cheat-cmd">state["error"]</span></td><td>Field mang lỗi gần nhất để node generate dùng fix</td></tr>
+      <tr><td><span class="cheat-cmd">state["attempts"] / max_attempts</span></td><td>Đếm số lần thử — giới hạn nghiệp vụ</td></tr>
+    </table>
+
+    <h3>File cấu hình</h3>
+    <table>
+      <tr><th>Field</th><th>Nằm ở đâu</th></tr>
+      <tr><td>max_attempts</td><td>initial_state khi gọi invoke()</td></tr>
+      <tr><td>recursion_limit</td><td>config={} khi gọi invoke()/stream()</td></tr>
+    </table>
+
+    <h3>Lab steps tóm tắt</h3>
+    <ol>
+      <li><span class="cheat-cmd">pip install langgraph langchain-core</span></li>
+      <li>Định nghĩa <code>CodeWriterState</code> (TypedDict)</li>
+      <li>Viết node <code>generate_code</code> (check <code>state["error"]</code> để quyết định fix hay tạo mới)</li>
+      <li>Viết node <code>run_tests</code> (exec + assert, trả về error/success)</li>
+      <li>Viết <code>check_result</code> trả về <code>"done"/"retry"/"give_up"</code></li>
+      <li>Nối graph: <code>START → generate_code → run_tests</code>, conditional edges với <code>"retry" → generate_code</code></li>
+      <li>Compile & chạy với <code>recursion_limit=20</code></li>
+      <li>Verify: <code>attempts ≤ max_attempts</code>, thử đổi max_attempts=1 để test nhánh give_up</li>
+    </ol>
+
+    <h3>⚠️ Bẫy thường gặp</h3>
+    <ul>
+      <li>Quên <code>recursion_limit</code> → infinite loop thật nếu logic có bug</li>
+      <li>String literal không khớp key trong mapping (VD: <code>"Retry"</code> vs <code>"retry"</code>) → KeyError lúc runtime</li>
+      <li>Quên reset <code>error = None</code> khi test pass</li>
+      <li><code>exec()</code> với code không tin cậy trong production</li>
+      <li>Tăng <code>attempts</code> sai node → lệch số đếm</li>
+    </ul>
+  </section>
+
+  <!-- ============ TAB 5: STORY MODE ============ -->
+  <section class="tab-panel" id="story">
+    <h2>🍡 Story Mode — Tanjiro luyện "Nhất Hướng Hội Chuyển"</h2>
+
+    <div class="card story-panel">
+      <div class="card-title">Bối cảnh</div>
+      <p>Tanjiro đứng dưới thác nước, được Urokodaki giao nhiệm vụ: chém đứt một tảng đá lớn bằng một chiêu kiếm đúng chuẩn. Đây là vòng lặp luyện tập <span class="map-tag">= cycle của LangGraph</span> mà cậu phải trải qua.</p>
+    </div>
+
+    <h3>Diễn biến</h3>
+    <div class="card">
+      <div class="story-line"><span class="who">Urokodaki:</span> "Chém tảng đá đó vỡ ra cho ta xem." <span class="map-tag">START → luyen_chieu</span></div>
+      <div class="story-line"><span class="who">Tanjiro</span> vung kiếm theo bản năng, quên mất nhịp xoay cổ tay. <span class="map-tag">generate_code (lần đầu, có "bug")</span></div>
+      <div class="story-line"><span class="who">Zenitsu</span> (đang ngủ gật) vẫn lầm bầm chấm điểm: "Đá... chưa vỡ đâu Tanjiro..." <span class="map-tag">run_tests → error</span></div>
+      <div class="bug-note">🐛 <b>Bug hài hước:</b> Inosuke nhảy xổ vào giữa lúc Tanjiro đang tập trung, hét "Đấu với ta!" — làm Tanjiro giật mình chém trượt thêm 1 nhịp. Urokodaki phải quát Inosuke ra khỏi vòng lặp trước khi cho Tanjiro thử lại — giống hệt việc một exception ngẫu nhiên (side-effect ngoài ý muốn) làm hỏng 1 lần chạy test, cần bắt riêng exception đó thay vì để nó phá vòng lặp chính.</div>
+      <div class="story-line"><span class="who">Tanjiro</span> ngửi thấy "mùi" của thất bại (chính là error message) và tự điều chỉnh: xoay cổ tay đúng nhịp. <span class="map-tag">error → fix trong generate_code (retry)</span></div>
+      <div class="story-line"><span class="who">Zenitsu</span> giật mình tỉnh: "Ơ... vỡ rồi kìa!" <span class="map-tag">run_tests → success=True</span></div>
+      <div class="story-line"><span class="who">Urokodaki:</span> cấp chứng nhận, kết thúc bài kiểm tra. <span class="map-tag">check_result → "dat_chung_nhan" → END</span></div>
+      <div class="story-line dim">Nếu sau <b>3 lần</b> vẫn không vỡ được đá, Urokodaki sẽ đuổi Tanjiro về núi luyện lại từ đầu. <span class="map-tag">max_attempts → "duoi_ve_nui" → END</span></div>
+    </div>
+
+    <h3>Code (thật, đã chạy kiểm chứng)</h3>
+    <pre><code><span class="tok-kw">from</span> typing <span class="tok-kw">import</span> TypedDict, Optional
+<span class="tok-kw">from</span> langgraph.graph <span class="tok-kw">import</span> StateGraph, START, END
+
+
+<span class="tok-com"># State = cuốn sổ tay Urokodaki bắt Tanjiro ghi lại sau mỗi lần luyện</span>
+<span class="tok-kw">class</span> <span class="tok-fn">TanjiroTrainingState</span>(TypedDict):
+    chieu_thuc: <span class="tok-kw">str</span>          <span class="tok-com"># code / chiêu đánh hiện tại</span>
+    loi_sai: Optional[<span class="tok-kw">str</span>]   <span class="tok-com"># error - vì sao lần trước trật</span>
+    so_lan_luyen: <span class="tok-kw">int</span>        <span class="tok-com"># attempts</span>
+    gioi_han_urokodaki: <span class="tok-kw">int</span>  <span class="tok-com"># max_attempts</span>
+    thanh_cong: <span class="tok-kw">bool</span>
+
+
+<span class="tok-com"># Node 1: Tanjiro tự luyện / tự sửa chiêu thức (= generate/fix code)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">luyen_chieu</span>(state: TanjiroTrainingState) -> <span class="tok-kw">dict</span>:
+    <span class="tok-kw">if</span> state.get(<span class="tok-str">"loi_sai"</span>) <span class="tok-kw">is</span> <span class="tok-kw">None</span>:
+        <span class="tok-com"># Lần đầu: Tanjiro chém theo bản năng -> thiếu 1 nhịp xoay tay</span>
+        chieu = <span class="tok-str">"chem_ngang(luc=5, xoay_co_tay=False)"</span>
+    <span class="tok-kw">else</span>:
+        <span class="tok-com"># Tanjiro ngửi thấy "mùi" thất bại (error message) và tự sửa</span>
+        chieu = <span class="tok-str">"chem_ngang(luc=5, xoay_co_tay=True)"</span>
+    <span class="tok-kw">return</span> {<span class="tok-str">"chieu_thuc"</span>: chieu, <span class="tok-str">"so_lan_luyen"</span>: state[<span class="tok-str">"so_lan_luyen"</span>] + <span class="tok-num">1</span>}
+
+
+<span class="tok-com"># Node 2: Zenitsu "kiểm tra" kết quả (= run_tests)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">zenitsu_kiem_tra</span>(state: TanjiroTrainingState) -> <span class="tok-kw">dict</span>:
+    chieu = state[<span class="tok-str">"chieu_thuc"</span>]
+    <span class="tok-kw">if</span> <span class="tok-str">"xoay_co_tay=True"</span> <span class="tok-kw">in</span> chieu:
+        <span class="tok-kw">return</span> {<span class="tok-str">"loi_sai"</span>: <span class="tok-kw">None</span>, <span class="tok-str">"thanh_cong"</span>: <span class="tok-kw">True</span>}
+    <span class="tok-kw">else</span>:
+        <span class="tok-kw">return</span> {
+            <span class="tok-str">"loi_sai"</span>: <span class="tok-str">"Tang da khong vo - thieu nhip xoay co tay luc chem"</span>,
+            <span class="tok-str">"thanh_cong"</span>: <span class="tok-kw">False</span>,
+        }
+
+
+<span class="tok-com"># Conditional edge: Urokodaki quyết định bước tiếp theo</span>
+<span class="tok-kw">def</span> <span class="tok-fn">urokodaki_quyet_dinh</span>(state: TanjiroTrainingState) -> <span class="tok-kw">str</span>:
+    <span class="tok-kw">if</span> state[<span class="tok-str">"thanh_cong"</span>]:
+        <span class="tok-kw">return</span> <span class="tok-str">"dat_chung_nhan"</span>      <span class="tok-com"># done -> END</span>
+    <span class="tok-kw">if</span> state[<span class="tok-str">"so_lan_luyen"</span>] >= state[<span class="tok-str">"gioi_han_urokodaki"</span>]:
+        <span class="tok-kw">return</span> <span class="tok-str">"duoi_ve_nui"</span>         <span class="tok-com"># give_up -> END</span>
+    <span class="tok-kw">return</span> <span class="tok-str">"luyen_lai"</span>               <span class="tok-com"># retry -> quay lại luyen_chieu</span>
+
+
+graph = StateGraph(TanjiroTrainingState)
+graph.add_node(<span class="tok-str">"luyen_chieu"</span>, luyen_chieu)
+graph.add_node(<span class="tok-str">"zenitsu_kiem_tra"</span>, zenitsu_kiem_tra)
+
+graph.add_edge(START, <span class="tok-str">"luyen_chieu"</span>)
+graph.add_edge(<span class="tok-str">"luyen_chieu"</span>, <span class="tok-str">"zenitsu_kiem_tra"</span>)
+graph.add_conditional_edges(
+    <span class="tok-str">"zenitsu_kiem_tra"</span>,
+    urokodaki_quyet_dinh,
+    {
+        <span class="tok-str">"dat_chung_nhan"</span>: END,
+        <span class="tok-str">"duoi_ve_nui"</span>: END,
+        <span class="tok-str">"luyen_lai"</span>: <span class="tok-str">"luyen_chieu"</span>,   <span class="tok-com"># <-- CYCLE</span>
+    },
+)
+
+app = graph.compile()
+
+ket_qua = app.invoke(
+    {
+        <span class="tok-str">"chieu_thuc"</span>: <span class="tok-str">""</span>,
+        <span class="tok-str">"loi_sai"</span>: <span class="tok-kw">None</span>,
+        <span class="tok-str">"so_lan_luyen"</span>: <span class="tok-num">0</span>,
+        <span class="tok-str">"gioi_han_urokodaki"</span>: <span class="tok-num">3</span>,
+        <span class="tok-str">"thanh_cong"</span>: <span class="tok-kw">False</span>,
+    },
+    config={<span class="tok-str">"recursion_limit"</span>: <span class="tok-num">20</span>},
+)
+print(<span class="tok-str">"So lan luyen:"</span>, ket_qua[<span class="tok-str">"so_lan_luyen"</span>])
+print(<span class="tok-str">"Thanh cong:"</span>, ket_qua[<span class="tok-str">"thanh_cong"</span>])
+print(<span class="tok-str">"Chieu thuc cuoi cung:"</span>, ket_qua[<span class="tok-str">"chieu_thuc"</span>])</code></pre>
+
+    <h3>Output (thật, đã chạy kiểm chứng)</h3>
+    <pre><code>=== SO TAY LUYEN TAP CUA TANJIRO ===
+So lan luyen: 2
+Thanh cong: True
+Chieu thuc cuoi cung: chem_ngang(luc=5, xoay_co_tay=True)</code></pre>
+
+    <h3>Tại sao code này chạy được</h3>
+    <div class="card">
+      <p>LangGraph không quan tâm bạn đặt tên state/node là <code>code</code>/<code>error</code> hay <code>chieu_thuc</code>/<code>loi_sai</code> — nó chỉ quan tâm <b>đúng cấu trúc</b>: (1) node trả về <code>dict</code> để merge vào state, (2) hàm điều kiện trả về <b>string literal khớp key trong mapping</b>, và (3) trong mapping có ít nhất 1 key trỏ ngược về node đã tồn tại — đó là thứ tạo ra cycle. Đổi tên biến sang theme Demon Slayer không đổi logic thực thi vì Python/LangGraph vận hành theo <i>thứ tự gọi hàm và cấu trúc dict</i>, không theo <i>ngữ nghĩa tên biến</i>. Đây là lý do ẩn dụ luôn map được 1-1 sang code thật.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>Lesson 3.10 · Cycles & Self-Correcting Code Writer · roadmap AI Agent & Context</footer>
+
+<script>
+  // ---------- Tabs ----------
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---------- Mindmap ----------
+  const mmDetails = {
+    root: "Chu trình generate → test → fix → retry, đặc trưng cho mọi self-correcting agent. Đây là node trung tâm nối tất cả khái niệm trong bài.",
+    state: "State fields cần track: code (code hiện tại), error (lỗi lần gần nhất, None nếu pass), attempts (đếm số lần thử), max_attempts (giới hạn nghiệp vụ), success (điều kiện dừng thành công).",
+    nodes: "2 node chính: generate_code (sinh code lần đầu, hoặc sinh bản fix nếu state['error'] khác None) và run_tests (chạy code bằng exec()/subprocess, assert kết quả mong đợi, trả về error/success).",
+    conditional: "add_conditional_edges(source, condition_fn, mapping) — condition_fn trả về string literal (\"done\"/\"retry\"/\"give_up\"), mapping tra string đó ra node tiếp theo. Key \"retry\" trỏ về node cũ chính là dòng tạo ra CYCLE.",
+    termination: "2 loại giới hạn cần dùng CÙNG LÚC: max_attempts (giới hạn logic nghiệp vụ, tự track trong state) và recursion_limit (giới hạn cứng ở tầng framework, set trong config khi invoke/stream — chặn infinite loop thật nếu logic có bug).",
+    lienhe: "3.8 (conditional edges) là điều kiện cần. 3.9 (routing) giới thiệu ý tưởng loop. 3.11 (research agent) áp dụng y hệt pattern này. 6.15/6.16 (worker-evaluator) và 9.1 (reflection agent) là bản mở rộng cùng triết lý.",
+    ungdung: "Cursor/Replit Agent (agent code tự sửa lỗi), CI/CD self-healing (tự patch khi build fail), code review bot nội bộ, và pattern nền cho 'Clarify + Refine loop' của Exam Generator trong roadmap của bạn."
+  };
+  document.querySelectorAll('.mm-node').forEach(node => {
+    node.addEventListener('click', () => {
+      const key = node.dataset.key;
+      document.getElementById('mm-detail-text').textContent = mmDetails[key] || '';
+      document.querySelector('#mm-detail .card-title').textContent = '📍 ' + node.querySelector('text').textContent + (node.querySelectorAll('text')[1] ? ' ' + node.querySelectorAll('text')[1].textContent : '');
+    });
+  });
+
+  // ---------- Quiz ----------
+  const quizData = [
+    {
+      type: 'mcq',
+      q: 'Điểm khác biệt cốt lõi giữa LangChain (chain) và LangGraph (graph) liên quan tới bài học này là gì?',
+      options: ['LangGraph nhanh hơn LangChain', 'LangGraph cho phép cycle (quay lại node trước), chain thì không', 'LangChain không hỗ trợ state', 'LangGraph chỉ chạy được với OpenAI'],
+      correct: 1,
+      explain: 'LangGraph = graph, cho phép cycle (quay lại node đã chạy). LangChain (chain) luôn là DAG, đi thẳng không quay lại.'
+    },
+    {
+      type: 'fillin',
+      q: 'Trong add_conditional_edges(source, condition_fn, mapping), dòng mapping tạo ra cycle sẽ có dạng: "retry": "________" (điền tên node sẽ được quay lại).',
+      answer: ['generate_code', 'generatecode'],
+      explain: 'Key "retry" phải trỏ về tên node sinh/sửa code (ví dụ generate_code) — đây là dòng biến graph từ DAG thành có chu trình.'
+    },
+    {
+      type: 'tf',
+      q: 'recursion_limit và max_attempts là một, chỉ cần dùng một trong hai là đủ để tránh infinite loop.',
+      correct: false,
+      explain: 'Sai. max_attempts là giới hạn logic nghiệp vụ tự track trong state; recursion_limit là giới hạn cứng ở tầng framework. Cần dùng cả hai.'
+    },
+    {
+      type: 'mcq',
+      q: "Node check_result (condition function) trong cycle pattern cần trả về kiểu dữ liệu gì để LangGraph tra được trong mapping?",
+      options: ['Một dict', 'Một string literal', 'Một object State', 'Một boolean'],
+      correct: 1,
+      explain: 'condition_fn phải trả về 1 string literal — LangGraph dùng string này để tra key tương ứng trong mapping.'
+    },
+    {
+      type: 'sequence',
+      q: 'Sắp xếp đúng thứ tự các bước trong self-correcting code writer (nhập số thứ tự cách nhau bởi dấu phẩy, ví dụ: 2,1,4,3,5):\n1. Chạy test / assert kết quả\n2. Sinh code lần đầu\n3. Đưa error message ngược lại cho node generate\n4. Kiểm tra điều kiện dừng (done/retry/give_up)\n5. END',
+      answer: ['2,1,4,3,5'],
+      explain: 'Đúng thứ tự: (2) Sinh code lần đầu → (1) Chạy test → (4) Kiểm tra điều kiện dừng → (3) Nếu retry, đưa error ngược lại cho generate → lặp lại (1) → cuối cùng (5) END khi done hoặc give_up.'
+    },
+    {
+      type: 'fillin',
+      q: 'Trong self-correcting pattern, thay vì làm lại từ đầu, LLM sinh bản fix dựa trên field nào trong state? state["________"]',
+      answer: ['error'],
+      explain: 'state["error"] chứa lỗi lần gần nhất — đây chính là feedback cụ thể để LLM sinh bản fix thay vì đoán mò lại từ đầu.'
+    },
+    {
+      type: 'tf',
+      q: "exec() để chạy code sinh ra bởi LLM là hoàn toàn an toàn cho mọi loại code, kể cả code không tin cậy từ nguồn ngoài.",
+      correct: false,
+      explain: 'Sai. exec() không sandbox — code độc hại có thể truy cập hệ thống. Nên dùng subprocess với timeout/sandbox cho code không tin cậy.'
+    },
+    {
+      type: 'mcq',
+      q: 'State field nào KHÔNG bắt buộc phải có trong cycle pattern cơ bản (dù rất nên có để debug)?',
+      options: ['attempts', 'error', 'error_history (lưu toàn bộ lịch sử lỗi)', 'max_attempts'],
+      correct: 2,
+      explain: 'Cơ bản chỉ cần error (lỗi gần nhất) để fix bước tiếp theo. Lưu toàn bộ error_history là nâng cao, hữu ích để debug/audit nhưng không bắt buộc cho cycle chạy được.'
+    },
+    {
+      type: 'fillin',
+      q: 'Nếu quên set recursion_limit và logic trong check_result có bug khiến nó không bao giờ trả về "give_up" hay "done", LangGraph sẽ raise lỗi gì?',
+      answer: ['GraphRecursionError', 'graphrecursionerror'],
+      explain: 'LangGraph raise GraphRecursionError khi số transition vượt quá recursion_limit — đây là lưới an toàn ở tầng framework.'
+    },
+    {
+      type: 'tf',
+      q: 'Pattern cycle của Lesson 3.10 (generate → test → fix → retry) là nền tảng trực tiếp cho Reflection Agent ở Lesson 9.1 (Generate → Critique → Revise).',
+      correct: true,
+      explain: 'Đúng. Cùng triết lý feedback loop có điều kiện dừng, chỉ khác nguồn "critique" (test runner báo lỗi cụ thể vs. LLM tự phản tư).'
+    }
+  ];
+
+  let currentQ = 0;
+  let score = 0;
+  const answered = new Array(quizData.length).fill(false);
+  const userCorrect = new Array(quizData.length).fill(false);
+
+  const quizBody = document.getElementById('quiz-body');
+
+  function renderQuiz() {
+    quizBody.innerHTML = '';
+    quizData.forEach((item, idx) => {
+      const block = document.createElement('div');
+      block.className = 'q-block' + (idx === currentQ ? ' active' : '');
+      block.dataset.idx = idx;
+
+      const typeLabel = { mcq: 'Multiple Choice', fillin: 'Fill in the blank', tf: 'True / False', sequence: 'Sequence' }[item.type];
+      let html = `<div class="q-type">${typeLabel} · Câu ${idx+1}/10</div>`;
+      html += `<div class="q-text">${item.q.replace(/\n/g, '<br>')}</div>`;
+
+      if (item.type === 'mcq') {
+        item.options.forEach((opt, oi) => {
+          html += `<button class="option" data-oi="${oi}">${opt}</button>`;
+        });
+      } else if (item.type === 'tf') {
+        html += `<button class="option" data-oi="true">True</button>`;
+        html += `<button class="option" data-oi="false">False</button>`;
+      } else if (item.type === 'fillin' || item.type === 'sequence') {
+        html += `<input type="text" class="fillin-input" placeholder="Nhập câu trả lời..." />`;
+        html += `<button class="btn" data-action="submit-fillin">Kiểm tra</button>`;
+      }
+      html += `<div class="explain-box"><b>Giải thích:</b> <span class="explain-text"></span></div>`;
+
+      block.innerHTML = html;
+      quizBody.appendChild(block);
+    });
+    attachQuizHandlers();
+    document.getElementById('q-current').textContent = currentQ + 1;
+  }
+
+  function lockOptions(block) {
+    block.querySelectorAll('.option').forEach(o => o.classList.add('locked'));
+  }
+
+  function showExplain(block, item) {
+    const box = block.querySelector('.explain-box');
+    box.querySelector('.explain-text').textContent = item.explain;
+    box.classList.add('show');
+  }
+
+  function attachQuizHandlers() {
+    document.querySelectorAll('.q-block').forEach(block => {
+      const idx = parseInt(block.dataset.idx);
+      const item = quizData[idx];
+
+      block.querySelectorAll('.option').forEach(optEl => {
+        optEl.addEventListener('click', () => {
+          if (answered[idx]) return;
+          answered[idx] = true;
+
+          let isCorrect = false;
+          if (item.type === 'mcq') {
+            const oi = parseInt(optEl.dataset.oi);
+            isCorrect = oi === item.correct;
+            block.querySelectorAll('.option').forEach((o, i) => {
+              if (i === item.correct) o.classList.add('correct');
+              else if (o === optEl) o.classList.add('wrong');
+            });
+          } else if (item.type === 'tf') {
+            const val = optEl.dataset.oi === 'true';
+            isCorrect = val === item.correct;
+            block.querySelectorAll('.option').forEach(o => {
+              const oVal = o.dataset.oi === 'true';
+              if (oVal === item.correct) o.classList.add('correct');
+              else if (o === optEl) o.classList.add('wrong');
+            });
+          }
+          userCorrect[idx] = isCorrect;
+          if (isCorrect) score++;
+          lockOptions(block);
+          showExplain(block, item);
+          updateScore();
+        });
+      });
+
+      const submitBtn = block.querySelector('[data-action="submit-fillin"]');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', () => {
+          if (answered[idx]) return;
+          answered[idx] = true;
+          const input = block.querySelector('.fillin-input');
+          const val = input.value.trim().toLowerCase().replace(/\s+/g, '');
+          const isCorrect = item.answer.some(a => a.toLowerCase().replace(/\s+/g, '') === val);
+          userCorrect[idx] = isCorrect;
+          if (isCorrect) score++;
+          input.disabled = true;
+          input.style.borderColor = isCorrect ? 'var(--accent)' : 'var(--danger)';
+          input.style.color = isCorrect ? 'var(--accent)' : 'var(--danger)';
+          submitBtn.disabled = true;
+          showExplain(block, item);
+          updateScore();
+        });
+      }
+    });
+  }
+
+  function updateScore() {
+    document.getElementById('q-score').textContent = score;
+  }
+
+  document.getElementById('q-next').addEventListener('click', () => {
+    if (currentQ < quizData.length - 1) {
+      currentQ++;
+      renderQuiz();
+    } else {
+      showResult();
+    }
+  });
+  document.getElementById('q-prev').addEventListener('click', () => {
+    if (currentQ > 0) {
+      currentQ--;
+      renderQuiz();
+    }
+  });
+
+  function showResult() {
+    document.getElementById('quiz-body').style.display = 'none';
+    document.querySelector('.quiz-nav').style.display = 'none';
+    document.getElementById('final-score').textContent = score + '/10';
+    document.getElementById('final-msg').textContent = score >= 8 ? 'Xuất sắc! Bạn nắm rất vững cycle pattern.' : score >= 5 ? 'Khá ổn, xem lại phần Lý thuyết để chắc hơn nhé.' : 'Nên đọc lại tab Lý thuyết và Mindmap trước khi làm lại quiz.';
+    document.getElementById('quiz-result').classList.add('show');
+  }
+
+  document.getElementById('q-restart').addEventListener('click', () => {
+    currentQ = 0; score = 0;
+    answered.fill(false); userCorrect.fill(false);
+    document.getElementById('quiz-body').style.display = 'block';
+    document.querySelector('.quiz-nav').style.display = 'flex';
+    document.getElementById('quiz-result').classList.remove('show');
+    updateScore();
+    renderQuiz();
+  });
+
+  renderQuiz();
+</script>
+
+</body>
+</html>

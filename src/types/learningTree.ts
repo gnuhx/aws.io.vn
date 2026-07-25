@@ -1,7 +1,10 @@
 export interface LearningTreeLesson {
   id: string;
   title: string;
-  postId: string;
+  /** Post id rendered inline inside the tree UI. Omit when using externalUrl instead. */
+  postId?: string;
+  /** Standalone HTML lesson (own styling/JS) served from public/ and shown in an iframe. */
+  externalUrl?: string;
   summary: string;
   duration: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';

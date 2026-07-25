@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3.3 — Reducers & Accumulating State</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f14;
+    --bg-panel:#12151c;
+    --bg-card:#161a23;
+    --border:#232838;
+    --accent:#4ade80;
+    --accent-dim:#4ade8022;
+    --accent-glow:#4ade8055;
+    --text:#e6e9ef;
+    --text-dim:#8b94a8;
+    --text-faint:#5a6377;
+    --red:#f87171;
+    --amber:#fbbf24;
+    --blue:#60a5fa;
+    --purple:#c084fc;
+    --font-mono:'JetBrains Mono', monospace;
+    --font-display:'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-display);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 15% 10%, var(--accent-dim) 0%, transparent 35%),
+      radial-gradient(circle at 85% 90%, #4ade8011 0%, transparent 40%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .app{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 24px 80px;}
+
+  /* HEADER */
+  header{padding:36px 0 20px; border-bottom:1px solid var(--border);}
+  .eyebrow{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.12em;
+    color:var(--accent); text-transform:uppercase; margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent-glow);}
+  h1{font-family:var(--font-display); font-size:clamp(26px,4vw,38px); font-weight:700; margin:0 0 8px; letter-spacing:-0.01em;}
+  .subtitle{color:var(--text-dim); font-size:15px; margin:0;}
+  .meta-row{display:flex; gap:18px; margin-top:16px; flex-wrap:wrap;}
+  .meta-chip{
+    font-family:var(--font-mono); font-size:12.5px; color:var(--text-dim);
+    background:var(--bg-card); border:1px solid var(--border); padding:6px 12px; border-radius:6px;
+  }
+  .meta-chip b{color:var(--accent); font-weight:600;}
+
+  /* NAV */
+  nav{
+    display:flex; gap:6px; margin:24px 0 32px; padding:6px;
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:12px;
+    overflow-x:auto;
+  }
+  nav button{
+    font-family:var(--font-mono); font-size:13px; font-weight:500;
+    background:transparent; color:var(--text-dim); border:none;
+    padding:11px 16px; border-radius:8px; cursor:pointer; white-space:nowrap;
+    transition:all .15s ease; letter-spacing:.02em;
+  }
+  nav button:hover{color:var(--text); background:#ffffff08;}
+  nav button.active{background:var(--accent-dim); color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent-glow);}
+
+  .tab{display:none; animation:fadein .25s ease;}
+  .tab.active{display:block;}
+  @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  section{margin-bottom:36px;}
+  h2{font-family:var(--font-display); font-size:22px; font-weight:700; margin:0 0 16px; color:var(--text); display:flex; align-items:center; gap:10px;}
+  h2::before{content:""; width:4px; height:20px; background:var(--accent); border-radius:2px; display:inline-block;}
+  h3{font-family:var(--font-display); font-size:16px; font-weight:600; color:var(--accent); margin:20px 0 10px;}
+
+  .card{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+    padding:20px 22px; margin-bottom:16px;
+  }
+  .card p{margin:0 0 10px; color:var(--text-dim); font-size:14.5px;}
+  .card p:last-child{margin-bottom:0;}
+  .card strong{color:var(--text);}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr;}}
+
+  /* CODE */
+  pre{
+    background:#0a0c11; border:1px solid var(--border); border-radius:10px;
+    padding:16px 18px; overflow-x:auto; font-family:var(--font-mono); font-size:13px;
+    line-height:1.65; margin:10px 0;
+  }
+  code{font-family:var(--font-mono);}
+  .card > code, p > code{
+    background:#ffffff0d; padding:2px 6px; border-radius:4px; font-size:13px; color:var(--accent);
+  }
+  .tok-kw{color:var(--purple);}
+  .tok-str{color:var(--amber);}
+  .tok-com{color:var(--text-faint); font-style:italic;}
+  .tok-fn{color:var(--blue);}
+  .tok-num{color:var(--accent);}
+
+  /* TABLE */
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:13.5px;}
+  th,td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--border);}
+  th{font-family:var(--font-mono); color:var(--accent); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; background:#ffffff05;}
+  td{color:var(--text-dim);}
+  td code{color:var(--accent); background:#ffffff0d; padding:1px 5px; border-radius:4px;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#ffffff03;}
+
+  /* FLOW DIAGRAM */
+  .flow{
+    display:flex; align-items:center; gap:0; flex-wrap:wrap; margin:16px 0;
+    font-family:var(--font-mono); font-size:12.5px;
+  }
+  .flow-node{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; color:var(--text); white-space:nowrap;
+  }
+  .flow-node.active{border-color:var(--accent); color:var(--accent); box-shadow:0 0 14px var(--accent-glow);}
+  .flow-arrow{color:var(--text-faint); padding:0 8px;}
+
+  /* BADGES */
+  .badge{
+    display:inline-block; font-family:var(--font-mono); font-size:11px; font-weight:600;
+    padding:3px 9px; border-radius:20px; letter-spacing:.03em;
+  }
+  .badge-green{background:#4ade8022; color:var(--accent);}
+  .badge-red{background:#f8717122; color:var(--red);}
+  .badge-amber{background:#fbbf2422; color:var(--amber);}
+
+  /* QUIZ */
+  .quiz-progress{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;
+    font-family:var(--font-mono); font-size:13px; color:var(--text-dim);
+  }
+  .score-pill{
+    background:var(--bg-card); border:1px solid var(--border); padding:8px 16px; border-radius:20px;
+    color:var(--accent); font-weight:600;
+  }
+  .q-card{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+    padding:22px; margin-bottom:16px;
+  }
+  .q-number{font-family:var(--font-mono); color:var(--accent); font-size:12px; margin-bottom:8px; display:block;}
+  .q-text{font-size:15.5px; font-weight:500; margin-bottom:14px; color:var(--text);}
+  .q-type{font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em;}
+  .options{display:flex; flex-direction:column; gap:8px;}
+  .opt{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:8px;
+    padding:12px 14px; cursor:pointer; font-size:14px; color:var(--text-dim);
+    transition:all .15s ease; text-align:left;
+  }
+  .opt:hover{border-color:#4ade8055; color:var(--text);}
+  .opt.correct{border-color:var(--accent); background:var(--accent-dim); color:var(--accent);}
+  .opt.wrong{border-color:var(--red); background:#f8717122; color:var(--red);}
+  .opt.disabled{pointer-events:none;}
+  .fill-input{
+    width:100%; background:var(--bg-panel); border:1px solid var(--border); border-radius:8px;
+    padding:12px 14px; color:var(--text); font-family:var(--font-mono); font-size:14px; margin-bottom:10px;
+  }
+  .fill-input:focus{outline:none; border-color:var(--accent);}
+  .btn{
+    font-family:var(--font-mono); font-size:13px; font-weight:600;
+    background:var(--accent); color:#0d0f14; border:none; padding:10px 18px;
+    border-radius:8px; cursor:pointer; transition:all .15s ease;
+  }
+  .btn:hover{filter:brightness(1.1); box-shadow:0 0 16px var(--accent-glow);}
+  .btn-outline{background:transparent; border:1px solid var(--border); color:var(--text-dim);}
+  .explain{
+    margin-top:14px; padding:12px 14px; border-radius:8px; font-size:13.5px;
+    background:#ffffff06; border-left:3px solid var(--accent); color:var(--text-dim); display:none;
+  }
+  .explain.show{display:block;}
+  #quiz-result{display:none; text-align:center; padding:32px; background:var(--bg-card); border:1px solid var(--accent); border-radius:12px;}
+  #quiz-result.show{display:block;}
+  #quiz-result .big-score{font-family:var(--font-display); font-size:48px; font-weight:700; color:var(--accent);}
+
+  /* MINDMAP */
+  .mindmap-wrap{background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:12px;}
+  svg text{font-family:var(--font-mono); fill:var(--text); user-select:none;}
+  .mm-node{cursor:pointer; transition:all .15s ease;}
+  .mm-node rect, .mm-node circle{transition:all .15s ease;}
+  .mm-node:hover rect, .mm-node:hover circle{stroke:var(--accent); stroke-width:2px;}
+  .mm-detail{
+    margin-top:14px; padding:16px 18px; background:var(--bg-panel); border:1px solid var(--border);
+    border-radius:10px; font-size:14px; color:var(--text-dim); min-height:60px;
+  }
+  .mm-detail b{color:var(--accent);}
+
+  /* CHEATSHEET */
+  .cheat-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media(max-width:780px){.cheat-grid{grid-template-columns:1fr;}}
+
+  /* STORY MODE */
+  .story-card{
+    background:linear-gradient(145deg, #161a23, #12151c);
+    border:1px solid var(--border); border-left:3px solid var(--accent);
+    border-radius:12px; padding:20px 22px; margin-bottom:16px;
+  }
+  .story-map{display:flex; gap:10px; align-items:flex-start; margin:10px 0; flex-wrap:wrap;}
+  .story-map-item{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:8px;
+    padding:10px 12px; font-size:13px; flex:1; min-width:220px;
+  }
+  .story-map-item b{color:var(--accent);}
+  .bug-tag{color:var(--red); font-weight:600; font-family:var(--font-mono); font-size:11px;}
+
+  footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--text-faint); font-size:12.5px; font-family:var(--font-mono); text-align:center;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="eyebrow"><span class="dot"></span>Course 2 · Module 3 · LangGraph Core</div>
+    <h1>Lesson 3.3 — Reducers &amp; Accumulating State</h1>
+    <p class="subtitle">⭐ Critical cho multi-agent · Hands-on: Understanding Reducers and Accumulating State</p>
+    <div class="meta-row">
+      <div class="meta-chip">⏱ <b>8:39</b></div>
+      <div class="meta-chip">📚 Prereqs: <b>Lesson 3.2</b></div>
+      <div class="meta-chip">➡ Next: <b>Lesson 3.4</b></div>
+      <div class="meta-chip">🎯 Roadmap: <b>Giai đoạn 1</b></div>
+    </div>
+  </header>
+
+  <nav id="tabnav">
+    <button class="active" data-tab="theory">01 · Lý thuyết</button>
+    <button data-tab="mindmap">02 · Mindmap</button>
+    <button data-tab="quiz">03 · Quiz</button>
+    <button data-tab="cheat">04 · Cheat Sheet</button>
+    <button data-tab="story">05 · 🍡 Story Mode</button>
+  </nav>
+
+  <!-- ============ TAB 1: LÝ THUYẾT ============ -->
+  <div class="tab active" id="theory">
+
+    <section>
+      <h2>Khái niệm</h2>
+      <div class="card">
+        <p><strong>State</strong> trong LangGraph là bộ nhớ dùng chung chảy qua toàn graph. Mỗi node trả về 1 <code>dict</code> chứa field cần cập nhật. Câu hỏi cốt lõi: <strong>giá trị mới sẽ ghi đè hay hợp nhất với giá trị cũ?</strong></p>
+        <p><span class="badge badge-red">Replace (mặc định)</span> giá trị mới ghi đè hoàn toàn giá trị cũ — dùng cho field chỉ cần "mới nhất".</p>
+        <p><span class="badge badge-green">Reducer (custom)</span> giá trị mới được <strong>merge</strong> với giá trị cũ theo 1 hàm bạn định nghĩa qua <code>Annotated</code> — dùng cho field cần <strong>tích lũy</strong>.</p>
+      </div>
+      <h3>Ví dụ đời sống</h3>
+      <div class="card">
+        <p>🏥 <strong>Sổ trực ca bệnh viện không có quy tắc</strong> → mỗi ca trực xé trang cũ viết đè lên → mất lịch sử điều trị. Đây là hành vi <strong>replace</strong>.</p>
+        <p>📖 <strong>Sổ có quy tắc "chỉ được thêm dòng mới vào cuối, không xóa dòng cũ"</strong> → cả lịch sử được giữ nguyên. Đây là <strong>reducer dạng append</strong> (giống <code>operator.add</code>).</p>
+        <p>🧮 <strong>"Điểm KPI = cộng dồn từ mọi ca trực"</strong> → đây là <strong>custom reducer</strong>, logic merge riêng, phức tạp hơn append đơn thuần.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Vị trí trong hệ thống</h2>
+      <div class="card">
+        <div class="flow">
+          <div class="flow-node">3.1 Pillars</div><div class="flow-arrow">→</div>
+          <div class="flow-node">3.2 First Graph</div><div class="flow-arrow">→</div>
+          <div class="flow-node active">3.3 Reducers ★</div><div class="flow-arrow">→</div>
+          <div class="flow-node">3.4 Message State</div><div class="flow-arrow">→</div>
+          <div class="flow-node">4.6 Map-Reduce</div><div class="flow-arrow">→</div>
+          <div class="flow-node">4.7 Multi-Agent Comms</div>
+        </div>
+        <p>Reducer là nền tảng bắt buộc trước khi hiểu <code>add_messages</code> (3.4), <code>Send</code> API map-reduce (4.6) và giải quyết xung đột khi nhiều agent cùng ghi 1 field (4.7).</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Bảng so sánh: Replace vs Reducer</h2>
+      <div class="card">
+        <table>
+          <tr><th>Chiến lược</th><th>Hành vi</th><th>Khi dùng</th></tr>
+          <tr><td><span class="badge badge-red">Replace</span></td><td>Ghi đè hoàn toàn</td><td><code>current_status</code>, <code>generated_exam</code></td></tr>
+          <tr><td><span class="badge badge-green">operator.add</span></td><td>Nối list / cộng số</td><td><code>messages</code>, <code>log</code>, <code>trace</code></td></tr>
+          <tr><td><span class="badge badge-amber">Custom reducer</span></td><td>Merge theo logic riêng</td><td><code>scores: dict</code>, dedupe, giới hạn độ dài</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>API quan trọng</h2>
+      <div class="card">
+        <table>
+          <tr><th>API</th><th>Giải thích</th></tr>
+          <tr><td><code>Annotated[Type, reducer_fn]</code></td><td>Gắn reducer vào field</td></tr>
+          <tr><td><code>operator.add</code></td><td>Reducer có sẵn: nối list, cộng str/int/float</td></tr>
+          <tr><td><code>def reducer(old, new)</code></td><td>Custom reducer — 2 tham số bắt buộc, phải return</td></tr>
+          <tr><td><code>add_messages</code></td><td>Reducer chuyên cho chat — append hoặc update theo <code>id</code></td></tr>
+          <tr><td><code>state.get(field, default)</code></td><td>Tránh KeyError khi field rỗng lần đầu</td></tr>
+        </table>
+      </div>
+      <h3>Code: 3 chế độ reducer</h3>
+      <pre><code><span class="tok-kw">import</span> operator
+<span class="tok-kw">from</span> typing <span class="tok-kw">import</span> TypedDict, Annotated
+
+<span class="tok-com"># 1) Không reducer -> mặc định REPLACE</span>
+<span class="tok-kw">class</span> StateNoReducer(TypedDict):
+    log: list[str]
+
+<span class="tok-com"># 2) Reducer có sẵn -> TÍCH LŨY (append)</span>
+<span class="tok-kw">class</span> StateWithReducer(TypedDict):
+    log: Annotated[list[str], operator.add]
+
+<span class="tok-com"># 3) Custom reducer -> MERGE theo logic riêng</span>
+<span class="tok-kw">def</span> <span class="tok-fn">merge_scores</span>(old: dict, new: dict) -> dict:
+    merged = dict(old)
+    <span class="tok-kw">for</span> k, v <span class="tok-kw">in</span> new.items():
+        merged[k] = merged.get(k, <span class="tok-num">0</span>) + v
+    <span class="tok-kw">return</span> merged
+
+<span class="tok-kw">class</span> StateCustomReducer(TypedDict):
+    scores: Annotated[dict, merge_scores]</code></pre>
+    </section>
+
+    <section>
+      <h2>File cấu hình quan trọng</h2>
+      <div class="card">
+        <p>Không có file runtime config — "cấu hình" là <strong>schema khai báo trong code</strong>, quyết định field nào cần tích lũy khi port sang Exam Generator:</p>
+        <pre><code><span class="tok-com"># state_schema.py</span>
+<span class="tok-kw">class</span> ExamGenState(TypedDict):
+    messages: Annotated[list, add_messages]                    <span class="tok-com"># reducer 3.4</span>
+    retrieved_samples: Annotated[list[dict], operator.add]     <span class="tok-com"># reducer 3.3</span>
+    generated_exam: dict                                        <span class="tok-com"># KHÔNG reducer</span></code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>Ứng dụng thực tế</h2>
+      <div class="grid2">
+        <div class="card"><p>🔬 <strong>Multi-agent research</strong>: N agent con ghi <code>findings</code> vào state — bắt buộc reducer để không mất dữ liệu.</p></div>
+        <div class="card"><p>💬 <strong>Chat apps</strong>: lịch sử hội thoại luôn tích lũy — nền tảng <code>add_messages</code>.</p></div>
+        <div class="card"><p>🗺️ <strong>Map-Reduce</strong>: fan-out N node song song, field đích bắt buộc có reducer, nếu không kết quả bị ghi đè ngẫu nhiên.</p></div>
+        <div class="card"><p>📊 <strong>Audit/LangSmith tracing</strong>: giữ vết mọi bước xử lý với <code>trace_log</code> tích lũy.</p></div>
+        <div class="card"><p>🎓 <strong>Grading Agent (Exam Generator)</strong>: nhiều agent chấm nhiều môn, cộng dồn điểm bằng custom reducer.</p></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ TAB 2: MINDMAP ============ -->
+  <div class="tab" id="mindmap">
+    <section>
+      <h2>Mindmap tương tác</h2>
+      <p style="color:var(--text-dim); font-size:14px; margin-top:-8px;">Bấm vào từng node để xem chi tiết.</p>
+      <div class="mindmap-wrap">
+        <svg viewBox="0 0 900 480" width="100%" style="max-height:480px;">
+          <!-- edges -->
+          <g stroke="#232838" stroke-width="2">
+            <line x1="450" y1="60" x2="230" y2="150"/>
+            <line x1="450" y1="60" x2="450" y2="150"/>
+            <line x1="450" y1="60" x2="670" y2="150"/>
+            <line x1="230" y1="180" x2="140" y2="270"/>
+            <line x1="230" y1="180" x2="320" y2="270"/>
+            <line x1="450" y1="180" x2="450" y2="270"/>
+            <line x1="670" y1="180" x2="600" y2="270"/>
+            <line x1="670" y1="180" x2="780" y2="270"/>
+            <line x1="450" y1="300" x2="450" y2="400"/>
+          </g>
+          <!-- root -->
+          <g class="mm-node" onclick="showMM('root')">
+            <rect x="380" y="25" width="140" height="42" rx="10" fill="#4ade8022" stroke="#4ade80"/>
+            <text x="450" y="51" text-anchor="middle" font-size="14" font-weight="700" fill="#4ade80">Reducers</text>
+          </g>
+          <!-- L1 -->
+          <g class="mm-node" onclick="showMM('replace')">
+            <rect x="150" y="150" width="160" height="34" rx="8" fill="#161a23" stroke="#232838"/>
+            <text x="230" y="172" text-anchor="middle" font-size="12">Replace (default)</text>
+          </g>
+          <g class="mm-node" onclick="showMM('add')">
+            <rect x="370" y="150" width="160" height="34" rx="8" fill="#161a23" stroke="#232838"/>
+            <text x="450" y="172" text-anchor="middle" font-size="12">operator.add</text>
+          </g>
+          <g class="mm-node" onclick="showMM('custom')">
+            <rect x="590" y="150" width="160" height="34" rx="8" fill="#161a23" stroke="#232838"/>
+            <text x="670" y="172" text-anchor="middle" font-size="12">Custom reducer</text>
+          </g>
+          <!-- L2 -->
+          <g class="mm-node" onclick="showMM('replace-ex')">
+            <rect x="60" y="270" width="160" height="34" rx="8" fill="#12151c" stroke="#232838"/>
+            <text x="140" y="292" text-anchor="middle" font-size="11">current_status</text>
+          </g>
+          <g class="mm-node" onclick="showMM('replace-risk')">
+            <rect x="240" y="270" width="160" height="34" rx="8" fill="#12151c" stroke="#232838"/>
+            <text x="320" y="292" text-anchor="middle" font-size="11">Rủi ro mất data</text>
+          </g>
+          <g class="mm-node" onclick="showMM('add-ex')">
+            <rect x="370" y="270" width="160" height="34" rx="8" fill="#12151c" stroke="#232838"/>
+            <text x="450" y="292" text-anchor="middle" font-size="11">messages / log</text>
+          </g>
+          <g class="mm-node" onclick="showMM('custom-ex')">
+            <rect x="520" y="270" width="160" height="34" rx="8" fill="#12151c" stroke="#232838"/>
+            <text x="600" y="292" text-anchor="middle" font-size="11">merge_scores(dict)</text>
+          </g>
+          <g class="mm-node" onclick="showMM('mapreduce')">
+            <rect x="700" y="270" width="160" height="34" rx="8" fill="#12151c" stroke="#232838"/>
+            <text x="780" y="292" text-anchor="middle" font-size="11">Map-Reduce (4.6)</text>
+          </g>
+          <!-- L3 -->
+          <g class="mm-node" onclick="showMM('next')">
+            <rect x="360" y="400" width="180" height="38" rx="9" fill="#4ade8011" stroke="#4ade8066"/>
+            <text x="450" y="424" text-anchor="middle" font-size="12" fill="#4ade80">→ 3.4 Message State</text>
+          </g>
+        </svg>
+        <div class="mm-detail" id="mmDetail"><b>Chọn 1 node</b> để xem giải thích chi tiết ở đây.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ TAB 3: QUIZ ============ -->
+  <div class="tab" id="quiz">
+    <section>
+      <h2>Quiz ôn tập — 10 câu</h2>
+      <div class="quiz-progress">
+        <span id="quiz-pos">Câu 1 / 10</span>
+        <span class="score-pill">Điểm: <span id="quiz-score">0</span>/10</span>
+      </div>
+      <div id="quiz-container"></div>
+      <div id="quiz-result">
+        <div class="big-score" id="final-score">0/10</div>
+        <p style="color:var(--text-dim); margin:10px 0 18px;">Hoàn thành bài quiz Lesson 3.3!</p>
+        <button class="btn" onclick="restartQuiz()">Làm lại</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ TAB 4: CHEAT SHEET ============ -->
+  <div class="tab" id="cheat">
+    <section>
+      <h2>Cheat Sheet — Lesson 3.3</h2>
+      <div class="cheat-grid">
+        <div class="card">
+          <h3 style="margin-top:0;">Syntax nhanh</h3>
+          <table>
+            <tr><td><code>Annotated[T, fn]</code></td><td>gắn reducer</td></tr>
+            <tr><td><code>operator.add</code></td><td>append list / cộng số</td></tr>
+            <tr><td><code>add_messages</code></td><td>reducer cho chat</td></tr>
+            <tr><td><code>def f(old,new)</code></td><td>chữ ký custom reducer</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Khi nào dùng gì</h3>
+          <table>
+            <tr><td>Giá trị "mới nhất"</td><td><span class="badge badge-red">replace</span></td></tr>
+            <tr><td>List tích lũy đơn giản</td><td><span class="badge badge-green">operator.add</span></td></tr>
+            <tr><td>Dict / merge phức tạp</td><td><span class="badge badge-amber">custom</span></td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Lab steps tóm tắt</h3>
+          <ol style="color:var(--text-dim); font-size:14px; padding-left:18px;">
+            <li><code>pip install langgraph --break-system-packages</code></li>
+            <li>Viết 3 state class: no-reducer / operator.add / custom</li>
+            <li><code>python3 demo_reducer.py</code></li>
+            <li>Verify: replace chỉ còn 1 phần tử, add còn đủ 3, custom cộng đúng theo key</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">⚠️ Lỗi thường gặp</h3>
+          <ul style="color:var(--text-dim); font-size:14px; padding-left:18px;">
+            <li>Quên <code>Annotated</code> → mất data âm thầm</li>
+            <li><code>operator.add</code> trên <code>dict</code> → TypeError</li>
+            <li>Custom reducer quên <code>return</code> → state = None</li>
+            <li>Mutate <code>old</code> trực tiếp → side-effect với checkpointer</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ TAB 5: STORY MODE ============ -->
+  <div class="tab" id="story">
+    <section>
+      <h2>🍡 Story Mode — Tanjiro Kamado & Sổ Tay Biên Niên Sử</h2>
+
+      <div class="story-card">
+        <p style="color:var(--text-dim); margin:0 0 10px;">Đoàn Diệt Quỷ dùng chung <strong>1 cuốn sổ</strong> ghi nhận trận đánh — đây chính là <strong>State</strong> của LangGraph. Mỗi Trụ Cột tham chiến là <strong>1 Node</strong>. Câu hỏi trung tâm: khi 4 Trụ Cột lần lượt báo cáo, sổ sẽ <strong>cộng dồn</strong> hay <strong>chỉ giữ báo cáo mới nhất</strong>?</p>
+        <div class="story-map">
+          <div class="story-map-item"><b>bien_nien_su</b> = field có <b>reducer operator.add</b> → mọi báo cáo được nối vào cuối sổ, không ai bị mất tiếng nói.</div>
+          <div class="story-map-item"><b>bao_cao_tuc_thoi</b> = field <b>không reducer</b> (default replace) → giống bảng tin cổng doanh trại, chỉ hiện tin mới nhất.</div>
+          <div class="story-map-item"><b>START → tanjiro → nezuko → zenitsu → inosuke → END</b> = chính là <b>Edges</b> nối Node tuần tự (3.2).</div>
+        </div>
+        <p style="margin-top:10px;"><span class="bug-tag">🐛 BUG HÀI HƯỚC 1</span> Zenitsu ngủ quên giữa trận, tưởng mình "trốn việc" — nhưng report của anh vẫn tự động được ghi vào biên niên sử vì field có reducer, không phụ thuộc "thái độ" của node.</p>
+        <p><span class="bug-tag">🐛 BUG HÀI HƯỚC 2</span> Inosuke gào thét định "đè" báo cáo người khác — nhưng reducer <code>operator.add</code> không cho phép ghi đè, chỉ cho phép nối thêm.</p>
+      </div>
+
+      <h3>Code (đã chạy kiểm chứng thật)</h3>
+      <pre><code><span class="tok-com">"""
+STORY MODE: Tanjiro Kamado & "So Tay Bien Nien Su" cua Doan Diet Quy
+Anh xa: Lesson 3.3 - Reducers & Accumulating State (LangGraph)
+"""</span>
+<span class="tok-kw">import</span> operator
+<span class="tok-kw">from</span> typing <span class="tok-kw">import</span> TypedDict, Annotated
+<span class="tok-kw">from</span> langgraph.graph <span class="tok-kw">import</span> StateGraph, START, END
+
+<span class="tok-com"># STATE = "So Tay Bien Nien Su" dung chung cho ca doan diet quy (shared state)</span>
+<span class="tok-kw">class</span> SoTayDietQuy(TypedDict):
+    <span class="tok-com"># co Annotated + operator.add => REDUCER "ghi bien nien su": moi Tru Cot bao cao</span>
+    <span class="tok-com"># se duoc CONG DON vao so, khong ai lam mat bao cao cua nguoi truoc</span>
+    bien_nien_su: Annotated[list[str], operator.add]
+    <span class="tok-com"># KHONG Annotated => default reducer la "ghi de" (replace)</span>
+    bao_cao_tuc_thoi: str
+
+
+<span class="tok-kw">def</span> <span class="tok-fn">tanjiro_trinh_sat</span>(state: SoTayDietQuy):
+    ghi_chu = <span class="tok-str">"Tanjiro: phat hien mui quy o lang gan nui"</span>
+    <span class="tok-kw">return</span> {<span class="tok-str">"bien_nien_su"</span>: [ghi_chu], <span class="tok-str">"bao_cao_tuc_thoi"</span>: ghi_chu}
+
+
+<span class="tok-kw">def</span> <span class="tok-fn">nezuko_ho_tro</span>(state: SoTayDietQuy):
+    ghi_chu = <span class="tok-str">"Nezuko: da chan dung quy o cong lang"</span>
+    <span class="tok-kw">return</span> {<span class="tok-str">"bien_nien_su"</span>: [ghi_chu], <span class="tok-str">"bao_cao_tuc_thoi"</span>: ghi_chu}
+
+
+<span class="tok-com"># BUG HAI HUOC 1: Zenitsu ngu quen giua tran nhung van vo tinh tuan thu dung</span>
+<span class="tok-com"># quy tac ghi so vi field co Annotated</span>
+<span class="tok-kw">def</span> <span class="tok-fn">zenitsu_ngu_gat</span>(state: SoTayDietQuy):
+    ghi_chu = <span class="tok-str">"Zenitsu: xin loi moi nguoi, toi vua ngu quen mat 5 phut"</span>
+    <span class="tok-kw">return</span> {<span class="tok-str">"bien_nien_su"</span>: [ghi_chu], <span class="tok-str">"bao_cao_tuc_thoi"</span>: ghi_chu}
+
+
+<span class="tok-com"># BUG HAI HUOC 2: Inosuke xong xao, tuong minh se "de len" bao cao nguoi khac</span>
+<span class="tok-com"># nhung reducer khong cho phep dieu do voi field bien_nien_su</span>
+<span class="tok-kw">def</span> <span class="tok-fn">inosuke_xoc_dao</span>(state: SoTayDietQuy):
+    ghi_chu = <span class="tok-str">"Inosuke: TA LA VUA NUI, xong vao chem quy khong can ke hoach!!"</span>
+    <span class="tok-kw">return</span> {<span class="tok-str">"bien_nien_su"</span>: [ghi_chu], <span class="tok-str">"bao_cao_tuc_thoi"</span>: ghi_chu}
+
+
+graph = StateGraph(SoTayDietQuy)
+graph.add_node(<span class="tok-str">"tanjiro"</span>, tanjiro_trinh_sat)
+graph.add_node(<span class="tok-str">"nezuko"</span>, nezuko_ho_tro)
+graph.add_node(<span class="tok-str">"zenitsu"</span>, zenitsu_ngu_gat)
+graph.add_node(<span class="tok-str">"inosuke"</span>, inosuke_xoc_dao)
+
+graph.add_edge(START, <span class="tok-str">"tanjiro"</span>)
+graph.add_edge(<span class="tok-str">"tanjiro"</span>, <span class="tok-str">"nezuko"</span>)
+graph.add_edge(<span class="tok-str">"nezuko"</span>, <span class="tok-str">"zenitsu"</span>)
+graph.add_edge(<span class="tok-str">"zenitsu"</span>, <span class="tok-str">"inosuke"</span>)
+graph.add_edge(<span class="tok-str">"inosuke"</span>, END)
+
+doan_diet_quy = graph.compile()
+ket_qua = doan_diet_quy.invoke({<span class="tok-str">"bien_nien_su"</span>: [], <span class="tok-str">"bao_cao_tuc_thoi"</span>: <span class="tok-str">""</span>})
+
+<span class="tok-fn">print</span>(<span class="tok-str">"=== BIEN NIEN SU (co reducer operator.add -> CONG DON tat ca) ==="</span>)
+<span class="tok-kw">for</span> i, dong <span class="tok-kw">in</span> <span class="tok-fn">enumerate</span>(ket_qua[<span class="tok-str">"bien_nien_su"</span>], <span class="tok-num">1</span>):
+    <span class="tok-fn">print</span>(<span class="tok-fn">f</span><span class="tok-str">"{i}. {dong}"</span>)
+
+<span class="tok-fn">print</span>(<span class="tok-str">"\n=== BAO CAO TUC THOI (khong reducer -> GHI DE, chi con cai cuoi) ==="</span>)
+<span class="tok-fn">print</span>(ket_qua[<span class="tok-str">"bao_cao_tuc_thoi"</span>])</code></pre>
+
+      <h3>Output <span class="badge badge-green">thật · đã chạy kiểm chứng</span></h3>
+      <pre><code>=== BIEN NIEN SU (co reducer operator.add -> CONG DON tat ca) ===
+1. Tanjiro: phat hien mui quy o lang gan nui
+2. Nezuko: da chan dung quy o cong lang
+3. Zenitsu: xin loi moi nguoi, toi vua ngu quen mat 5 phut
+4. Inosuke: TA LA VUA NUI, xong vao chem quy khong can ke hoach!!
+
+=== BAO CAO TUC THOI (khong reducer -> GHI DE, chi con cai cuoi) ===
+Inosuke: TA LA VUA NUI, xong vao chem quy khong can ke hoach!!</code></pre>
+
+      <h3>Tại sao code này chạy được</h3>
+      <div class="card">
+        <p>LangGraph <strong>không quan tâm</strong> field tên là <code>bien_nien_su</code> hay <code>messages</code>, và không quan tâm nội dung là báo cáo diệt quỷ hay dữ liệu tài chính. Framework chỉ nhìn vào <strong>type annotation trong <code>TypedDict</code></strong>: có <code>Annotated[Type, reducer_fn]</code> thì luôn gọi <code>reducer_fn(cũ, mới)</code>; không có thì luôn replace.</p>
+        <p>Đây không phải "phép màu của thanh gươm diệt quỷ" — đó thuần túy là cơ chế merge cố định (return dict → gọi reducer nếu có → cập nhật state → truyền cho node kế tiếp), chạy dựa trên <strong>schema đã khai báo trước khi compile</strong>, không phụ thuộc "ý định" của node function. Hiểu đúng nguyên lý này giúp debug chính xác khi state trong hệ multi-agent (4.6, 4.7) bị mất dữ liệu hoặc ghi đè nhầm.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer>Lesson 3.3 · Reducers &amp; Accumulating State · Roadmap AI Agent &amp; Context — Giai đoạn 1</footer>
+</div>
+
+<script>
+// ===== TAB SWITCHING =====
+document.querySelectorAll('#tabnav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tabnav button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== MINDMAP DETAIL =====
+const mmData = {
+  root: "<b>Reducers</b>: hàm quyết định cách merge giá trị mới vào state khi node trả về dict.",
+  replace: "<b>Replace (mặc định)</b>: field không có Annotated — giá trị mới ghi đè hoàn toàn giá trị cũ.",
+  add: "<b>operator.add</b>: reducer có sẵn của Python — nối 2 list, hoặc cộng str/int/float.",
+  custom: "<b>Custom reducer</b>: hàm tự viết (old, new) -> merged, dùng khi logic phức t​ạp hơn '+' đơn giản (vd: dict theo key).",
+  "replace-ex": "Ví dụ field dùng replace: <b>current_status</b>, <b>generated_exam</b> — chỉ cần giá trị mới nhất.",
+  "replace-risk": "<b>Rủi ro</b>: quên Annotated khi lẽ ra cần tích lũy → mất dữ liệu âm thầm, không có lỗi báo.",
+  "add-ex": "Ví dụ: <b>messages</b> (lịch sử chat), <b>log</b> (audit trail) — luôn cần giữ toàn bộ lịch sử.",
+  "custom-ex": "Ví dụ: <b>merge_scores(old, new)</b> cộng dồn điểm theo từng key trong dict — không dùng được operator.add vì dict không hỗ trợ '+'.",
+  mapreduce: "<b>Map-Reduce (4.6)</b>: N node chạy song song ghi vào field đích — field này BẮT BUỘC có reducer, nếu không kết quả các nhánh ghi đè lẫn nhau ngẫu nhiên.",
+  next: "<b>3.4 Message State</b>: add_messages — reducer chuyên dụng cho chat, append hoặc update theo id message."
+};
+function showMM(key){
+  document.getElementById('mmDetail').innerHTML = mmData[key] || "Không có dữ liệu.";
+}
+
+// ===== QUIZ =====
+const quizData = [
+  {type:"mcq", q:"Mặc định, khi 1 node trả về {\"field\": new_value} và field đó không có Annotated với reducer, điều gì xảy ra?",
+   opts:["Giá trị mới được nối vào giá trị cũ","Giá trị mới ghi đè (replace) giá trị cũ","LangGraph raise lỗi vì thiếu reducer","Giá trị cũ được giữ nguyên, giá trị mới bị bỏ qua"],
+   correct:1, explain:"Mặc định LangGraph luôn REPLACE khi field không có reducer."},
+  {type:"fill", q:"Để 1 field kiểu list[str] tự động append thay vì replace, ta khai báo: field: Annotated[list[str], ______]",
+   answer:"operator.add", explain:"operator.add là reducer có sẵn giúp nối 2 list."},
+  {type:"tf", q:"operator.add có thể dùng làm reducer cho field kiểu dict mà không cần sửa gì thêm.",
+   correct:false, explain:"operator.add chỉ hoạt động với kiểu hỗ trợ '+' (list, str, int, float); dict cần custom reducer."},
+  {type:"mcq", q:"Custom reducer function cần có chữ ký (signature) như thế nào?",
+   opts:["def reducer(state): ...","def reducer(new_value): ...","def reducer(old_value, new_value): ...","def reducer(*args, **kwargs): ..."],
+   correct:2, explain:"Reducer luôn nhận 2 tham số: giá trị cũ và giá trị mới, rồi trả về giá trị đã merge."},
+  {type:"seq", q:"Sắp xếp đúng thứ tự: (1) Node tiếp theo nhận state đã cập nhật (2) Node function return dict (3) LangGraph gọi reducer để merge",
+   opts:["2 → 3 → 1","1 → 2 → 3","3 → 2 → 1","2 → 1 → 3"],
+   correct:0, explain:"Thứ tự đúng: node trả dict → reducer merge → node kế tiếp nhận state mới."},
+  {type:"mcq", q:"Trong Lesson 3.4, add_messages là gì?",
+   opts:["Một loại Node đặc biệt","Một reducer chuyên dụng cho field messages, hỗ trợ append và update theo id","Một Edge điều kiện","Một hàm khởi tạo StateGraph"],
+   correct:1, explain:"add_messages là reducer built-in cho chat pattern."},
+  {type:"tf", q:"Trong Map-Reduce pattern (Send API, 4.6), field nhận kết quả từ các node chạy song song bắt buộc phải có reducer.",
+   correct:true, explain:"Nếu không có reducer, các nhánh song song sẽ ghi đè lẫn nhau ngẫu nhiên."},
+  {type:"fill", q:"Nếu 1 node không trả về field X, reducer của X sẽ ______ được gọi, và giá trị X sẽ ______.",
+   answer:"không được gọi / giữ nguyên", explain:"Field không nằm trong dict trả về thì reducer không chạy, state giữ nguyên."},
+  {type:"mcq", q:"Field nào sau đây nên dùng reducer tích lũy trong hệ multi-agent?",
+   opts:["current_status: str","final_answer: str","findings: list[dict] (kết quả từ nhiều agent con)","active_node: str"],
+   correct:2, explain:"findings cần tích lũy từ nhiều agent, các field còn lại chỉ cần giá trị mới nhất."},
+  {type:"tf", q:"Reducer chạy trên client (frontend) trước khi gửi request tới LangGraph server.",
+   correct:false, explain:"Reducer chạy hoàn toàn bên trong graph execution engine, ngay sau khi node trả dict."}
+];
+let quizScore = 0, quizAnswered = new Array(quizData.length).fill(false);
+
+function renderQuiz(){
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  quizData.forEach((item, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    let typeLabel = {mcq:"Multiple Choice", fill:"Fill-in", tf:"True/False", seq:"Sequence"}[item.type];
+    let inner = `<span class="q-number">Câu ${idx+1}</span><span class="q-type">${typeLabel}</span><div class="q-text">${item.q}</div>`;
+
+    if(item.type==='mcq' || item.type==='seq'){
+      inner += '<div class="options">';
+      item.opts.forEach((opt,i)=>{
+        inner += `<button class="opt" data-idx="${i}" onclick="answerMCQ(${idx},${i},this)">${opt}</button>`;
+      });
+      inner += '</div>';
+    } else if(item.type==='tf'){
+      inner += `<div class="options">
+        <button class="opt" onclick="answerTF(${idx},true,this)">True</button>
+        <button class="opt" onclick="answerTF(${idx},false,this)">False</button>
+      </div>`;
+    } else if(item.type==='fill'){
+      inner += `<input type="text" class="fill-input" id="fill-${idx}" placeholder="Nhập câu trả lời...">
+      <button class="btn" onclick="answerFill(${idx})">Kiểm tra</button>`;
+    }
+    inner += `<div class="explain" id="explain-${idx}">💡 ${item.explain}</div>`;
+    card.innerHTML = inner;
+    container.appendChild(card);
+  });
+  updateProgress();
+}
+
+function lockCard(idx){
+  quizAnswered[idx] = true;
+  document.getElementById(`explain-${idx}`).classList.add('show');
+  const card = document.querySelectorAll('.q-card')[idx];
+  card.querySelectorAll('.opt').forEach(b=>b.classList.add('disabled'));
+  const input = card.querySelector('.fill-input');
+  if(input) input.disabled = true;
+  const btn = card.querySelector('.btn');
+  if(btn) btn.disabled = true;
+  checkAllDone();
+}
+
+function answerMCQ(idx, choice, el){
+  if(quizAnswered[idx]) return;
+  const item = quizData[idx];
+  const card = document.querySelectorAll('.q-card')[idx];
+  card.querySelectorAll('.opt').forEach((b,i)=>{
+    if(i===item.correct) b.classList.add('correct');
+    else if(i===choice) b.classList.add('wrong');
+  });
+  if(choice===item.correct){ quizScore++; updateScore(); }
+  lockCard(idx);
+}
+function answerTF(idx, choice, el){
+  if(quizAnswered[idx]) return;
+  const item = quizData[idx];
+  const card = document.querySelectorAll('.q-card')[idx];
+  const buttons = card.querySelectorAll('.opt');
+  buttons.forEach(b=>{
+    const isTrue = b.textContent.trim()==='True';
+    if(isTrue===item.correct) b.classList.add('correct');
+  });
+  if(choice!==item.correct) el.classList.add('wrong');
+  if(choice===item.correct){ quizScore++; updateScore(); }
+  lockCard(idx);
+}
+function answerFill(idx){
+  if(quizAnswered[idx]) return;
+  const item = quizData[idx];
+  const input = document.getElementById(`fill-${idx}`);
+  const val = input.value.trim().toLowerCase();
+  const correctVal = item.answer.toLowerCase();
+  if(correctVal.split(' / ').every(part=>val.includes(part.split(' ')[0])) || val.includes(correctVal) || correctVal.includes(val)){
+    input.style.borderColor = 'var(--accent)'; quizScore++; updateScore();
+  } else {
+    input.style.borderColor = 'var(--red)';
+  }
+  input.insertAdjacentHTML('afterend', `<p style="color:var(--accent); font-size:13px; margin:-4px 0 10px;">Đáp án: ${item.answer}</p>`);
+  lockCard(idx);
+}
+function updateScore(){ document.getElementById('quiz-score').textContent = quizScore; }
+function updateProgress(){
+  const done = quizAnswered.filter(Boolean).length;
+  document.getElementById('quiz-pos').textContent = `Câu ${Math.min(done+1,10)} / 10`;
+}
+function checkAllDone(){
+  updateProgress();
+  if(quizAnswered.every(Boolean)){
+    document.getElementById('final-score').textContent = `${quizScore}/10`;
+    document.getElementById('quiz-result').classList.add('show');
+  }
+}
+function restartQuiz(){
+  quizScore = 0; quizAnswered = new Array(quizData.length).fill(false);
+  document.getElementById('quiz-result').classList.remove('show');
+  updateScore();
+  renderQuiz();
+}
+renderQuiz();
+</script>
+</body>
+</html>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3.4 — Message State & Chat Pattern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0d0f14;
+    --bg-elev: #12151c;
+    --bg-card: #161a22;
+    --border: #232833;
+    --text: #e6e9ef;
+    --text-dim: #8b93a3;
+    --accent: #4ade80;
+    --accent-dim: #234d34;
+    --accent-glow: rgba(74, 222, 128, .18);
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #c084fc;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(74,222,128,.06), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(96,165,250,.05), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--display);
+    min-height:100vh;
+  }
+  ::selection{ background:var(--accent-glow); color:var(--accent); }
+
+  header{
+    padding:28px 5vw 18px;
+    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:20;
+    background:rgba(13,15,20,.88);
+    backdrop-filter: blur(10px);
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent); display:flex; align-items:center; gap:8px; margin-bottom:6px;
+  }
+  .eyebrow::before{content:"●"; font-size:9px;}
+  h1{ font-size:clamp(20px,3vw,30px); margin:0 0 6px; font-weight:700; letter-spacing:-.01em;}
+  .meta{ font-family:var(--mono); font-size:12.5px; color:var(--text-dim); display:flex; flex-wrap:wrap; gap:16px;}
+  .meta span b{color:var(--text);}
+
+  nav.tabs{
+    display:flex; gap:4px; margin-top:20px; overflow-x:auto; padding-bottom:2px;
+  }
+  .tab-btn{
+    font-family:var(--mono); font-size:13px; background:transparent; border:1px solid transparent;
+    color:var(--text-dim); padding:9px 16px; border-radius:8px 8px 0 0; cursor:pointer; white-space:nowrap;
+    transition:.15s; border-bottom:2px solid transparent;
+  }
+  .tab-btn:hover{ color:var(--text); background:var(--bg-elev); }
+  .tab-btn.active{ color:var(--accent); border-bottom:2px solid var(--accent); background:var(--bg-card);}
+
+  main{ padding:32px 5vw 80px; max-width:1100px; margin:0 auto; }
+  .panel{ display:none; animation: fade .35s ease; }
+  .panel.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  h2{ font-size:22px; margin:36px 0 14px; display:flex; align-items:center; gap:10px;}
+  h2:first-child{margin-top:0;}
+  h2 .num{ font-family:var(--mono); color:var(--accent); font-size:14px; border:1px solid var(--accent-dim); padding:2px 8px; border-radius:6px;}
+  h3{ font-size:16px; color:var(--accent); margin:22px 0 10px; font-family:var(--mono); font-weight:600;}
+  p{ line-height:1.7; color:var(--text); font-size:15px;}
+  p.dim, li.dim{ color: var(--text-dim); }
+
+  .card{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:20px 22px;
+    margin:14px 0;
+  }
+  .card.accent{ border-color:var(--accent-dim); box-shadow: inset 3px 0 0 var(--accent); }
+
+  code, pre{ font-family:var(--mono); }
+  code{ background:var(--bg-elev); padding:2px 6px; border-radius:5px; font-size:.88em; color:var(--accent); border:1px solid var(--border);}
+  pre{
+    background:#0a0c11; border:1px solid var(--border); border-radius:10px; padding:18px 20px;
+    overflow-x:auto; font-size:13.5px; line-height:1.65; position:relative; margin:14px 0;
+  }
+  pre code{ background:none; border:none; padding:0; color:var(--text); }
+  .kw{color:#c084fc;} .str{color:#fbbf24;} .fn{color:#60a5fa;} .cm{color:#6b7280; font-style:italic;} .cls{color:#4ade80;}
+
+  table{ width:100%; border-collapse:collapse; margin:16px 0; font-size:14px;}
+  th, td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); }
+  th{ font-family:var(--mono); color:var(--accent); font-size:12.5px; text-transform:uppercase; letter-spacing:.05em;}
+  tr:hover td{ background:var(--bg-elev); }
+  td code{border:none;}
+
+  .flow{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-family:var(--mono); font-size:13px; margin:18px 0;
+  }
+  .flow .node{ background:var(--bg-elev); border:1px solid var(--border); padding:10px 14px; border-radius:8px; color:var(--text);}
+  .flow .node.hi{ border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 1px var(--accent-dim);}
+  .flow .arrow{ color:var(--text-dim); }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:720px){ .grid2{grid-template-columns:1fr;} }
+
+  /* Mindmap */
+  .mindmap-wrap{ background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:10px; }
+  #mindmap-svg{ width:100%; height:auto; display:block; }
+  .mm-node circle, .mm-node rect{ fill:var(--bg-elev); stroke:var(--border); stroke-width:1.5; cursor:pointer; transition:.2s;}
+  .mm-node:hover circle, .mm-node:hover rect{ stroke:var(--accent); }
+  .mm-node.root circle{ fill:var(--accent); }
+  .mm-node text{ fill:var(--text); font-family:'JetBrains Mono',monospace; font-size:12px; pointer-events:none; }
+  .mm-node.root text{ fill:#0d0f14; font-weight:700; }
+  .mm-link{ stroke:var(--border); stroke-width:1.5; fill:none; }
+  #mm-detail{
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-top:14px;
+    font-size:14px; line-height:1.6; min-height:60px;
+  }
+  #mm-detail b{ color:var(--accent); }
+
+  /* Quiz */
+  .quiz-progress{ display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:13px; color:var(--text-dim); margin-bottom:14px;}
+  .quiz-bar{ height:6px; background:var(--bg-elev); border-radius:4px; overflow:hidden; margin-bottom:20px; border:1px solid var(--border);}
+  .quiz-bar-fill{ height:100%; background:var(--accent); transition:.3s; width:0%; }
+  .q-card{ background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:22px 24px; }
+  .q-type{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--purple); border:1px solid #3a2a4d; padding:2px 8px; border-radius:5px; }
+  .q-text{ font-size:16px; margin:14px 0 18px; line-height:1.6; }
+  .opt{
+    display:block; width:100%; text-align:left; background:var(--bg-elev); border:1px solid var(--border);
+    color:var(--text); padding:12px 16px; border-radius:9px; margin-bottom:9px; cursor:pointer; font-size:14px;
+    font-family:var(--display); transition:.15s;
+  }
+  .opt:hover{ border-color:var(--accent-dim); }
+  .opt.correct{ border-color:var(--accent); background:var(--accent-glow); color:var(--accent); }
+  .opt.wrong{ border-color:var(--red); background:rgba(248,113,113,.12); color:var(--red); }
+  .opt.disabled{ pointer-events:none; }
+  .q-explain{ margin-top:14px; padding:14px 16px; border-radius:9px; background:var(--bg-elev); border:1px solid var(--border); font-size:13.5px; color:var(--text-dim); display:none;}
+  .q-explain.show{ display:block; }
+  .quiz-nav{ display:flex; justify-content:space-between; margin-top:20px;}
+  .btn{
+    font-family:var(--mono); font-size:13px; background:var(--accent); color:#06140c; border:none;
+    padding:11px 20px; border-radius:8px; cursor:pointer; font-weight:600; transition:.15s;
+  }
+  .btn:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+  .btn:disabled{ opacity:.35; cursor:not-allowed; transform:none;}
+  .btn.ghost{ background:transparent; color:var(--text-dim); border:1px solid var(--border);}
+  .btn.ghost:hover{ color:var(--text); border-color:var(--text-dim);}
+  #quiz-result{ text-align:center; padding:40px 20px; }
+  #quiz-result .score{ font-size:52px; font-weight:700; color:var(--accent); font-family:var(--mono);}
+
+  /* Cheat sheet */
+  .cheat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:800px){ .cheat-grid{grid-template-columns:1fr;} }
+  .cheat-card h4{ font-family:var(--mono); color:var(--accent); font-size:13px; margin:0 0 10px; text-transform:uppercase; letter-spacing:.05em;}
+  .cheat-card ul{ margin:0; padding-left:18px; font-size:13.5px; line-height:1.8; color:var(--text-dim);}
+  .cheat-card ul code{ color:var(--text); }
+
+  /* story mode */
+  .story-wrap{ display:flex; gap:22px; align-items:flex-start; flex-wrap:wrap;}
+  .story-avatar{
+    flex:0 0 150px; height:150px; border-radius:14px; background:linear-gradient(160deg, #1a2e22, #0d0f14);
+    border:1px solid var(--accent-dim); display:flex; align-items:center; justify-content:center; font-size:64px;
+  }
+  .story-panel{ flex:1; min-width:260px; }
+  .story-tag{ font-family:var(--mono); font-size:11px; color:var(--accent); border:1px solid var(--accent-dim); display:inline-block; padding:2px 10px; border-radius:20px; margin-bottom:10px;}
+  .chat-bubble{
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin:10px 0;
+    font-size:14.5px; line-height:1.65; position:relative;
+  }
+  .chat-bubble.tanjiro{ border-left:3px solid var(--accent); }
+  .chat-bubble.urokodaki{ border-left:3px solid var(--blue); }
+  .chat-bubble .who{ font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:.06em;}
+  .story-btn-row{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
+  .reveal{ display:none; }
+  .reveal.show{ display:block; animation:fade .3s ease;}
+
+  footer{ text-align:center; padding:30px; color:var(--text-dim); font-family:var(--mono); font-size:12px; border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Course 2 · Module 3 — LangGraph Core</div>
+  <h1>Lesson 3.4 — Message State &amp; Chat Pattern</h1>
+  <div class="meta">
+    <span>⏱ <b>5:13</b></span>
+    <span>📚 Prereq: <b>Lesson 3.3</b></span>
+    <span>➡️ Next: <b>Lesson 3.5</b></span>
+    <span>🎯 Reducer: <b>add_messages</b></span>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="theory">📖 Lý thuyết</button>
+    <button class="tab-btn" data-tab="mindmap">🧠 Mindmap</button>
+    <button class="tab-btn" data-tab="quiz">📝 Quiz</button>
+    <button class="tab-btn" data-tab="cheat">⚡ Cheat Sheet</button>
+    <button class="tab-btn" data-tab="story">🍡 Story Mode</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============ THEORY ============ -->
+<section id="theory" class="panel active">
+
+  <h2><span class="num">1.1</span> Khái niệm</h2>
+  <p>Ở Lesson 3.3 bạn đã học <b>reducer</b>: cơ chế quyết định state được <i>ghi đè</i> hay <i>merge</i> khi node trả dữ liệu mới. <b>Message State</b> là ứng dụng cụ thể của reducer đó cho bài toán hội thoại.</p>
+  <div class="card accent">
+    <p><code>MessagesState</code> là <code>TypedDict</code> dựng sẵn của LangGraph:</p>
+<pre><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> MessagesState
+<span class="cm"># tương đương:</span>
+<span class="kw">class</span> <span class="cls">MessagesState</span>(TypedDict):
+    messages: Annotated[list, add_messages]</code></pre>
+  </div>
+
+  <h3>So sánh operator.add vs add_messages</h3>
+  <table>
+    <tr><th>Hành vi</th><th>operator.add</th><th>add_messages</th></tr>
+    <tr><td>Message mới, ID chưa có</td><td>Append cuối</td><td>Append cuối</td></tr>
+    <tr><td>Message trùng ID với cái cũ</td><td>Append trùng (bug)</td><td><b>Update đúng vị trí</b></td></tr>
+    <tr><td>Nhận string thô</td><td>Lỗi kiểu</td><td>Tự convert → HumanMessage</td></tr>
+    <tr><td>Xóa message khỏi lịch sử</td><td>Không hỗ trợ</td><td>Hỗ trợ qua <code>RemoveMessage</code></td></tr>
+  </table>
+
+  <h3>Chat Pattern chuẩn</h3>
+  <div class="flow">
+    <div class="node hi">HumanMessage</div><div class="arrow">→</div>
+    <div class="node">append vào state</div><div class="arrow">→</div>
+    <div class="node hi">node call_model</div><div class="arrow">→</div>
+    <div class="node">gọi LLM</div><div class="arrow">→</div>
+    <div class="node hi">AIMessage</div><div class="arrow">→</div>
+    <div class="node">append vào state</div>
+  </div>
+  <p class="dim">Vì messages cộng dồn qua mỗi turn, LLM ở turn N luôn thấy toàn bộ N-1 turn trước — đây là cách agent "nhớ" hội thoại mà không cần thêm hệ thống memory riêng.</p>
+
+  <h2><span class="num">1.2</span> Ví dụ đời sống</h2>
+  <div class="card">
+    <p>🏨 Hãy tưởng tượng <b>cuốn sổ trực ban ở quầy lễ tân khách sạn</b>. Khách hỏi → lễ tân ghi một dòng. Lễ tân đáp → ghi tiếp dòng dưới. <b>Không bao giờ xé trang cũ</b>, trang mới luôn thêm vào cuối để lật lại xem toàn bộ lịch sử.</p>
+    <p>Nếu lễ tân ghi nhầm, họ không xé trang — họ khoanh đúng <b>mã dòng (ID)</b> và viết đè lên đúng dòng đó. Đó chính là hành vi update-theo-ID của <code>add_messages</code>. Và "nội quy khách sạn" dán ở trang đầu sổ — chính là <code>SystemMessage</code>.</p>
+  </div>
+
+  <h2><span class="num">1.3</span> Vị trí trong hệ thống</h2>
+  <div class="flow">
+    <div class="node">3.1 Pillars</div><div class="arrow">→</div>
+    <div class="node">3.2 First Graph</div><div class="arrow">→</div>
+    <div class="node">3.3 Reducers</div><div class="arrow">→</div>
+    <div class="node hi">★ 3.4 Message State</div><div class="arrow">→</div>
+    <div class="node">3.5 Multi-Node</div><div class="arrow">→</div>
+    <div class="node">3.6–3.14</div>
+  </div>
+  <ul>
+    <li>Phụ thuộc trực tiếp vào <b>3.3 Reducers</b> — nếu chưa hiểu reducer, <code>add_messages</code> chỉ là "chép code".</li>
+    <li>Nền tảng cho <b>Module 8 (ReAct Agent)</b> ở Course 4 — mọi agent tool-calling đều dựng trên <code>MessagesState</code>.</li>
+    <li>Liên quan <b>Lesson 12.1</b> (ChatModels & Messages) và <b>Lesson 12.3</b> (Memory in LangGraph), cũng như <b>Lesson 3.13</b> (Checkpointing) để lưu hội thoại lâu dài.</li>
+  </ul>
+
+  <h2><span class="num">1.4</span> Lệnh quan trọng</h2>
+<pre><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, MessagesState, START, END
+<span class="kw">from</span> langchain_core.messages <span class="kw">import</span> HumanMessage, AIMessage, SystemMessage
+
+graph = StateGraph(MessagesState)
+
+<span class="kw">def</span> <span class="fn">call_model</span>(state: MessagesState) -> dict:
+    response = llm.invoke(state[<span class="str">"messages"</span>])
+    <span class="kw">return</span> {<span class="str">"messages"</span>: [response]}  <span class="cm"># add_messages tự append</span>
+
+graph.add_node(<span class="str">"call_model"</span>, call_model)
+graph.add_edge(START, <span class="str">"call_model"</span>)
+graph.add_edge(<span class="str">"call_model"</span>, END)
+
+app = graph.compile()
+result = app.invoke({<span class="str">"messages"</span>: [HumanMessage(content=<span class="str">"Xin chào!"</span>)]})</code></pre>
+
+  <table>
+    <tr><th>Lệnh / Flag</th><th>Giải thích</th></tr>
+    <tr><td><code>MessagesState</code></td><td>State type dựng sẵn, field <code>messages</code> có reducer <code>add_messages</code>.</td></tr>
+    <tr><td><code>add_messages</code></td><td>Reducer: tự append, tự update theo ID, tự convert string → HumanMessage.</td></tr>
+    <tr><td><code>HumanMessage</code></td><td>Lượt nói của người dùng.</td></tr>
+    <tr><td><code>AIMessage</code></td><td>Lượt trả lời của model.</td></tr>
+    <tr><td><code>SystemMessage</code></td><td>Chỉ dẫn hệ thống, nên đặt đầu list.</td></tr>
+    <tr><td><code>ToolMessage</code></td><td>Kết quả 1 tool call, gắn với <code>tool_call_id</code>.</td></tr>
+    <tr><td><code>app.invoke(...)</code></td><td>Chạy graph 1 lượt, trả state cuối.</td></tr>
+    <tr><td><code>app.stream(...)</code></td><td>Chạy graph, trả từng bước real-time.</td></tr>
+  </table>
+
+  <h3>Lệnh nâng cao</h3>
+<pre><code><span class="kw">from</span> langgraph.graph.message <span class="kw">import</span> RemoveMessage
+
+<span class="cm"># Update 1 message theo ID (ghi đè, không append thêm dòng)</span>
+existing_id = result[<span class="str">"messages"</span>][-1].id
+correction = AIMessage(content=<span class="str">"Xin lỗi, chính xác là..."</span>, id=existing_id)
+app.invoke({<span class="str">"messages"</span>: [correction]})
+
+<span class="cm"># Xóa 1 message khỏi lịch sử</span>
+app.invoke({<span class="str">"messages"</span>: [RemoveMessage(id=existing_id)]})
+
+<span class="cm"># Cắt bớt lịch sử dài trước khi gọi LLM</span>
+<span class="kw">from</span> langchain_core.messages.utils <span class="kw">import</span> trim_messages
+trimmed = trim_messages(state[<span class="str">"messages"</span>], max_tokens=<span class="str">2000</span>, strategy=<span class="str">"last"</span>, token_counter=llm)</code></pre>
+
+  <h2><span class="num">1.5</span> File cấu hình quan trọng</h2>
+  <div class="grid2">
+    <div class="card"><h3>.env</h3><p class="dim">Chứa <code>OPENAI_API_KEY=...</code>, không commit lên git.</p></div>
+    <div class="card"><h3>requirements.txt</h3><p class="dim">Tối thiểu: <code>langgraph</code>, <code>langchain-openai</code>, <code>python-dotenv</code>.</p></div>
+    <div class="card"><h3>langgraph.json</h3><p class="dim">Cần khi deploy lên LangGraph Platform (gặp lại ở Lesson 3.13).</p></div>
+    <div class="card"><h3>Ứng dụng thực tế</h3><p class="dim">Chatbot support, ReAct Agent (Module 8), internal copilot, sản phẩm production như regenerate-message.</p></div>
+  </div>
+
+</section>
+
+<!-- ============ MINDMAP ============ -->
+<section id="mindmap" class="panel">
+  <h2><span class="num">🧠</span> Mindmap tương tác</h2>
+  <p class="dim">Nhấn vào từng node để xem giải thích chi tiết bên dưới.</p>
+  <div class="mindmap-wrap">
+    <svg id="mindmap-svg" viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div id="mm-detail">👉 Chọn 1 node trên mindmap để xem chi tiết.</div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz" class="panel">
+  <h2><span class="num">📝</span> Quiz ôn tập — 10 câu</h2>
+  <div class="quiz-progress"><span id="q-counter">Câu 1 / 10</span><span id="q-score">Điểm: 0</span></div>
+  <div class="quiz-bar"><div class="quiz-bar-fill" id="q-bar"></div></div>
+  <div id="quiz-area"></div>
+</section>
+
+<!-- ============ CHEAT SHEET ============ -->
+<section id="cheat" class="panel">
+  <h2><span class="num">⚡</span> Cheat Sheet</h2>
+  <div class="cheat-grid">
+    <div class="card cheat-card">
+      <h4>Import cốt lõi</h4>
+      <ul>
+        <li><code>from langgraph.graph import MessagesState, StateGraph, START, END</code></li>
+        <li><code>from langgraph.graph.message import add_messages, RemoveMessage</code></li>
+        <li><code>from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage</code></li>
+      </ul>
+    </div>
+    <div class="card cheat-card">
+      <h4>4 loại message</h4>
+      <ul>
+        <li><code>SystemMessage</code> — chỉ dẫn nền, đặt đầu list</li>
+        <li><code>HumanMessage</code> — lượt user</li>
+        <li><code>AIMessage</code> — lượt model trả lời</li>
+        <li><code>ToolMessage</code> — kết quả tool, gắn tool_call_id</li>
+      </ul>
+    </div>
+    <div class="card cheat-card">
+      <h4>Hành vi add_messages</h4>
+      <ul>
+        <li>ID mới → <code>append</code></li>
+        <li>ID trùng → <code>update</code> (ghi đè đúng vị trí)</li>
+        <li>String thô → tự convert <code>HumanMessage</code></li>
+        <li><code>RemoveMessage(id=...)</code> → xóa khỏi lịch sử</li>
+      </ul>
+    </div>
+    <div class="card cheat-card">
+      <h4>File cấu hình</h4>
+      <ul>
+        <li><code>.env</code> — API key</li>
+        <li><code>requirements.txt</code> — langgraph, langchain-openai</li>
+        <li><code>langgraph.json</code> — khi deploy Platform</li>
+      </ul>
+    </div>
+    <div class="card cheat-card">
+      <h4>Lab tóm tắt</h4>
+      <ul>
+        <li>Setup venv → cài <code>langgraph</code>, <code>langchain-openai</code></li>
+        <li>Viết node <code>call_model</code>, build graph 1 node</li>
+        <li>Chạy 3 turns, tái sử dụng <code>state</code> trả về</li>
+        <li>Verify: số lượng message, model nhớ context, đúng thứ tự Human/AI</li>
+      </ul>
+    </div>
+    <div class="card cheat-card">
+      <h4>Bẫy dễ sai</h4>
+      <ul>
+        <li>Reset <code>state</code> rỗng mỗi turn → mất trí nhớ</li>
+        <li>Trả về <code>state["messages"] + [msg]</code> → duplicate</li>
+        <li>Quên <code>Annotated[list, add_messages]</code> khi tự định nghĩa state</li>
+        <li>ID sai khi update → ghi đè nhầm message</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STORY MODE ============ -->
+<section id="story" class="panel">
+  <h2><span class="num">🍡</span> Story Mode — Tanjiro Kamado phá đảo Message State</h2>
+  <span class="story-tag">Thế giới Kimetsu no Yaiba</span>
+  <div class="story-wrap">
+    <div class="story-avatar">🗡️</div>
+    <div class="story-panel">
+      <p>Trên núi, giữa buổi luyện <b>Thủy Hô Hấp</b> cùng thầy Urokodaki, Tanjiro mang theo một cuốn sổ nhỏ — món quà Nezuko tặng trước ngày lên núi. Mỗi buổi tập, thầy hô một chiêu, Tanjiro thực hiện, và cuốn sổ cứ dày lên từng dòng...</p>
+    </div>
+  </div>
+
+  <div id="story-steps">
+    <div class="chat-bubble urokodaki"><span class="who">📜 SystemMessage — dán ở TRANG ĐẦU sổ, không đổi</span>"Không được bỏ cuộc. Nếu ngã, đứng dậy chạy tiếp." — nội quy này Urokodaki viết một lần duy nhất, đầu sổ, và <b>mọi trang sau đều dựa vào nó</b> để hiểu bối cảnh.</div>
+
+    <div class="chat-bubble urokodaki"><span class="who">👤 HumanMessage — turn 1</span>Urokodaki hét: "Chiêu 1 — Nước Chảy Liên Tục!" → dòng này được <b>thêm vào cuối sổ</b>, không xé trang cũ.</div>
+
+    <div class="chat-bubble tanjiro"><span class="who">🤖 AIMessage — turn 1</span>Tanjiro vung đao, cú chém đầu tiên. Kết quả cũng được ghi thêm vào cuối — sổ giờ có 2 dòng, y hệt <code>add_messages</code> append 1 <code>HumanMessage</code> rồi 1 <code>AIMessage</code>.</div>
+
+    <div class="chat-bubble urokodaki"><span class="who">👤 HumanMessage — turn 2</span>"Chiêu 2 — Sóng Cuộn!" → dòng thứ 3, sổ vẫn giữ nguyên 2 dòng cũ phía trên. Tanjiro <b>vẫn nhớ</b> mình vừa tập chiêu 1 xong, vì cả cuốn sổ nằm ngay trước mặt.</div>
+
+    <button class="btn ghost" onclick="revealStory()">▶ Xem tiếp — khi Tanjiro bị "sửa lỗi"</button>
+
+    <div id="story-reveal" class="reveal">
+      <div class="chat-bubble tanjiro"><span class="who">🤖 AIMessage — turn 2 (bị lỗi tư thế)</span>Tanjiro chém sai góc tay. Thầy Urokodaki không hài lòng.</div>
+      <div class="chat-bubble urokodaki"><span class="who">✏️ Update-by-ID — không phải turn mới!</span>Urokodaki <b>không viết thêm dòng mới</b> vào sổ. Ông lật đúng dòng ghi "chém sai góc tay" — dòng đó có <b>đánh số thứ tự riêng (ID)</b> — và <b>viết đè</b> lên đúng dòng đó: "chém đúng góc 45°". Sổ vẫn giữ nguyên số dòng, chỉ nội dung 1 dòng được cập nhật. Đây chính xác là hành vi <code>add_messages</code> khi nhận message <b>trùng ID</b>: ghi đè, không append trùng.</div>
+      <div class="chat-bubble tanjiro"><span class="who">🤖 AIMessage — turn 2 (đã sửa)</span>Tanjiro thực hiện lại đúng góc 45° — và cuốn sổ giờ phản ánh đúng nhất bản mới nhất của chiêu 2, không có dòng "sai" nào tồn tại song song gây rối trí nhớ.</div>
+      <div class="chat-bubble urokodaki"><span class="who">🗑️ RemoveMessage — dọn sổ</span>Cuối buổi, Urokodaki xé bỏ trang ghi lại lần Tanjiro ngủ gật giữa buổi tập — thông tin nhiễu, không cần giữ. Đó là <code>RemoveMessage(id=...)</code>: xóa đúng 1 dòng khỏi lịch sử mà không ảnh hưởng các dòng khác.</div>
+      <div class="card accent">
+        <p>🎬 <b>Bài học rút ra:</b> Cuốn sổ của Tanjiro chính là <code>MessagesState</code>. Ghi thêm dòng mới = <code>append</code>. Sửa đúng dòng cũ bằng đánh số = <code>update theo ID</code>. Xé bỏ dòng nhiễu = <code>RemoveMessage</code>. Và tờ nội quy đầu sổ luôn ở đó = <code>SystemMessage</code>. Không có phép màu Hô Hấp nào ở đây cả — chỉ là một cuốn sổ được quản lý đúng cách!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>Lesson 3.4 — Message State & Chat Pattern · Course 2, Module 3 · roadmap-AI_Agent_&_Context.md</footer>
+
+<script>
+// ---------- TAB SWITCHING ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- STORY REVEAL ----------
+function revealStory(){
+  document.getElementById('story-reveal').classList.add('show');
+}
+
+// ---------- MINDMAP (SVG, interactive) ----------
+const mmData = {
+  id:'root', label:'Message State', x:450, y:260, root:true,
+  detail:'MessagesState: TypedDict dựng sẵn của LangGraph, field messages dùng reducer add_messages để quản lý hội thoại.',
+  children:[
+    {id:'reducer', label:'add_messages', x:450, y:90,
+      detail:'<b>add_messages</b> là reducer: append nếu ID mới, update (ghi đè) nếu trùng ID, tự convert string → HumanMessage, hỗ trợ RemoveMessage để xóa.'},
+    {id:'types', label:'4 loại Message', x:180, y:180,
+      detail:'<b>SystemMessage</b> (chỉ dẫn nền), <b>HumanMessage</b> (lượt user), <b>AIMessage</b> (lượt model), <b>ToolMessage</b> (kết quả tool, gắn tool_call_id).'},
+    {id:'pattern', label:'Chat Pattern', x:720, y:180,
+      detail:'HumanMessage → append → node call_model → gọi LLM → AIMessage → append → chờ turn tiếp theo. Lịch sử luôn cộng dồn.'},
+    {id:'advanced', label:'Nâng cao', x:180, y:400,
+      detail:'Update theo ID (gán cùng .id để ghi đè), RemoveMessage(id=...) để xóa, trim_messages() để cắt bớt lịch sử dài.'},
+    {id:'apps', label:'Ứng dụng thực tế', x:720, y:400,
+      detail:'Chatbot support, ReAct Agent (Module 8 dùng MessagesState mở rộng), internal copilot, tính năng "regenerate" trong sản phẩm production.'},
+    {id:'link35', label:'→ Lesson 3.5', x:450, y:470,
+      detail:'Sau khi thành thạo Message State, Lesson 3.5 (Multi-Node Pipelines) sẽ chain nhiều LLM call, dùng state phức tạp hơn để truyền dữ liệu giữa các node.'}
+  ]
+};
+
+const svgNS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById('mindmap-svg');
+
+function makeNode(n, isRoot){
+  const g = document.createElementNS(svgNS,'g');
+  g.setAttribute('class','mm-node' + (isRoot?' root':''));
+  g.setAttribute('transform', `translate(${n.x},${n.y})`);
+  const w = Math.max(90, n.label.length*8.2 + 28);
+  const h = 42;
+  const rect = document.createElementNS(svgNS,'rect');
+  rect.setAttribute('x', -w/2); rect.setAttribute('y', -h/2);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', 21);
+  g.appendChild(rect);
+  const text = document.createElementNS(svgNS,'text');
+  text.setAttribute('text-anchor','middle');
+  text.setAttribute('dy','5');
+  text.textContent = n.label;
+  g.appendChild(text);
+  g.addEventListener('click', ()=>{
+    document.getElementById('mm-detail').innerHTML = `<b>${n.label}</b><br>${n.detail}`;
+  });
+  return g;
+}
+
+// links first (so nodes render above)
+mmData.children.forEach(c=>{
+  const line = document.createElementNS(svgNS,'path');
+  const midY = (mmData.y + c.y)/2;
+  line.setAttribute('d', `M${mmData.x},${mmData.y} C${mmData.x},${midY} ${c.x},${midY} ${c.x},${c.y}`);
+  line.setAttribute('class','mm-link');
+  svg.appendChild(line);
+});
+svg.appendChild(makeNode(mmData, true));
+mmData.children.forEach(c=> svg.appendChild(makeNode(c, false)));
+
+// ---------- QUIZ ----------
+const quizData = [
+  {type:'Trắc nghiệm', q:'MessagesState sử dụng reducer nào cho field messages?',
+   opts:['operator.add','add_messages','merge_dict','Không có reducer'], correct:1,
+   explain:'add_messages là reducer built-in, xử lý cả append lẫn update-theo-ID.'},
+  {type:'Đúng / Sai', q:'add_messages sẽ luôn append message mới vào cuối list, kể cả khi trùng ID với message đã tồn tại.',
+   opts:['Đúng','Sai'], correct:1,
+   explain:'Sai — nếu trùng ID, add_messages sẽ update (ghi đè) đúng message đó, không append trùng.'},
+  {type:'Điền vào chỗ trống', q:'Để đại diện lượt nói của người dùng trong MessagesState, ta dùng class ____.',
+   opts:['SystemMessage','ToolMessage','HumanMessage','AIMessage'], correct:2,
+   explain:'HumanMessage đại diện cho lượt của người dùng.'},
+  {type:'Trắc nghiệm', q:'Muốn xóa 1 message khỏi lịch sử hội thoại, ta dùng gì?',
+   opts:['state["messages"].pop()','DeleteMessage(id=...)','RemoveMessage(id=...)','add_messages(remove=True)'], correct:2,
+   explain:'RemoveMessage(id=...) là cách chuẩn để xóa 1 message khỏi state.'},
+  {type:'Sắp xếp thứ tự', q:'Thứ tự đúng của Chat Pattern: (a) node call_model gọi LLM, (b) AIMessage append, (c) HumanMessage append, (d) chờ turn tiếp theo. Đâu là thứ tự đúng?',
+   opts:['a → b → c → d','c → a → b → d','b → c → a → d','d → c → b → a'], correct:1,
+   explain:'Đúng thứ tự: HumanMessage append (c) → gọi model (a) → AIMessage append (b) → chờ turn tiếp theo (d).'},
+  {type:'Đúng / Sai', q:'Nếu tự định nghĩa messages: List[BaseMessage] mà không có Annotated[..., add_messages], mỗi node trả về message mới sẽ ghi đè toàn bộ lịch sử cũ.',
+   opts:['Đúng','Sai'], correct:0,
+   explain:'Đúng — không có reducer, LangGraph mặc định replace field thay vì cộng dồn.'},
+  {type:'Trắc nghiệm', q:'Vì sao nên dùng MessagesState có sẵn thay vì tự định nghĩa state hội thoại?',
+   opts:['Vì chạy nhanh hơn về CPU','Vì add_messages xử lý đúng append và update-theo-ID mà operator.add không làm được','Vì bắt buộc khi deploy LangGraph Platform','Vì tự động dịch sang tiếng Anh'], correct:1,
+   explain:'Lý do cốt lõi là add_messages xử lý đúng cả 2 hành vi: append và update theo ID.'},
+  {type:'Điền vào chỗ trống', q:'Hàm dùng để cắt bớt lịch sử hội thoại dài trước khi đưa vào LLM là ____.',
+   opts:['trim_messages','cut_messages','shrink_history','filter_messages'], correct:0,
+   explain:'trim_messages(messages, max_tokens=..., strategy=...) dùng để cắt bớt lịch sử.'},
+  {type:'Đúng / Sai', q:'SystemMessage nên được đặt xen kẽ ngẫu nhiên trong list messages, không nhất thiết ở đầu.',
+   opts:['Đúng','Sai'], correct:1,
+   explain:'Sai — SystemMessage nên đặt ở đầu list để làm chỉ dẫn nền cho toàn bộ hội thoại.'},
+  {type:'Trắc nghiệm', q:'Trong ReAct Agent, kết quả trả về từ việc gọi tool được biểu diễn bằng loại message nào?',
+   opts:['SystemMessage','HumanMessage','ToolMessage','AIMessage'], correct:2,
+   explain:'ToolMessage mang kết quả tool call, gắn với đúng tool_call_id tương ứng.'}
+];
+
+let qIndex = 0, qScore = 0, qAnswered = false;
+
+function renderQuiz(){
+  const area = document.getElementById('quiz-area');
+  const item = quizData[qIndex];
+  document.getElementById('q-counter').textContent = `Câu ${qIndex+1} / ${quizData.length}`;
+  document.getElementById('q-score').textContent = `Điểm: ${qScore}`;
+  document.getElementById('q-bar').style.width = `${(qIndex/quizData.length)*100}%`;
+  qAnswered = false;
+
+  area.innerHTML = `
+    <div class="q-card">
+      <span class="q-type">${item.type}</span>
+      <div class="q-text">${item.q}</div>
+      <div id="opts"></div>
+      <div class="q-explain" id="explain">${item.explain}</div>
+      <div class="quiz-nav">
+        <button class="btn ghost" id="prev-btn" ${qIndex===0?'disabled':''}>← Câu trước</button>
+        <button class="btn" id="next-btn" disabled>Câu tiếp →</button>
+      </div>
+    </div>`;
+
+  const optsWrap = document.getElementById('opts');
+  item.opts.forEach((opt, i)=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      if(qAnswered) return;
+      qAnswered = true;
+      document.querySelectorAll('.opt').forEach((el, idx)=>{
+        el.classList.add('disabled');
+        if(idx === item.correct) el.classList.add('correct');
+        else if(idx === i) el.classList.add('wrong');
+      });
+      if(i === item.correct) qScore++;
+      document.getElementById('q-score').textContent = `Điểm: ${qScore}`;
+      document.getElementById('explain').classList.add('show');
+      document.getElementById('next-btn').disabled = false;
+    });
+    optsWrap.appendChild(b);
+  });
+
+  document.getElementById('prev-btn').addEventListener('click', ()=>{
+    if(qIndex>0){ qIndex--; renderQuiz(); }
+  });
+  document.getElementById('next-btn').addEventListener('click', ()=>{
+    if(qIndex < quizData.length-1){ qIndex++; renderQuiz(); }
+    else renderResult();
+  });
+}
+
+function renderResult(){
+  document.getElementById('q-bar').style.width = '100%';
+  document.getElementById('q-counter').textContent = `Hoàn thành ${quizData.length}/${quizData.length}`;
+  const pct = Math.round((qScore/quizData.length)*100);
+  document.getElementById('quiz-area').innerHTML = `
+    <div id="quiz-result" class="q-card">
+      <div class="score">${qScore} / ${quizData.length}</div>
+      <p>${pct >= 80 ? '🎉 Xuất sắc! Bạn nắm chắc Message State & Chat Pattern.' : pct >= 50 ? '👍 Khá ổn, xem lại vài phần lý thuyết nhé.' : '📖 Nên đọc lại tab Lý thuyết trước khi qua bài 3.5.'}</p>
+      <button class="btn" onclick="restartQuiz()">↺ Làm lại từ đầu</button>
+    </div>`;
+}
+
+function restartQuiz(){
+  qIndex = 0; qScore = 0;
+  renderQuiz();
+}
+
+renderQuiz();
+</script>
+
+</body>
+</html>

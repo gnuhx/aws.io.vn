@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2.13–2.16 · Embeddings & Vector Stores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f14;
+    --bg-alt:#12151c;
+    --panel:#161a23;
+    --panel-2:#1b202b;
+    --border:#252b38;
+    --text:#e6e9f0;
+    --text-dim:#8b93a7;
+    --accent:#4ade80;
+    --accent-dim:#2d6b47;
+    --accent-glow: rgba(74,222,128,0.18);
+    --warn:#f59e0b;
+    --danger:#f87171;
+    --blue:#60a5fa;
+    --purple:#c084fc;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+  }
+  code, pre, .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- layout shell ---------- */
+  .app{ max-width:1180px; margin:0 auto; padding:28px 20px 80px; }
+  .header{
+    display:flex; flex-direction:column; gap:6px;
+    margin-bottom:22px; padding-bottom:18px;
+    border-bottom:1px solid var(--border);
+  }
+  .header .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent);
+  }
+  .header h1{ font-size:26px; margin:2px 0 4px; font-weight:700; }
+  .header .sub{ color:var(--text-dim); font-size:14px; }
+  .meta-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .meta-pill{
+    font-family:'JetBrains Mono', monospace; font-size:11.5px;
+    padding:4px 10px; border-radius:999px;
+    background:var(--panel); border:1px solid var(--border); color:var(--text-dim);
+  }
+  .meta-pill b{ color:var(--accent); }
+
+  /* ---------- tab nav ---------- */
+  .tabs{
+    display:flex; gap:6px; margin-bottom:22px; flex-wrap:wrap;
+    border-bottom:1px solid var(--border);
+  }
+  .tab-btn{
+    font-family:'JetBrains Mono', monospace; font-size:13px;
+    background:transparent; border:none; color:var(--text-dim);
+    padding:12px 16px; cursor:pointer; position:relative;
+    display:flex; align-items:center; gap:8px;
+    transition:color .15s ease;
+  }
+  .tab-btn:hover{ color:var(--text); }
+  .tab-btn.active{ color:var(--accent); }
+  .tab-btn.active::after{
+    content:''; position:absolute; left:10px; right:10px; bottom:-1px; height:2px;
+    background:var(--accent); border-radius:2px;
+    box-shadow:0 0 8px var(--accent-glow);
+  }
+  .tab-panel{ display:none; animation:fadeIn .25s ease; }
+  .tab-panel.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- generic cards ---------- */
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:20px 22px; margin-bottom:16px;
+  }
+  .card h2{ font-size:17px; margin:0 0 10px; display:flex; align-items:center; gap:8px; }
+  .card h2 .num{
+    font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--accent);
+    background:var(--accent-glow); border:1px solid var(--accent-dim);
+    padding:2px 8px; border-radius:6px;
+  }
+  .card p{ color:var(--text-dim); line-height:1.65; font-size:14.5px; margin:0 0 10px; }
+  .card p:last-child{ margin-bottom:0; }
+  .card ul{ margin:8px 0; padding-left:20px; color:var(--text-dim); font-size:14.5px; line-height:1.7; }
+  .analogy{
+    border-left:3px solid var(--accent); background:var(--bg-alt);
+    padding:12px 16px; border-radius:0 8px 8px 0; margin:10px 0; font-size:14px; color:var(--text);
+  }
+  .analogy b{ color:var(--accent); }
+
+  /* code blocks */
+  pre.code{
+    background:#090b0f; border:1px solid var(--border); border-radius:10px;
+    padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.6; margin:10px 0;
+  }
+  .kw{ color:var(--purple); } .str{ color:var(--accent); } .com{ color:var(--text-dim); font-style:italic; }
+  .fn{ color:var(--blue); } .param{ color:#fbbf24; }
+
+  /* comparison table */
+  table.cmp{ width:100%; border-collapse:collapse; margin:10px 0; font-size:13.5px; }
+  table.cmp th{
+    text-align:left; padding:9px 12px; background:var(--panel-2); color:var(--accent);
+    font-family:'JetBrains Mono', monospace; font-size:12px; text-transform:uppercase; letter-spacing:.05em;
+    border-bottom:1px solid var(--border);
+  }
+  table.cmp td{ padding:9px 12px; border-bottom:1px solid var(--border); color:var(--text-dim); }
+  table.cmp tr:last-child td{ border-bottom:none; }
+  table.cmp td.hl{ color:var(--text); }
+
+  .flow{
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:14px 0;
+    font-family:'JetBrains Mono', monospace; font-size:12.5px;
+  }
+  .flow .step{
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
+    padding:8px 12px; color:var(--text);
+  }
+  .flow .step.now{ border-color:var(--accent); color:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+  .flow .arrow{ color:var(--text-dim); }
+
+  /* ---------- mindmap ---------- */
+  .mindmap-wrap{ display:flex; gap:18px; flex-wrap:wrap; }
+  .mindmap-svg-box{
+    flex:1 1 560px; background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:10px; min-height:480px;
+  }
+  .mindmap-info{
+    flex:1 1 320px; background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:20px; min-height:480px;
+  }
+  .mindmap-info h3{ color:var(--accent); margin:0 0 8px; font-size:16px; }
+  .mindmap-info p{ color:var(--text-dim); font-size:14px; line-height:1.6; }
+  .node-circle{ cursor:pointer; transition:all .15s ease; }
+  .node-circle:hover{ filter:brightness(1.3); }
+  .node-label{ font-family:'Space Grotesk', sans-serif; fill:var(--text); font-size:12px; pointer-events:none; user-select:none; }
+  .node-sub{ font-family:'JetBrains Mono', monospace; fill:var(--text-dim); font-size:9.5px; pointer-events:none; user-select:none; }
+  .edge{ stroke:var(--border); stroke-width:1.5; }
+  .edge.active{ stroke:var(--accent); stroke-width:2; }
+
+  /* ---------- quiz ---------- */
+  .quiz-progress{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;
+    font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--text-dim);
+  }
+  .quiz-score{ color:var(--accent); font-weight:600; }
+  .progress-bar{ height:6px; background:var(--panel-2); border-radius:3px; overflow:hidden; margin-bottom:20px; }
+  .progress-bar-fill{ height:100%; background:var(--accent); transition:width .3s ease; }
+  .q-card{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:22px; }
+  .q-type{
+    display:inline-block; font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--blue); background:rgba(96,165,250,0.12); border:1px solid rgba(96,165,250,0.3);
+    padding:3px 8px; border-radius:6px; margin-bottom:10px;
+  }
+  .q-text{ font-size:15.5px; margin-bottom:16px; line-height:1.55; }
+  .opt{
+    display:block; width:100%; text-align:left; background:var(--panel-2); border:1px solid var(--border);
+    color:var(--text); padding:12px 14px; border-radius:8px; margin-bottom:8px; cursor:pointer;
+    font-size:14px; font-family:'Space Grotesk', sans-serif; transition:all .15s ease;
+  }
+  .opt:hover{ border-color:var(--accent); }
+  .opt.correct{ border-color:var(--accent); background:rgba(74,222,128,0.12); color:var(--accent); }
+  .opt.wrong{ border-color:var(--danger); background:rgba(248,113,113,0.12); color:var(--danger); }
+  .opt:disabled{ cursor:default; }
+  .fill-input{
+    width:100%; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:12px 14px; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:14px; margin-bottom:10px;
+  }
+  .fill-input:focus{ outline:none; border-color:var(--accent); }
+  .btn{
+    font-family:'JetBrains Mono', monospace; font-size:13px; background:var(--accent); color:#062012;
+    border:none; padding:10px 18px; border-radius:8px; cursor:pointer; font-weight:600;
+  }
+  .btn:hover{ filter:brightness(1.08); }
+  .btn.secondary{ background:var(--panel-2); color:var(--text); border:1px solid var(--border); }
+  .explain{
+    margin-top:14px; padding:12px 14px; border-radius:8px; font-size:13.5px; line-height:1.6;
+    background:var(--bg-alt); border-left:3px solid var(--accent); color:var(--text-dim); display:none;
+  }
+  .explain.show{ display:block; }
+  .seq-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+  .seq-item{
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:10px 14px;
+    display:flex; align-items:center; gap:10px; cursor:grab; font-size:14px;
+  }
+  .seq-item .idx{ font-family:'JetBrains Mono', monospace; color:var(--accent); font-weight:700; }
+  .quiz-nav{ display:flex; justify-content:space-between; margin-top:18px; }
+  .result-box{ text-align:center; padding:40px 20px; }
+  .result-box .big-score{ font-size:48px; color:var(--accent); font-weight:700; font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- cheat sheet ---------- */
+  .cheat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width: 820px){ .cheat-grid{ grid-template-columns:1fr; } .mindmap-wrap{flex-direction:column;} }
+  .cheat-block h3{ color:var(--accent); font-size:14px; margin:0 0 8px; font-family:'JetBrains Mono', monospace; }
+  .cheat-row{ display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px dashed var(--border); font-size:13px; }
+  .cheat-row:last-child{ border-bottom:none; }
+  .cheat-row code{ color:var(--blue); font-size:12.5px; }
+  .cheat-row span{ color:var(--text-dim); text-align:right; }
+
+  footer.note{ text-align:center; color:var(--text-dim); font-size:12px; margin-top:40px; font-family:'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="eyebrow">Course 2 · Module 2 — RAG</div>
+    <h1>Embeddings + Vector Stores</h1>
+    <div class="sub">Lesson 2.13 → 2.16 · Chroma hands-on · metadata filtering · persistence</div>
+    <div class="meta-row">
+      <span class="meta-pill"><b>2.13</b> OpenAI Embeddings & Caching</span>
+      <span class="meta-pill"><b>2.14</b> Vector Stores</span>
+      <span class="meta-pill"><b>2.15</b> ChromaDB Hands-on</span>
+      <span class="meta-pill"><b>2.16</b> Vector Stores Exercise</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="theory">📖 Lý thuyết</button>
+    <button class="tab-btn" data-tab="mindmap">🧠 Mindmap</button>
+    <button class="tab-btn" data-tab="quiz">📝 Quiz</button>
+    <button class="tab-btn" data-tab="cheat">⚡ Cheat Sheet</button>
+  </div>
+
+  <!-- ================= TAB 1: LY THUYET ================= -->
+  <div class="tab-panel active" id="panel-theory">
+
+    <div class="card">
+      <h2><span class="num">01</span> Khái niệm cốt lõi</h2>
+      <p><b style="color:var(--text)">Embedding</b> biến 1 đoạn text thành 1 vector số (1536 chiều với <code>text-embedding-3-small</code>) mã hoá <i>ý nghĩa</i> chứ không phải mặt chữ.</p>
+      <div class="analogy">
+        📚 <b>Ví dụ đời sống:</b> Thay vì xếp sách theo bảng chữ cái tên tác giả, bạn xếp theo "toạ độ chủ đề". Sách về "chó" và "mèo" đứng gần nhau vì cùng nhóm "thú cưng"; sách "vũ trụ" đứng xa tít bên kia thư viện. Embedding = toạ độ đó, chỉ là không gian có 1536 chiều thay vì 3.
+      </div>
+      <p><b style="color:var(--text)">Vector Store</b> là "thư viện" lưu vector + metadata + text gốc, cho phép hỏi "đưa tôi N cuốn gần toạ độ này nhất" — <i>similarity search</i>.</p>
+      <p><b style="color:var(--text)">Metadata filtering</b> giống như nói với thủ thư: "tìm sách gần chủ đề X, nhưng chỉ trong kệ xuất bản sau 2020" — lọc cứng trước khi so ý nghĩa.</p>
+      <p><b style="color:var(--text)">Persistence</b> = thư viện được ghi xuống đĩa, tắt máy mở lại vẫn còn, không phải re-embed từ đầu.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">02</span> Vị trí trong hệ thống</h2>
+      <div class="flow">
+        <div class="step">2.10 Text Splitters</div><div class="arrow">→</div>
+        <div class="step">2.11 RAG Overview</div><div class="arrow">→</div>
+        <div class="step">2.12 Vectors & Embeddings</div><div class="arrow">→</div>
+        <div class="step now">2.13-2.16 Embeddings + Vector Stores</div><div class="arrow">→</div>
+        <div class="step">2.17 RAG Architecture</div><div class="arrow">→</div>
+        <div class="step">2.20-21 Advanced RAG</div>
+      </div>
+      <p>Đây là giai đoạn <b style="color:var(--text)">Indexing</b>: <code>document → chunk → embed → store</code>, chuẩn bị dữ liệu trước khi bước vào query-time retrieval.</p>
+      <p>🔗 <b style="color:var(--text)">Liên kết Exam Generator:</b> Roadmap yêu cầu embed đề mẫu JSON vào Chroma, persist xuống disk, rồi node <code>retrieve_samples</code> filter theo <code>{subject, exam_type}</code> trước, semantic search theo <code>topic</code> sau — chính là nội dung 4 bài này.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">03</span> Lệnh quan trọng — Embeddings (2.13)</h2>
+      <pre class="code"><span class="kw">from</span> langchain_openai <span class="kw">import</span> OpenAIEmbeddings
+
+embeddings = <span class="fn">OpenAIEmbeddings</span>(<span class="param">model</span>=<span class="str">"text-embedding-3-small"</span>)
+
+vec_docs  = embeddings.<span class="fn">embed_documents</span>([<span class="str">"văn bản 1"</span>, <span class="str">"văn bản 2"</span>])  <span class="com"># batch → lưu trữ</span>
+vec_query = embeddings.<span class="fn">embed_query</span>(<span class="str">"câu hỏi của user"</span>)              <span class="com"># 1 câu → tìm kiếm</span></pre>
+      <p><code>model</code>: <code>text-embedding-3-small</code> (1536-dim, rẻ) vs <code>text-embedding-3-large</code> (3072-dim, chính xác hơn, đắt hơn).</p>
+      <p><code>embed_documents()</code> vs <code>embed_query()</code>: khác nhau ở batch vs single và cách normalize (asymmetric embedding).</p>
+      <pre class="code"><span class="kw">from</span> langchain.embeddings <span class="kw">import</span> CacheBackedEmbeddings
+<span class="kw">from</span> langchain.storage <span class="kw">import</span> LocalFileStore
+
+store = <span class="fn">LocalFileStore</span>(<span class="str">"./cache/"</span>)
+cached_embedder = CacheBackedEmbeddings.<span class="fn">from_bytes_store</span>(
+    embeddings, store, <span class="param">namespace</span>=embeddings.model
+)</pre>
+      <p><code>CacheBackedEmbeddings</code>: tránh embed lại document đã embed rồi. <code>namespace</code>: tách cache theo model để không lẫn khi đổi model.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">04</span> Vector Stores — so sánh (2.14)</h2>
+      <table class="cmp">
+        <tr><th>Loại</th><th>Ví dụ</th><th>Khi nào dùng</th></tr>
+        <tr><td class="hl">Local (dev)</td><td>ChromaDB</td><td>Prototype, project cá nhân</td></tr>
+        <tr><td class="hl">Local (tốc độ)</td><td>FAISS</td><td>Search cực nhanh, ít cần metadata phức tạp</td></tr>
+        <tr><td class="hl">Managed (production)</td><td>Pinecone, Weaviate, Qdrant</td><td>Scale lớn, cần SLA/uptime</td></tr>
+        <tr><td class="hl">SQL-based</td><td>pgvector</td><td>Đã có Postgres, muốn gộp chung dữ liệu</td></tr>
+      </table>
+      <table class="cmp">
+        <tr><th>Index type</th><th>Đặc điểm</th></tr>
+        <tr><td class="hl">Flat</td><td>Brute-force, chính xác 100%, chậm khi dữ liệu lớn</td></tr>
+        <tr><td class="hl">HNSW</td><td>Đồ thị phân lớp, approximate, rất nhanh — phổ biến production</td></tr>
+        <tr><td class="hl">IVF</td><td>Chia cluster, tìm trong cluster gần nhất — nhanh, đánh đổi accuracy</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">05</span> ChromaDB Hands-on (2.15)</h2>
+      <pre class="code"><span class="kw">from</span> langchain_chroma <span class="kw">import</span> Chroma
+
+vectorstore = Chroma.<span class="fn">from_documents</span>(
+    <span class="param">documents</span>=docs,
+    <span class="param">embedding</span>=embeddings,
+    <span class="param">persist_directory</span>=<span class="str">"./chroma_db"</span>,   <span class="com"># ghi xuống đĩa</span>
+    <span class="param">collection_name</span>=<span class="str">"exam_samples"</span>
+)</pre>
+      <p><code>persist_directory</code>: flag quan trọng nhất — không có nó Chroma chỉ tồn tại trong RAM. <code>collection_name</code>: nhiều "bảng" logic trong cùng 1 thư mục.</p>
+      <pre class="code">results = vectorstore.<span class="fn">similarity_search_with_score</span>(
+    <span class="param">query</span>=<span class="str">"hàm số bậc nhất"</span>, <span class="param">k</span>=4
+)  <span class="com"># score gần 0 = giống nhau (đây là DISTANCE)</span>
+
+results = vectorstore.<span class="fn">similarity_search</span>(
+    <span class="param">query</span>=<span class="str">"hàm số bậc nhất"</span>, <span class="param">k</span>=4,
+    <span class="param">filter</span>={<span class="str">"subject"</span>: <span class="str">"toan"</span>, <span class="str">"exam_type"</span>: <span class="str">"1tiet"</span>}
+)  <span class="com"># metadata filtering — lọc trước khi so vector</span>
+
+retriever = vectorstore.<span class="fn">as_retriever</span>(
+    <span class="param">search_type</span>=<span class="str">"similarity"</span>,   <span class="com"># hoặc "mmr", "similarity_score_threshold"</span>
+    <span class="param">search_kwargs</span>={<span class="str">"k"</span>: 4, <span class="str">"filter"</span>: {<span class="str">"subject"</span>: <span class="str">"toan"</span>}}
+)</pre>
+      <p><code>k</code>: số kết quả trả về — quá nhỏ thiếu context, quá lớn gây noise. <code>as_retriever()</code>: chuẩn hoá interface để cắm vào chain/agent (<code>retriever.invoke(query)</code>).</p>
+      <pre class="code"><span class="com"># Load lại từ đĩa — không re-embed</span>
+vectorstore = Chroma(
+    <span class="param">persist_directory</span>=<span class="str">"./chroma_db"</span>,
+    <span class="param">embedding_function</span>=embeddings,
+    <span class="param">collection_name</span>=<span class="str">"exam_samples"</span>
+)</pre>
+      <p>⚠️ Phải dùng <b style="color:var(--text)">cùng embedding model</b> giữa lúc tạo và lúc load — đổi model không lỗi ngay nhưng similarity search sẽ sai lệch vì số chiều không khớp ngữ nghĩa.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">06</span> File cấu hình quan trọng</h2>
+      <ul>
+        <li><code>persist_directory</code> — thư mục (không phải 1 file), Chroma tự quản lý SQLite + Parquet bên trong</li>
+        <li><code>.env</code> — chứa <code>OPENAI_API_KEY=sk-...</code></li>
+        <li><code>requirements.txt</code> — <code>langchain</code>, <code>langchain-openai</code>, <code>langchain-chroma</code>, <code>chromadb</code></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">07</span> Ứng dụng thực tế</h2>
+      <ul>
+        <li><b style="color:var(--text)">Exam Generator (project của bạn):</b> embed đề mẫu JSON, persist, retrieve theo metadata trước rồi semantic search topic</li>
+        <li><b style="color:var(--text)">Documentation Helper:</b> embed docs crawl được, filter theo URL/section trước khi trả context</li>
+        <li><b style="color:var(--text)">Chatbot doanh nghiệp:</b> filter theo <code>department</code>/<code>product_line</code> để tránh lẫn ngữ cảnh</li>
+        <li><b style="color:var(--text)">Production scale:</b> chuyển từ Chroma sang Pinecone/Qdrant/pgvector khi cần SLA + multi-tenant</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- ================= TAB 2: MINDMAP ================= -->
+  <div class="tab-panel" id="panel-mindmap">
+    <div class="mindmap-wrap">
+      <div class="mindmap-svg-box">
+        <svg id="mindmapSvg" viewBox="0 0 560 480" style="width:100%; height:480px;"></svg>
+      </div>
+      <div class="mindmap-info" id="mindmapInfo">
+        <h3>👆 Nhấn vào 1 node</h3>
+        <p>Chọn một node trên sơ đồ để xem giải thích chi tiết về khái niệm đó và cách nó liên kết với Exam Generator.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 3: QUIZ ================= -->
+  <div class="tab-panel" id="panel-quiz">
+    <div class="quiz-progress">
+      <span>Câu <span id="qCurrent">1</span> / 10</span>
+      <span class="quiz-score">Điểm: <span id="qScore">0</span> / 10</span>
+    </div>
+    <div class="progress-bar"><div class="progress-bar-fill" id="qProgressFill" style="width:10%"></div></div>
+    <div class="q-card" id="quizContainer"></div>
+  </div>
+
+  <!-- ================= TAB 4: CHEAT SHEET ================= -->
+  <div class="tab-panel" id="panel-cheat">
+    <div class="cheat-grid">
+      <div class="card cheat-block">
+        <h3>🔑 Lệnh cốt lõi</h3>
+        <div class="cheat-row"><code>OpenAIEmbeddings(model=...)</code><span>khởi tạo embedding model</span></div>
+        <div class="cheat-row"><code>.embed_documents(list)</code><span>batch embed để lưu</span></div>
+        <div class="cheat-row"><code>.embed_query(str)</code><span>embed 1 câu để search</span></div>
+        <div class="cheat-row"><code>Chroma.from_documents(...)</code><span>tạo + embed + lưu</span></div>
+        <div class="cheat-row"><code>persist_directory=...</code><span>ghi xuống đĩa</span></div>
+        <div class="cheat-row"><code>.similarity_search(q, k=4)</code><span>tìm top-k</span></div>
+        <div class="cheat-row"><code>.similarity_search_with_score()</code><span>kèm distance score</span></div>
+        <div class="cheat-row"><code>filter={"key": "val"}</code><span>metadata filtering</span></div>
+        <div class="cheat-row"><code>.as_retriever(search_kwargs=...)</code><span>bọc thành Retriever</span></div>
+        <div class="cheat-row"><code>.add_documents(new_docs)</code><span>thêm doc vào collection</span></div>
+        <div class="cheat-row"><code>.delete(ids=[...])</code><span>xoá theo id</span></div>
+      </div>
+      <div class="card cheat-block">
+        <h3>📁 File cấu hình</h3>
+        <div class="cheat-row"><code>persist_directory/</code><span>thư mục lưu vector store</span></div>
+        <div class="cheat-row"><code>.env</code><span>OPENAI_API_KEY</span></div>
+        <div class="cheat-row"><code>requirements.txt</code><span>langchain, langchain-chroma, chromadb</span></div>
+        <h3 style="margin-top:16px;">📊 Index types</h3>
+        <div class="cheat-row"><code>Flat</code><span>chính xác 100%, chậm</span></div>
+        <div class="cheat-row"><code>HNSW</code><span>approximate, rất nhanh</span></div>
+        <div class="cheat-row"><code>IVF</code><span>cluster-based, nhanh</span></div>
+        <h3 style="margin-top:16px;">🏗️ Vector store options</h3>
+        <div class="cheat-row"><code>Chroma / FAISS</code><span>local / dev</span></div>
+        <div class="cheat-row"><code>Pinecone / Weaviate / Qdrant</code><span>production managed</span></div>
+        <div class="cheat-row"><code>pgvector</code><span>Postgres extension</span></div>
+      </div>
+      <div class="card cheat-block" style="grid-column:1/-1;">
+        <h3>🧪 Lab steps tóm tắt</h3>
+        <div class="cheat-row"><span>1</span><span>Tạo Document list với metadata {subject, exam_type, topic}</span></div>
+        <div class="cheat-row"><span>2</span><span>Chroma.from_documents(...) với persist_directory</span></div>
+        <div class="cheat-row"><span>3</span><span>similarity_search_with_score() + filter metadata</span></div>
+        <div class="cheat-row"><span>4</span><span>Reload từ persist_directory ở process mới, verify count() không đổi</span></div>
+        <div class="cheat-row"><span>5</span><span>as_retriever() + invoke() để test end-to-end</span></div>
+        <div class="cheat-row"><span>⚠️</span><span>Không đổi embedding model giữa lúc tạo và lúc load lại</span></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">Course 2 · Module 2 — RAG bổ sung · Lesson 2.13–2.16 · Exam Generator RAG layer prep</footer>
+</div>
+
+<script>
+// ================= TAB SWITCHING =================
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ================= MINDMAP =================
+const nodes = [
+  {id:'root', x:280, y:60, r:34, label:'Embeddings +', label2:'Vector Stores', color:'#4ade80',
+    info:'Trung tâm bài học: biến text thành vector số, lưu vào "thư viện" có thể tìm theo ý nghĩa và lọc theo metadata.'},
+  {id:'embed', x:110, y:170, r:28, label:'Embeddings', sub:'2.13', color:'#60a5fa',
+    info:'OpenAIEmbeddings(model="text-embedding-3-small"). embed_documents() cho batch, embed_query() cho 1 câu tìm kiếm. CacheBackedEmbeddings tránh embed lại tốn tiền.'},
+  {id:'store', x:280, y:170, r:28, label:'Vector Store', sub:'2.14', color:'#c084fc',
+    info:'Database lưu vector + metadata + text gốc. Local (Chroma, FAISS) cho dev, managed (Pinecone/Weaviate/Qdrant) cho production. Index: Flat / HNSW / IVF.'},
+  {id:'chroma', x:450, y:170, r:28, label:'Chroma', sub:'2.15', color:'#4ade80',
+    info:'Chroma.from_documents(docs, embedding, persist_directory=...). similarity_search(query, k=4). as_retriever() để cắm vào chain/agent.'},
+  {id:'sim', x:60, y:290, r:22, label:'similarity_search', sub:'k=4', color:'#60a5fa',
+    info:'similarity_search(query, k=4): trả về top-k document gần nhất theo cosine distance. k quá nhỏ → thiếu context, k quá lớn → nhiễu.'},
+  {id:'score', x:190, y:300, r:22, label:'with_score()', sub:'distance', color:'#60a5fa',
+    info:'similarity_search_with_score(): trả kèm cosine distance. Score càng GẦN 0 càng giống nhau — đây là distance, không phải similarity, dễ nhầm!'},
+  {id:'filter', x:330, y:300, r:22, label:'metadata filter', sub:'where/filter', color:'#f59e0b',
+    info:'filter={"subject": "toan"}: lọc cứng theo metadata TRƯỚC/song song với semantic search. Đây là kỹ thuật node retrieve_samples trong Exam Generator dùng.'},
+  {id:'persist', x:460, y:300, r:22, label:'persist_directory', sub:'disk', color:'#f59e0b',
+    info:'persist_directory="./chroma_db": ghi xuống đĩa. Restart app không cần re-embed lại — chỉ trỏ đúng path + collection_name + cùng embedding model.'},
+  {id:'retriever', x:280, y:400, r:24, label:'as_retriever()', sub:'2.16', color:'#4ade80',
+    info:'as_retriever(search_kwargs={"k":4, "filter":{...}}): chuẩn hoá vector store thành Retriever, cắm thẳng vào LangChain chain/agent qua .invoke(query).'},
+];
+const edges = [
+  ['root','embed'], ['root','store'], ['root','chroma'],
+  ['embed','sim'], ['store','score'], ['chroma','filter'], ['chroma','persist'],
+  ['sim','retriever'], ['score','retriever'], ['filter','retriever'], ['persist','retriever'],
+];
+
+const svgNS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById('mindmapSvg');
+
+function nodeById(id){ return nodes.find(n=>n.id===id); }
+
+edges.forEach(([a,b])=>{
+  const na = nodeById(a), nb = nodeById(b);
+  const line = document.createElementNS(svgNS, 'line');
+  line.setAttribute('x1', na.x); line.setAttribute('y1', na.y);
+  line.setAttribute('x2', nb.x); line.setAttribute('y2', nb.y);
+  line.setAttribute('class', 'edge');
+  line.setAttribute('id', 'edge-'+a+'-'+b);
+  svg.appendChild(line);
+});
+
+nodes.forEach(n=>{
+  const g = document.createElementNS(svgNS, 'g');
+  const circle = document.createElementNS(svgNS, 'circle');
+  circle.setAttribute('cx', n.x); circle.setAttribute('cy', n.y); circle.setAttribute('r', n.r);
+  circle.setAttribute('fill', 'rgba(255,255,255,0.03)');
+  circle.setAttribute('stroke', n.color); circle.setAttribute('stroke-width', '2');
+  circle.setAttribute('class', 'node-circle');
+  circle.style.transformOrigin = `${n.x}px ${n.y}px`;
+  g.appendChild(circle);
+
+  const label = document.createElementNS(svgNS, 'text');
+  label.setAttribute('x', n.x); label.setAttribute('y', n.label2 ? n.y - 4 : n.y + 4);
+  label.setAttribute('text-anchor', 'middle');
+  label.setAttribute('class', 'node-label');
+  label.textContent = n.label;
+  g.appendChild(label);
+
+  if(n.label2){
+    const label2 = document.createElementNS(svgNS, 'text');
+    label2.setAttribute('x', n.x); label2.setAttribute('y', n.y + 12);
+    label2.setAttribute('text-anchor', 'middle');
+    label2.setAttribute('class', 'node-label');
+    label2.textContent = n.label2;
+    g.appendChild(label2);
+  }
+
+  if(n.sub){
+    const sub = document.createElementNS(svgNS, 'text');
+    sub.setAttribute('x', n.x); sub.setAttribute('y', n.y + n.r + 14);
+    sub.setAttribute('text-anchor', 'middle');
+    sub.setAttribute('class', 'node-sub');
+    sub.textContent = n.sub;
+    g.appendChild(sub);
+  }
+
+  g.style.cursor = 'pointer';
+  g.addEventListener('click', ()=>{
+    document.querySelectorAll('.edge').forEach(e=>e.classList.remove('active'));
+    edges.forEach(([a,b])=>{
+      if(a===n.id || b===n.id){
+        document.getElementById('edge-'+a+'-'+b).classList.add('active');
+      }
+    });
+    document.getElementById('mindmapInfo').innerHTML =
+      `<h3>${n.label}${n.label2 ? ' '+n.label2 : ''}</h3><p>${n.info}</p>`;
+  });
+
+  svg.appendChild(g);
+});
+
+// ================= QUIZ =================
+const quizData = [
+  { type:'mc', q:'`embed_documents()` khác `embed_query()` ở điểm nào?',
+    opts:['Không khác gì, chỉ tên gọi khác nhau','embed_documents() nhận list và tối ưu batch; embed_query() nhận 1 string và có thể normalize khác cho tìm kiếm','embed_query() chỉ dùng được với FAISS','embed_documents() không trả về vector'],
+    correct:1, explain:'Batch vs single, và một số model xử lý (normalize) query khác với document — asymmetric embedding.' },
+  { type:'fill', q:'Điền vào chỗ trống: Để lưu vector store xuống đĩa thay vì chỉ RAM, ta truyền tham số ______ khi khởi tạo Chroma.',
+    answer:'persist_directory', explain:'persist_directory là flag quan trọng nhất cho persistence trong Chroma.' },
+  { type:'tf', q:'Trong `similarity_search_with_score()`, score càng CAO thì hai vector càng giống nhau.',
+    answer:false, explain:'False — với cosine distance, score càng GẦN 0 càng giống nhau. Đây là distance chứ không phải similarity.' },
+  { type:'mc', q:'Sắp đúng thứ tự pipeline Indexing của RAG:',
+    opts:['embed → chunk → load → store','load document → chunk → embed → store','store → embed → chunk → load','chunk → load → store → embed'],
+    correct:1, explain:'Thứ tự chuẩn: load document → chunk → embed → store.' },
+  { type:'mc', q:'Bạn cần lọc kết quả theo subject="toan" TRƯỚC khi semantic search theo topic. Kỹ thuật nào phù hợp?',
+    opts:['Re-ranking','Metadata filtering','Contextual Compression','Multi-Query Retrieval'],
+    correct:1, explain:'Metadata filtering dùng tham số filter/where khi query — lọc cứng trước khi so vector.' },
+  { type:'fill', q:'Để bọc vector store thành interface chuẩn cắm vào chain/agent, ta gọi phương thức ______().',
+    answer:'as_retriever', explain:'as_retriever() chuẩn hoá vector store thành Retriever object, dùng .invoke(query).' },
+  { type:'tf', q:'`CacheBackedEmbeddings` giúp tránh gọi API và tốn tiền embed lại document đã embed trước đó.',
+    answer:true, explain:'True — CacheBackedEmbeddings dùng hash nội dung làm key để tránh embed trùng lặp.' },
+  { type:'mc', q:'Chỉ số nào phù hợp nhất cho dataset RẤT LỚN cần tốc độ nhanh, chấp nhận đánh đổi accuracy?',
+    opts:['Flat index','HNSW hoặc IVF','Không cần index, brute-force luôn nhanh','Chỉ dùng được với pgvector'],
+    correct:1, explain:'HNSW/IVF là approximate search — nhanh hơn nhiều so với Flat khi dữ liệu lớn.' },
+  { type:'mc', q:'ChromaDB phù hợp nhất cho giai đoạn nào của dự án?',
+    opts:['Production scale hàng triệu user','Development / prototype cá nhân','Chỉ dùng cho fine-tuning model','Thay thế hoàn toàn SQL database'],
+    correct:1, explain:'Chroma là lựa chọn local, đơn giản, miễn phí cho dev; production thường chuyển sang Pinecone/Weaviate/Qdrant/pgvector.' },
+  { type:'fill', q:'Tham số ______ trong similarity_search(query, k=4) quyết định số kết quả gần nhất trả về; để quá lớn sẽ gây noise.',
+    answer:'k', explain:'k là số lượng top-kết-quả trả về — cần cân bằng giữa đủ context và tránh nhiễu.' },
+];
+
+let currentQ = 0, score = 0, answered = new Array(quizData.length).fill(false);
+
+function renderQuiz(){
+  const q = quizData[currentQ];
+  const container = document.getElementById('quizContainer');
+  document.getElementById('qCurrent').textContent = currentQ+1;
+  document.getElementById('qScore').textContent = score;
+  document.getElementById('qProgressFill').style.width = ((currentQ+1)/quizData.length*100)+'%';
+
+  const typeLabel = {mc:'Multiple Choice', fill:'Fill in the blank', tf:'True / False'}[q.type];
+  let html = `<div class="q-type">${typeLabel}</div><div class="q-text">${q.q}</div>`;
+
+  if(q.type==='mc'){
+    html += q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('');
+  } else if(q.type==='tf'){
+    html += `<button class="opt" data-i="true">True</button><button class="opt" data-i="false">False</button>`;
+  } else if(q.type==='fill'){
+    html += `<input type="text" class="fill-input" id="fillInput" placeholder="Nhập câu trả lời...">
+             <button class="btn" id="submitFill">Kiểm tra</button>`;
+  }
+  html += `<div class="explain" id="explainBox"></div>
+           <div class="quiz-nav">
+             <button class="btn secondary" id="prevBtn" ${currentQ===0?'disabled style="opacity:.4"':''}>← Trước</button>
+             <button class="btn" id="nextBtn" style="display:none;">Tiếp theo →</button>
+           </div>`;
+  container.innerHTML = html;
+
+  if(q.type==='mc' || q.type==='tf'){
+    container.querySelectorAll('.opt').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(answered[currentQ]) return;
+        answered[currentQ] = true;
+        const chosen = btn.dataset.i;
+        let isCorrect;
+        if(q.type==='mc'){ isCorrect = parseInt(chosen)===q.correct; }
+        else { isCorrect = (chosen==='true')===q.answer; }
+        container.querySelectorAll('.opt').forEach(b=>{
+          b.disabled = true;
+          if(q.type==='mc' && parseInt(b.dataset.i)===q.correct) b.classList.add('correct');
+          if(q.type==='tf' && (b.dataset.i==='true')===q.answer) b.classList.add('correct');
+        });
+        if(!isCorrect) btn.classList.add('wrong');
+        if(isCorrect) score++;
+        showExplain(q.explain, isCorrect);
+      });
+    });
+  } else if(q.type==='fill'){
+    document.getElementById('submitFill').addEventListener('click', ()=>{
+      if(answered[currentQ]) return;
+      answered[currentQ] = true;
+      const val = document.getElementById('fillInput').value.trim().toLowerCase();
+      const isCorrect = val === q.answer.toLowerCase() || val.includes(q.answer.toLowerCase());
+      document.getElementById('fillInput').disabled = true;
+      document.getElementById('submitFill').disabled = true;
+      if(isCorrect) score++;
+      showExplain(q.explain + ` (Đáp án đúng: <code>${q.answer}</code>)`, isCorrect);
+    });
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', ()=>{ if(currentQ>0){ currentQ--; renderQuiz(); } });
+}
+
+function showExplain(text, isCorrect){
+  const box = document.getElementById('explainBox');
+  box.innerHTML = (isCorrect ? '✅ Chính xác! ' : '❌ Chưa đúng. ') + text;
+  box.style.borderLeftColor = isCorrect ? 'var(--accent)' : 'var(--danger)';
+  box.classList.add('show');
+  document.getElementById('qScore').textContent = score;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.style.display = 'inline-block';
+  nextBtn.textContent = currentQ === quizData.length-1 ? 'Xem kết quả →' : 'Tiếp theo →';
+  nextBtn.onclick = ()=>{
+    if(currentQ === quizData.length-1){ renderResult(); }
+    else{ currentQ++; renderQuiz(); }
+  };
+}
+
+function renderResult(){
+  const container = document.getElementById('quizContainer');
+  const pct = Math.round(score/quizData.length*100);
+  container.innerHTML = `
+    <div class="result-box">
+      <div class="big-score">${score} / ${quizData.length}</div>
+      <p style="color:var(--text-dim); margin-top:8px;">${pct}% chính xác — ${pct>=80?'Xuất sắc! Bạn nắm vững Embeddings & Vector Stores.':pct>=50?'Khá ổn, nên xem lại phần metadata filtering & persistence.':'Nên đọc lại tab Lý thuyết trước khi làm lab.'}</p>
+      <button class="btn" id="retryBtn" style="margin-top:16px;">🔄 Làm lại quiz</button>
+    </div>`;
+  document.getElementById('qProgressFill').style.width = '100%';
+  document.getElementById('retryBtn').addEventListener('click', ()=>{
+    currentQ=0; score=0; answered = new Array(quizData.length).fill(false);
+    renderQuiz();
+  });
+}
+
+renderQuiz();
+</script>
+</body>
+</html>

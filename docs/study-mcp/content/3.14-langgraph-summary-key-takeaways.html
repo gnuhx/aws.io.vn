@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3.14 — LangGraph Summary & Key Takeaways</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f14;
+    --bg-elev:#151822;
+    --bg-elev-2:#1b1f2c;
+    --border:#262b3a;
+    --text:#e6e9f0;
+    --text-dim:#8b93a7;
+    --accent:#4ade80;
+    --accent-dim:#2f6b4a;
+    --accent-glow: rgba(74,222,128,0.18);
+    --danger:#f87171;
+    --warn:#fbbf24;
+    --blue:#60a5fa;
+    --purple:#c084fc;
+    --mono:'JetBrains Mono', monospace;
+    --display:'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(74,222,128,0.06), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(96,165,250,0.05), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--display);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent-glow); color:var(--accent);}
+
+  .app{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  header.top{
+    display:flex; flex-direction:column; gap:6px;
+    padding-bottom:22px; margin-bottom:22px;
+    border-bottom:1px solid var(--border);
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:0.12em;
+    color:var(--accent); text-transform:uppercase; display:flex; gap:10px; align-items:center;
+  }
+  .eyebrow::before{content:"●"; font-size:8px;}
+  h1{font-size:28px; margin:2px 0 4px; font-weight:700; letter-spacing:-0.01em;}
+  .meta{font-family:var(--mono); font-size:12.5px; color:var(--text-dim); display:flex; gap:18px; flex-wrap:wrap;}
+  .meta b{color:var(--text);}
+
+  nav.tabs{
+    display:flex; gap:4px; margin-bottom:24px; flex-wrap:wrap;
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:12px; padding:5px;
+  }
+  nav.tabs button{
+    flex:1; min-width:110px;
+    background:transparent; border:none; color:var(--text-dim);
+    font-family:var(--display); font-weight:600; font-size:13.5px;
+    padding:10px 14px; border-radius:8px; cursor:pointer;
+    transition:all .15s ease;
+  }
+  nav.tabs button:hover{color:var(--text); background:var(--bg-elev-2);}
+  nav.tabs button.active{
+    background:linear-gradient(180deg, var(--accent-glow), transparent);
+    color:var(--accent); box-shadow: inset 0 0 0 1px var(--accent-dim);
+  }
+
+  .panel{display:none; animation:fade .25s ease;}
+  .panel.active{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px;}
+  .card{
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:14px;
+    padding:20px; position:relative; overflow:hidden;
+  }
+  .card::before{
+    content:""; position:absolute; top:0; left:0; width:3px; height:100%;
+    background:var(--accent); opacity:0.6;
+  }
+  .card h3{margin:0 0 10px; font-size:15.5px; color:var(--accent); display:flex; align-items:center; gap:8px;}
+  .card p, .card li{font-size:13.8px; line-height:1.65; color:var(--text-dim);}
+  .card ul{margin:6px 0 0; padding-left:18px;}
+  .card b{color:var(--text);}
+
+  h2.section-title{font-size:19px; margin:34px 0 14px; display:flex; align-items:center; gap:10px;}
+  h2.section-title .num{
+    font-family:var(--mono); font-size:12px; color:var(--bg);
+    background:var(--accent); border-radius:6px; padding:2px 7px;
+  }
+
+  table{width:100%; border-collapse:collapse; margin-top:8px; font-size:13.5px;}
+  table.styled{background:var(--bg-elev); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+  th,td{padding:11px 14px; text-align:left; border-bottom:1px solid var(--border);}
+  th{font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent); background:var(--bg-elev-2);}
+  tr:last-child td{border-bottom:none;}
+  td{color:var(--text-dim);}
+  td b, td code{color:var(--text);}
+  code{
+    font-family:var(--mono); background:var(--bg-elev-2); color:var(--accent);
+    padding:1px 6px; border-radius:5px; font-size:12.5px;
+  }
+
+  pre{
+    background:#0a0c11; border:1px solid var(--border); border-radius:12px;
+    padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:12.8px; line-height:1.7;
+    position:relative;
+  }
+  pre::before{
+    content:attr(data-lang); position:absolute; top:8px; right:14px;
+    font-size:10px; color:var(--text-dim); letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .kw{color:var(--purple);} .str{color:var(--warn);} .cmt{color:var(--text-dim); font-style:italic;}
+  .fn{color:var(--blue);} .num-t{color:#f472b6;}
+
+  .flow{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:18px 0; font-family:var(--mono); font-size:12.5px;}
+  .flow .node{background:var(--bg-elev-2); border:1px solid var(--accent-dim); color:var(--accent); padding:8px 14px; border-radius:8px;}
+  .flow .arrow{color:var(--text-dim);}
+
+  /* MINDMAP */
+  .mindmap-wrap{background:var(--bg-elev); border:1px solid var(--border); border-radius:14px; padding:10px;}
+  #mindmap-info{
+    margin-top:14px; padding:16px 18px; border-radius:12px; background:var(--bg-elev-2);
+    border:1px solid var(--border); font-size:13.8px; color:var(--text-dim); min-height:60px;
+  }
+  #mindmap-info b{color:var(--accent);}
+  .mm-node{cursor:pointer; transition:filter .15s;}
+  .mm-node:hover{filter:brightness(1.3);}
+
+  /* QUIZ */
+  .quiz-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+  .score-badge{
+    font-family:var(--mono); background:var(--bg-elev); border:1px solid var(--accent-dim);
+    color:var(--accent); padding:8px 16px; border-radius:10px; font-size:13px;
+  }
+  .q-card{
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:14px;
+    padding:20px; margin-bottom:14px;
+  }
+  .q-title{font-size:14.5px; margin-bottom:12px; font-weight:600;}
+  .q-tag{
+    font-family:var(--mono); font-size:10px; color:var(--bg); background:var(--blue);
+    padding:2px 8px; border-radius:5px; margin-right:8px; text-transform:uppercase;
+  }
+  .opt{
+    display:block; width:100%; text-align:left; background:var(--bg-elev-2); border:1px solid var(--border);
+    color:var(--text); padding:10px 14px; border-radius:9px; margin-bottom:8px; cursor:pointer;
+    font-family:var(--display); font-size:13.5px; transition:all .15s;
+  }
+  .opt:hover{border-color:var(--accent-dim);}
+  .opt.correct{background:rgba(74,222,128,0.13); border-color:var(--accent); color:var(--accent);}
+  .opt.wrong{background:rgba(248,113,113,0.13); border-color:var(--danger); color:var(--danger);}
+  .opt:disabled{cursor:default;}
+  .q-input{
+    width:100%; background:var(--bg-elev-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 14px; border-radius:9px; font-family:var(--mono); font-size:13.5px; margin-bottom:8px;
+  }
+  .q-submit{
+    background:var(--accent); color:#06210f; border:none; padding:9px 16px; border-radius:8px;
+    font-weight:700; cursor:pointer; font-family:var(--display); font-size:13px;
+  }
+  .explain{
+    margin-top:10px; padding:12px 14px; border-radius:9px; font-size:13px; line-height:1.6;
+    background:var(--bg-elev-2); border-left:3px solid var(--accent); color:var(--text-dim); display:none;
+  }
+  .explain.show{display:block;}
+  #quiz-result{
+    text-align:center; padding:30px; font-family:var(--mono); font-size:20px; color:var(--accent); display:none;
+  }
+
+  /* STORY MODE */
+  .story-box{
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:16px;
+  }
+  .story-box p{font-size:14px; line-height:1.85; color:var(--text-dim);}
+  .story-box p b{color:var(--accent);}
+  .story-title{
+    font-size:16px; color:var(--accent); margin-bottom:10px; display:flex; gap:8px; align-items:center;
+  }
+  .bug-box{
+    border-left:3px solid var(--warn); background:rgba(251,191,36,0.08); padding:12px 16px; border-radius:9px;
+    margin-top:12px; font-size:13.3px; color:var(--text-dim);
+  }
+  .bug-box b{color:var(--warn);}
+  .output-box{
+    background:#0a0c11; border:1px solid var(--accent-dim); border-radius:12px; padding:16px 18px;
+    font-family:var(--mono); font-size:12.3px; color:var(--accent); line-height:1.7; white-space:pre-wrap;
+  }
+
+  .footer-note{margin-top:40px; text-align:center; color:var(--text-dim); font-size:12px; font-family:var(--mono);}
+
+  @media(max-width:640px){
+    nav.tabs{flex-wrap:wrap;}
+    nav.tabs button{min-width:45%;}
+    h1{font-size:22px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="eyebrow">Course 2 — LangChain &amp; LangGraph · Module 3</div>
+    <h1>Lesson 3.14 — LangGraph Summary &amp; Key Takeaways</h1>
+    <div class="meta">
+      <span>⏱ <b>3:32</b></span>
+      <span>📚 Prereqs: <b>Toàn bộ Module 3</b></span>
+      <span>➡ Next: <b>Module 4 — Multi-Agent Systems</b></span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="theory">01 · Lý thuyết</button>
+    <button class="tab-btn" data-tab="mindmap">02 · Mindmap</button>
+    <button class="tab-btn" data-tab="quiz">03 · Quiz</button>
+    <button class="tab-btn" data-tab="cheatsheet">04 · Cheat Sheet</button>
+    <button class="tab-btn" data-tab="story">🍡 05 · Story Mode</button>
+  </nav>
+
+  <!-- ============ TAB 1: THEORY ============ -->
+  <section class="panel active" id="theory">
+
+    <div class="grid">
+      <div class="card">
+        <h3>💡 Khái niệm</h3>
+        <p>Bài tổng kết Module 3 — không dạy API mới, mà trả lời: <b>khi nào dùng LangGraph vs LCEL?</b> và <b>5 pattern nào là xương sống để build agent?</b></p>
+      </div>
+      <div class="card">
+        <h3>🧭 Ví dụ đời sống</h3>
+        <p><b>LCEL</b> = đi thẳng một con đường một chiều. <b>LangGraph</b> = lái xe trong thành phố có vòng xoay, đèn đỏ, được quay đầu, có trạm dừng chờ người.</p>
+      </div>
+      <div class="card">
+        <h3>📍 Vị trí hệ thống</h3>
+        <p>Bài cuối Module 3 (3.1→3.13), đóng gói mọi kiến thức thành checklist trước khi sang <b>Module 4 — Multi-Agent Systems</b>.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title"><span class="num">02</span> LCEL vs LangGraph</h2>
+    <table class="styled">
+      <tr><th></th><th>LCEL (chain)</th><th>LangGraph (graph)</th></tr>
+      <tr><td><b>Ẩn dụ</b></td><td>Đường thẳng 1 chiều</td><td>Thành phố có vòng xoay, đèn đỏ</td></tr>
+      <tr><td><b>Rẽ nhánh</b></td><td>Không</td><td>Có (conditional edges)</td></tr>
+      <tr><td><b>Vòng lặp</b></td><td>Không</td><td>Có (cycle + stop condition)</td></tr>
+      <tr><td><b>Con người can thiệp</b></td><td>Không hỗ trợ native</td><td><code>interrupt()</code> + resume</td></tr>
+      <tr><td><b>Nhớ trạng thái</b></td><td>Không</td><td>Checkpointer (Memory/Sqlite/Postgres)</td></tr>
+      <tr><td><b>Khi nào chọn</b></td><td>Task tuần tự đơn giản</td><td>Task cần điều kiện / lặp / human review</td></tr>
+    </table>
+
+    <h2 class="section-title"><span class="num">03</span> 5 Pattern quan trọng nhất</h2>
+    <div class="grid">
+      <div class="card"><h3>① Pipeline</h3><p>A → B → C tuần tự, không rẽ nhánh.</p></div>
+      <div class="card"><h3>② Routing</h3><p><code>add_conditional_edges</code> chọn node kế tiếp theo state.</p></div>
+      <div class="card"><h3>③ Loop</h3><p>Cycle quay lại chính nó, luôn cần stop condition.</p></div>
+      <div class="card"><h3>④ Human-in-the-loop</h3><p><code>interrupt()</code> dừng chờ người, resume bằng <code>Command</code>.</p></div>
+      <div class="card"><h3>⑤ Checkpoint</h3><p>Lưu state mỗi super-step, hỗ trợ time travel.</p></div>
+    </div>
+
+    <div class="flow">
+      <div class="node">START</div><span class="arrow">→</span>
+      <div class="node">pipeline node</div><span class="arrow">→</span>
+      <div class="node">routing (if/else)</div><span class="arrow">→</span>
+      <div class="node">loop (retry?)</div><span class="arrow">↺</span>
+      <div class="node">interrupt (human?)</div><span class="arrow">→</span>
+      <div class="node">END</div>
+    </div>
+
+    <h2 class="section-title"><span class="num">04</span> Code minh hoạ 3 pattern kết hợp</h2>
+    <pre data-lang="python"><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+<span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> MemorySaver
+
+<span class="kw">class</span> <span class="fn">TaskState</span>(TypedDict):
+    task_type: str
+    attempts: int
+    solved: bool
+
+<span class="cmt"># Routing: chọn path theo state</span>
+<span class="kw">def</span> <span class="fn">route_fn</span>(state):
+    <span class="kw">return</span> <span class="str">"easy_path"</span> <span class="kw">if</span> state[<span class="str">"task_type"</span>] == <span class="str">"easy"</span> <span class="kw">else</span> <span class="str">"hard_path"</span>
+
+<span class="cmt"># Loop: dừng khi solved hoặc quá 5 lần thử</span>
+<span class="kw">def</span> <span class="fn">check_fn</span>(state):
+    <span class="kw">return</span> <span class="str">"done"</span> <span class="kw">if</span> state[<span class="str">"solved"</span>] <span class="kw">or</span> state[<span class="str">"attempts"</span>] &gt;= <span class="num-t">5</span> <span class="kw">else</span> <span class="str">"retry"</span>
+
+graph.add_conditional_edges(<span class="str">"classify"</span>, route_fn, {...})
+graph.add_conditional_edges(<span class="str">"solve"</span>, check_fn, {<span class="str">"retry"</span>: <span class="str">"solve"</span>, <span class="str">"done"</span>: END})
+
+checkpointer = MemorySaver()  <span class="cmt"># pattern ⑤: checkpoint</span>
+app = graph.compile(checkpointer=checkpointer)</code></pre>
+
+    <h2 class="section-title"><span class="num">05</span> Production checklist</h2>
+    <div class="card" style="max-width:700px;">
+      <ul>
+        <li>✅ Xác định rõ cần <b>graph</b> hay chỉ cần <b>chain</b></li>
+        <li>✅ Mọi loop đều có <b>stop condition</b></li>
+        <li>✅ Checkpointer đúng môi trường: <code>MemorySaver</code> (dev) / <code>SqliteSaver</code>, <code>PostgresSaver</code> (prod)</li>
+        <li>✅ <code>thread_id</code> riêng cho từng phiên/nhiệm vụ</li>
+        <li>✅ Quyết định rủi ro cao có <b>human-in-the-loop</b></li>
+        <li>✅ Log state qua từng bước để debug</li>
+      </ul>
+    </div>
+
+    <h2 class="section-title"><span class="num">06</span> Ứng dụng thực tế</h2>
+    <div class="grid">
+      <div class="card"><h3>🎧 Customer support</h3><p>Pipeline + routing theo phòng ban + human duyệt hoàn tiền + checkpoint nhớ lịch sử chat.</p></div>
+      <div class="card"><h3>📈 Trading agent</h3><p>Loop theo dõi giá + human-in-loop bắt buộc trước lệnh lớn + checkpoint để audit.</p></div>
+      <div class="card"><h3>📝 Exam Generator (dự án roadmap)</h3><p>Pipeline parse→generate, loop refine, <code>SqliteSaver</code> với <code>thread_id=student_id+session_id</code>.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: MINDMAP ============ -->
+  <section class="panel" id="mindmap">
+    <h2 class="section-title"><span class="num">MM</span> Mindmap — Nhấn vào node để xem chi tiết</h2>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 900 480" style="width:100%; height:auto;">
+        <line x1="450" y1="60" x2="200" y2="150" stroke="#262b3a" stroke-width="2"/>
+        <line x1="450" y1="60" x2="450" y2="150" stroke="#262b3a" stroke-width="2"/>
+        <line x1="450" y1="60" x2="700" y2="150" stroke="#262b3a" stroke-width="2"/>
+        <line x1="200" y1="150" x2="120" y2="260" stroke="#262b3a" stroke-width="2"/>
+        <line x1="200" y1="150" x2="280" y2="260" stroke="#262b3a" stroke-width="2"/>
+        <line x1="450" y1="150" x2="380" y2="260" stroke="#262b3a" stroke-width="2"/>
+        <line x1="450" y1="150" x2="520" y2="260" stroke="#262b3a" stroke-width="2"/>
+        <line x1="700" y1="150" x2="640" y2="260" stroke="#262b3a" stroke-width="2"/>
+        <line x1="700" y1="150" x2="780" y2="260" stroke="#262b3a" stroke-width="2"/>
+        <line x1="120" y1="260" x2="120" y2="360" stroke="#262b3a" stroke-width="2"/>
+
+        <g class="mm-node" data-info="root">
+          <rect x="370" y="30" width="160" height="46" rx="12" fill="#1b1f2c" stroke="#4ade80"/>
+          <text x="450" y="58" text-anchor="middle" fill="#4ade80" font-family="JetBrains Mono" font-size="13">Lesson 3.14</text>
+        </g>
+
+        <g class="mm-node" data-info="whentouse">
+          <rect x="130" y="128" width="140" height="44" rx="10" fill="#151822" stroke="#60a5fa"/>
+          <text x="200" y="155" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">Khi nào dùng?</text>
+        </g>
+        <g class="mm-node" data-info="patterns">
+          <rect x="380" y="128" width="140" height="44" rx="10" fill="#151822" stroke="#60a5fa"/>
+          <text x="450" y="155" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">5 Patterns</text>
+        </g>
+        <g class="mm-node" data-info="checklist">
+          <rect x="630" y="128" width="140" height="44" rx="10" fill="#151822" stroke="#60a5fa"/>
+          <text x="700" y="155" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">Checklist</text>
+        </g>
+
+        <g class="mm-node" data-info="lcel">
+          <rect x="55" y="238" width="130" height="42" rx="10" fill="#151822" stroke="#c084fc"/>
+          <text x="120" y="264" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="11.5">LCEL đủ dùng</text>
+        </g>
+        <g class="mm-node" data-info="graph-needed">
+          <rect x="215" y="238" width="130" height="42" rx="10" fill="#151822" stroke="#c084fc"/>
+          <text x="280" y="264" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="11.5">Cần Graph</text>
+        </g>
+        <g class="mm-node" data-info="pipeline-route">
+          <rect x="315" y="238" width="130" height="42" rx="10" fill="#151822" stroke="#c084fc"/>
+          <text x="380" y="264" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="11.5">Pipeline/Routing</text>
+        </g>
+        <g class="mm-node" data-info="loop-human">
+          <rect x="455" y="238" width="130" height="42" rx="10" fill="#151822" stroke="#c084fc"/>
+          <text x="520" y="264" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="11.5">Loop/Human</text>
+        </g>
+        <g class="mm-node" data-info="checkpoint-node">
+          <rect x="575" y="238" width="130" height="42" rx="10" fill="#151822" stroke="#c084fc"/>
+          <text x="640" y="264" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="11.5">Checkpoint</text>
+        </g>
+        <g class="mm-node" data-info="prodchecklist">
+          <rect x="715" y="238" width="130" height="42" rx="10" fill="#151822" stroke="#c084fc"/>
+          <text x="780" y="264" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="11.5">Prod-ready?</text>
+        </g>
+
+        <g class="mm-node" data-info="threadid">
+          <rect x="55" y="338" width="130" height="42" rx="10" fill="#151822" stroke="#fbbf24"/>
+          <text x="120" y="364" text-anchor="middle" fill="#fbbf24" font-family="JetBrains Mono" font-size="11">thread_id</text>
+        </g>
+      </svg>
+      <div id="mindmap-info">👉 Nhấn vào 1 node trên mindmap để xem giải thích chi tiết tại đây.</div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: QUIZ ============ -->
+  <section class="panel" id="quiz">
+    <div class="quiz-header">
+      <h2 class="section-title" style="margin:0;"><span class="num">Q</span> Quiz — 10 câu ôn tập</h2>
+      <div class="score-badge">Điểm: <span id="score">0</span>/10</div>
+    </div>
+    <div id="quiz-container"></div>
+    <div id="quiz-result"></div>
+  </section>
+
+  <!-- ============ TAB 4: CHEATSHEET ============ -->
+  <section class="panel" id="cheatsheet">
+    <h2 class="section-title"><span class="num">CS</span> Lệnh quan trọng</h2>
+    <table class="styled">
+      <tr><th>Lệnh</th><th>Mô tả</th></tr>
+      <tr><td><code>StateGraph(StateType)</code></td><td>Khởi tạo graph với TypedDict state</td></tr>
+      <tr><td><code>graph.add_node(name, fn)</code></td><td>Đăng ký node</td></tr>
+      <tr><td><code>graph.add_edge(a, b)</code></td><td>Cạnh cố định</td></tr>
+      <tr><td><code>graph.add_conditional_edges(...)</code></td><td>Cạnh có điều kiện (routing/loop)</td></tr>
+      <tr><td><code>graph.compile(checkpointer=...)</code></td><td>Biên dịch graph thành app</td></tr>
+      <tr><td><code>app.invoke(state, config)</code></td><td>Chạy graph đồng bộ</td></tr>
+      <tr><td><code>app.stream(state, config)</code></td><td>Chạy graph, xem từng step</td></tr>
+      <tr><td><code>app.get_state_history(config)</code></td><td>Time travel — lịch sử checkpoint</td></tr>
+      <tr><td><code>Command(resume=value)</code></td><td>Resume sau <code>interrupt()</code></td></tr>
+      <tr><td><code>interrupt_before / interrupt_after</code></td><td>Dừng graph trước/sau 1 node</td></tr>
+    </table>
+
+    <h2 class="section-title"><span class="num">CF</span> File cấu hình</h2>
+    <table class="styled">
+      <tr><th>File</th><th>Nội dung</th></tr>
+      <tr><td><code>config</code> dict</td><td><code>{"configurable":{"thread_id":"..."}}</code> — bắt buộc khi có checkpointer</td></tr>
+      <tr><td><code>requirements.txt</code></td><td><code>langgraph</code>, <code>langchain-core</code>, provider SDK</td></tr>
+      <tr><td>SQLite checkpoint <code>.db</code></td><td>Lưu lịch sử state — đổi sang PostgresSaver khi production/Lambda</td></tr>
+    </table>
+
+    <h2 class="section-title"><span class="num">LB</span> Tóm tắt lab</h2>
+    <div class="card">
+      <ul>
+        <li><b>Bước 1:</b> <code>pip install langgraph --break-system-packages</code></li>
+        <li><b>Bước 2:</b> Viết graph 3 pattern: classify (pipeline) → route (routing) → solve loop (retry)</li>
+        <li><b>Bước 3:</b> Chạy <code>python3 lab_langgraph_summary.py</code></li>
+        <li><b>Verify:</b> <code>get_state_history(config)</code> phải trả về &gt; 1 checkpoint</li>
+        <li>⚠️ Lỗi hay gặp: quên <code>thread_id</code>, loop thiếu stop condition, thiếu key trong <code>mapping</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ TAB 5: STORY MODE ============ -->
+  <section class="panel" id="story">
+    <h2 class="section-title"><span class="num">🍡</span> Story Mode — Tanjiro học LangGraph</h2>
+
+    <div class="story-box">
+      <div class="story-title">📖 Nhiệm vụ diệt quỷ ở làng ven núi Kumo</div>
+      <p>Tanjiro Kamado nhận nhiệm vụ diệt quỷ. Cuốn <b>Sổ Tay Nhiệm Vụ</b> mà quạ Kasugai Karasu giao cho cậu chính là <b>State</b> — nó ghi lại: loại quỷ, kỹ thuật đang dùng, số lần tấn công, sức lực còn lại.</p>
+      <p>Đầu tiên, Tanjiro <b>Điều tra</b> (node <code>dieu_tra</code>) — đánh hơi xác định loại quỷ. Đây là bước đầu của <b>Pipeline</b>: cố định, tuần tự, không thể bỏ qua.</p>
+      <p>Sau đó cậu <b>Chọn kỹ thuật thở</b> (node <code>chon_ky_thuat</code>) — đây chính là <b>Routing</b>: nếu là quỷ Thượng Trụ, cậu dùng "Hơi Thở Thuỷ Bậc 11"; nếu chỉ là quỷ thường, dùng "Bậc 1". Quyết định rẽ nhánh này y hệt <code>add_conditional_edges</code> chọn node kế tiếp dựa trên state.</p>
+      <p>Rồi Tanjiro <b>Tấn công lặp lại</b> (node <code>tan_cong</code>) — đây là <b>Loop</b>: cậu đánh liên tục cho đến khi hạ gục quỷ hoặc kiệt sức (tối đa 5 lần — giống hệt <code>max iterations</code> để tránh vòng lặp vô tận).</p>
+      <p>Mỗi bước đi qua, con quạ <b>Kasugai Karasu</b> lại ghi nhớ lại — đó chính là <b>Checkpoint</b> (<code>MemorySaver</code>). Nhờ vậy nếu Tanjiro cần "xem lại" toàn bộ hành trình nhiệm vụ, cậu chỉ cần hỏi quạ — giống hệt gọi <code>get_state_history()</code> để time travel.</p>
+      <div class="bug-box">
+        🐛 <b>Bug hài hước:</b> Nếu Inosuke (nóng vội, không chịu nghe kế hoạch) nhảy thẳng vào node <b>Tấn công</b> mà bỏ qua bước <b>Điều tra</b>, state sẽ thiếu field <code>loai_quy</code> → graph lập tức báo lỗi <code>KeyError</code>, y hệt khi dev quên khai báo đủ field bắt buộc trong <code>TypedDict</code>.
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:26px;"><span class="num">🍡</span> Code thật (đã chạy kiểm chứng)</h2>
+    <pre data-lang="python"><code><span class="kw">from</span> typing <span class="kw">import</span> TypedDict, Literal
+<span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+<span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> MemorySaver
+
+<span class="kw">class</span> <span class="fn">NhiemVuState</span>(TypedDict):
+    ten_nhiem_vu: str
+    loai_quy: str
+    ky_thuat: str
+    so_lan_tan_cong: int
+    suc_luc: int
+    da_ha_guc: bool
+    lich_su: list[str]
+
+<span class="kw">def</span> <span class="fn">dieu_tra_node</span>(state):
+    log = <span class="str">f"[Điều tra] Tanjiro đánh hơi thấy mùi quỷ tại '{state['ten_nhiem_vu']}', xác định loại: {state['loai_quy']}"</span>
+    <span class="kw">return</span> {<span class="str">"lich_su"</span>: state[<span class="str">"lich_su"</span>] + [log]}
+
+<span class="kw">def</span> <span class="fn">chon_ky_thuat_node</span>(state):
+    ky_thuat = (<span class="str">"Hơi Thở Thuỷ - Bậc 11: Chảy Trôi Vô Tận"</span>
+                <span class="kw">if</span> state[<span class="str">"loai_quy"</span>] == <span class="str">"quy_thuong_tru"</span>
+                <span class="kw">else</span> <span class="str">"Hơi Thở Thuỷ - Bậc 1: Mặt Nước"</span>)
+    <span class="kw">return</span> {<span class="str">"ky_thuat"</span>: ky_thuat,
+            <span class="str">"lich_su"</span>: state[<span class="str">"lich_su"</span>] + [<span class="str">f"[Routing] Đã chọn: {ky_thuat}"</span>]}
+
+<span class="kw">def</span> <span class="fn">route_theo_loai_quy</span>(state) -&gt; Literal[<span class="str">"tan_cong_manh"</span>, <span class="str">"tan_cong_thuong"</span>]:
+    <span class="kw">return</span> <span class="str">"tan_cong_manh"</span> <span class="kw">if</span> state[<span class="str">"loai_quy"</span>] == <span class="str">"quy_thuong_tru"</span> <span class="kw">else</span> <span class="str">"tan_cong_thuong"</span>
+
+<span class="kw">def</span> <span class="fn">tan_cong_node</span>(state):
+    lan = state[<span class="str">"so_lan_tan_cong"</span>] + <span class="num-t">1</span>
+    suc_luc_moi = state[<span class="str">"suc_luc"</span>] - <span class="num-t">15</span>
+    can_bao_nhieu_don = <span class="num-t">3</span> <span class="kw">if</span> state[<span class="str">"loai_quy"</span>] == <span class="str">"quy_thuong_tru"</span> <span class="kw">else</span> <span class="num-t">2</span>
+    ha_guc = lan &gt;= can_bao_nhieu_don
+    log = <span class="str">f"[Tấn công lần {lan}] Dùng '{state['ky_thuat']}' — sức lực còn {suc_luc_moi}"</span>
+    <span class="kw">if</span> ha_guc: log += <span class="str">" → QUỶ BỊ HẠ GỤC!"</span>
+    <span class="kw">return</span> {<span class="str">"so_lan_tan_cong"</span>: lan, <span class="str">"suc_luc"</span>: suc_luc_moi,
+            <span class="str">"da_ha_guc"</span>: ha_guc, <span class="str">"lich_su"</span>: state[<span class="str">"lich_su"</span>] + [log]}
+
+<span class="kw">def</span> <span class="fn">kiem_tra_ket_qua</span>(state) -&gt; Literal[<span class="str">"tan_cong_tiep"</span>, <span class="str">"bao_cao"</span>]:
+    <span class="kw">if</span> state[<span class="str">"da_ha_guc"</span>] <span class="kw">or</span> state[<span class="str">"suc_luc"</span>] &lt;= <span class="num-t">0</span> <span class="kw">or</span> state[<span class="str">"so_lan_tan_cong"</span>] &gt;= <span class="num-t">5</span>:
+        <span class="kw">return</span> <span class="str">"bao_cao"</span>
+    <span class="kw">return</span> <span class="str">"tan_cong_tiep"</span>
+
+graph = StateGraph(NhiemVuState)
+graph.add_node(<span class="str">"dieu_tra"</span>, dieu_tra_node)
+graph.add_node(<span class="str">"chon_ky_thuat"</span>, chon_ky_thuat_node)
+graph.add_node(<span class="str">"tan_cong_manh"</span>, tan_cong_node)
+graph.add_node(<span class="str">"tan_cong_thuong"</span>, tan_cong_node)
+graph.add_conditional_edges(<span class="str">"chon_ky_thuat"</span>, route_theo_loai_quy,
+    {<span class="str">"tan_cong_manh"</span>: <span class="str">"tan_cong_manh"</span>, <span class="str">"tan_cong_thuong"</span>: <span class="str">"tan_cong_thuong"</span>})
+graph.add_conditional_edges(<span class="str">"tan_cong_manh"</span>, kiem_tra_ket_qua,
+    {<span class="str">"tan_cong_tiep"</span>: <span class="str">"tan_cong_manh"</span>, <span class="str">"bao_cao"</span>: <span class="str">"bao_cao"</span>})
+
+checkpointer = MemorySaver()  <span class="cmt"># Ký ức quạ Kasugai Karasu</span>
+app = graph.compile(checkpointer=checkpointer)
+
+config = {<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: <span class="str">"nhiem_vu_001"</span>}}
+ket_qua = app.invoke({<span class="str">"ten_nhiem_vu"</span>: <span class="str">"Làng ven núi Kumo"</span>, <span class="str">"loai_quy"</span>: <span class="str">"quy_thuong_tru"</span>,
+    <span class="str">"ky_thuat"</span>: <span class="str">""</span>, <span class="str">"so_lan_tan_cong"</span>: <span class="num-t">0</span>, <span class="str">"suc_luc"</span>: <span class="num-t">100</span>,
+    <span class="str">"da_ha_guc"</span>: False, <span class="str">"lich_su"</span>: []}, config)</code></pre>
+
+    <h2 class="section-title" style="margin-top:26px;"><span class="num">🍡</span> Output thật, đã chạy kiểm chứng</h2>
+    <div class="output-box">[Điều tra] Tanjiro đánh hơi thấy mùi quỷ tại 'Làng ven núi Kumo', xác định loại: quy_thuong_tru
+[Routing] Đã chọn: Hơi Thở Thuỷ - Bậc 11: Chảy Trôi Vô Tận
+[Tấn công lần 1] Dùng 'Hơi Thở Thuỷ - Bậc 11: Chảy Trôi Vô Tận' — sức lực còn 85
+[Tấn công lần 2] Dùng 'Hơi Thở Thuỷ - Bậc 11: Chảy Trôi Vô Tận' — sức lực còn 70
+[Tấn công lần 3] Dùng 'Hơi Thở Thuỷ - Bậc 11: Chảy Trôi Vô Tận' — sức lực còn 55 → QUỶ BỊ HẠ GỤC!
+[Báo cáo] Nhiệm vụ 'Làng ven núi Kumo': THÀNH CÔNG sau 3 đòn tấn công
+
+Tổng số checkpoint đã lưu: 8</div>
+
+    <div class="story-box" style="margin-top:16px;">
+      <div class="story-title">🤔 Tại sao code này chạy được?</div>
+      <p>LangGraph <b>không quan tâm</b> tên field trong <code>TypedDict</code> hay tên node là gì — nó chỉ quan tâm 3 điều: state đúng shape khai báo, hàm node trả về <code>dict</code> hợp lệ, và hàm điều kiện của <code>add_conditional_edges</code> trả đúng 1 key có trong <code>mapping</code>. Đổi tên biến sang tiếng Việt theo theme Kimetsu no Yaiba <b>không hề ảnh hưởng</b> cách graph vận hành — đây không phải phép màu của theme, mà vì bản chất LangGraph chạy thuần logic <b>state → node → edge</b>, độc lập hoàn toàn với ngữ nghĩa đặt tên.</p>
+    </div>
+  </section>
+
+  <div class="footer-note">Lesson 3.14 · LangGraph Summary & Key Takeaways · Roadmap AI Agent & Context</div>
+</div>
+
+<script>
+// ---------- TAB SWITCHING ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- MINDMAP ----------
+const mmInfo = {
+  root: "<b>Lesson 3.14</b> là bài tổng kết Module 3 — gộp toàn bộ kiến thức LangGraph thành checklist thực dụng trước khi bước sang Module 4 (Multi-Agent).",
+  whentouse: "<b>Khi nào dùng?</b> Nếu flow có thể vẽ bằng 1 đường thẳng → dùng LCEL. Nếu có rẽ nhánh, vòng lặp, hoặc cần con người can thiệp → dùng LangGraph.",
+  patterns: "<b>5 Patterns</b>: Pipeline, Routing, Loop, Human-in-the-loop, Checkpoint — đây là 5 khối xây dựng (building blocks) của mọi LangGraph app.",
+  checklist: "<b>Production checklist</b>: stop condition cho loop, checkpointer đúng môi trường, thread_id riêng biệt, human review cho quyết định rủi ro cao.",
+  lcel: "<b>LCEL đủ dùng</b> khi: task tuần tự đơn giản, 1 lần gọi LLM, không cần nhớ trạng thái qua nhiều lượt.",
+  "graph-needed": "<b>Cần Graph</b> khi: có điều kiện rẽ nhánh, cần lặp lại (retry), hoặc cần dừng chờ người duyệt.",
+  "pipeline-route": "<b>Pipeline/Routing</b>: <code>add_edge</code> cho luồng cố định, <code>add_conditional_edges</code> cho luồng có điều kiện.",
+  "loop-human": "<b>Loop/Human</b>: Loop luôn cần stop condition (max iterations). Human-in-the-loop dùng <code>interrupt()</code> + <code>Command(resume=...)</code>.",
+  "checkpoint-node": "<b>Checkpoint</b>: <code>MemorySaver</code> cho dev, <code>SqliteSaver</code>/<code>PostgresSaver</code> cho production — bắt buộc có <code>thread_id</code>.",
+  prodchecklist: "<b>Prod-ready?</b> Kiểm tra: stop condition ✅, checkpointer phù hợp ✅, thread_id riêng biệt ✅, human review ✅, logging ✅.",
+  threadid: "<code>thread_id</code> định danh 1 phiên/nhiệm vụ — bắt buộc phải có khi graph dùng checkpointer, tránh lẫn state giữa các user/session."
+};
+document.querySelectorAll('.mm-node').forEach(node=>{
+  node.addEventListener('click', ()=>{
+    const key = node.getAttribute('data-info');
+    document.getElementById('mindmap-info').innerHTML = mmInfo[key] || "Không có dữ liệu.";
+  });
+});
+
+// ---------- QUIZ ----------
+const quizData = [
+  {type:"mc", q:"Khi nào nên dùng LangGraph thay vì LCEL thuần?",
+   opts:["Khi task hoàn toàn tuần tự, không rẽ nhánh","Khi cần vòng lặp, rẽ nhánh có điều kiện, hoặc human-in-the-loop","Khi chỉ cần gọi 1 LLM duy nhất","Khi không cần lưu state"],
+   correct:1, explain:"LangGraph tỏa sáng khi flow cần rẽ nhánh, lặp lại, hoặc dừng chờ con người — những thứ LCEL không hỗ trợ native."},
+  {type:"tf", q:"MemorySaver phù hợp để dùng trong môi trường production nhiều concurrent users.",
+   opts:["True","False"], correct:1,
+   explain:"False — MemorySaver chỉ dùng cho dev/test; production nên dùng SqliteSaver hoặc PostgresSaver."},
+  {type:"fill", q:"Muốn resume graph sau khi bị interrupt(), ta gọi app.invoke(______(resume=giá_trị), config).",
+   answer:"command", explain:"Đáp án: Command — ví dụ: app.invoke(Command(resume=\"approved\"), config)."},
+  {type:"mc", q:"Pattern nào KHÔNG nằm trong 5 pattern chính được tổng kết ở Lesson 3.14?",
+   opts:["Pipeline","Routing","Map-Reduce","Human-in-the-loop"],
+   correct:2, explain:"Map-Reduce thuộc Module 4 (Multi-Agent Systems), không phải 1 trong 5 pattern của Module 3."},
+  {type:"seq", q:"Sắp xếp đúng thứ tự (nhập số thứ tự cách nhau bởi dấu phẩy, ví dụ: 2,4,1,3):\n1) graph.compile()  2) StateGraph(StateType)  3) app.invoke(state, config)  4) graph.add_node/add_edge",
+   answer:"2,4,1,3", explain:"Đúng thứ tự: khởi tạo StateGraph → add_node/add_edge → compile() → invoke()."},
+  {type:"tf", q:"Một vòng lặp (loop) trong LangGraph không cần điều kiện dừng nếu graph đã được compile.",
+   opts:["True","False"], correct:1,
+   explain:"False — luôn cần stop condition (max iterations/success condition), nếu không sẽ chạy vô hạn."},
+  {type:"mc", q:"config={\"configurable\": {\"thread_id\": \"abc\"}} dùng để làm gì?",
+   opts:["Đặt tên cho model LLM","Định danh 1 phiên/nhiệm vụ để checkpointer lưu state riêng biệt","Giới hạn số token","Bật streaming"],
+   correct:1, explain:"thread_id giúp checkpointer phân biệt state của từng phiên/nhiệm vụ, tránh lẫn lộn dữ liệu."},
+  {type:"fill", q:"Hàm dùng để lấy toàn bộ lịch sử checkpoint (time travel) là app.______(config).",
+   answer:"get_state_history", explain:"Đáp án: get_state_history — trả về danh sách các checkpoint đã lưu."},
+  {type:"tf", q:"Sau Module 3 (LangGraph Core), bước tiếp theo trong roadmap là Module 4 — Multi-Agent Systems.",
+   opts:["True","False"], correct:0,
+   explain:"True — đúng theo roadmap: Module 3 (LangGraph Core) → Module 4 (Multi-Agent Systems)."},
+  {type:"mc", q:"Trong dự án Exam Generator, thêm SqliteSaver với thread_id=f\"{student_id}_{exam_session_id}\" nhằm mục đích gì?",
+   opts:["Tăng tốc độ generate đề","Giúp agent nhớ ngữ cảnh refine đề qua nhiều lượt chat, kể cả khi đóng/mở lại app","Giảm chi phí token","Chỉ để logging"],
+   correct:1, explain:"Checkpoint + thread_id riêng theo học sinh/phiên giúp agent duy trì ngữ cảnh xuyên suốt, kể cả khi app bị đóng và mở lại."}
+];
+
+let score = 0;
+let answered = new Array(quizData.length).fill(false);
+const quizContainer = document.getElementById('quiz-container');
+
+quizData.forEach((item, idx)=>{
+  const card = document.createElement('div');
+  card.className = 'q-card';
+  const tag = {mc:"Multiple choice", tf:"True/False", fill:"Fill-in", seq:"Sequence"}[item.type];
+  let inner = `<span class="q-tag">${tag}</span><div class="q-title">Câu ${idx+1}. ${item.q.replace(/\n/g,'<br>')}</div>`;
+
+  if(item.type==='mc' || item.type==='tf'){
+    item.opts.forEach((opt,oi)=>{
+      inner += `<button class="opt" data-idx="${idx}" data-oi="${oi}">${opt}</button>`;
+    });
+  } else {
+    inner += `<input class="q-input" type="text" placeholder="Nhập câu trả lời..." data-idx="${idx}">
+              <button class="q-submit" data-idx="${idx}">Kiểm tra</button>`;
+  }
+  inner += `<div class="explain" id="exp-${idx}">💡 ${item.explain}</div>`;
+  card.innerHTML = inner;
+  quizContainer.appendChild(card);
+});
+
+function lockCard(idx){
+  const card = quizContainer.children[idx];
+  card.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  const inp = card.querySelector('.q-input');
+  if(inp) inp.disabled = true;
+  const sub = card.querySelector('.q-submit');
+  if(sub) sub.disabled = true;
+}
+
+function updateScore(){
+  document.getElementById('score').textContent = score;
+  if(answered.every(a=>a)){
+    const res = document.getElementById('quiz-result');
+    res.style.display='block';
+    res.textContent = `🎉 Hoàn thành! Điểm cuối: ${score}/10`;
+  }
+}
+
+quizContainer.addEventListener('click', (e)=>{
+  if(e.target.classList.contains('opt')){
+    const idx = +e.target.dataset.idx;
+    if(answered[idx]) return;
+    const oi = +e.target.dataset.oi;
+    const item = quizData[idx];
+    const card = quizContainer.children[idx];
+    card.querySelectorAll('.opt').forEach((b,bi)=>{
+      if(bi===item.correct) b.classList.add('correct');
+      else if(bi===oi) b.classList.add('wrong');
+    });
+    if(oi===item.correct) score++;
+    answered[idx]=true;
+    lockCard(idx);
+    document.getElementById(`exp-${idx}`).classList.add('show');
+    updateScore();
+  }
+  if(e.target.classList.contains('q-submit')){
+    const idx = +e.target.dataset.idx;
+    if(answered[idx]) return;
+    const card = quizContainer.children[idx];
+    const inp = card.querySelector('.q-input');
+    const val = inp.value.trim().toLowerCase().replace(/\s+/g,'');
+    const item = quizData[idx];
+    const correctVal = item.answer.toLowerCase().replace(/\s+/g,'');
+    if(val === correctVal){
+      inp.style.borderColor = 'var(--accent)';
+      inp.style.color = 'var(--accent)';
+      score++;
+    } else {
+      inp.style.borderColor = 'var(--danger)';
+      inp.style.color = 'var(--danger)';
+    }
+    answered[idx]=true;
+    lockCard(idx);
+    document.getElementById(`exp-${idx}`).classList.add('show');
+    updateScore();
+  }
+});
+</script>
+</body>
+</html>

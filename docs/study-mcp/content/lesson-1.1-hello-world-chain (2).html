@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 1.1 — Project Setup & Hello World Chain</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg-card: #161922;
+    --bg-card-hover: #1c2030;
+    --border: #262b3a;
+    --text: #e2e8f0;
+    --text-dim: #8b95a8;
+    --accent: #4ade80;
+    --accent-dim: #4ade8022;
+    --code-bg: #0a0c11;
+    --blue: #60a5fa;
+    --orange: #fb923c;
+    --red: #f87171;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #11141d 0%, #0d0f14 100%);
+  }
+
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  .meta-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+
+  nav {
+    display: flex;
+    gap: 4px;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border);
+    background: #0d0f14;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow-x: auto;
+  }
+
+  nav button {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 14px 20px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  nav button:hover { color: var(--text); }
+
+  nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  main {
+    padding: 28px 32px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .tab-content { display: none; animation: fadeIn 0.3s ease; }
+  .tab-content.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- Cards ---- */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: #36405a; }
+
+  .card h2 {
+    color: var(--accent);
+    font-size: 1.15rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card h3 {
+    color: var(--blue);
+    font-size: 1rem;
+    margin: 16px 0 8px;
+  }
+
+  .card p { color: var(--text); margin-bottom: 10px; }
+  .card ul, .card ol { padding-left: 22px; margin-bottom: 10px; }
+  .card li { margin-bottom: 6px; color: var(--text); }
+
+  .analogy-box {
+    background: var(--accent-dim);
+    border-left: 3px solid var(--accent);
+    padding: 14px 16px;
+    border-radius: 8px;
+    margin: 12px 0;
+    font-size: 0.93rem;
+  }
+
+  /* ---- Code blocks ---- */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  code.inline {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.85em;
+    color: var(--accent);
+  }
+
+  .kw { color: #c084fc; }
+  .str { color: var(--accent); }
+  .com { color: var(--text-dim); font-style: italic; }
+  .fn { color: var(--blue); }
+  .num { color: var(--orange); }
+
+  /* ---- Tables ---- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+  }
+
+  th {
+    background: #1c2030;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+  }
+
+  td { color: var(--text); }
+  td code { font-size: 0.85em; }
+
+  tr:nth-child(even) td { background: #12151e; }
+
+  /* ---- Flow diagram ---- */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 16px 0;
+    justify-content: center;
+  }
+
+  .flow-box {
+    background: var(--code-bg);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent);
+    text-align: center;
+  }
+
+  .flow-arrow {
+    color: var(--text-dim);
+    font-size: 1.2rem;
+  }
+
+  /* ---- Mindmap ---- */
+  #mindmap-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  #mindmap-container svg { width: 100%; height: auto; max-width: 900px; }
+
+  .mm-node {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mm-node rect, .mm-node circle {
+    stroke-width: 2;
+    transition: all 0.2s;
+  }
+
+  .mm-node:hover rect, .mm-node:hover circle {
+    filter: drop-shadow(0 0 8px var(--accent));
+  }
+
+  .mm-node text {
+    fill: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+
+  #mm-detail {
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-top: 16px;
+    display: none;
+  }
+
+  #mm-detail.show { display: block; animation: fadeIn 0.3s ease; }
+  #mm-detail h3 { color: var(--accent); margin-bottom: 8px; }
+  #mm-detail p { color: var(--text); font-size: 0.92rem; }
+
+  /* ---- Quiz ---- */
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .score-display {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .quiz-q {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+
+  .quiz-q .q-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-bottom: 8px;
+  }
+
+  .quiz-q .q-text {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+
+  .quiz-option {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.9rem;
+  }
+
+  .quiz-option:hover { border-color: var(--accent); }
+
+  .quiz-option.correct {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .quiz-option.incorrect {
+    border-color: var(--red);
+    background: #f8717122;
+    color: var(--red);
+  }
+
+  .quiz-option.disabled { cursor: default; }
+
+  .quiz-fill {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .quiz-fill input {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .quiz-fill input:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+  .quiz-fill button {
+    background: var(--accent);
+    color: #0d0f14;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .quiz-fill button:hover { opacity: 0.85; }
+  .quiz-fill button:disabled { opacity: 0.5; cursor: default; }
+
+  .explanation {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #12151e;
+    border-left: 3px solid var(--accent);
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    display: none;
+  }
+
+  .explanation.show { display: block; animation: fadeIn 0.3s ease; }
+  .explanation b { color: var(--accent); }
+
+  .seq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .seq-item {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    user-select: none;
+  }
+
+  .seq-item .seq-num {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-weight: 700;
+    min-width: 20px;
+  }
+
+  .seq-item.dragging { opacity: 0.4; }
+
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ---- Cheat sheet ---- */
+  .cheat-section { margin-bottom: 24px; }
+  .cheat-section h2 {
+    color: var(--accent);
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li {
+    padding: 6px 0;
+    color: var(--text);
+    font-size: 0.9rem;
+    display: flex;
+    gap: 8px;
+  }
+  .checklist li::before {
+    content: "▸";
+    color: var(--accent);
+  }
+
+  @media (max-width: 700px) {
+    header, nav, main { padding-left: 16px; padding-right: 16px; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📦 Lesson 1.1 — Project Setup & Hello World Chain</h1>
+  <p>LangChain & LangGraph — Advanced AI Engineering · Module 1 — LangChain Fundamentals</p>
+  <div class="meta-badges">
+    <span class="badge">⏱ 1:04 + 15:05</span>
+    <span class="badge">📚 Prereq: Lesson 0.2</span>
+    <span class="badge">🗺 Giai đoạn 0 — Warm-up</span>
+  </div>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-tab="theory">📖 Lý thuyết</button>
+  <button class="tab-btn" data-tab="mindmap">🧠 Mindmap</button>
+  <button class="tab-btn" data-tab="quiz">📝 Quiz</button>
+  <button class="tab-btn" data-tab="cheat">⚡ Cheat Sheet</button>
+</nav>
+
+<main>
+
+  <!-- ===================== TAB 1: LÝ THUYẾT ===================== -->
+  <section class="tab-content active" id="theory">
+
+    <div class="card">
+      <h2>🎯 Khái niệm cốt lõi</h2>
+      <p><b>LangChain</b> là framework giúp nối LLM với các thành phần khác (prompt, parser, tool, memory) theo kiểu lắp ghép Lego. <b>LCEL</b> (LangChain Expression Language) dùng operator <code class="inline">|</code> để compose các <code class="inline">Runnable</code> component thành một <b>chain</b>.</p>
+
+      <div class="analogy-box">
+        ☕ <b>Ví dụ đời sống:</b> Hãy nghĩ về dây chuyền pha cà phê tự động — <code class="inline">PromptTemplate</code> là công thức pha (có chỗ trống điền nguyên liệu), <code class="inline">ChatOpenAI</code> là máy pha, <code class="inline">StrOutputParser</code> là máy đổ ly thành phẩm. Pipe <code class="inline">|</code> chính là băng chuyền nối các máy lại với nhau.
+      </div>
+
+      <h3>So sánh với C# / .NET backend</h3>
+      <table>
+        <tr><th>LangChain (Python)</th><th>C# tương đương</th></tr>
+        <tr><td><code class="inline">PromptTemplate</code></td><td>String template / Razor template</td></tr>
+        <tr><td><code class="inline">ChatOpenAI</code></td><td>HttpClient gọi API (model wrapper)</td></tr>
+        <tr><td><code class="inline">StrOutputParser</code></td><td>Response DTO mapper</td></tr>
+        <tr><td><code class="inline">prompt | model | parser</code></td><td>Middleware pipeline (<code class="inline">app.Use(...)</code>)</td></tr>
+        <tr><td><code class="inline">chain.invoke(input)</code></td><td>Gọi pipeline đồng bộ</td></tr>
+        <tr><td><code class="inline">chain.batch([...])</code></td><td><code class="inline">Task.WhenAll(...)</code></td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>🗺 Vị trí trong hệ thống</h2>
+      <p>Lesson 1.1 là viên gạch nền tảng — mọi concept sau (RAG, LangGraph, multi-agent, MCP) đều dựa trên <code class="inline">Runnable</code> + LCEL pipe học ở đây.</p>
+      <div class="flow">
+        <div class="flow-box">0.2 What is LangChain?</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="border-color:var(--accent); box-shadow:0 0 10px var(--accent-dim);">1.1 Project Setup<br>+ Hello World</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">1.2 LCEL Core</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">1.3 Summarization Chain</div>
+      </div>
+      <div class="flow">
+        <div class="flow-box">Module 1 hoàn chỉnh</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Giai đoạn 1: LangGraph Core</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Giai đoạn 2: Multi-Agent + MCP</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Setup môi trường — Lệnh cơ bản</h2>
+      <pre><span class="com"># Tạo virtual environment</span>
+python -m venv venv
+
+<span class="com"># Activate venv</span>
+source venv/bin/activate        <span class="com"># Linux/Mac</span>
+venv\Scripts\activate           <span class="com"># Windows</span>
+
+<span class="com"># Cài package cần thiết</span>
+pip install langchain langchain-openai python-dotenv</pre>
+
+      <table>
+        <tr><th>Lệnh / Flag</th><th>Giải thích</th></tr>
+        <tr><td><code class="inline">python -m venv venv</code></td><td>Tạo môi trường Python riêng cho project, tránh xung đột version giữa các project</td></tr>
+        <tr><td><code class="inline">source venv/bin/activate</code></td><td>Kích hoạt venv — các <code class="inline">pip install</code> sau đó chỉ ảnh hưởng venv này</td></tr>
+        <tr><td><code class="inline">pip install &lt;pkg&gt;</code></td><td>Cài package từ PyPI (tương đương <code class="inline">dotnet add package</code>)</td></tr>
+        <tr><td><code class="inline">langchain</code></td><td>Package core — abstractions, chains, agents</td></tr>
+        <tr><td><code class="inline">langchain-openai</code></td><td>Tích hợp OpenAI (<code class="inline">ChatOpenAI</code>, <code class="inline">OpenAIEmbeddings</code>)</td></tr>
+        <tr><td><code class="inline">python-dotenv</code></td><td>Load biến môi trường từ <code class="inline">.env</code></td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>🚀 Lệnh nâng cao</h2>
+      <pre><span class="com"># Xuất danh sách dependencies</span>
+pip freeze > requirements.txt
+
+<span class="com"># Cài lại từ file requirements</span>
+pip install -r requirements.txt
+
+<span class="com"># Kiểm tra version đã cài</span>
+python -c <span class="str">"import langchain; print(langchain.__version__)"</span>
+
+<span class="com"># Dùng uv (nhanh hơn pip 10-100x)</span>
+uv venv
+uv pip install langchain langchain-openai python-dotenv</pre>
+
+      <table>
+        <tr><th>Lệnh / Flag</th><th>Giải thích</th></tr>
+        <tr><td><code class="inline">pip freeze > requirements.txt</code></td><td>Xuất toàn bộ package+version đang cài để tái tạo môi trường ở máy khác</td></tr>
+        <tr><td><code class="inline">pip install -r requirements.txt</code></td><td><code class="inline">-r</code> = đọc danh sách package từ file và cài tất cả</td></tr>
+        <tr><td><code class="inline">python -c "..."</code></td><td><code class="inline">-c</code> = chạy 1 đoạn code Python trực tiếp, không cần file <code class="inline">.py</code></td></tr>
+        <tr><td><code class="inline">uv venv / uv pip install</code></td><td>Tool thay thế venv+pip, viết bằng Rust, cài nhanh hơn nhiều — khuyến nghị cho project mới</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>📄 File cấu hình quan trọng</h2>
+      <h3>.env — quản lý API key</h3>
+      <pre><span class="com"># .env</span>
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxx</pre>
+
+      <div class="analogy-box">
+        ⚠️ <b>Quan trọng:</b> luôn thêm <code class="inline">.env</code> vào <code class="inline">.gitignore</code>. KHÔNG BAO GIỜ commit API key lên git — đây là lỗi phổ biến nhất gây lộ key.
+      </div>
+
+      <h3>.gitignore</h3>
+      <pre>venv/
+.env
+__pycache__/
+*.pyc
+.ipynb_checkpoints/</pre>
+
+      <h3>hello_world.py — Chain đầu tiên</h3>
+      <pre><span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+<span class="kw">from</span> langchain_core.prompts <span class="kw">import</span> PromptTemplate
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+<span class="kw">from</span> langchain_core.output_parsers <span class="kw">import</span> StrOutputParser
+
+load_dotenv()
+
+<span class="com"># 1. Prompt Template — công thức có chỗ trống</span>
+prompt = PromptTemplate.from_template(<span class="str">"Hãy nói lời chào bằng tiếng {language}: {input}"</span>)
+
+<span class="com"># 2. Model — máy pha</span>
+model = ChatOpenAI(model=<span class="str">"gpt-4o-mini"</span>, temperature=<span class="num">0.7</span>)
+
+<span class="com"># 3. Output Parser — chuyển kết quả về string</span>
+parser = StrOutputParser()
+
+<span class="com"># 4. LCEL Chain — ghép bằng pipe operator</span>
+chain = prompt | model | parser
+
+<span class="com"># 5. Invoke</span>
+result = chain.invoke({<span class="str">"language"</span>: <span class="str">"Việt"</span>, <span class="str">"input"</span>: <span class="str">"Hello World"</span>})
+<span class="fn">print</span>(result)</pre>
+
+      <table>
+        <tr><th>Phần</th><th>Giải thích</th></tr>
+        <tr><td><code class="inline">load_dotenv()</code></td><td>Đọc file <code class="inline">.env</code>, nạp key vào <code class="inline">os.environ</code></td></tr>
+        <tr><td><code class="inline">PromptTemplate.from_template()</code></td><td>Tạo template với placeholder <code class="inline">{language}</code>, <code class="inline">{input}</code></td></tr>
+        <tr><td><code class="inline">ChatOpenAI(model=, temperature=)</code></td><td><code class="inline">temperature</code>: 0 = deterministic, gần 1 = sáng tạo/ngẫu nhiên hơn</td></tr>
+        <tr><td><code class="inline">StrOutputParser()</code></td><td>Lấy <code class="inline">.content</code> string từ object <code class="inline">AIMessage</code></td></tr>
+        <tr><td><code class="inline">prompt | model | parser</code></td><td>Compose 3 Runnable thành 1 chain duy nhất</td></tr>
+        <tr><td><code class="inline">chain.invoke({...})</code></td><td>Chạy chain đồng bộ, trả kết quả cuối</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>🏢 Ứng dụng thực tế</h2>
+      <ul>
+        <li><b>Chatbot/Customer support:</b> chain <code class="inline">prompt | model | parser</code> là core của mọi chatbot.</li>
+        <li><b>Content generation pipelines:</b> sequential chaining để tạo draft rồi polish bằng chain khác.</li>
+        <li><b>Internal tools tại công ty (.NET/Java backend):</b> microservice Python wrap LangChain chain, expose qua FastAPI, gọi từ hệ thống chính qua HTTP.</li>
+        <li><b>Prototype nhanh:</b> cú pháp ngắn gọn giúp validate ý tưởng AI product trong vài giờ.</li>
+      </ul>
+    </div>
+
+  </section>
+
+  <!-- ===================== TAB 2: MINDMAP ===================== -->
+  <section class="tab-content" id="mindmap">
+    <div class="card">
+      <h2>🧠 Mindmap — Lesson 1.1</h2>
+      <p style="color:var(--text-dim); font-size:0.88rem; margin-bottom:10px;">Click vào từng node để xem chi tiết.</p>
+    </div>
+
+    <div id="mindmap-container">
+      <svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg">
+        <!-- Connections -->
+        <g stroke="#36405a" stroke-width="2" fill="none">
+          <line x1="450" y1="60" x2="200" y2="160"/>
+          <line x1="450" y1="60" x2="450" y2="160"/>
+          <line x1="450" y1="60" x2="700" y2="160"/>
+          <line x1="200" y1="200" x2="120" y2="300"/>
+          <line x1="200" y1="200" x2="280" y2="300"/>
+          <line x1="450" y1="200" x2="370" y2="300"/>
+          <line x1="450" y1="200" x2="530" y2="300"/>
+          <line x1="700" y1="200" x2="620" y2="300"/>
+          <line x1="700" y1="200" x2="780" y2="300"/>
+        </g>
+
+        <!-- Root -->
+        <g class="mm-node" data-id="root">
+          <rect x="370" y="20" width="160" height="44" rx="10" fill="#161922" stroke="#4ade80"/>
+          <text x="450" y="47">Lesson 1.1</text>
+        </g>
+
+        <!-- Level 1 -->
+        <g class="mm-node" data-id="setup">
+          <rect x="120" y="160" width="160" height="44" rx="10" fill="#161922" stroke="#60a5fa"/>
+          <text x="200" y="187">Project Setup</text>
+        </g>
+        <g class="mm-node" data-id="lcel">
+          <rect x="370" y="160" width="160" height="44" rx="10" fill="#161922" stroke="#60a5fa"/>
+          <text x="450" y="187">LCEL Chain</text>
+        </g>
+        <g class="mm-node" data-id="apps">
+          <rect x="620" y="160" width="160" height="44" rx="10" fill="#161922" stroke="#60a5fa"/>
+          <text x="700" y="187">Ứng dụng</text>
+        </g>
+
+        <!-- Level 2 -->
+        <g class="mm-node" data-id="venv">
+          <rect x="40" y="300" width="160" height="44" rx="10" fill="#161922" stroke="#fb923c"/>
+          <text x="120" y="327">venv + pip</text>
+        </g>
+        <g class="mm-node" data-id="env">
+          <rect x="200" y="300" width="160" height="44" rx="10" fill="#161922" stroke="#fb923c"/>
+          <text x="280" y="327">.env / .gitignore</text>
+        </g>
+        <g class="mm-node" data-id="prompt">
+          <rect x="290" y="300" width="160" height="44" rx="10" fill="#161922" stroke="#fb923c"/>
+          <text x="370" y="327">PromptTemplate</text>
+        </g>
+        <g class="mm-node" data-id="model">
+          <rect x="450" y="300" width="160" height="44" rx="10" fill="#161922" stroke="#fb923c"/>
+          <text x="530" y="327">ChatOpenAI</text>
+        </g>
+        <g class="mm-node" data-id="parser">
+          <rect x="540" y="300" width="160" height="44" rx="10" fill="#161922" stroke="#fb923c"/>
+          <text x="620" y="327">StrOutputParser</text>
+        </g>
+        <g class="mm-node" data-id="next">
+          <rect x="700" y="300" width="160" height="44" rx="10" fill="#161922" stroke="#fb923c"/>
+          <text x="780" y="327">Lesson 1.2 →</text>
+        </g>
+      </svg>
+    </div>
+
+    <div id="mm-detail">
+      <h3 id="mm-title"></h3>
+      <p id="mm-text"></p>
+    </div>
+  </section>
+
+  <!-- ===================== TAB 3: QUIZ ===================== -->
+  <section class="tab-content" id="quiz">
+    <div class="quiz-header">
+      <h2 style="color:var(--accent);">📝 Quiz — 10 câu hỏi</h2>
+      <div class="score-display" id="score-display">Điểm: 0 / 10</div>
+      <button class="reset-btn" id="reset-quiz">↺ Làm lại từ đầu</button>
+    </div>
+
+    <!-- Q1 -->
+    <div class="quiz-q" data-qid="1" data-correct="C">
+      <span class="q-tag">Multiple Choice</span>
+      <div class="q-text">Câu 1. Operator nào được dùng trong LCEL để nối các component thành 1 chain?</div>
+      <div class="quiz-options">
+        <div class="quiz-option" data-val="A">A. +</div>
+        <div class="quiz-option" data-val="B">B. &gt;&gt;</div>
+        <div class="quiz-option" data-val="C">C. |</div>
+        <div class="quiz-option" data-val="D">D. &amp;</div>
+      </div>
+      <div class="explanation"><b>Đáp án: C.</b> <code class="inline">|</code> (pipe operator) là cú pháp LCEL chuẩn để compose các Runnable component.</div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="quiz-q" data-qid="2" data-correct="B">
+      <span class="q-tag">Multiple Choice</span>
+      <div class="q-text">Câu 2. Package nào dùng để load biến môi trường từ file .env?</div>
+      <div class="quiz-options">
+        <div class="quiz-option" data-val="A">A. langchain-community</div>
+        <div class="quiz-option" data-val="B">B. python-dotenv</div>
+        <div class="quiz-option" data-val="C">C. pydantic</div>
+        <div class="quiz-option" data-val="D">D. langsmith</div>
+      </div>
+      <div class="explanation"><b>Đáp án: B.</b> <code class="inline">python-dotenv</code> cung cấp hàm <code class="inline">load_dotenv()</code>.</div>
+    </div>
+
+    <!-- Q3 - Fill in -->
+    <div class="quiz-q" data-qid="3" data-correct="prompt | model | parser">
+      <span class="q-tag">Fill-in</span>
+      <div class="q-text">Câu 3. Hoàn thành dòng code tạo chain Hello World cơ bản: <code class="inline">chain = ____________</code></div>
+      <div class="quiz-fill">
+        <input type="text" placeholder="Gõ câu trả lời, ví dụ: prompt | model | parser">
+        <button class="submit-fill">Kiểm tra</button>
+      </div>
+      <div class="explanation"><b>Đáp án:</b> <code class="inline">prompt | model | parser</code> — ghép 3 Runnable component bằng pipe operator.</div>
+    </div>
+
+    <!-- Q4 - True/False -->
+    <div class="quiz-q" data-qid="4" data-correct="true">
+      <span class="q-tag">True / False</span>
+      <div class="q-text">Câu 4. <code class="inline">StrOutputParser</code> có nhiệm vụ chuyển response của model (object AIMessage) thành một string thuần.</div>
+      <div class="quiz-options">
+        <div class="quiz-option" data-val="true">True</div>
+        <div class="quiz-option" data-val="false">False</div>
+      </div>
+      <div class="explanation"><b>Đáp án: True.</b> <code class="inline">StrOutputParser</code> lấy phần <code class="inline">.content</code> (string) từ <code class="inline">AIMessage</code>.</div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="quiz-q" data-qid="5" data-correct="C">
+      <span class="q-tag">Multiple Choice</span>
+      <div class="q-text">Câu 5. Lệnh nào dùng để chạy chain với 1 input duy nhất và trả kết quả ngay (đồng bộ)?</div>
+      <div class="quiz-options">
+        <div class="quiz-option" data-val="A">A. chain.stream(input)</div>
+        <div class="quiz-option" data-val="B">B. chain.batch(input)</div>
+        <div class="quiz-option" data-val="C">C. chain.invoke(input)</div>
+        <div class="quiz-option" data-val="D">D. chain.run(input)</div>
+      </div>
+      <div class="explanation"><b>Đáp án: C.</b> <code class="inline">.invoke()</code> là method đồng bộ trong Runnable protocol.</div>
+    </div>
+
+    <!-- Q6 - Fill in -->
+    <div class="quiz-q" data-qid="6" data-correct=".env">
+      <span class="q-tag">Fill-in</span>
+      <div class="q-text">Câu 6. File ___________ chứa các API key và KHÔNG ĐƯỢC commit lên git.</div>
+      <div class="quiz-fill">
+        <input type="text" placeholder="Gõ tên file, ví dụ: .env">
+        <button class="submit-fill">Kiểm tra</button>
+      </div>
+      <div class="explanation"><b>Đáp án:</b> <code class="inline">.env</code></div>
+    </div>
+
+    <!-- Q7 - True/False -->
+    <div class="quiz-q" data-qid="7" data-correct="false">
+      <span class="q-tag">True / False</span>
+      <div class="q-text">Câu 7. Tham số <code class="inline">temperature</code> khi đặt = 0 sẽ làm model trả lời ngẫu nhiên/sáng tạo hơn.</div>
+      <div class="quiz-options">
+        <div class="quiz-option" data-val="true">True</div>
+        <div class="quiz-option" data-val="false">False</div>
+      </div>
+      <div class="explanation"><b>Đáp án: False.</b> <code class="inline">temperature=0</code> làm model deterministic (ổn định); giá trị cao hơn (gần 1) mới tăng tính sáng tạo/ngẫu nhiên.</div>
+    </div>
+
+    <!-- Q8 - Sequence -->
+    <div class="quiz-q" data-qid="8" data-correct="B,C,A,D">
+      <span class="q-tag">Sequence</span>
+      <div class="q-text">Câu 8. Kéo thả để sắp xếp đúng thứ tự thiết lập môi trường:</div>
+      <div class="seq-list" id="seq-8">
+        <div class="seq-item" draggable="true" data-val="A"><span class="seq-num">?</span> pip install langchain langchain-openai python-dotenv</div>
+        <div class="seq-item" draggable="true" data-val="B"><span class="seq-num">?</span> python -m venv venv</div>
+        <div class="seq-item" draggable="true" data-val="C"><span class="seq-num">?</span> source venv/bin/activate</div>
+        <div class="seq-item" draggable="true" data-val="D"><span class="seq-num">?</span> Tạo file .env chứa API key</div>
+      </div>
+      <button class="submit-fill" style="margin-top:10px;" id="submit-seq-8">Kiểm tra thứ tự</button>
+      <div class="explanation"><b>Đáp án đúng:</b> B → C → A → D (Tạo venv → activate venv → install packages → setup .env)</div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="quiz-q" data-qid="9" data-correct="C">
+      <span class="q-tag">Multiple Choice</span>
+      <div class="q-text">Câu 9. Component nào "điền giá trị biến vào template trước khi gửi cho model"?</div>
+      <div class="quiz-options">
+        <div class="quiz-option" data-val="A">A. ChatOpenAI</div>
+        <div class="quiz-option" data-val="B">B. StrOutputParser</div>
+        <div class="quiz-option" data-val="C">C. PromptTemplate</div>
+        <div class="quiz-option" data-val="D">D. LangSmith</div>
+      </div>
+      <div class="explanation"><b>Đáp án: C.</b> <code class="inline">PromptTemplate</code> chứa placeholder và được format với input cụ thể.</div>
+    </div>
+
+    <!-- Q10 - Fill in -->
+    <div class="quiz-q" data-qid="10" data-correct="Runnable">
+      <span class="q-tag">Fill-in</span>
+      <div class="q-text">Câu 10. Mọi component trong LangChain tuân theo ___________ protocol, cung cấp <code class="inline">.invoke()</code>, <code class="inline">.stream()</code>, <code class="inline">.batch()</code>.</div>
+      <div class="quiz-fill">
+        <input type="text" placeholder="Gõ tên protocol">
+        <button class="submit-fill">Kiểm tra</button>
+      </div>
+      <div class="explanation"><b>Đáp án:</b> <code class="inline">Runnable</code></div>
+    </div>
+
+  </section>
+
+  <!-- ===================== TAB 4: CHEAT SHEET ===================== -->
+  <section class="tab-content" id="cheat">
+
+    <div class="card cheat-section">
+      <h2>⚙️ Lệnh setup môi trường</h2>
+      <table>
+        <tr><th>Lệnh</th><th>Mô tả ngắn</th></tr>
+        <tr><td><code class="inline">python -m venv venv</code></td><td>Tạo virtual environment</td></tr>
+        <tr><td><code class="inline">source venv/bin/activate</code></td><td>Activate venv (Linux/Mac)</td></tr>
+        <tr><td><code class="inline">pip install langchain langchain-openai python-dotenv</code></td><td>Cài 3 package cốt lõi</td></tr>
+        <tr><td><code class="inline">pip freeze > requirements.txt</code></td><td>Xuất danh sách dependencies</td></tr>
+        <tr><td><code class="inline">pip install -r requirements.txt</code></td><td>Cài lại từ requirements</td></tr>
+        <tr><td><code class="inline">python -c "import langchain; print(langchain.__version__)"</code></td><td>Check version</td></tr>
+        <tr><td><code class="inline">uv venv / uv pip install</code></td><td>Tool nhanh hơn pip (optional)</td></tr>
+      </table>
+    </div>
+
+    <div class="card cheat-section">
+      <h2>📄 File cấu hình quan trọng</h2>
+      <table>
+        <tr><th>File</th><th>Vai trò</th></tr>
+        <tr><td><code class="inline">.env</code></td><td>Chứa API key (OPENAI_API_KEY, ANTHROPIC_API_KEY) — KHÔNG commit git</td></tr>
+        <tr><td><code class="inline">.gitignore</code></td><td>Loại trừ <code class="inline">venv/</code>, <code class="inline">.env</code>, <code class="inline">__pycache__/</code></td></tr>
+        <tr><td><code class="inline">hello_world.py</code></td><td>Chain LCEL đầu tiên: prompt | model | parser</td></tr>
+        <tr><td><code class="inline">requirements.txt</code></td><td>Danh sách dependencies để tái tạo môi trường</td></tr>
+      </table>
+    </div>
+
+    <div class="card cheat-section">
+      <h2>🧩 LCEL Chain — cấu trúc cốt lõi</h2>
+      <pre>chain = prompt | model | parser
+
+result = chain.invoke({"key": "value"})  <span class="com"># đồng bộ, 1 input</span>
+chain.batch([input1, input2])            <span class="com"># nhiều input song song</span>
+chain.stream(input)                      <span class="com"># trả từng token</span></pre>
+      <table>
+        <tr><th>Component</th><th>Vai trò</th></tr>
+        <tr><td><code class="inline">PromptTemplate</code></td><td>Template + placeholder {var}</td></tr>
+        <tr><td><code class="inline">ChatOpenAI(model=, temperature=)</code></td><td>LLM wrapper. temperature=0 → ổn định</td></tr>
+        <tr><td><code class="inline">StrOutputParser()</code></td><td>AIMessage → string</td></tr>
+      </table>
+    </div>
+
+    <div class="card cheat-section">
+      <h2>🪜 Lab steps tóm tắt</h2>
+      <ul class="checklist">
+        <li>mkdir langchain-hello-world && cd langchain-hello-world</li>
+        <li>python -m venv venv && source venv/bin/activate</li>
+        <li>pip install langchain langchain-openai python-dotenv</li>
+        <li>Tạo .env chứa OPENAI_API_KEY</li>
+        <li>Tạo .gitignore (venv/, .env, __pycache__/)</li>
+        <li>Tạo hello_world.py với chain prompt | model | parser</li>
+        <li>Chạy: python hello_world.py</li>
+        <li>Verify: python -c "import langchain; print(langchain.__version__)"</li>
+      </ul>
+    </div>
+
+    <div class="card cheat-section">
+      <h2>⚠️ Lỗi thường gặp</h2>
+      <table>
+        <tr><th>Lỗi</th><th>Fix</th></tr>
+        <tr><td>ModuleNotFoundError: langchain_openai</td><td>Activate venv + pip install lại</td></tr>
+        <tr><td>AuthenticationError</td><td>Check .env, gọi load_dotenv() trước khi init model</td></tr>
+        <tr><td>RateLimitError</td><td>Check billing OpenAI hoặc dùng gpt-4o-mini</td></tr>
+        <tr><td>Lộ API key lên git</td><td>Revoke key ngay, tạo key mới, fix .gitignore</td></tr>
+      </table>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+  // Tab switching
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Mindmap interactivity
+  const mmData = {
+    root: { title: "Lesson 1.1 — Project Setup & Hello World Chain", text: "Bài học nền tảng đầu tiên của Module 1: setup môi trường Python và build LCEL chain đầu tiên." },
+    setup: { title: "Project Setup", text: "Tạo virtual environment (venv), cài langchain + langchain-openai + python-dotenv, tổ chức file .env và .gitignore." },
+    lcel: { title: "LCEL Chain", text: "LangChain Expression Language: dùng pipe | để compose PromptTemplate, ChatModel, OutputParser thành 1 Runnable chain." },
+    apps: { title: "Ứng dụng thực tế", text: "Chatbot, content generation pipeline, internal microservice (FastAPI) cho hệ thống .NET/Java, prototype nhanh." },
+    venv: { title: "venv + pip", text: "python -m venv venv → source venv/bin/activate → pip install <packages>. Tương đương tạo solution riêng trong .NET." },
+    env: { title: ".env / .gitignore", text: "File .env chứa OPENAI_API_KEY, ANTHROPIC_API_KEY. .gitignore loại trừ venv/, .env, __pycache__/ — KHÔNG BAO GIỜ commit key." },
+    prompt: { title: "PromptTemplate", text: "PromptTemplate.from_template('...{var}...') — template có placeholder, điền giá trị khi .invoke()." },
+    model: { title: "ChatOpenAI", text: "ChatOpenAI(model='gpt-4o-mini', temperature=0.7) — LLM wrapper. temperature: 0=ổn định, gần 1=sáng tạo." },
+    parser: { title: "StrOutputParser", text: "Chuyển AIMessage object → string thuần, để dễ dùng ở bước tiếp theo hoặc hiển thị ra UI." },
+    next: { title: "Lesson 1.2 — LCEL Core", text: "Bài tiếp theo: ChatPromptTemplate (system+human message), đi sâu vào .invoke()/.stream()/.batch()." }
+  };
+
+  document.querySelectorAll('.mm-node').forEach(node => {
+    node.addEventListener('click', () => {
+      const id = node.dataset.id;
+      const data = mmData[id];
+      document.getElementById('mm-title').textContent = data.title;
+      document.getElementById('mm-text').textContent = data.text;
+      document.getElementById('mm-detail').classList.add('show');
+    });
+  });
+
+  // Quiz logic
+  let score = 0;
+  const totalQ = 10;
+  const answered = new Set();
+
+  function updateScore() {
+    document.getElementById('score-display').textContent = `Điểm: ${score} / ${totalQ}`;
+  }
+
+  // Multiple choice / True-False
+  document.querySelectorAll('.quiz-q').forEach(q => {
+    const qid = q.dataset.qid;
+    const correct = q.dataset.correct;
+    const options = q.querySelectorAll('.quiz-option');
+
+    options.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered.has(qid)) return;
+        answered.add(qid);
+
+        const val = opt.dataset.val;
+        if (val === correct) {
+          opt.classList.add('correct');
+          score++;
+        } else {
+          opt.classList.add('incorrect');
+          options.forEach(o => { if (o.dataset.val === correct) o.classList.add('correct'); });
+        }
+        options.forEach(o => o.classList.add('disabled'));
+        q.querySelector('.explanation').classList.add('show');
+        updateScore();
+      });
+    });
+  });
+
+  // Fill-in
+  document.querySelectorAll('.quiz-fill').forEach(fillBox => {
+    const q = fillBox.closest('.quiz-q');
+    const qid = q.dataset.qid;
+    const correct = q.dataset.correct.toLowerCase().trim();
+    const input = fillBox.querySelector('input');
+    const btn = fillBox.querySelector('button');
+
+    btn.addEventListener('click', () => {
+      if (answered.has(qid)) return;
+      answered.add(qid);
+
+      const userVal = input.value.toLowerCase().trim().replace(/\s+/g, ' ');
+      const correctNorm = correct.replace(/\s+/g, ' ');
+
+      if (userVal === correctNorm || userVal.replace(/\|/g, ' | ').replace(/\s+/g,' ') === correctNorm.replace(/\s+/g,' ')) {
+        score++;
+        input.style.borderColor = 'var(--accent)';
+        input.style.color = 'var(--accent)';
+      } else {
+        input.style.borderColor = 'var(--red)';
+        input.style.color = 'var(--red)';
+      }
+      input.disabled = true;
+      btn.disabled = true;
+      q.querySelector('.explanation').classList.add('show');
+      updateScore();
+    });
+  });
+
+  // Sequence drag & drop (Q8)
+  const seqList = document.getElementById('seq-8');
+  let dragEl = null;
+
+  seqList.querySelectorAll('.seq-item').forEach(item => {
+    item.addEventListener('dragstart', () => {
+      dragEl = item;
+      item.classList.add('dragging');
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      renumber();
+    });
+  });
+
+  seqList.addEventListener('dragover', e => {
+    e.preventDefault();
+    const afterEl = [...seqList.querySelectorAll('.seq-item:not(.dragging)')].find(sib => {
+      const box = sib.getBoundingClientRect();
+      return e.clientY < box.top + box.height / 2;
+    });
+    if (afterEl == null) {
+      seqList.appendChild(dragEl);
+    } else {
+      seqList.insertBefore(dragEl, afterEl);
+    }
+  });
+
+  function renumber() {
+    seqList.querySelectorAll('.seq-item').forEach((item, idx) => {
+      item.querySelector('.seq-num').textContent = (idx + 1) + '.';
+    });
+  }
+  renumber();
+
+  document.getElementById('submit-seq-8').addEventListener('click', () => {
+    const q = document.querySelector('[data-qid="8"]');
+    const qid = '8';
+    if (answered.has(qid)) return;
+    answered.add(qid);
+
+    const order = [...seqList.querySelectorAll('.seq-item')].map(i => i.dataset.val).join(',');
+    const correct = q.dataset.correct;
+
+    seqList.querySelectorAll('.seq-item').forEach((item, idx) => {
+      if (order === correct) {
+        item.style.borderColor = 'var(--accent)';
+      } else {
+        item.style.borderColor = (item.dataset.val === correct.split(',')[idx]) ? 'var(--accent)' : 'var(--red)';
+      }
+    });
+
+    if (order === correct) score++;
+    document.getElementById('submit-seq-8').disabled = true;
+    document.getElementById('submit-seq-8').style.opacity = '0.5';
+    q.querySelector('.explanation').classList.add('show');
+    updateScore();
+  });
+
+  // Reset quiz
+  document.getElementById('reset-quiz').addEventListener('click', () => {
+    location.reload();
+  });
+</script>
+
+</body>
+</html>

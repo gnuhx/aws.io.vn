@@ -53,10 +53,34 @@ export default function LearningTreeView({ tree }: Props) {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [collapsedTopics, setCollapsedTopics] = useState<Set<string>>(new Set());
+  const [isViewingExternal, setIsViewingExternal] = useState(false);
 
   useEffect(() => {
     setSelectedLessonId(lessonEntries[0]?.lesson.id ?? '');
   }, [lessonEntries]);
+
+  useEffect(() => {
+    const entry = lessonEntries.find((e) => e.lesson.id === selectedLessonId);
+    setIsViewingExternal(Boolean(entry?.lesson.externalUrl));
+  }, [selectedLessonId, lessonEntries]);
+
+  useEffect(() => {
+    if (!isViewingExternal) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsViewingExternal(false);
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [isViewingExternal]);
+
+  useEffect(() => {
+    if (!isViewingExternal) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isViewingExternal]);
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -82,15 +106,27 @@ export default function LearningTreeView({ tree }: Props) {
   const selectedEntry =
     lessonEntries.find((entry) => entry.lesson.id === selectedLessonId) ??
     lessonEntries[0];
-  const selectedPost = selectedEntry
-    ? getPostById(selectedEntry.lesson.postId)
-    : undefined;
-  const selectedQuiz = selectedEntry
-    ? getQuizByPostId(selectedEntry.lesson.postId)
-    : undefined;
+  const selectedExternalUrl = selectedEntry?.lesson.externalUrl;
+  const selectedPost =
+    selectedEntry && selectedEntry.lesson.postId
+      ? getPostById(selectedEntry.lesson.postId)
+      : undefined;
+  const selectedQuiz =
+    selectedEntry && selectedEntry.lesson.postId
+      ? getQuizByPostId(selectedEntry.lesson.postId)
+      : undefined;
   const selectedPostLinkLabel = selectedPost?.path?.startsWith('/learning/')
     ? 'Open track'
     : 'Open standalone post';
+
+  const selectedIndex = selectedEntry
+    ? lessonEntries.findIndex((entry) => entry.lesson.id === selectedEntry.lesson.id)
+    : -1;
+  const previousEntry = selectedIndex > 0 ? lessonEntries[selectedIndex - 1] : undefined;
+  const nextEntry =
+    selectedIndex >= 0 && selectedIndex < lessonEntries.length - 1
+      ? lessonEntries[selectedIndex + 1]
+      : undefined;
 
   return (
     <main className="learning-tree-page">
@@ -198,7 +234,7 @@ export default function LearningTreeView({ tree }: Props) {
         </aside>
 
         <article className="learning-tree-article">
-          {selectedEntry && selectedPost ? (
+          {selectedEntry && (selectedPost || selectedExternalUrl) ? (
             <>
               <header className="learning-tree-article__header">
                 <div className="learning-tree-article__eyebrow">
@@ -206,15 +242,35 @@ export default function LearningTreeView({ tree }: Props) {
                   <span>{selectedEntry.lesson.duration}</span>
                   <span>{selectedEntry.lesson.difficulty}</span>
                 </div>
-                <h2>{selectedPost.title}</h2>
+                <h2>{selectedPost?.title ?? selectedEntry.lesson.title}</h2>
                 <p>{selectedEntry.lesson.summary}</p>
-                <div className="learning-tree-article__meta">
-                  <time dateTime={selectedPost.date}>
-                    {formatDate(selectedPost.date)}
-                  </time>
-                  <span>{selectedPost.readTime} min read</span>
-                </div>
+                {selectedPost && (
+                  <div className="learning-tree-article__meta">
+                    <time dateTime={selectedPost.date}>
+                      {formatDate(selectedPost.date)}
+                    </time>
+                    <span>{selectedPost.readTime} min read</span>
+                  </div>
+                )}
                 <div className="learning-tree-article__actions">
+                  <button
+                    type="button"
+                    className="learning-tree-article__nav"
+                    disabled={!previousEntry}
+                    onClick={() =>
+                      previousEntry && setSelectedLessonId(previousEntry.lesson.id)
+                    }
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    type="button"
+                    className="learning-tree-article__nav"
+                    disabled={!nextEntry}
+                    onClick={() => nextEntry && setSelectedLessonId(nextEntry.lesson.id)}
+                  >
+                    Next →
+                  </button>
                   <button
                     type="button"
                     className={`learning-tree-article__complete ${
@@ -238,19 +294,49 @@ export default function LearningTreeView({ tree }: Props) {
                       ? 'Completed'
                       : 'Mark complete'}
                   </button>
-                  <Link
-                    to={selectedPost.path ?? `/post/${selectedPost.id}`}
-                    className="learning-tree-article__link"
-                  >
-                    {selectedPostLinkLabel}
-                  </Link>
+                  {selectedPost && (
+                    <Link
+                      to={selectedPost.path ?? `/post/${selectedPost.id}`}
+                      className="learning-tree-article__link"
+                    >
+                      {selectedPostLinkLabel}
+                    </Link>
+                  )}
+                  {selectedExternalUrl && (
+                    <>
+                      <button
+                        type="button"
+                        className="learning-tree-article__complete"
+                        onClick={() => setIsViewingExternal(true)}
+                      >
+                        View fullscreen ⛶
+                      </button>
+                      <a
+                        href={selectedExternalUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="learning-tree-article__link"
+                      >
+                        Open in new tab
+                      </a>
+                    </>
+                  )}
                 </div>
               </header>
 
-              <div
-                className="learning-tree-article__body"
-                dangerouslySetInnerHTML={{ __html: selectedPost.content }}
-              />
+              {selectedPost && (
+                <div
+                  className="learning-tree-article__body"
+                  dangerouslySetInnerHTML={{ __html: selectedPost.content }}
+                />
+              )}
+
+              {selectedExternalUrl && (
+                <div className="learning-tree-article__frame-hint">
+                  This lesson opens in fullscreen for its full design. Closed it?
+                  Use "View fullscreen" above to reopen.
+                </div>
+              )}
 
               {selectedQuiz && <LessonQuizComponent quiz={selectedQuiz} />}
             </>
@@ -271,6 +357,63 @@ export default function LearningTreeView({ tree }: Props) {
             onSelect={handlePickerSelect}
             onClose={() => setIsModalOpen(false)}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isViewingExternal && selectedExternalUrl && selectedEntry && (
+          <motion.div
+            className="lesson-fullscreen"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            <div className="lesson-fullscreen__bar">
+              <button
+                type="button"
+                className="lesson-fullscreen__back"
+                onClick={() => setIsViewingExternal(false)}
+              >
+                ← Back to roadmap
+              </button>
+              <button
+                type="button"
+                className="lesson-fullscreen__nav"
+                disabled={!previousEntry}
+                onClick={() =>
+                  previousEntry && setSelectedLessonId(previousEntry.lesson.id)
+                }
+              >
+                ← Previous
+              </button>
+              <button
+                type="button"
+                className="lesson-fullscreen__nav"
+                disabled={!nextEntry}
+                onClick={() => nextEntry && setSelectedLessonId(nextEntry.lesson.id)}
+              >
+                Next →
+              </button>
+              <span className="lesson-fullscreen__title">
+                {selectedEntry.lesson.title}
+              </span>
+              <a
+                href={selectedExternalUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="lesson-fullscreen__open"
+              >
+                Open in new tab ↗
+              </a>
+            </div>
+            <iframe
+              key={selectedExternalUrl}
+              src={selectedExternalUrl}
+              title={selectedEntry.lesson.title}
+              className="lesson-fullscreen__frame"
+            />
+          </motion.div>
         )}
       </AnimatePresence>
     </main>

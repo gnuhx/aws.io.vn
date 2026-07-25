@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3.9 — Routing Patterns | LangGraph Core</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;
+  --bg-panel:#12151c;
+  --bg-card:#161a23;
+  --border:#232834;
+  --border-soft:#1c202a;
+  --accent:#4ade80;
+  --accent-dim:#4ade8033;
+  --accent-glow:#4ade8055;
+  --text:#e6e8ec;
+  --text-dim:#8b93a3;
+  --text-faint:#5b6373;
+  --red:#f87171;
+  --yellow:#fbbf24;
+  --blue:#60a5fa;
+  --purple:#c084fc;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Space Grotesk', sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+code, pre, .mono{ font-family:'JetBrains Mono', monospace; }
+
+body{
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(74,222,128,0.05), transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(74,222,128,0.04), transparent 40%);
+}
+
+.wrap{ max-width:1100px; margin:0 auto; padding:28px 20px 80px; }
+
+header.hero{
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, var(--bg-panel), var(--bg));
+  border-radius:14px;
+  padding:26px 28px;
+  margin-bottom:22px;
+  position:relative;
+  overflow:hidden;
+}
+header.hero::before{
+  content:"";
+  position:absolute; inset:0;
+  background:
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(74,222,128,0.035) 40px);
+  pointer-events:none;
+}
+.eyebrow{
+  color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:12px;
+  letter-spacing:0.12em; text-transform:uppercase; margin-bottom:10px; display:flex; gap:10px; align-items:center;
+}
+.eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent-glow); }
+h1{ font-size:clamp(22px,3.4vw,32px); font-weight:700; line-height:1.25; letter-spacing:-0.01em; }
+h1 .num{ color:var(--accent); font-family:'JetBrains Mono',monospace;}
+.subtitle{ color:var(--text-dim); margin-top:8px; font-size:14.5px; max-width:640px; line-height:1.55; }
+.meta-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.meta-pill{
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-dim);
+  border:1px solid var(--border); background:var(--bg-card); padding:5px 10px; border-radius:20px;
+}
+.meta-pill b{ color:var(--text); }
+
+nav.tabs{
+  display:flex; gap:6px; border:1px solid var(--border); background:var(--bg-panel);
+  border-radius:12px; padding:6px; margin-bottom:22px; flex-wrap:wrap; position:sticky; top:12px; z-index:50;
+  backdrop-filter:blur(8px);
+}
+nav.tabs button{
+  flex:1; min-width:120px; background:transparent; border:none; color:var(--text-dim);
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px; padding:10px 14px;
+  border-radius:8px; cursor:pointer; transition:all .18s ease; display:flex; align-items:center; justify-content:center; gap:6px;
+}
+nav.tabs button:hover{ color:var(--text); background:var(--bg-card); }
+nav.tabs button.active{ color:#0d0f14; background:var(--accent); box-shadow:0 0 18px var(--accent-glow); }
+
+.panel{ display:none; animation:fadeIn .35s ease; }
+.panel.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.card{
+  border:1px solid var(--border); background:var(--bg-card); border-radius:12px;
+  padding:20px 22px; margin-bottom:18px;
+}
+.card h2{ font-size:18px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.card h2 .idx{ font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:14px; }
+.card p, .card li{ color:var(--text-dim); font-size:14.5px; line-height:1.7; }
+.card ul{ padding-left:20px; margin:8px 0; }
+.card strong{ color:var(--text); }
+
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:720px){ .grid2{ grid-template-columns:1fr; } }
+
+table{ width:100%; border-collapse:collapse; font-size:13.5px; margin:10px 0; }
+th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--border-soft); color:var(--text-dim); }
+th{ color:var(--accent); font-family:'JetBrains Mono',monospace; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+tr:last-child td{ border-bottom:none; }
+
+pre.code{
+  background:#0a0c10; border:1px solid var(--border); border-radius:10px; padding:16px 18px;
+  overflow-x:auto; font-size:12.8px; line-height:1.65; margin:10px 0; position:relative;
+}
+pre.code .c1{ color:#5b6373; } /* comment */
+pre.code .kw{ color:#c084fc; } /* keyword */
+pre.code .fn{ color:#60a5fa; } /* function */
+pre.code .str{ color:#4ade80; } /* string */
+pre.code .num{ color:#fbbf24; } /* number */
+.code-label{
+  position:absolute; top:-10px; left:14px; background:var(--bg); border:1px solid var(--border);
+  color:var(--text-faint); font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:2px 8px; border-radius:6px;
+}
+
+.flow{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-family:'JetBrains Mono',monospace;
+  font-size:12.5px; margin:14px 0;
+}
+.flow .node{
+  border:1px solid var(--border); background:var(--bg); padding:8px 12px; border-radius:8px; color:var(--text-dim);
+}
+.flow .node.here{ border-color:var(--accent); color:var(--accent); box-shadow:0 0 12px var(--accent-glow); }
+.flow .arrow{ color:var(--text-faint); }
+
+.badge{ display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-family:'JetBrains Mono',monospace; }
+.badge.green{ background:var(--accent-dim); color:var(--accent); border:1px solid var(--accent); }
+.badge.yellow{ background:#fbbf2422; color:var(--yellow); border:1px solid var(--yellow); }
+.badge.red{ background:#f8717122; color:var(--red); border:1px solid var(--red); }
+
+/* MINDMAP */
+.mindmap-wrap{ display:grid; grid-template-columns:1.3fr 1fr; gap:16px; }
+@media(max-width:800px){ .mindmap-wrap{ grid-template-columns:1fr; } }
+#mindmap-svg{ width:100%; height:auto; border:1px solid var(--border); border-radius:12px; background:var(--bg-card); }
+.mm-node{ cursor:pointer; transition:opacity .2s; }
+.mm-node:hover{ opacity:.85; }
+.mm-info{ border:1px solid var(--border); background:var(--bg-card); border-radius:12px; padding:20px; min-height:260px; }
+.mm-info h3{ color:var(--accent); font-size:16px; margin-bottom:10px; font-family:'JetBrains Mono',monospace;}
+.mm-info p{ color:var(--text-dim); font-size:14px; line-height:1.7; margin-bottom:10px; }
+.mm-hint{ color:var(--text-faint); font-size:12.5px; font-family:'JetBrains Mono',monospace; margin-top:10px; }
+
+/* QUIZ */
+.quiz-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+.score-box{
+  font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--accent); border:1px solid var(--accent);
+  padding:6px 14px; border-radius:20px; background:var(--accent-dim);
+}
+.q-card{ border:1px solid var(--border); background:var(--bg-card); border-radius:12px; padding:18px 20px; margin-bottom:14px; }
+.q-tag{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; display:block;}
+.q-text{ font-size:14.5px; margin-bottom:12px; line-height:1.6; }
+.q-options{ display:flex; flex-direction:column; gap:8px; }
+.opt{
+  text-align:left; background:var(--bg); border:1px solid var(--border); color:var(--text-dim);
+  padding:10px 14px; border-radius:8px; cursor:pointer; font-size:13.5px; font-family:'Space Grotesk',sans-serif;
+  transition:all .15s;
+}
+.opt:hover{ border-color:var(--accent); color:var(--text); }
+.opt.correct{ border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
+.opt.wrong{ border-color:var(--red); background:#f8717122; color:var(--red); }
+.opt.disabled{ pointer-events:none; }
+.fill-row{ display:flex; gap:8px; margin-top:4px; }
+.fill-row input{
+  flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:9px 12px;
+  border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:13px;
+}
+.fill-row button{
+  background:var(--accent); color:#0d0f14; border:none; padding:9px 16px; border-radius:8px; font-weight:700;
+  cursor:pointer; font-family:'Space Grotesk',sans-serif; font-size:13px;
+}
+.explain{ margin-top:12px; padding:10px 14px; border-left:3px solid var(--accent); background:#4ade8010; font-size:13px; color:var(--text-dim); border-radius:0 8px 8px 0; display:none; }
+.explain.show{ display:block; }
+#quiz-reset{
+  margin-top:10px; background:transparent; border:1px solid var(--border); color:var(--text-dim);
+  padding:9px 18px; border-radius:8px; cursor:pointer; font-family:'Space Grotesk',sans-serif; font-size:13px;
+}
+#quiz-reset:hover{ border-color:var(--accent); color:var(--accent); }
+
+/* CHEATSHEET */
+.cheat-section{ margin-bottom:20px; }
+.cheat-section h3{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; border-bottom:1px dashed var(--border); padding-bottom:6px;}
+.cheat-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; }
+.cheat-item{ border:1px solid var(--border-soft); background:var(--bg); border-radius:8px; padding:12px 14px; }
+.cheat-item .k{ font-family:'JetBrains Mono',monospace; color:var(--blue); font-size:13px; margin-bottom:4px; display:block;}
+.cheat-item .v{ font-size:12.5px; color:var(--text-dim); line-height:1.5; }
+
+/* STORY MODE */
+.story-hero{
+  border:1px solid var(--border); border-radius:14px; padding:22px 24px; margin-bottom:18px;
+  background:linear-gradient(135deg,#141a12,#0d0f14 60%);
+  position:relative; overflow:hidden;
+}
+.story-hero::after{
+  content:"炭"; position:absolute; right:18px; top:8px; font-size:90px; opacity:.05; color:var(--accent); font-weight:700;
+}
+.story-title{ font-size:20px; font-weight:700; color:var(--accent); margin-bottom:6px; }
+.story-sub{ color:var(--text-dim); font-size:13.5px; }
+.story-chapter{ border:1px solid var(--border); background:var(--bg-card); border-radius:12px; padding:20px 22px; margin-bottom:16px; }
+.story-chapter h3{ color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:14px; margin-bottom:10px; display:flex; gap:8px; align-items:center;}
+.story-chapter p{ color:var(--text-dim); font-size:14.5px; line-height:1.8; margin-bottom:10px; }
+.story-chapter .tag{ font-size:11px; font-family:'JetBrains Mono',monospace; color:#0d0f14; background:var(--accent); padding:2px 8px; border-radius:20px; }
+.breathing{ border-left:3px solid var(--purple); background:#c084fc10; padding:10px 14px; border-radius:0 8px 8px 0; margin:10px 0; font-size:13.5px; color:var(--text-dim); }
+.breathing b{ color:var(--purple); }
+
+footer{ text-align:center; color:var(--text-faint); font-size:12px; margin-top:40px; font-family:'JetBrains Mono',monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span> LANGGRAPH CORE · MODULE 3</div>
+    <h1><span class="num">Lesson 3.9</span> — Routing Patterns</h1>
+    <p class="subtitle">Basic Routing · Conditional Looping · Multipath Routing — cách graph tự quyết định "đi đường nào tiếp theo" dựa vào state, và cách chặn vòng lặp vô hạn.</p>
+    <div class="meta-row">
+      <span class="meta-pill">⏱ <b>7:33 + 4:20 + 5:36</b></span>
+      <span class="meta-pill">📚 Prereq: <b>Lesson 3.8</b></span>
+      <span class="meta-pill">➡ Next: <b>Lesson 3.10</b></span>
+      <span class="meta-pill">🎯 Roadmap ID: <b>3.9</b></span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="theory">📖 Lý thuyết</button>
+    <button class="tab-btn" data-tab="mindmap">🧠 Mindmap</button>
+    <button class="tab-btn" data-tab="quiz">📝 Quiz</button>
+    <button class="tab-btn" data-tab="cheat">⚡ Cheat Sheet</button>
+    <button class="tab-btn" data-tab="story">🍡 Story Mode</button>
+  </nav>
+
+  <!-- ============ TAB 1: LÝ THUYẾT ============ -->
+  <section class="panel active" id="theory">
+
+    <div class="card">
+      <h2><span class="idx">01</span> Khái niệm & ví dụ đời sống</h2>
+      <p>Routing là cơ chế để graph <strong>tự quyết định</strong> đi tới node nào tiếp theo, dựa vào giá trị hiện tại của <code>state</code>. Bài học có 3 pattern:</p>
+      <table>
+        <tr><th>Pattern</th><th>Định nghĩa</th></tr>
+        <tr><td><strong>Literal Routing</strong></td><td>Condition function trả về 1 string cố định, map sang tên node qua <code>path_map</code></td></tr>
+        <tr><td><strong>Conditional Looping</strong></td><td>Route quay lại node trước đó nếu điều kiện chưa thoả, có counter chặn vòng lặp vô hạn</td></tr>
+        <tr><td><strong>Multipath Routing</strong></td><td>1 condition function route sang nhiều hơn 2 nhánh khác nhau</td></tr>
+      </table>
+      <p style="margin-top:10px;"><strong>Ví dụ đời sống:</strong> bạn là lễ tân tòa nhà văn phòng — khách nói phòng ban cần gặp → chỉ thẳng thang máy tương ứng (Literal). Bạn phân luồng nhiều phòng ban khác nhau cùng lúc (Multipath). Nếu khách chưa điền form, bạn bảo quay lại điền — nhưng tối đa 3 lần rồi cho qua luôn (Conditional Looping + max iterations).</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="idx">02</span> Vị trí trong hệ thống</h2>
+      <div class="flow">
+        <span class="node">3.7 Full Workflow</span><span class="arrow">→</span>
+        <span class="node">3.8 Conditional Edges</span><span class="arrow">→</span>
+        <span class="node here">3.9 Routing Patterns</span><span class="arrow">→</span>
+        <span class="node">3.10 Cycles</span><span class="arrow">→</span>
+        <span class="node">3.11 Iterative Research</span>
+      </div>
+      <p>Bài này mở rộng cơ chế <code>add_conditional_edges()</code> học ở 3.8 thành 3 pattern thực chiến, làm nền cho loop pattern dùng ở 3.10 (Self-Correcting Code Writer) và 3.11 (Iterative Research Agent).</p>
+      <p><strong>Note:</strong> roadmap cá nhân ghi mục <code>3.9</code> là "Loops & Cycles" — đây chính là bài <em>Routing Patterns</em> trong file khoá học gốc, tên gọi hơi khác nhưng cùng nội dung.</p>
+      <p style="margin-top:10px;"><strong>Áp dụng trong project Exam Generator (roadmap):</strong> v2 "Clarify + Refine loop" — route quay lại hỏi user nếu thiếu field, refine loop tối đa N lần.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="idx">03</span> Lệnh quan trọng + nâng cao</h2>
+      <p><strong>API cốt lõi:</strong></p>
+      <pre class="code"><span class="code-label">core API</span><span class="kw">graph</span>.<span class="fn">add_conditional_edges</span>(
+    source,        <span class="c1"># tên node xuất phát</span>
+    path_function, <span class="c1"># hàm nhận state → trả về string / list[string]</span>
+    path_map       <span class="c1"># dict: {"logic_name": "ten_node_that"}</span>
+)</pre>
+
+      <p><strong>Literal Routing:</strong></p>
+      <pre class="code"><span class="code-label">literal routing</span><span class="kw">from</span> typing <span class="kw">import</span> Literal
+
+<span class="kw">def</span> <span class="fn">route_after_classify</span>(state) -> Literal[<span class="str">"handle_billing"</span>, <span class="str">"handle_tech"</span>, <span class="str">"handle_general"</span>]:
+    category = state[<span class="str">"category"</span>]
+    <span class="kw">if</span> category == <span class="str">"billing"</span>:
+        <span class="kw">return</span> <span class="str">"handle_billing"</span>
+    <span class="kw">elif</span> category == <span class="str">"tech"</span>:
+        <span class="kw">return</span> <span class="str">"handle_tech"</span>
+    <span class="kw">return</span> <span class="str">"handle_general"</span>
+
+graph.add_conditional_edges(
+    <span class="str">"classify"</span>, route_after_classify,
+    {<span class="str">"handle_billing"</span>: <span class="str">"billing_node"</span>, <span class="str">"handle_tech"</span>: <span class="str">"tech_node"</span>, <span class="str">"handle_general"</span>: <span class="str">"general_node"</span>},
+)</pre>
+
+      <p><strong>Conditional Looping (kèm max iterations guard):</strong></p>
+      <pre class="code"><span class="code-label">conditional loop</span><span class="kw">def</span> <span class="fn">should_continue</span>(state) -> Literal[<span class="str">"revise"</span>, <span class="str">"finish"</span>]:
+    <span class="kw">if</span> state[<span class="str">"quality_score"</span>] >= <span class="num">8</span>:
+        <span class="kw">return</span> <span class="str">"finish"</span>
+    <span class="kw">if</span> state[<span class="str">"attempts"</span>] >= <span class="num">3</span>:  <span class="c1"># 👈 chặn vô hạn</span>
+        <span class="kw">return</span> <span class="str">"finish"</span>
+    <span class="kw">return</span> <span class="str">"revise"</span>
+
+graph.add_conditional_edges(<span class="str">"evaluate"</span>, should_continue, {
+    <span class="str">"revise"</span>: <span class="str">"generate"</span>,  <span class="c1"># 👈 loop back về node trước</span>
+    <span class="str">"finish"</span>: END,
+})</pre>
+
+      <p><strong>Lệnh nâng cao — recursion_limit (lớp bảo vệ thứ 2):</strong></p>
+      <pre class="code"><span class="code-label">nâng cao</span>app = graph.compile()
+app.invoke(input_data, config={<span class="str">"recursion_limit"</span>: <span class="num">25</span>})</pre>
+
+      <div class="grid2" style="margin-top:14px;">
+        <div>
+          <p><strong>Flags/options quan trọng:</strong></p>
+          <ul>
+            <li><code>path_map</code> — rõ ràng hoá mapping, tránh lỗi khi đổi tên node</li>
+            <li><code>Literal[...]</code> — type hint giúp IDE cảnh báo giá trị sai</li>
+            <li><code>attempts</code>/<code>iteration_count</code> — counter chặn vòng lặp</li>
+            <li><code>recursion_limit</code> — giới hạn cứng toàn graph</li>
+          </ul>
+        </div>
+        <div>
+          <p><strong>File cấu hình:</strong></p>
+          <p>Không cần file config riêng — logic nằm hết trong code Python. Chỉ cần truyền <code>config</code> đúng lúc gọi <code>.invoke()</code>:</p>
+          <pre class="code" style="margin-top:6px;">config = {
+    <span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: <span class="str">"abc"</span>},
+    <span class="str">"recursion_limit"</span>: <span class="num">25</span>,
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="idx">04</span> Ứng dụng thực tế</h2>
+      <table>
+        <tr><th>Use case</th><th>Pattern</th></tr>
+        <tr><td>Customer support bot (route theo intent)</td><td><span class="badge green">Multipath</span></td></tr>
+        <tr><td>Content moderation (regenerate nếu fail, escalate human)</td><td><span class="badge yellow">Loop + max iter</span></td></tr>
+        <tr><td>Exam Generator — hỏi lại field thiếu / refine đề</td><td><span class="badge yellow">Loop</span></td></tr>
+        <tr><td>Code review agent — route theo loại file</td><td><span class="badge green">Literal</span></td></tr>
+        <tr><td>Self-correcting code writer (3.10)</td><td><span class="badge yellow">Loop</span></td></tr>
+        <tr><td>Production agent orchestrator</td><td><span class="badge red">Cả 3 kết hợp</span></td></tr>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ============ TAB 2: MINDMAP ============ -->
+  <section class="panel" id="mindmap">
+    <div class="card">
+      <h2><span class="idx">🧠</span> Mindmap tương tác — bấm vào node để xem chi tiết</h2>
+    </div>
+    <div class="mindmap-wrap">
+      <svg id="mindmap-svg" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg">
+        <!-- edges -->
+        <line x1="320" y1="220" x2="150" y2="90" stroke="#232834" stroke-width="2"/>
+        <line x1="320" y1="220" x2="320" y2="90" stroke="#232834" stroke-width="2"/>
+        <line x1="320" y1="220" x2="490" y2="90" stroke="#232834" stroke-width="2"/>
+        <line x1="320" y1="260" x2="150" y2="400" stroke="#232834" stroke-width="2"/>
+        <line x1="320" y1="260" x2="320" y2="400" stroke="#232834" stroke-width="2"/>
+        <line x1="320" y1="260" x2="490" y2="400" stroke="#232834" stroke-width="2"/>
+
+        <!-- center -->
+        <g class="mm-node" data-node="center">
+          <circle cx="320" cy="240" r="52" fill="#161a23" stroke="#4ade80" stroke-width="2"/>
+          <text x="320" y="234" text-anchor="middle" fill="#4ade80" font-family="JetBrains Mono" font-size="12" font-weight="700">Routing</text>
+          <text x="320" y="250" text-anchor="middle" fill="#4ade80" font-family="JetBrains Mono" font-size="12" font-weight="700">Patterns</text>
+        </g>
+
+        <!-- top 3 concepts -->
+        <g class="mm-node" data-node="literal">
+          <rect x="70" y="55" width="160" height="60" rx="10" fill="#161a23" stroke="#60a5fa" stroke-width="1.5"/>
+          <text x="150" y="80" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Literal</text>
+          <text x="150" y="97" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Routing</text>
+        </g>
+        <g class="mm-node" data-node="looping">
+          <rect x="240" y="55" width="160" height="60" rx="10" fill="#161a23" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="320" y="80" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Conditional</text>
+          <text x="320" y="97" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Looping</text>
+        </g>
+        <g class="mm-node" data-node="multipath">
+          <rect x="410" y="55" width="160" height="60" rx="10" fill="#161a23" stroke="#c084fc" stroke-width="1.5"/>
+          <text x="490" y="80" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Multipath</text>
+          <text x="490" y="97" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Routing</text>
+        </g>
+
+        <!-- bottom 3 applications -->
+        <g class="mm-node" data-node="recursion">
+          <rect x="70" y="370" width="160" height="60" rx="10" fill="#161a23" stroke="#f87171" stroke-width="1.5"/>
+          <text x="150" y="395" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">recursion_</text>
+          <text x="150" y="412" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">limit</text>
+        </g>
+        <g class="mm-node" data-node="examgen">
+          <rect x="240" y="370" width="160" height="60" rx="10" fill="#161a23" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="320" y="395" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Exam</text>
+          <text x="320" y="412" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Generator</text>
+        </g>
+        <g class="mm-node" data-node="next">
+          <rect x="410" y="370" width="160" height="60" rx="10" fill="#161a23" stroke="#8b93a3" stroke-width="1.5"/>
+          <text x="490" y="395" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">3.10 / 3.11</text>
+          <text x="490" y="412" text-anchor="middle" fill="#e6e8ec" font-family="Space Grotesk" font-size="12.5" font-weight="600">Next lessons</text>
+        </g>
+      </svg>
+
+      <div class="mm-info" id="mm-info">
+        <h3>👋 Chọn 1 node</h3>
+        <p>Bấm vào bất kỳ khối nào trong mindmap bên trái để xem giải thích chi tiết ở đây.</p>
+        <p class="mm-hint">Tip: node trung tâm = tổng quan, 3 node trên = 3 pattern chính, 3 node dưới = ứng dụng/liên kết.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: QUIZ ============ -->
+  <section class="panel" id="quiz">
+    <div class="card">
+      <div class="quiz-header">
+        <h2 style="margin:0;"><span class="idx">📝</span> 10 câu hỏi ôn tập</h2>
+        <div class="score-box">Điểm: <span id="score-val">0</span>/10</div>
+      </div>
+      <p>Bấm vào đáp án (hoặc gõ với câu fill-in) để kiểm tra ngay. Giải thích sẽ hiện sau khi trả lời.</p>
+    </div>
+    <div id="quiz-container"></div>
+    <button id="quiz-reset">🔄 Làm lại từ đầu</button>
+  </section>
+
+  <!-- ============ TAB 4: CHEAT SHEET ============ -->
+  <section class="panel" id="cheat">
+    <div class="card">
+      <h2><span class="idx">⚡</span> Cheat Sheet — Lesson 3.9</h2>
+
+      <div class="cheat-section">
+        <h3>Core commands</h3>
+        <div class="cheat-grid">
+          <div class="cheat-item"><span class="k">add_conditional_edges(src, fn, map)</span><span class="v">Đăng ký routing động từ 1 node</span></div>
+          <div class="cheat-item"><span class="k">path_map: dict</span><span class="v">Map logic-name → tên node thật</span></div>
+          <div class="cheat-item"><span class="k">Literal["a","b"]</span><span class="v">Type hint giá trị hợp lệ trả về</span></div>
+          <div class="cheat-item"><span class="k">config={"recursion_limit": N}</span><span class="v">Lớp bảo vệ thứ 2 chặn loop vô hạn</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-section">
+        <h3>3 patterns</h3>
+        <div class="cheat-grid">
+          <div class="cheat-item"><span class="k">Literal Routing</span><span class="v">1 string → 1 node cố định</span></div>
+          <div class="cheat-item"><span class="k">Conditional Looping</span><span class="v">Loop back + counter (attempts)</span></div>
+          <div class="cheat-item"><span class="k">Multipath Routing</span><span class="v">1 condition → N nhánh khác nhau</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-section">
+        <h3>Lab steps tóm tắt</h3>
+        <div class="cheat-grid">
+          <div class="cheat-item"><span class="k">1. Setup</span><span class="v">pip install langgraph langchain-openai</span></div>
+          <div class="cheat-item"><span class="k">2. State</span><span class="v">TypedDict có field "attempts"</span></div>
+          <div class="cheat-item"><span class="k">3. classify + 3 handler node</span><span class="v">Multipath demo</span></div>
+          <div class="cheat-item"><span class="k">4. generate/evaluate loop</span><span class="v">attempts += 1 mỗi vòng</span></div>
+          <div class="cheat-item"><span class="k">5. compile + recursion_limit</span><span class="v">app = graph.compile()</span></div>
+          <div class="cheat-item"><span class="k">6. verify attempts <= 3</span><span class="v">assert trong test script</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-section">
+        <h3>⚠️ Dễ sai / dễ brick</h3>
+        <div class="cheat-grid">
+          <div class="cheat-item"><span class="k" style="color:#f87171">Quên attempts += 1</span><span class="v">→ loop vô hạn, treo process</span></div>
+          <div class="cheat-item"><span class="k" style="color:#f87171">Quên recursion_limit</span><span class="v">→ khó debug khi bug logic loop</span></div>
+          <div class="cheat-item"><span class="k" style="color:#f87171">path_function trả sai key</span><span class="v">→ KeyError routing</span></div>
+          <div class="cheat-item"><span class="k" style="color:#f87171">Loop back sai node</span><span class="v">→ sai logic, không báo lỗi</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 5: STORY MODE ============ -->
+  <section class="panel" id="story">
+    <div class="story-hero">
+      <div class="story-title">🍡 Story Mode — Tanjiro và Đội Diệt Quỷ Routing</div>
+      <div class="story-sub">Tanjiro Kamado giải thích Routing Patterns bằng ẩn dụ hơi thở, Trụ Cột và nhiệm vụ diệt quỷ.</div>
+    </div>
+
+    <div class="story-chapter">
+      <h3><span class="tag">Chương 1</span> Literal Routing = Toàn Tập Trung Hơi Thở Nước</h3>
+      <p>Tanjiro đứng trước Trụ Sở Diệt Quỷ, tay cầm thanh <em>Nichirin</em>, và một con quỷ tin báo vừa bay tới báo cáo: <em>"category: quỷ_cấp_thấp"</em>. Tanjiro không cần suy nghĩ nhiều — cậu tra đúng "bản đồ nhiệm vụ" (giống hệt <code>path_map</code>): "quỷ_cấp_thấp" → cử <strong>Đội Trinh Sát A</strong>. Không lăn tăn, không rẽ nhánh thừa. Đây chính là <strong>Literal Routing</strong>: một giá trị string cụ thể, map thẳng sang một điểm đến cụ thể, y hệt cách hơi thở Nhất Chi (Thuỷ) luôn đi theo đúng 1 chiêu thức cố định khi gặp đúng tình huống.</p>
+      <div class="breathing"><b>🌊 Hơi Thở Nước — Nhất Chi:</b> "Nếu state báo <code>category == 'billing'</code>, ta route thẳng tới <code>billing_node</code>. Không phân vân, không tự sáng tác chiêu mới."</div>
+    </div>
+
+    <div class="story-chapter">
+      <h3><span class="tag">Chương 2</span> Multipath Routing = Toàn Trụ Cột Xuất Trận Cùng Lúc</h3>
+      <p>Khi tin báo về việc <strong>Vô Diện Quỷ</strong> xuất hiện ở ba ngôi làng cùng lúc, Sản Nghiệp Xã Chủ (Oyakata-sama) không chỉ cử một Trụ Cột. Ông ra lệnh: Trụ Thuỷ tới làng A, Trụ Hoả tới làng B, Trụ Trùng tới làng C — <strong>1 sự kiện, N nhánh xử lý khác nhau</strong>. Đó chính xác là Multipath Routing: hàm điều phối (<code>route_task</code>) không chỉ trả về một cái tên, mà trả về cả một <strong>danh sách nhánh</strong> để nhiều "Trụ Cột-node" cùng lên đường.</p>
+      <div class="breathing"><b>🔥 Hơi Thở Lửa — Rengoku:</b> "Không phải lúc nào cũng if/else 2 nhánh đâu Tanjiro! Có lúc phải fan-out ra nhiều node một lúc — mỗi Trụ Cột lo một mặt trận!"</div>
+    </div>
+
+    <div class="story-chapter">
+      <h3><span class="tag">Chương 3</span> Conditional Looping = Luyện Thở Đến Khi Đạt Toàn Tập Trung</h3>
+      <p>Tanjiro luyện "Hơi Thở Toàn Tập Trung Thường Trực" ngày này qua ngày khác. Sau mỗi lần luyện (<code>generate</code>), sư phụ Urokodaki chấm điểm (<code>evaluate</code>): nếu chưa đạt ngưỡng, Tanjiro <strong>quay lại luyện tiếp</strong> — loop back đúng node cũ. Nhưng Urokodaki không bắt cậu luyện vô hạn: có giới hạn <strong>số ngày tối đa</strong> trước kỳ thi Trụ Cột — giống hệt <code>attempts &gt;= max_iterations</code>. Và nếu chẳng may cậu luyện "lụi" quá lâu không tiến bộ, có một quy tắc bảo vệ cứng hơn nữa: <strong>hạn chót tuyệt đối của kỳ thi</strong> — đó chính là <code>recursion_limit</code>, lớp bảo vệ thứ 2 phòng khi quy tắc "số ngày tối đa" bị quên mất.</p>
+      <div class="breathing"><b>🐗 Inosuke chen ngang:</b> "Ta không cần đếm số lần! Ta mạnh là ta thắng luôn!" — Tanjiro: "Không được đâu Inosuke, không đếm <code>attempts</code> là core dump cả núi đó."</div>
+    </div>
+
+    <div class="story-chapter">
+      <h3><span class="tag">Chương cuối</span> Tổng kết bằng một câu của Tanjiro</h3>
+      <p>"Dù là chọn đúng một hướng đi (Literal), chia quân ra nhiều mặt trận (Multipath), hay lặp lại luyện tập đến khi đủ mạnh (Loop) — điều quan trọng nhất là <strong>luôn biết điểm dừng</strong>. Một chiến binh không có giới hạn sẽ kiệt sức giữa trận. Một graph không có <code>max_iterations</code> hay <code>recursion_limit</code> sẽ treo giữa production."</p>
+    </div>
+  </section>
+
+  <footer>Lesson 3.9 — Routing Patterns · LangGraph Core · Module 3 · roadmap AI Agent & Context</footer>
+</div>
+
+<script>
+// ===== TAB SWITCHING =====
+const tabBtns = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.panel');
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== MINDMAP INTERACTION =====
+const mmData = {
+  center: { title: "🧠 Routing Patterns (3.9)", body: "Cơ chế graph tự quyết định node tiếp theo dựa vào state. Gồm 3 pattern: Literal, Conditional Looping, Multipath. Nằm giữa 3.8 (Conditional Edges) và 3.10 (Cycles)." },
+  literal: { title: "🔵 Literal Routing", body: "Condition function trả về 1 string cố định (khai báo bằng Literal[...]), map qua path_map sang đúng 1 tên node. Dùng khi phân loại rõ ràng (billing/tech/general)." },
+  looping: { title: "🟡 Conditional Looping", body: "Route quay lại 1 node đã chạy trước đó nếu điều kiện chưa đạt (vd quality_score < 8). Bắt buộc có counter 'attempts' tăng dần để tránh vòng lặp vô hạn." },
+  multipath: { title: "🟣 Multipath Routing", body: "1 condition function có thể trả về NHIỀU node đích khác nhau (list), không giới hạn nhị phân if/else. Dùng khi 1 sự kiện cần fan-out nhiều nhánh xử lý song song." },
+  recursion: { title: "🔴 recursion_limit", body: "Set trong config khi invoke(): config={'recursion_limit': 25}. Lớp bảo vệ THỨ 2, phòng khi logic max_iterations trong state bị bug/thiếu — tránh graph treo vô hạn." },
+  examgen: { title: "🟢 Ứng dụng: Exam Generator", body: "Project cá nhân trong roadmap — v2 'Clarify + Refine loop': route quay lại hỏi user nếu thiếu field (subject/exam_type/topic), refine đề tối đa N lần." },
+  next: { title: "⚪ Bài tiếp theo: 3.10 / 3.11", body: "3.10 Cycles & Self-Correcting Code Writer và 3.11 Iterative Research Agent đều áp dụng trực tiếp pattern Conditional Looping học ở bài này." },
+};
+document.querySelectorAll('.mm-node').forEach(node => {
+  node.addEventListener('click', () => {
+    const key = node.dataset.node;
+    const data = mmData[key];
+    const info = document.getElementById('mm-info');
+    info.innerHTML = `<h3>${data.title}</h3><p>${data.body}</p><p class="mm-hint">Bấm node khác để xem tiếp.</p>`;
+  });
+});
+
+// ===== QUIZ DATA =====
+const quizData = [
+  { type:"mc", tag:"Multiple Choice · Câu 1", q:"add_conditional_edges() cần tham số nào để map giá trị trả về sang tên node thực tế?",
+    options:["state_map","path_map","edge_map","node_router"], correct:1,
+    explain:"path_map là dict ánh xạ logic-name sang tên node thật, giúp routing rõ ràng và dễ refactor." },
+  { type:"tf", tag:"True/False · Câu 2", q:"Multipath routing nghĩa là condition function chỉ có thể trả về đúng 1 tên node duy nhất.",
+    options:["True","False"], correct:1,
+    explain:"Sai — Multipath cho phép trả về NHIỀU node/nhánh khác nhau (list), không giới hạn nhị phân." },
+  { type:"fill", tag:"Fill-in · Câu 3", q:"Để tránh vòng lặp vô hạn trong Conditional Looping, ta cần 1 biến đếm trong state, thường đặt tên là ______.",
+    answer:["attempts","iteration_count","iterations","attempt","counter"],
+    explain:"Biến đếm (attempts / iteration_count) phải tăng mỗi vòng lặp và được kiểm tra trong condition function." },
+  { type:"mc", tag:"Multiple Choice · Câu 4", q:"recursion_limit trong config khi invoke() dùng để làm gì?",
+    options:["Giới hạn số token","Giới hạn số lần gọi LLM","Giới hạn số super-step tối đa toàn graph, tránh treo","Giới hạn thời gian chờ API"], correct:2,
+    explain:"recursion_limit là lớp bảo vệ thứ 2 ở tầng graph, phòng khi logic max_iterations trong state bị bug." },
+  { type:"seq", tag:"Sequence · Câu 5", q:"Sắp xếp đúng thứ tự (gõ số cách nhau bằng dấu phẩy, vd: 2,1,3,4): [1] 3.10 Cycles  [2] 3.7 Full Workflow  [3] 3.9 Routing Patterns  [4] 3.8 Conditional Edges",
+    answer:["2,4,3,1"],
+    explain:"Thứ tự đúng: 3.7 Full Workflow → 3.8 Conditional Edges → 3.9 Routing Patterns → 3.10 Cycles." },
+  { type:"tf", tag:"True/False · Câu 6", q:"Literal Routing yêu cầu condition function trả về đúng string đã khai báo trong Literal[...] type hint.",
+    options:["True","False"], correct:0,
+    explain:"Đúng — nếu trả về giá trị ngoài Literal[...] khai báo, type-checker/IDE sẽ cảnh báo lỗi tiềm ẩn." },
+  { type:"mc", tag:"Multiple Choice · Câu 7", q:"Trong project Exam Generator (roadmap cá nhân), routing pattern dùng để làm gì?",
+    options:["Chọn model LLM rẻ hơn","Route theo field còn thiếu để hỏi lại user","Convert PDF sang text","Deploy lên Lambda"], correct:1,
+    explain:"v2 của Exam Generator dùng conditional edge: thiếu subject/exam_type/topic → quay lại hỏi user thay vì generate luôn." },
+  { type:"fill", tag:"Fill-in · Câu 8", q:"Trong path_map, để implement loop back, key ví dụ 'revise' phải trỏ về giá trị là tên ______ (không phải END).",
+    answer:["node","generate","node cần lặp lại","ten node"],
+    explain:"Key 'revise' phải map sang tên NODE cần lặp lại (ví dụ 'generate'), không phải END." },
+  { type:"mc", tag:"Multiple Choice · Câu 9", q:"Nếu path_function trả về giá trị KHÔNG có trong path_map, điều gì xảy ra?",
+    options:["Tự động route về END","Graph raise lỗi vì không tìm thấy mapping","Bỏ qua, giữ nguyên state","Random chọn 1 node"], correct:1,
+    explain:"LangGraph sẽ raise lỗi (thường KeyError-like) vì không tìm thấy mapping tương ứng — cần test kỹ mọi nhánh." },
+  { type:"tf", tag:"True/False · Câu 10", q:"recursion_limit chỉ thật sự cần thiết như lớp bảo vệ THỨ 2, phòng khi logic max_iterations trong state bị thiếu/bug.",
+    options:["True","False"], correct:0,
+    explain:"Đúng — logic chính để dừng loop nằm ở state (attempts/max_iterations), recursion_limit là lớp phòng hộ bổ sung." },
+];
+
+let score = 0;
+const answered = new Array(quizData.length).fill(false);
+
+function normalize(str){
+  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"").trim();
+}
+
+function renderQuiz(){
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  quizData.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    let bodyHTML = `<span class="q-tag">${item.tag}</span><div class="q-text">${item.q}</div>`;
+
+    if(item.type === 'mc' || item.type === 'tf'){
+      bodyHTML += `<div class="q-options">`;
+      item.options.forEach((opt,i) => {
+        bodyHTML += `<button class="opt" data-idx="${idx}" data-oi="${i}">${opt}</button>`;
+      });
+      bodyHTML += `</div>`;
+    } else {
+      bodyHTML += `<div class="fill-row">
+        <input type="text" id="fill-${idx}" placeholder="Nhập câu trả lời...">
+        <button data-idx="${idx}" class="fill-submit">Kiểm tra</button>
+      </div>`;
+    }
+    bodyHTML += `<div class="explain" id="explain-${idx}">💡 ${item.explain}</div>`;
+    card.innerHTML = bodyHTML;
+    container.appendChild(card);
+  });
+
+  document.querySelectorAll('.opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      const oi = parseInt(btn.dataset.oi);
+      if(answered[idx]) return;
+      answered[idx] = true;
+      const item = quizData[idx];
+      const allOpts = document.querySelectorAll(`.opt[data-idx="${idx}"]`);
+      allOpts.forEach(o => o.classList.add('disabled'));
+      if(oi === item.correct){
+        btn.classList.add('correct');
+        score++;
+      } else {
+        btn.classList.add('wrong');
+        allOpts[item.correct].classList.add('correct');
+      }
+      document.getElementById(`explain-${idx}`).classList.add('show');
+      updateScore();
+    });
+  });
+
+  document.querySelectorAll('.fill-submit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      if(answered[idx]) return;
+      answered[idx] = true;
+      const input = document.getElementById(`fill-${idx}`);
+      const val = normalize(input.value);
+      const item = quizData[idx];
+      const correctAns = item.answer.some(a => normalize(a) === val || val.includes(normalize(a)));
+      input.disabled = true;
+      btn.disabled = true;
+      if(correctAns){
+        input.style.borderColor = 'var(--accent)';
+        input.style.color = 'var(--accent)';
+        score++;
+      } else {
+        input.style.borderColor = 'var(--red)';
+        input.style.color = 'var(--red)';
+      }
+      document.getElementById(`explain-${idx}`).classList.add('show');
+      updateScore();
+    });
+  });
+}
+
+function updateScore(){
+  document.getElementById('score-val').textContent = score;
+}
+
+document.getElementById('quiz-reset').addEventListener('click', () => {
+  score = 0;
+  answered.fill(false);
+  updateScore();
+  renderQuiz();
+});
+
+renderQuiz();
+</script>
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>v2: Clarify + Refine Loop — Exam Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#0d0f14;
+    --bg2:#131722;
+    --card:#171c28;
+    --border:#252b3b;
+    --text:#e6e9ef;
+    --muted:#8890a3;
+    --accent:#4ade80;
+    --accent-dim:#4ade8022;
+    --accent-dim2:#4ade8044;
+    --red:#f87171;
+    --yellow:#fbbf24;
+    --blue:#60a5fa;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Space Grotesk',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  code, pre, .mono{ font-family:'JetBrains Mono',monospace; }
+
+  header{
+    padding:22px 28px; border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,var(--bg2),var(--bg));
+    position:sticky; top:0; z-index:20;
+  }
+  header h1{ margin:0 0 4px; font-size:20px; font-weight:700; }
+  header h1 span{ color:var(--accent); }
+  header p{ margin:0; color:var(--muted); font-size:13px; }
+
+  nav{
+    display:flex; gap:6px; padding:12px 28px; border-bottom:1px solid var(--border);
+    background:var(--bg2); overflow-x:auto; position:sticky; top:70px; z-index:19;
+  }
+  nav button{
+    background:transparent; border:1px solid transparent; color:var(--muted);
+    padding:9px 16px; border-radius:8px; font-family:'Space Grotesk'; font-size:14px;
+    font-weight:600; cursor:pointer; white-space:nowrap; transition:.15s;
+  }
+  nav button:hover{ color:var(--text); background:#1c2233; }
+  nav button.active{ color:var(--bg); background:var(--accent); }
+
+  main{ max-width:980px; margin:0 auto; padding:28px 20px 80px; }
+  .tab{ display:none; animation:fade .25s ease; }
+  .tab.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:20px 22px; margin-bottom:18px;
+  }
+  .card h2{ margin:0 0 10px; font-size:17px; color:var(--accent); }
+  .card h3{ margin:18px 0 8px; font-size:15px; }
+  .card p, .card li{ font-size:14px; line-height:1.7; color:#c9cedb; }
+  .card ul, .card ol{ padding-left:20px; }
+
+  pre{
+    background:#0a0c11; border:1px solid var(--border); border-radius:8px;
+    padding:14px 16px; overflow-x:auto; font-size:12.5px; line-height:1.6;
+    color:#d6dae3;
+  }
+  .kw{color:#c586c0;} .fn{color:#61afef;} .str{color:#98c379;} .cm{color:#6a7180;} .num{color:#d19a66;}
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+  th,td{ text-align:left; padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  th{ color:var(--accent); font-size:12px; text-transform:uppercase; letter-spacing:.03em;}
+  td code, th code{ background:#0a0c11; padding:2px 6px; border-radius:4px; font-size:12px;}
+
+  .flow{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:14px 0;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px;
+  }
+  .node{ background:var(--accent-dim); border:1px solid var(--accent-dim2); color:var(--accent); padding:6px 12px; border-radius:6px; }
+  .node.warn{ background:#f8717122; border-color:#f8717155; color:var(--red); }
+  .arrow{ color:var(--muted); }
+
+  /* MINDMAP */
+  #mindmap-wrap{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; }
+  #mindmap-wrap svg{ width:100%; height:auto; display:block; }
+  .mm-node rect{ fill:#171c28; stroke:#2c3345; stroke-width:1.5; transition:.15s; cursor:pointer; }
+  .mm-node:hover rect{ stroke:var(--accent); }
+  .mm-node.open rect{ fill:var(--accent-dim); stroke:var(--accent); }
+  .mm-node text{ fill:var(--text); font-family:'Space Grotesk'; font-size:12px; font-weight:600; pointer-events:none;}
+  .mm-line{ stroke:#333c52; stroke-width:1.5; fill:none; }
+  #mm-detail{
+    margin-top:12px; padding:14px 16px; background:#0f1320; border:1px solid var(--border);
+    border-radius:8px; font-size:13.5px; color:#c9cedb; min-height:40px; line-height:1.6;
+  }
+  #mm-detail b{ color:var(--accent); }
+
+  /* QUIZ */
+  .q-card{ margin-bottom:16px; }
+  .q-title{ font-weight:600; margin-bottom:10px; font-size:14px; }
+  .q-opt{
+    display:block; width:100%; text-align:left; background:#12151e; border:1px solid var(--border);
+    color:var(--text); padding:10px 14px; margin:6px 0; border-radius:8px; cursor:pointer; font-size:13.5px;
+    font-family:'Space Grotesk'; transition:.15s;
+  }
+  .q-opt:hover{ border-color:var(--accent-dim2); }
+  .q-opt.correct{ border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
+  .q-opt.wrong{ border-color:var(--red); background:#f8717122; color:var(--red); }
+  .q-opt:disabled{ cursor:default; }
+  .q-explain{
+    display:none; margin-top:8px; padding:10px 14px; background:#0f1320; border-left:3px solid var(--accent);
+    border-radius:6px; font-size:13px; color:#c9cedb;
+  }
+  .q-explain.show{ display:block; }
+  .q-input{
+    background:#12151e; border:1px solid var(--border); color:var(--text); padding:9px 12px;
+    border-radius:8px; font-family:'JetBrains Mono'; font-size:13px; width:220px;
+  }
+  .q-check{
+    background:var(--accent); color:#08110b; border:none; padding:9px 16px; border-radius:8px;
+    font-weight:700; cursor:pointer; margin-left:8px; font-family:'Space Grotesk';
+  }
+  #score-bar{
+    position:sticky; top:127px; z-index:15; background:var(--bg2); border:1px solid var(--border);
+    border-radius:10px; padding:10px 16px; margin-bottom:18px; display:flex; justify-content:space-between;
+    align-items:center; font-size:13px; color:var(--muted);
+  }
+  #score-bar b{ color:var(--accent); font-size:15px; }
+  .badge{ display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; margin-left:8px;}
+  .badge.mc{background:#60a5fa22;color:var(--blue);} .badge.tf{background:#fbbf2422;color:var(--yellow);}
+  .badge.fi{background:#4ade8022;color:var(--accent);} .badge.seq{background:#f8717122;color:var(--red);}
+
+  /* CHEATSHEET */
+  .cheat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:720px){ .cheat-grid{ grid-template-columns:1fr; } }
+
+  /* STORY MODE */
+  .story-box{
+    background:linear-gradient(160deg,#171c28,#12151f); border:1px solid var(--accent-dim2);
+    border-radius:12px; padding:20px 22px; margin-bottom:16px;
+  }
+  .story-box h3{ color:var(--yellow); }
+  .map-row{ display:flex; gap:10px; align-items:baseline; padding:6px 0; border-bottom:1px dashed var(--border); font-size:13.5px;}
+  .map-row b{ color:var(--accent); min-width:140px; display:inline-block;}
+  .map-row span.arrow2{ color:var(--muted); }
+  .bug-note{ background:#fbbf2418; border-left:3px solid var(--yellow); padding:10px 14px; border-radius:6px; font-size:13px; margin-top:10px;}
+
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background:#2a3145; border-radius:4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>🔧 v2</span> — Clarify + Refine Loop</h1>
+  <p>Exam Generator · Course 2, Module 3 (Lesson 3.8 → 3.11) · Giai đoạn 1 — LangGraph Core</p>
+</header>
+
+<nav id="tabs">
+  <button data-tab="theory" class="active">📘 Lý thuyết</button>
+  <button data-tab="mindmap">🧠 Mindmap</button>
+  <button data-tab="quiz">📝 Quiz</button>
+  <button data-tab="cheat">⚡ Cheat Sheet</button>
+  <button data-tab="story">🍡 Story Mode</button>
+</nav>
+
+<main>
+
+<!-- ================= THEORY ================= -->
+<div class="tab active" id="tab-theory">
+
+  <div class="card">
+    <h2>1. Vấn đề của v1 → tại sao cần v2</h2>
+    <p>v1 chỉ có graph thẳng — không hỏi lại, không sửa được. v2 thêm 2 cơ chế lõi: <b>conditional edge</b> (rẽ nhánh theo state) và <b>cycle</b> (quay lại node trước đó), cộng thêm <b>stop condition</b> để loop không chạy vô hạn.</p>
+    <div class="flow">
+      <span class="node">START</span><span class="arrow">→</span>
+      <span class="node">parse_request</span><span class="arrow">→</span>
+      <span class="node warn">condition?</span>
+    </div>
+    <div class="flow">
+      <span class="arrow">↳ thiếu field</span><span class="node warn">ask_clarify</span><span class="arrow">→ END (chờ user)</span>
+    </div>
+    <div class="flow">
+      <span class="arrow">↳ đủ field</span><span class="node">generate_exam</span><span class="arrow">→</span>
+      <span class="node">collect_feedback</span><span class="arrow">→</span><span class="node warn">condition?</span>
+    </div>
+    <div class="flow">
+      <span class="arrow">↳ "khó quá" &amp; chưa đủ max</span><span class="node">bump_refine</span>
+      <span class="arrow">⟲ quay lại</span><span class="node">generate_exam</span>
+    </div>
+    <div class="flow">
+      <span class="arrow">↳ ok hoặc đã đủ max_refine</span><span class="node">finalize</span><span class="arrow">→ END</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Ví dụ đời sống</h2>
+    <p>Tiệm may đo áo: <b>"May cho tôi cái áo"</b> → thợ hỏi lại vải/size/kiểu (conditional edge). Đủ info → cắt áo mẫu. Mặc thử chê chật → thợ quay lại đúng bước chỉnh áo với số đo mới (loop), <b>không</b> hỏi lại từ đầu. Nhưng tiệm chỉ sửa miễn phí tối đa 3 lần — lần thứ 3 dù còn chê vẫn giao áo (stop condition), tránh sửa vô hạn.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. Vị trí trong hệ thống</h2>
+    <table>
+      <tr><th>Bài trước</th><th>Bài này (v2)</th><th>Bài sau</th></tr>
+      <tr>
+        <td>3.1–3.7: State/Node/Edge cơ bản<br><code>v1: parse→generate</code></td>
+        <td><b>3.8–3.11:</b> Conditional edge, Routing, Cycles, Stop condition<br><code>v2: Clarify + Refine loop</code></td>
+        <td>3.12–3.13: Human-in-loop, Checkpointing<br><code>v3: Session persistence</code></td>
+      </tr>
+    </table>
+    <p>v2 dùng lại State từ v1, và là điều kiện bắt buộc để v3 có gì để "nhớ" (refine_count, feedback) qua checkpointer.</p>
+  </div>
+
+  <div class="card">
+    <h2>4. Lệnh quan trọng</h2>
+    <table>
+      <tr><th>API</th><th>Giải thích</th></tr>
+      <tr><td><code>StateGraph(Schema)</code></td><td>Khởi tạo graph với TypedDict mô tả state</td></tr>
+      <tr><td><code>graph.add_node(name, fn)</code></td><td><code>fn(state)->dict</code>, chỉ trả field cần update</td></tr>
+      <tr><td><code>graph.add_edge(a, b)</code></td><td>Cạnh thường — luôn đi từ a → b</td></tr>
+      <tr><td><code>add_conditional_edges(src, cond_fn, mapping)</code></td><td>cond_fn trả về str, tra trong mapping để chọn node kế</td></tr>
+      <tr><td><code>graph.add_edge("bump_refine","generate_exam")</code></td><td>Cạnh quay ngược tạo <b>cycle</b> — hợp lệ trong LangGraph</td></tr>
+      <tr><td><code>graph.compile()</code></td><td>Biên dịch thành app chạy được</td></tr>
+      <tr><td><code>app.invoke(state)</code></td><td>Chạy tới END, trả state cuối</td></tr>
+    </table>
+    <h3>Nâng cao</h3>
+    <table>
+      <tr><th>API</th><th>Giải thích</th></tr>
+      <tr><td><code>app.stream(state, stream_mode="values")</code></td><td>Xem state sau từng bước — debug loop</td></tr>
+      <tr><td><code>app.get_graph().draw_mermaid_png()</code></td><td>Vẽ graph ra ảnh để check cycle đúng chỗ</td></tr>
+      <tr><td><code>config={"recursion_limit": N}</code></td><td>Lưới an toàn tầng 2 — tránh loop vô hạn nếu bug logic</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>5. Code mẫu (đã chạy thật)</h2>
+    <pre><span class="kw">def</span> <span class="fn">route_after_feedback</span>(state) -> <span class="kw">str</span>:
+    <span class="kw">if</span> state[<span class="str">"refine_count"</span>] >= state[<span class="str">"max_refine"</span>]:
+        <span class="kw">return</span> <span class="str">"finalize"</span>   <span class="cm"># stop condition check TRƯỚC</span>
+    <span class="kw">if</span> <span class="str">"khó"</span> <span class="kw">in</span> state[<span class="str">"feedback"</span>]:
+        <span class="kw">return</span> <span class="str">"refine"</span>
+    <span class="kw">return</span> <span class="str">"finalize"</span>
+
+graph.add_conditional_edges(<span class="str">"collect_feedback"</span>, route_after_feedback,
+    {<span class="str">"refine"</span>: <span class="str">"bump_refine"</span>, <span class="str">"finalize"</span>: <span class="str">"finalize"</span>})
+graph.add_edge(<span class="str">"bump_refine"</span>, <span class="str">"generate_exam"</span>)  <span class="cm"># cycle</span></pre>
+    <p>Output thật khi chạy case "đủ field, chê khó 2 lần, max_refine=2":</p>
+    <pre>[generate_exam] đã tạo: Đề toan-15phut-ham_so (lần <span class="num">0</span>, độ khó=trung_binh)
+[collect_feedback] user feedback = <span class="str">'khó quá, ra lại'</span>
+[bump_refine] refine_count <span class="num">0</span> -> <span class="num">1</span>
+[generate_exam] đã tạo: Đề toan-15phut-ham_so (lần <span class="num">1</span>, độ khó=de_hon)
+[collect_feedback] user feedback = <span class="str">'vẫn khó, ra lại nữa'</span>
+[bump_refine] refine_count <span class="num">1</span> -> <span class="num">2</span>
+[generate_exam] đã tạo: Đề toan-15phut-ham_so (lần <span class="num">2</span>, độ khó=de_hon)
+[collect_feedback] user feedback = <span class="str">'ok'</span>
+[finalize] CHỐT ĐỀ: Đề toan-15phut-ham_so (lần <span class="num">2</span>, độ khó=de_hon)</pre>
+  </div>
+
+  <div class="card">
+    <h2>6. Ứng dụng thực tế</h2>
+    <ul>
+      <li><b>Customer support bot</b> (Intercom/Zendesk AI) — slot filling: hỏi lại order ID/email trước khi tra cứu.</li>
+      <li><b>CI/CD code-fix agent</b> — generate fix → CI fail → fix lại → tối đa N lần rồi escalate người.</li>
+      <li><b>Content SaaS</b> (Jasper, Copy.ai) — nút "regenerate" = loop, giới hạn credit/tháng = stop condition.</li>
+      <li><b>Design AI</b> (Midjourney reroll) — mỗi reroll là 1 vòng loop, giới hạn credit chặn vòng lặp.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================= MINDMAP ================= -->
+<div class="tab" id="tab-mindmap">
+  <div class="card">
+    <h2>Mindmap tương tác — bấm vào node để xem chi tiết</h2>
+    <div id="mindmap-wrap">
+      <svg viewBox="0 0 900 520" id="mm-svg"></svg>
+      <div id="mm-detail">👆 Bấm vào 1 node trong sơ đồ để xem giải thích chi tiết.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= QUIZ ================= -->
+<div class="tab" id="tab-quiz">
+  <div id="score-bar">
+    <span>Tiến độ ôn tập</span>
+    <span><b id="score-val">0</b> / 10 đúng</span>
+  </div>
+  <div id="quiz-container"></div>
+</div>
+
+<!-- ================= CHEATSHEET ================= -->
+<div class="tab" id="tab-cheat">
+  <div class="card">
+    <h2>⚡ Cheat Sheet — Clarify + Refine Loop</h2>
+    <div class="cheat-grid">
+      <div>
+        <h3>Lệnh cốt lõi</h3>
+        <table>
+          <tr><td><code>add_conditional_edges(src, fn, map)</code></td><td>rẽ nhánh</td></tr>
+          <tr><td><code>add_edge(a,b)</code></td><td>cạnh thường / cạnh cycle</td></tr>
+          <tr><td><code>compile()</code></td><td>build app</td></tr>
+          <tr><td><code>invoke(state, config)</code></td><td>chạy 1 lần</td></tr>
+          <tr><td><code>stream(state,"values")</code></td><td>debug từng step</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Config quan trọng</h3>
+        <table>
+          <tr><td><code>recursion_limit</code></td><td>chặn loop vô hạn</td></tr>
+          <tr><td><code>refine_count / max_refine</code></td><td>stop condition tự viết</td></tr>
+          <tr><td><code>requirements.txt</code></td><td>pin <code>langgraph</code> version</td></tr>
+        </table>
+      </div>
+    </div>
+    <h3>Node map của bài (đặt tên gốc ↔ ẩn dụ)</h3>
+    <table>
+      <tr><th>Node gốc</th><th>Vai trò</th></tr>
+      <tr><td><code>parse_request</code></td><td>tách subject/exam_type/topic từ text</td></tr>
+      <tr><td><code>ask_clarify</code></td><td>thiếu field → hỏi lại, dừng graph</td></tr>
+      <tr><td><code>generate_exam</code></td><td>tạo đề theo constraint hiện tại</td></tr>
+      <tr><td><code>collect_feedback</code></td><td>đọc phản hồi user</td></tr>
+      <tr><td><code>bump_refine</code></td><td>+1 refine_count, đổi difficulty, quay lại generate</td></tr>
+      <tr><td><code>finalize</code></td><td>chốt đề, kết thúc graph</td></tr>
+    </table>
+    <h3>Lab steps tóm tắt</h3>
+    <ol>
+      <li><code>pip install langgraph langchain-core</code></li>
+      <li>Định nghĩa <code>ExamGenState</code> (TypedDict)</li>
+      <li>Viết 6 node + 2 condition function</li>
+      <li><code>add_conditional_edges</code> ở 2 chỗ: sau parse, sau feedback</li>
+      <li><code>add_edge("bump_refine","generate_exam")</code> tạo cycle</li>
+      <li>Test 3 case: thiếu field / refine 2 lần / ok ngay</li>
+      <li>Verify bằng đếm số dòng log <code>grep -c</code></li>
+    </ol>
+    <h3>⚠️ Bẫy thường gặp</h3>
+    <ul>
+      <li>Quên <code>recursion_limit</code> → treo process nếu bug logic</li>
+      <li>Check nội dung feedback trước khi check <code>max_refine</code> → off-by-one</li>
+      <li>Nhầm cạnh thường với conditional edge khi tạo cycle</li>
+      <li>Quên test case "thiếu field" — chỉ test happy path</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================= STORY MODE ================= -->
+<div class="tab" id="tab-story">
+  <div class="story-box">
+    <h3>🍡 Lò Rèn Hà Nhược — Tanjiro &amp; thợ rèn Hotaru Haganezuka</h3>
+    <p>Tanjiro tới lò rèn: <i>"Rèn cho tao thanh đao thép thiên thạch, thẳng, hoa văn màu hem"</i>. Hotaru nghe và tách ra 3 thông tin bắt buộc. Thiếu 1 trong 3 → Hotaru quăng búa quát <b>"NÓI RÕ ĐI CHỨ!!"</b> thay vì rèn bừa. Đủ info → rèn thử. Tanjiro chê nặng → Hotaru nổi giận nhưng vẫn rèn lại — <b>tối đa 2 lần</b>, tới lần thứ 2 dù còn chê, Hotaru vẫn ép nhận kiếm.</p>
+  </div>
+
+  <div class="card">
+    <h2>Ánh xạ khái niệm (1-1)</h2>
+    <div class="map-row"><b>parse_request</b><span class="arrow2">→</span> <code>nghe_yeu_cau</code> — Hotaru nghe Tanjiro nói, tách quặng/kiểu/hoa văn</div>
+    <div class="map-row"><b>Conditional edge</b><span class="arrow2">→</span> <code>dieu_kien_sau_khi_nghe</code> — thiếu field thì rẽ sang quát hỏi lại</div>
+    <div class="map-row"><b>ask_clarify</b><span class="arrow2">→</span> <code>hoi_lai_tanjiro</code> — "NÓI RÕ ĐI CHỨ, MÀY MUỐN GÌ???"</div>
+    <div class="map-row"><b>generate_exam</b><span class="arrow2">→</span> <code>ren_kiem</code> — rèn thanh đao theo yêu cầu hiện tại</div>
+    <div class="map-row"><b>collect_feedback</b><span class="arrow2">→</span> <code>tanjiro_thu_dao</code> — Tanjiro vung thử, chê hoặc gật đầu</div>
+    <div class="map-row"><b>Cycle (loop)</b><span class="arrow2">→</span> <code>hotaru_noi_gian_ren_lai → ren_kiem</code> — quay lại rèn, không hỏi lại từ đầu</div>
+    <div class="map-row"><b>Stop condition</b><span class="arrow2">→</span> <code>so_lan_toi_da = 2</code> — Hotaru chỉ đủ kiên nhẫn rèn lại 2 lần</div>
+    <div class="map-row"><b>finalize</b><span class="arrow2">→</span> <code>chot_dao</code> — "CẦM LẤY ĐI, TAO KHÔNG RÈN NỮA!!"</div>
+    <div class="bug-note">🐛 <b>Bug hài hước:</b> nếu Genya (em Tanjiro, nổi tiếng phá đồ người khác) gửi 1 feedback rác kiểu "..." thay vì chê rõ ràng, <code>dieu_kien_sau_khi_thu</code> vẫn phải có nhánh fallback an toàn (mặc định → <code>chot_dao</code>) để graph không crash vì không parse được ý — đây là lý do điều kiện luôn cần giá trị mặc định.</div>
+  </div>
+
+  <div class="card">
+    <h2>Code thật (chạy được)</h2>
+    <pre><span class="kw">class</span> <span class="fn">TrangThaiRenKiem</span>(TypedDict):
+    yeu_cau_tho: <span class="kw">str</span>
+    loai_quang: Optional[<span class="kw">str</span>]     <span class="cm"># ~ subject</span>
+    kieu_dao: Optional[<span class="kw">str</span>]       <span class="cm"># ~ exam_type</span>
+    hoa_van: Optional[<span class="kw">str</span>]        <span class="cm"># ~ topic</span>
+    thanh_dao_da_ren: Optional[<span class="kw">str</span>]
+    phan_hoi_tanjiro: List[<span class="kw">str</span>]
+    phan_hoi_hien_tai: Optional[<span class="kw">str</span>]
+    so_lan_ren_lai: <span class="kw">int</span>
+    so_lan_toi_da: <span class="kw">int</span>
+    do_sac: <span class="kw">str</span>
+    nhat_ky: List[<span class="kw">str</span>]
+
+<span class="kw">def</span> <span class="fn">dieu_kien_sau_khi_thu</span>(state) -> <span class="kw">str</span>:
+    <span class="kw">if</span> state[<span class="str">"so_lan_ren_lai"</span>] >= state[<span class="str">"so_lan_toi_da"</span>]:
+        <span class="kw">return</span> <span class="str">"chot_dao"</span>
+    <span class="kw">if</span> <span class="str">"nặng"</span> <span class="kw">in</span> state[<span class="str">"phan_hoi_hien_tai"</span>] <span class="kw">or</span> <span class="str">"chê"</span> <span class="kw">in</span> state[<span class="str">"phan_hoi_hien_tai"</span>]:
+        <span class="kw">return</span> <span class="str">"ren_lai"</span>
+    <span class="kw">return</span> <span class="str">"chot_dao"</span>
+
+graph.add_conditional_edges(<span class="str">"tanjiro_thu_dao"</span>, dieu_kien_sau_khi_thu,
+    {<span class="str">"ren_lai"</span>: <span class="str">"hotaru_noi_gian_ren_lai"</span>, <span class="str">"chot_dao"</span>: <span class="str">"chot_dao"</span>})
+graph.add_edge(<span class="str">"hotaru_noi_gian_ren_lai"</span>, <span class="str">"ren_kiem"</span>)  <span class="cm"># cycle</span></pre>
+  </div>
+
+  <div class="card">
+    <h2>Output (thật, đã chạy kiểm chứng)</h2>
+    <pre>=== NHẬT KÝ LÒ RÈN (output thật, đã chạy kiểm chứng) ===
+[nghe_yeu_cau] Hotaru nghe được: quặng=thep_thien_thach, kiểu=thang, hoa văn=mau_hem
+[ren_kiem] Hotaru rèn xong: Nhật Đao [thep_thien_thach-thang-mau_hem] (lần rèn <span class="num">0</span>, độ sắc=vua_phai)
+[tanjiro_thu_dao] Tanjiro nói: <span class="str">'chê nặng quá, rèn lại'</span>
+[hotaru_noi_gian_ren_lai] <span class="str">'RÈN LẠI THÌ RÈN LẠI!!'</span> số lần <span class="num">0</span> -> <span class="num">1</span>
+[ren_kiem] Hotaru rèn xong: Nhật Đao [thep_thien_thach-thang-mau_hem] (lần rèn <span class="num">1</span>, độ sắc=sac_hon)
+[tanjiro_thu_dao] Tanjiro nói: <span class="str">'vẫn chê nặng, rèn lại nữa'</span>
+[hotaru_noi_gian_ren_lai] <span class="str">'RÈN LẠI THÌ RÈN LẠI!!'</span> số lần <span class="num">1</span> -> <span class="num">2</span>
+[ren_kiem] Hotaru rèn xong: Nhật Đao [thep_thien_thach-thang-mau_hem] (lần rèn <span class="num">2</span>, độ sắc=sac_hon)
+[tanjiro_thu_dao] Tanjiro nói: <span class="str">'ổn rồi'</span>
+[chot_dao] Hotaru: <span class="str">'CẦM LẤY ĐI, TAO KHÔNG RÈN NỮA!!'</span> -> giao: Nhật Đao [thep_thien_thach-thang-mau_hem] (lần rèn <span class="num">2</span>, độ sắc=sac_hon)
+-> Thanh đao cuối cùng Tanjiro nhận: Nhật Đao [thep_thien_thach-thang-mau_hem] (lần rèn <span class="num">2</span>, độ sắc=sac_hon)</pre>
+  </div>
+
+  <div class="card">
+    <h2>Tại sao code này chạy được</h2>
+    <p>LangGraph không quan tâm field tên là <code>subject</code> hay <code>loai_quang</code>, node tên là <code>generate_exam</code> hay <code>ren_kiem</code> — nó chỉ thực thi đúng theo <b>cấu trúc đồ thị</b>: cạnh nào nối tới đâu, hàm điều kiện trả về gì. Vì <code>dieu_kien_sau_khi_thu</code> giữ nguyên logic gốc (check <code>max_refine</code> trước, check nội dung feedback sau), hành vi graph — số vòng lặp, thời điểm dừng — giống hệt bản gốc dù vỏ ngôn ngữ khác hoàn toàn. Đây là do nắm đúng nguyên lý <b>logic điều kiện + cấu trúc cạnh</b>, không phải phép màu của việc đặt tên theo truyện.</p>
+  </div>
+</div>
+
+</main>
+
+<script>
+/* ---------- TAB SWITCH ---------- */
+const tabBtns = document.querySelectorAll('#tabs button');
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- MINDMAP ---------- */
+const mmData = [
+  {id:'start', x:60, y:250, label:'START', detail:'Điểm vào graph — nhận input thô từ chat (VD: "cho đề toán 15 phút lớp 9 hàm số").'},
+  {id:'parse', x:230, y:250, label:'parse_request', detail:'<b>parse_request</b>: tách subject/exam_type/topic từ text. Trả dict các field đã tách được (có thể null nếu thiếu).'},
+  {id:'cond1', x:400, y:250, label:'condition?', detail:'<b>Conditional edge #1</b>: hàm route_after_parse đọc state, trả "ask_clarify" nếu thiếu field, hoặc "generate_exam" nếu đủ.'},
+  {id:'clarify', x:400, y:100, label:'ask_clarify', detail:'<b>ask_clarify</b>: liệt kê field còn thiếu, log lại, rồi đi thẳng tới END — graph dừng, chờ user cung cấp thêm info ở lượt chat sau.'},
+  {id:'gen', x:580, y:330, label:'generate_exam', detail:'<b>generate_exam</b>: tạo đề dựa trên subject/exam_type/topic + độ khó hiện tại (difficulty). Chạy lại mỗi vòng refine với constraint mới.'},
+  {id:'fb', x:740, y:330, label:'collect_feedback', detail:'<b>collect_feedback</b>: đọc phản hồi mới nhất của user ("khó quá, ra lại" hoặc "ok").'},
+  {id:'cond2', x:740, y:460, label:'condition?', detail:'<b>Conditional edge #2</b>: route_after_feedback — QUAN TRỌNG: check refine_count >= max_refine TRƯỚC, rồi mới check nội dung feedback.'},
+  {id:'bump', x:580, y:460, label:'bump_refine', detail:'<b>bump_refine</b>: +1 refine_count, giảm difficulty, rồi tạo cạnh (cycle) quay ngược lại generate_exam.'},
+  {id:'final', x:880, y:460, label:'finalize', detail:'<b>finalize</b>: chốt đề cuối cùng, dù user còn muốn refine hay không nếu đã chạm max_refine. Đi tới END.'},
+  {id:'end', x:880, y:250, label:'END', detail:'Điểm kết thúc graph — trả state cuối cùng về cho user/app.'},
+];
+const mmEdges = [
+  ['start','parse'],['parse','cond1'],['cond1','clarify'],['cond1','gen'],
+  ['clarify','end'],['gen','fb'],['fb','cond2'],['cond2','bump'],['cond2','final'],
+  ['bump','gen'],['final','end']
+];
+const svg = document.getElementById('mm-svg');
+const nodeMap = {};
+mmData.forEach(n=>nodeMap[n.id]=n);
+
+function edgePath(a,b){
+  const isBack = (a.id==='bump'&&b.id==='gen');
+  if(isBack){
+    return `M${a.x-30},${a.y-25} C ${a.x-90},${a.y-90} ${b.x-40},${b.y+90} ${b.x-15},${b.y+25}`;
+  }
+  const mx=(a.x+b.x)/2;
+  return `M${a.x+55},${a.y} C ${mx},${a.y} ${mx},${b.y} ${b.x-55},${b.y}`;
+}
+
+mmEdges.forEach(([a,b])=>{
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d', edgePath(nodeMap[a], nodeMap[b]));
+  path.setAttribute('class','mm-line');
+  path.setAttribute('marker-end','url(#arrowhead)');
+  svg.appendChild(path);
+});
+
+const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+defs.innerHTML = `<marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+  <path d="M0,0 L7,3 L0,6 Z" fill="#4a5372"/></marker>`;
+svg.appendChild(defs);
+
+mmData.forEach(n=>{
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('class','mm-node');
+  g.setAttribute('id','mmn-'+n.id);
+  const w = Math.max(90, n.label.length*7.5+24);
+  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  rect.setAttribute('x', n.x-w/2); rect.setAttribute('y', n.y-16);
+  rect.setAttribute('width', w); rect.setAttribute('height', 32);
+  rect.setAttribute('rx', 8);
+  const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+  text.setAttribute('x', n.x); text.setAttribute('y', n.y+4);
+  text.setAttribute('text-anchor','middle');
+  text.textContent = n.label;
+  g.appendChild(rect); g.appendChild(text);
+  g.addEventListener('click', ()=>{
+    document.querySelectorAll('.mm-node').forEach(el=>el.classList.remove('open'));
+    g.classList.add('open');
+    document.getElementById('mm-detail').innerHTML = n.detail;
+  });
+  svg.appendChild(g);
+});
+
+/* ---------- QUIZ ---------- */
+const quizData = [
+  {type:'mc', badge:'Trắc nghiệm', q:'add_conditional_edges(source, condition_fn, mapping) — condition_fn phải trả về kiểu gì?',
+   opts:['bool','str (khớp key trong mapping)','Object Node','int là index node'], correct:1,
+   explain:'condition_fn trả về string, string đó được tra trong dict mapping để tìm node đích.'},
+  {type:'tf', badge:'Đúng/Sai', q:'Một cạnh trong LangGraph có thể trỏ ngược về node đã chạy trước đó để tạo vòng lặp.',
+   opts:['Đúng','Sai'], correct:0,
+   explain:'Đúng — đây chính là cơ chế bump_refine → generate_exam; LangGraph không bắt buộc graph là DAG thuần.'},
+  {type:'fi', badge:'Điền từ', q:'Cơ chế an toàn tầng 2 truyền qua config khi .invoke() để tránh loop vô hạn nếu bug logic gọi là gì? (1 từ, không dấu, viết liền)',
+   answer:'recursion_limit',
+   explain:'recursion_limit — LangGraph tự raise GraphRecursionError sau N bước nếu vượt giới hạn.'},
+  {type:'mc', badge:'Trắc nghiệm', q:'Node ask_clarify trong graph v2 nên nối tới đâu?',
+   opts:['Quay lại parse_request','END (chờ user cung cấp thêm info)','Thẳng tới generate_exam','bump_refine'], correct:1,
+   explain:'Thiếu thông tin bắt buộc thì graph nên dừng lại (END) và chờ input mới từ user, không nên tự generate bừa.'},
+  {type:'seq', badge:'Sắp xếp', q:'Input đủ field, feedback đầu là "khó quá". Chọn thứ tự ĐÚNG các node được gọi:',
+   opts:[
+     'parse_request → generate_exam → collect_feedback → bump_refine → generate_exam',
+     'generate_exam → parse_request → collect_feedback → bump_refine',
+     'parse_request → collect_feedback → generate_exam → bump_refine',
+     'parse_request → bump_refine → generate_exam → collect_feedback'
+   ], correct:0,
+   explain:'parse_request chạy trước tiên để tách field, sau đó generate_exam, rồi collect_feedback đọc phản hồi, nếu chê thì bump_refine rồi quay lại generate_exam.'},
+  {type:'tf', badge:'Đúng/Sai', q:'Nếu refine_count đã bằng max_refine nhưng user vẫn chê "khó quá", graph vẫn phải refine thêm 1 lần để tôn trọng ý kiến user.',
+   opts:['Đúng','Sai'], correct:1,
+   explain:'Sai — đây là mục đích của stop condition: phải check max_refine trước và ép sang finalize bất kể nội dung feedback.'},
+  {type:'fi', badge:'Điền từ', q:'Node function trong LangGraph có signature def node(state) -> dict. Giá trị trả về chỉ nên chứa các field gì? (gõ 2 từ tiếng Việt không dấu, cách nhau bởi dấu cách, ví dụ: "can cap nhat")',
+   answer:'can cap nhat',
+   explain:'Chỉ cần trả field cần cập nhật (updated fields), không cần trả toàn bộ state.'},
+  {type:'mc', badge:'Trắc nghiệm', q:'Pattern nào mô tả 1 condition_fn có thể route sang NHIỀU HƠN 2 node (không chỉ đúng/sai)?',
+   opts:['Literal Routing','Conditional Looping','Multipath Routing','Reducer Pattern'], correct:2,
+   explain:'Multipath Routing — 1 hàm điều kiện có thể trả về nhiều giá trị khác nhau, map sang nhiều node khác nhau.'},
+  {type:'tf', badge:'Đúng/Sai', q:'app.stream(state, stream_mode="values") hữu ích để debug loop vì cho xem state sau từng bước.',
+   opts:['Đúng','Sai'], correct:0,
+   explain:'Đúng — khác với invoke() chỉ trả kết quả cuối, stream() cho xem state thay đổi real-time qua từng node.'},
+  {type:'fi', badge:'Điền từ', q:'Trong ẩn dụ tiệm may, việc thợ hỏi lại "vải gì, size gì" trước khi cắt vải tương ứng với khái niệm gì? (2 từ tiếng anh, viết liền không dấu cách, vd: "conditionaledge")',
+   answer:'conditionaledge',
+   explain:'Conditional edge — kiểm tra state trước khi quyết định route sang node nào.'},
+];
+
+let score = 0;
+const quizContainer = document.getElementById('quiz-container');
+
+quizData.forEach((item, idx)=>{
+  const card = document.createElement('div');
+  card.className = 'card q-card';
+  const badgeClass = item.type==='mc'?'mc':item.type==='tf'?'tf':item.type==='fi'?'fi':'seq';
+  const badgeLabel = item.badge;
+
+  let inner = `<div class="q-title">Câu ${idx+1}. ${item.q} <span class="badge ${badgeClass}">${badgeLabel}</span></div>`;
+
+  if(item.type==='fi'){
+    inner += `<input type="text" class="q-input" id="fi-${idx}" placeholder="Nhập câu trả lời...">
+               <button class="q-check" onclick="checkFI(${idx})">Kiểm tra</button>
+               <div class="q-explain" id="exp-${idx}"></div>`;
+  } else {
+    item.opts.forEach((opt,i)=>{
+      inner += `<button class="q-opt" id="opt-${idx}-${i}" onclick="checkOpt(${idx},${i})">${opt}</button>`;
+    });
+    inner += `<div class="q-explain" id="exp-${idx}"></div>`;
+  }
+  card.innerHTML = inner;
+  quizContainer.appendChild(card);
+});
+
+function updateScore(){ document.getElementById('score-val').textContent = score; }
+
+function checkOpt(idx, i){
+  const item = quizData[idx];
+  const opts = document.querySelectorAll(`[id^="opt-${idx}-"]`);
+  if(opts[0].disabled) return; // already answered
+  opts.forEach((el,j)=>{
+    el.disabled = true;
+    if(j===item.correct) el.classList.add('correct');
+    else if(j===i) el.classList.add('wrong');
+  });
+  if(i===item.correct) { score++; updateScore(); }
+  const exp = document.getElementById('exp-'+idx);
+  exp.textContent = '💡 ' + item.explain;
+  exp.classList.add('show');
+}
+
+function checkFI(idx){
+  const item = quizData[idx];
+  const input = document.getElementById('fi-'+idx);
+  if(input.disabled) return;
+  const val = input.value.trim().toLowerCase().replace(/\s+/g,' ');
+  const correctVal = item.answer.toLowerCase();
+  input.disabled = true;
+  const exp = document.getElementById('exp-'+idx);
+  if(val === correctVal || val.replace(/\s/g,'') === correctVal.replace(/\s/g,'')){
+    input.style.borderColor = 'var(--accent)';
+    score++; updateScore();
+  } else {
+    input.style.borderColor = 'var(--red)';
+  }
+  exp.textContent = `💡 Đáp án: "${item.answer}" — ${item.explain}`;
+  exp.classList.add('show');
+}
+</script>
+</body>
+</html>

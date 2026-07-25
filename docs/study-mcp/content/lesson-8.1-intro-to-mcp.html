@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 8.1 — Intro to MCP</title>
+<style>
+  :root{
+    --bg:#0d0f14;
+    --bg-alt:#12151c;
+    --panel:#161a23;
+    --panel-2:#1b202b;
+    --border:#252b38;
+    --text:#e7ebf3;
+    --text-dim:#9aa4b8;
+    --text-faint:#5f6a80;
+    --accent:#4ade80;
+    --accent-dim:#2f8f5c;
+    --accent-glow: rgba(74,222,128,0.15);
+    --red:#f87171;
+    --yellow:#facc15;
+    --blue:#60a5fa;
+    --pink:#f472b6;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{min-height:100vh;}
+  ::selection{background:var(--accent-glow);color:var(--accent);}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg-alt);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
+
+  a{color:var(--accent);}
+
+  .app{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  .top{
+    display:flex;flex-direction:column;gap:6px;margin-bottom:22px;
+    border-bottom:1px solid var(--border);padding-bottom:18px;
+  }
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;color:var(--accent);
+    letter-spacing:.08em;text-transform:uppercase;
+  }
+  .top h1{margin:2px 0 4px;font-size:28px;font-weight:700;letter-spacing:-0.01em;}
+  .top .meta{font-family:var(--mono);font-size:12.5px;color:var(--text-dim);display:flex;flex-wrap:wrap;gap:14px;}
+  .top .meta span b{color:var(--text);}
+
+  nav.tabs{
+    display:flex;gap:6px;flex-wrap:wrap;margin-bottom:26px;
+    border:1px solid var(--border);background:var(--panel);
+    border-radius:12px;padding:6px;
+  }
+  nav.tabs button{
+    flex:1;min-width:120px;
+    background:transparent;border:none;color:var(--text-dim);
+    font-family:var(--mono);font-size:13px;padding:10px 12px;border-radius:8px;
+    cursor:pointer;transition:all .15s ease;white-space:nowrap;
+  }
+  nav.tabs button:hover{color:var(--text);background:var(--panel-2);}
+  nav.tabs button.active{background:var(--accent-glow);color:var(--accent);font-weight:600;}
+
+  section.tab{display:none;animation:fade .25s ease;}
+  section.tab.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  h2.section-title{
+    font-size:20px;margin:36px 0 14px;padding-top:4px;
+    display:flex;align-items:center;gap:10px;
+  }
+  h2.section-title:first-child{margin-top:0;}
+  h2.section-title .num{
+    font-family:var(--mono);font-size:12px;color:var(--accent);
+    border:1px solid var(--accent-dim);border-radius:6px;padding:2px 7px;
+  }
+
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:20px 22px;margin-bottom:16px;
+  }
+  .card h3{margin:0 0 10px;font-size:15.5px;color:var(--accent);}
+  .card p{line-height:1.65;color:var(--text-dim);margin:0 0 10px;font-size:14.5px;}
+  .card p:last-child{margin-bottom:0;}
+  .card ul{margin:8px 0;padding-left:20px;color:var(--text-dim);font-size:14.5px;line-height:1.7;}
+  .card b{color:var(--text);}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr;}}
+
+  .badge{
+    display:inline-block;font-family:var(--mono);font-size:11px;
+    background:var(--accent-glow);color:var(--accent);border-radius:6px;
+    padding:2px 8px;margin-right:6px;
+  }
+
+  pre{
+    background:#080a0e;border:1px solid var(--border);border-radius:10px;
+    padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13px;
+    line-height:1.6;margin:10px 0;
+  }
+  code{font-family:var(--mono);}
+  .card code:not(pre code){
+    background:#080a0e;border:1px solid var(--border);border-radius:5px;
+    padding:1px 6px;color:var(--accent);font-size:13px;
+  }
+  .tok-kw{color:#f472b6;}
+  .tok-str{color:#facc15;}
+  .tok-com{color:#5f6a80;font-style:italic;}
+  .tok-fn{color:#60a5fa;}
+  .tok-dec{color:#4ade80;}
+
+  table.cmp{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px;}
+  table.cmp th,table.cmp td{
+    border:1px solid var(--border);padding:9px 12px;text-align:left;
+  }
+  table.cmp th{background:var(--panel-2);color:var(--accent);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.03em;}
+  table.cmp td{color:var(--text-dim);}
+  table.cmp td b{color:var(--text);}
+  table.cmp tr:nth-child(even) td{background:rgba(255,255,255,0.015);}
+
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0;font-family:var(--mono);font-size:13px;}
+  .flow .node{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:8px;
+    padding:8px 14px;color:var(--text);
+  }
+  .flow .node.accent{border-color:var(--accent-dim);color:var(--accent);}
+  .flow .arrow{color:var(--text-faint);}
+
+  /* MINDMAP */
+  .mindmap-wrap{
+    background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:10px;display:flex;gap:16px;flex-wrap:wrap;
+  }
+  #mindmap-svg{flex:1;min-width:320px;}
+  .mm-node{cursor:pointer;transition:opacity .15s;}
+  .mm-node:hover{opacity:.85;}
+  .mm-info{
+    width:280px;flex-shrink:0;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:10px;padding:16px;font-size:13.5px;color:var(--text-dim);line-height:1.6;
+    align-self:flex-start;
+  }
+  .mm-info h4{margin:0 0 8px;color:var(--accent);font-size:14.5px;}
+  @media (max-width:700px){.mindmap-wrap{flex-direction:column;} .mm-info{width:auto;}}
+
+  /* QUIZ */
+  .quiz-progress{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:12.5px;color:var(--text-dim);margin-bottom:14px;
+  }
+  .quiz-progress .score{color:var(--accent);font-weight:700;}
+  .qcard{
+    background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:20px 22px;margin-bottom:14px;
+  }
+  .qcard .qtype{
+    font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--text-faint);margin-bottom:6px;
+  }
+  .qcard .qtext{font-size:15px;margin-bottom:14px;line-height:1.5;}
+  .opt{
+    display:block;width:100%;text-align:left;background:var(--panel-2);
+    border:1px solid var(--border);color:var(--text);
+    border-radius:9px;padding:10px 14px;margin-bottom:8px;font-family:var(--sans);
+    font-size:14px;cursor:pointer;transition:all .15s ease;
+  }
+  .opt:hover:not(:disabled){border-color:var(--accent-dim);}
+  .opt.correct{background:rgba(74,222,128,0.12);border-color:var(--accent);color:var(--accent);}
+  .opt.wrong{background:rgba(248,113,113,0.12);border-color:var(--red);color:var(--red);}
+  .opt:disabled{cursor:default;}
+  .explain{
+    margin-top:10px;padding:12px 14px;background:var(--bg-alt);border-left:3px solid var(--accent);
+    border-radius:6px;font-size:13.5px;color:var(--text-dim);line-height:1.6;display:none;
+  }
+  .explain.show{display:block;}
+  .quiz-final{
+    text-align:center;padding:30px 20px;background:var(--panel);border:1px solid var(--accent-dim);
+    border-radius:14px;display:none;
+  }
+  .quiz-final.show{display:block;}
+  .quiz-final .big{font-family:var(--mono);font-size:38px;color:var(--accent);font-weight:700;}
+  button.reset{
+    margin-top:14px;background:var(--accent-glow);border:1px solid var(--accent-dim);color:var(--accent);
+    padding:9px 18px;border-radius:8px;font-family:var(--mono);font-size:13px;cursor:pointer;
+  }
+
+  /* CHEAT SHEET */
+  .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:760px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .cheat-card h4{margin:0 0 10px;color:var(--accent);font-size:14px;font-family:var(--mono);}
+  .cheat-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--border);font-size:13px;}
+  .cheat-row:last-child{border-bottom:none;}
+  .cheat-row .c{font-family:var(--mono);color:var(--accent);white-space:nowrap;}
+  .cheat-row .d{color:var(--text-dim);text-align:right;}
+  .steps-mini{counter-reset:step;padding:0;margin:0;list-style:none;}
+  .steps-mini li{
+    counter-increment:step;position:relative;padding:6px 0 6px 30px;font-size:13.5px;color:var(--text-dim);
+    border-bottom:1px dashed var(--border);
+  }
+  .steps-mini li:last-child{border-bottom:none;}
+  .steps-mini li::before{
+    content:counter(step);position:absolute;left:0;top:6px;
+    background:var(--accent-glow);color:var(--accent);width:20px;height:20px;border-radius:5px;
+    font-family:var(--mono);font-size:11px;display:flex;align-items:center;justify-content:center;
+  }
+  .warn-box{
+    background:rgba(250,204,21,0.06);border:1px solid rgba(250,204,21,0.3);border-radius:10px;
+    padding:12px 14px;font-size:13px;color:#e8d488;line-height:1.6;margin-top:8px;
+  }
+
+  /* STORY MODE */
+  .story-hero{
+    background:linear-gradient(135deg, rgba(74,222,128,0.08), transparent 60%);
+    border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px;
+  }
+  .story-hero h3{margin:0 0 6px;font-size:19px;}
+  .story-hero p{color:var(--text-dim);font-size:14.5px;line-height:1.7;margin:0;}
+  .map-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed var(--border);}
+  .map-row:last-child{border-bottom:none;}
+  .map-tag{
+    font-family:var(--mono);font-size:11px;background:var(--accent-glow);color:var(--accent);
+    border-radius:6px;padding:4px 8px;white-space:nowrap;flex-shrink:0;
+  }
+  .map-tag.bug{background:rgba(248,113,113,0.12);color:var(--red);}
+  .map-desc{color:var(--text-dim);font-size:14px;line-height:1.6;}
+  .map-desc b{color:var(--text);}
+  .output-block{
+    background:#080a0e;border:1px solid var(--accent-dim);border-radius:10px;padding:16px 18px;
+    font-family:var(--mono);font-size:12.5px;color:var(--accent);line-height:1.7;overflow-x:auto;
+  }
+  .output-label{
+    font-family:var(--mono);font-size:11px;color:var(--text-faint);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em;
+  }
+  .why-box{
+    background:var(--panel-2);border-left:3px solid var(--blue);border-radius:6px;
+    padding:16px 18px;margin-top:14px;font-size:14px;color:var(--text-dim);line-height:1.7;
+  }
+  .why-box b{color:var(--text);}
+
+  footer.foot{margin-top:50px;text-align:center;color:var(--text-faint);font-family:var(--mono);font-size:11.5px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="eyebrow">Course 1 · Module 8 — MCP Protocol</div>
+    <h1>Lesson 8.1 — Intro to MCP: "Cổng USB-C của AI Agent"</h1>
+    <div class="meta">
+      <span>⏱ <b>6:34</b></span>
+      <span>📚 Prereqs: <b>Module 7 hoàn thành</b></span>
+      <span>🗺 Roadmap: <b>Giai đoạn 2 — Phase 2B</b></span>
+      <span>🔧 Checkpoint: <b>v7 MCP server</b></span>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="theory">01 · Lý thuyết</button>
+    <button class="tab-btn" data-tab="mindmap">02 · Mindmap</button>
+    <button class="tab-btn" data-tab="quiz">03 · Quiz</button>
+    <button class="tab-btn" data-tab="cheat">04 · Cheat Sheet</button>
+    <button class="tab-btn" data-tab="story">05 · 🍡 Story Mode</button>
+  </nav>
+
+  <!-- ============ TAB 1: THEORY ============ -->
+  <section class="tab active" id="theory">
+
+    <h2 class="section-title"><span class="num">01</span> Khái niệm + ví dụ đời sống</h2>
+    <div class="card">
+      <h3>MCP là gì?</h3>
+      <p><b>Model Context Protocol (MCP)</b> là giao thức mở do <b>Anthropic</b> tạo ra, chuẩn hoá cách AI agent kết nối với dữ liệu và công cụ bên ngoài (database, file system, API, search engine...).</p>
+      <p><b>Ẩn dụ:</b> Trước USB-C, mỗi hãng điện thoại có chân sạc riêng (Nokia, micro-USB, Lightning) → cần N loại dây cho N thiết bị. Sau USB-C: 1 cổng chuẩn cắm được mọi thiết bị.</p>
+      <p>AI Agent gặp đúng vấn đề đó trước MCP: mỗi framework (LangChain, CrewAI, AutoGen...) phải viết integration riêng cho từng tool bên ngoài (Slack, Drive, DB...).</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>❌ Trước MCP</h3>
+        <div class="flow">
+          <div class="node">LangChain</div><span class="arrow">→</span><div class="node">Integration riêng</div><span class="arrow">→</span><div class="node">Google Drive</div>
+        </div>
+        <div class="flow">
+          <div class="node">CrewAI</div><span class="arrow">→</span><div class="node">Integration riêng #2</div><span class="arrow">→</span><div class="node">Google Drive</div>
+        </div>
+        <div class="flow">
+          <div class="node">AutoGen</div><span class="arrow">→</span><div class="node">Integration riêng #3</div><span class="arrow">→</span><div class="node">Google Drive</div>
+        </div>
+        <p>N framework × M tool = <b>N×M</b> lần viết code, không tái dùng được.</p>
+      </div>
+      <div class="card">
+        <h3>✅ Sau MCP</h3>
+        <div class="flow">
+          <div class="node">LangChain</div><span class="arrow">↘</span>
+        </div>
+        <div class="flow">
+          <div class="node">CrewAI</div><span class="arrow">→</span><div class="node accent">MCP Client chuẩn</div><span class="arrow">→</span><div class="node accent">MCP Server (Google Drive)</div>
+        </div>
+        <div class="flow">
+          <div class="node">AutoGen</div><span class="arrow">↗</span>
+        </div>
+        <p>N framework + M tool = <b>N+M</b> lần viết. Server viết 1 lần, client nào cũng gọi được.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <table class="cmp">
+        <tr><th>Tiêu chí</th><th>Trước MCP</th><th>Sau MCP</th></tr>
+        <tr><td>Effort tích hợp</td><td><b>N × M</b></td><td><b>N + M</b></td></tr>
+        <tr><td>Tái sử dụng server</td><td>Không</td><td>Có — mọi MCP client dùng chung</td></tr>
+        <tr><td>Chuẩn hoá</td><td>Mỗi framework tự định nghĩa</td><td>1 chuẩn mở (JSON-RPC) cho tất cả</td></tr>
+        <tr><td>Người tạo ra</td><td>—</td><td>Anthropic (open-source)</td></tr>
+      </table>
+    </div>
+
+    <h2 class="section-title"><span class="num">02</span> Vị trí trong hệ thống</h2>
+    <div class="card">
+      <p><b>Trong khoá học:</b> Lesson 8.1 mở đầu Module 8 (MCP Protocol), sau khi hoàn thành Module 7 (AutoGen). Dẫn tới 8.2 (Host/Client/Server), 8.7–8.10 (tự xây server), 8.11 (memory server), 8.12–8.14 (Brave Search / Polygon qua MCP).</p>
+      <p><b>Liên kết ngược:</b> Lesson 2.6 — Resources vs Tools: MCP chính là giao thức chuẩn hoá cả 2 khái niệm này.</p>
+      <p><b>Trong roadmap cá nhân:</b> nguồn phụ song song Course 4/Module 10 (⭐⭐ Lesson 10.4 — <code>MultiServerMCPClient</code>). Dẫn tới checkpoint <b>🔧 v7: MCP server</b> — build <code>mspanda-exam-server</code> bằng <code>fastmcp</code>, test qua MCP Inspector trước khi deploy Lambda.</p>
+    </div>
+
+    <h2 class="section-title"><span class="num">03</span> Lệnh quan trọng + nâng cao</h2>
+    <div class="card">
+      <h3>Cài đặt</h3>
+      <table class="cmp">
+        <tr><th>Lệnh</th><th>Giải thích</th></tr>
+        <tr><td><code>pip install mcp</code></td><td>Cài SDK chính thức (Python)</td></tr>
+        <tr><td><code>pip install "mcp[cli]"</code></td><td>Thêm CLI dev tool (<code>mcp dev</code>, <code>mcp install</code>) — cần ngoặc kép vì <code>[cli]</code> là extra</td></tr>
+        <tr><td><code>uv add mcp</code></td><td>Cài qua <code>uv</code> package manager</td></tr>
+        <tr><td><code>--break-system-packages</code></td><td>Flag bắt buộc trên Debian/Ubuntu (PEP 668) để tránh lỗi externally-managed-environment</td></tr>
+      </table>
+      <h3 style="margin-top:18px;">Chạy & test server</h3>
+      <table class="cmp">
+        <tr><th>Lệnh</th><th>Giải thích</th></tr>
+        <tr><td><code>mcp dev server.py</code></td><td>Mở MCP Inspector (web UI) để test server không cần viết client riêng</td></tr>
+        <tr><td><code>mcp install server.py</code></td><td>Cài server vào config Claude Desktop tự động</td></tr>
+        <tr><td><code>npx @modelcontextprotocol/inspector python3 server.py</code></td><td>Chạy Inspector độc lập bằng Node.js, không cần <code>mcp[cli]</code></td></tr>
+      </table>
+      <h3 style="margin-top:18px;">Decorator/flag trong code (FastMCP)</h3>
+      <pre><span class="tok-kw">from</span> mcp.server.fastmcp <span class="tok-kw">import</span> FastMCP
+
+mcp = FastMCP(<span class="tok-str">"ten_server"</span>)
+
+<span class="tok-dec">@mcp.tool()</span>
+<span class="tok-kw">def</span> <span class="tok-fn">ten_tool</span>(tham_so: str) -> str:
+    <span class="tok-com">"""Docstring nay se thanh mo ta tool cho LLM doc."""</span>
+    <span class="tok-kw">return</span> <span class="tok-str">"ket qua"</span>
+
+<span class="tok-dec">@mcp.resource(</span><span class="tok-str">"uri://du-lieu"</span><span class="tok-dec">)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">doc_tinh</span>(): ...  <span class="tok-com"># resource tinh, khong phai hanh dong</span>
+
+<span class="tok-kw">if</span> __name__ == <span class="tok-str">"__main__"</span>:
+    mcp.run(transport=<span class="tok-str">"stdio"</span>)  <span class="tok-com"># local — hoac "streamable-http" cho remote</span></pre>
+    </div>
+
+    <h2 class="section-title"><span class="num">04</span> File cấu hình quan trọng</h2>
+    <div class="card">
+      <h3><code>claude_desktop_config.json</code></h3>
+      <p>Config của Host để biết cần khởi động MCP server nào:</p>
+      <pre>{
+  <span class="tok-str">"mcpServers"</span>: {
+    <span class="tok-str">"usbc_demo"</span>: {
+      <span class="tok-str">"command"</span>: <span class="tok-str">"python3"</span>,
+      <span class="tok-str">"args"</span>: [<span class="tok-str">"/duong/dan/toi/usbc_server.py"</span>]
+    }
+  }
+}</pre>
+      <p><code>mcpServers</code>: danh sách server. <code>command</code> + <code>args</code>: lệnh Host dùng để spawn server như 1 subprocess (transport stdio).</p>
+      <p>Ngoài ra: <code>pyproject.toml</code>/<code>requirements.txt</code> khai báo dependency <code>mcp</code>; <code>.env</code> lưu API key khi server cần gọi ra ngoài — không commit lên Git.</p>
+    </div>
+
+    <h2 class="section-title"><span class="num">05</span> Ứng dụng thực tế</h2>
+    <div class="card">
+      <ul>
+        <li><b>Anthropic</b>: Claude Desktop kết nối Google Drive, Slack, GitHub, Postgres qua MCP mà không cần tự viết integration riêng.</li>
+        <li><b>Block, Apollo, Sourcegraph, Replit, Zed...</b> public MCP server riêng cho cộng đồng dùng lại.</li>
+        <li><b>Project Exam Generator (roadmap cá nhân):</b> <code>mspanda-exam-server</code> được Supervisor Agent gọi qua <code>MultiServerMCPClient</code>, deploy Lambda dùng HTTP transport.</li>
+        <li><b>Tương đương backend truyền thống:</b> MCP server ≈ gRPC service chuẩn hoá — nhiều client (Orchestrator, Worker, UI) gọi chung 1 interface.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: MINDMAP ============ -->
+  <section class="tab" id="mindmap">
+    <h2 class="section-title"><span class="num">02</span> Mindmap tương tác — nhấn vào node</h2>
+    <div class="mindmap-wrap">
+      <svg id="mindmap-svg" viewBox="0 0 640 460" xmlns="http://www.w3.org/2000/svg">
+        <line x1="320" y1="70" x2="320" y2="140" stroke="#252b38" stroke-width="2"/>
+        <line x1="320" y1="140" x2="140" y2="220" stroke="#252b38" stroke-width="2"/>
+        <line x1="320" y1="140" x2="320" y2="220" stroke="#252b38" stroke-width="2"/>
+        <line x1="320" y1="140" x2="500" y2="220" stroke="#252b38" stroke-width="2"/>
+        <line x1="140" y1="220" x2="80" y2="300" stroke="#252b38" stroke-width="2"/>
+        <line x1="140" y1="220" x2="200" y2="300" stroke="#252b38" stroke-width="2"/>
+        <line x1="320" y1="220" x2="320" y2="300" stroke="#252b38" stroke-width="2"/>
+        <line x1="500" y1="220" x2="440" y2="300" stroke="#252b38" stroke-width="2"/>
+        <line x1="500" y1="220" x2="560" y2="300" stroke="#252b38" stroke-width="2"/>
+        <line x1="320" y1="300" x2="320" y2="380" stroke="#252b38" stroke-width="2"/>
+
+        <g class="mm-node" data-key="root">
+          <rect x="240" y="30" width="160" height="40" rx="10" fill="#4ade80" opacity="0.9"/>
+          <text x="320" y="55" text-anchor="middle" fill="#0d0f14" font-family="JetBrains Mono" font-size="13" font-weight="700">MCP (8.1)</text>
+        </g>
+
+        <g class="mm-node" data-key="usbc">
+          <rect x="250" y="120" width="140" height="40" rx="10" fill="#161a23" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="320" y="145" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="12">Ẩn dụ USB-C</text>
+        </g>
+
+        <g class="mm-node" data-key="problem">
+          <rect x="70" y="200" width="140" height="40" rx="10" fill="#161a23" stroke="#f87171" stroke-width="1.5"/>
+          <text x="140" y="225" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="12">Vấn đề N×M</text>
+        </g>
+        <g class="mm-node" data-key="solution">
+          <rect x="250" y="200" width="140" height="40" rx="10" fill="#161a23" stroke="#60a5fa" stroke-width="1.5"/>
+          <text x="320" y="225" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="12">Giải pháp N+M</text>
+        </g>
+        <g class="mm-node" data-key="creator">
+          <rect x="430" y="200" width="140" height="40" rx="10" fill="#161a23" stroke="#f472b6" stroke-width="1.5"/>
+          <text x="500" y="225" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="12">Anthropic</text>
+        </g>
+
+        <g class="mm-node" data-key="frameworks">
+          <rect x="15" y="280" width="130" height="40" rx="10" fill="#161a23" stroke="#252b38" stroke-width="1.5"/>
+          <text x="80" y="305" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="11">Framework (LangChain..)</text>
+        </g>
+        <g class="mm-node" data-key="tools">
+          <rect x="145" y="280" width="120" height="40" rx="10" fill="#161a23" stroke="#252b38" stroke-width="1.5"/>
+          <text x="205" y="305" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="11">Tool (Drive, Slack..)</text>
+        </g>
+        <g class="mm-node" data-key="next82">
+          <rect x="255" y="280" width="130" height="40" rx="10" fill="#161a23" stroke="#252b38" stroke-width="1.5"/>
+          <text x="320" y="305" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="11">Lesson 8.2 tiếp theo</text>
+        </g>
+        <g class="mm-node" data-key="opensource">
+          <rect x="400" y="280" width="80" height="40" rx="10" fill="#161a23" stroke="#252b38" stroke-width="1.5"/>
+          <text x="440" y="305" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="11">Open-source</text>
+        </g>
+        <g class="mm-node" data-key="v7">
+          <rect x="500" y="280" width="120" height="40" rx="10" fill="#161a23" stroke="#252b38" stroke-width="1.5"/>
+          <text x="560" y="305" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="11">Roadmap v7</text>
+        </g>
+
+        <g class="mm-node" data-key="lab">
+          <rect x="240" y="360" width="160" height="40" rx="10" fill="#161a23" stroke="#facc15" stroke-width="1.5"/>
+          <text x="320" y="385" text-anchor="middle" fill="#e7ebf3" font-family="JetBrains Mono" font-size="12">Lab: stdio demo</text>
+        </g>
+      </svg>
+      <div class="mm-info" id="mm-info">
+        <h4>👉 Nhấn vào 1 node</h4>
+        <p>Chọn 1 khối trong sơ đồ để xem giải thích chi tiết ở đây.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: QUIZ ============ -->
+  <section class="tab" id="quiz">
+    <h2 class="section-title"><span class="num">03</span> Quiz ôn tập (10 câu)</h2>
+    <div class="quiz-progress">
+      <span>Câu <span id="q-current">1</span>/10</span>
+      <span>Điểm: <span class="score" id="q-score">0</span>/10</span>
+    </div>
+    <div id="quiz-container"></div>
+    <div class="quiz-final" id="quiz-final">
+      <div class="big" id="final-score">0/10</div>
+      <p style="color:var(--text-dim);margin-top:8px;">Hoàn thành Quiz Lesson 8.1</p>
+      <button class="reset" onclick="resetQuiz()">↻ Làm lại từ đầu</button>
+    </div>
+  </section>
+
+  <!-- ============ TAB 4: CHEAT SHEET ============ -->
+  <section class="tab" id="cheat">
+    <h2 class="section-title"><span class="num">04</span> Cheat Sheet tra cứu nhanh</h2>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>📦 Cài đặt</h4>
+        <div class="cheat-row"><span class="c">pip install mcp</span><span class="d">SDK chính thức</span></div>
+        <div class="cheat-row"><span class="c">pip install "mcp[cli]"</span><span class="d">+ CLI Inspector</span></div>
+        <div class="cheat-row"><span class="c">uv add mcp</span><span class="d">qua uv</span></div>
+        <div class="cheat-row"><span class="c">--break-system-packages</span><span class="d">fix PEP 668</span></div>
+      </div>
+      <div class="cheat-card">
+        <h4>▶️ Chạy / test</h4>
+        <div class="cheat-row"><span class="c">mcp dev server.py</span><span class="d">Mở Inspector</span></div>
+        <div class="cheat-row"><span class="c">mcp install server.py</span><span class="d">Cài vào Claude Desktop</span></div>
+        <div class="cheat-row"><span class="c">npx @modelcontextprotocol/inspector</span><span class="d">Inspector qua Node</span></div>
+        <div class="cheat-row"><span class="c">python3 client.py</span><span class="d">Client tự spawn server</span></div>
+      </div>
+      <div class="cheat-card">
+        <h4>🧩 Decorator FastMCP</h4>
+        <div class="cheat-row"><span class="c">@mcp.tool()</span><span class="d">đăng ký hành động</span></div>
+        <div class="cheat-row"><span class="c">@mcp.resource()</span><span class="d">dữ liệu tĩnh</span></div>
+        <div class="cheat-row"><span class="c">@mcp.prompt()</span><span class="d">prompt template</span></div>
+        <div class="cheat-row"><span class="c">transport="stdio"</span><span class="d">local</span></div>
+        <div class="cheat-row"><span class="c">transport="streamable-http"</span><span class="d">remote/Lambda</span></div>
+      </div>
+      <div class="cheat-card">
+        <h4>📄 File cấu hình</h4>
+        <div class="cheat-row"><span class="c">claude_desktop_config.json</span><span class="d">khai báo server</span></div>
+        <div class="cheat-row"><span class="c">pyproject.toml</span><span class="d">dependency</span></div>
+        <div class="cheat-row"><span class="c">.env</span><span class="d">API key server</span></div>
+      </div>
+      <div class="cheat-card" style="grid-column:1/-1;">
+        <h4>🧪 Lab steps tóm tắt</h4>
+        <ol class="steps-mini">
+          <li>Cài <code style="color:var(--accent)">pip install mcp --break-system-packages</code></li>
+          <li>Viết <code style="color:var(--accent)">usbc_server.py</code> với 2 <code style="color:var(--accent)">@mcp.tool()</code></li>
+          <li>Viết <code style="color:var(--accent)">usbc_client.py</code> dùng <code style="color:var(--accent)">StdioServerParameters</code> + <code style="color:var(--accent)">stdio_client</code></li>
+          <li>Chạy <code style="color:var(--accent)">python3 usbc_client.py</code></li>
+          <li>Verify: có đủ danh sách 2 tools + 2 dòng kết quả gọi tool</li>
+        </ol>
+        <div class="warn-box">⚠️ Dễ sai: quên <code>await session.initialize()</code> · sai đường dẫn <code>args</code> · quên <code>--break-system-packages</code> · chạy server độc lập thay vì để client spawn · lệch transport giữa server/client.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 5: STORY MODE ============ -->
+  <section class="tab" id="story">
+    <div class="story-hero">
+      <h3>🍡 Tanjiro và Chuẩn "Hơi Thở" của các Trụ Cột</h3>
+      <p>Tanjiro Kamado mang <b>Nichirin Blade</b> đi khắp nơi xin các Hashira (Trụ Cột) chỉ dạy. Mỗi Hashira — Thuỷ Trụ Giyu, Viêm Trụ Rengoku, Nham Trụ Gyomei — có chiêu thức riêng, nhưng tất cả đều giao tiếp qua <b>chuẩn Hơi Thở (Kokyuu)</b> chung. Tanjiro không cần học lại cách tương tác từ đầu mỗi lần gặp Hashira mới — vì ai cũng tuân theo cùng 1 chuẩn.</p>
+    </div>
+
+    <h2 class="section-title"><span class="num">05a</span> Ánh xạ khái niệm ↔ chi tiết truyện</h2>
+    <div class="card">
+      <div class="map-row">
+        <span class="map-tag">MCP Server</span>
+        <span class="map-desc">Mỗi vị <b>Hashira</b> = 1 server độc lập, mỗi người tự có "tool" (chiêu thức) riêng nhưng đều expose qua cùng 1 chuẩn giao tiếp.</span>
+      </div>
+      <div class="map-row">
+        <span class="map-tag">MCP Client</span>
+        <span class="map-desc"><b>Tanjiro</b> = client — dùng đúng 1 cách "hỏi chiêu" (<code>list_tools</code>, <code>call_tool</code>) để tương tác với bất kỳ Hashira nào, không cần học lại cách giao tiếp mỗi lần đổi sư phụ.</span>
+      </div>
+      <div class="map-row">
+        <span class="map-tag">initialize() / Handshake</span>
+        <span class="map-desc">Nghi thức <b>bái sư</b> trước khi được truyền chiêu — bỏ qua bước này thì Hashira không dạy (server từ chối phục vụ request chưa handshake).</span>
+      </div>
+      <div class="map-row">
+        <span class="map-tag">@mcp.tool()</span>
+        <span class="map-desc">Chiêu thức được <b>đăng ký chính thức</b> trong "sổ Hơi Thở" của môn phái — chỉ chiêu đã đăng ký mới gọi được, tên chiêu + mô tả (docstring) được ghi rõ để đệ tử tra cứu.</span>
+      </div>
+      <div class="map-row bug">
+        <span class="map-tag bug">🐛 Bug hài hước</span>
+        <span class="map-desc">Đệ tử <b>Zenitsu</b> hoảng loạn giữa buổi tập, gọi nhầm tên chiêu (<code>call_tool</code> sai tên đã đăng ký) → hệ thống trả lỗi "Tool không tồn tại", cả nhóm phải đợi Zenitsu tỉnh táo lại mới gọi đúng.</span>
+      </div>
+    </div>
+
+    <h2 class="section-title"><span class="num">05b</span> Code thật — đã chạy kiểm chứng</h2>
+    <div class="card">
+      <h3>usbc_server.py (Hashira mở "cổng dạy chiêu")</h3>
+      <pre><span class="tok-kw">from</span> mcp.server.fastmcp <span class="tok-kw">import</span> FastMCP
+
+<span class="tok-com"># "Cong USB-C" - server duy nhat, expose 2 tools chuan hoa</span>
+mcp = FastMCP(<span class="tok-str">"cong_usbc_demo"</span>)
+
+<span class="tok-dec">@mcp.tool()</span>
+<span class="tok-kw">def</span> <span class="tok-fn">sac_pin_thiet_bi</span>(ten_thiet_bi: str, phan_tram_pin: int) -> str:
+    <span class="tok-com">"""Gia lap 'sac pin' cho 1 thiet bi bat ky cam vao cong USB-C (tool)."""</span>
+    pin_moi = min(<span class="tok-str">100</span>, phan_tram_pin + <span class="tok-str">35</span>)
+    <span class="tok-kw">return</span> f<span class="tok-str">"[{ten_thiet_bi}] da sac tu {phan_tram_pin}% len {pin_moi}% qua cong chuan MCP."</span>
+
+<span class="tok-dec">@mcp.tool()</span>
+<span class="tok-kw">def</span> <span class="tok-fn">doc_du_lieu_thiet_bi</span>(ten_thiet_bi: str) -> str:
+    <span class="tok-com">"""Gia lap doc du lieu tu 1 thiet bi (resource-like tool) qua cung 1 cong."""</span>
+    <span class="tok-kw">return</span> f<span class="tok-str">"[{ten_thiet_bi}] tra ve du lieu: {{'trang_thai': 'ok', 'nguon': 'MCP server'}}"</span>
+
+<span class="tok-kw">if</span> __name__ == <span class="tok-str">"__main__"</span>:
+    mcp.run(transport=<span class="tok-str">"stdio"</span>)</pre>
+
+      <h3 style="margin-top:20px;">usbc_client.py (Tanjiro hỏi chiêu 2 Hashira)</h3>
+      <pre><span class="tok-kw">import</span> asyncio
+<span class="tok-kw">from</span> mcp <span class="tok-kw">import</span> ClientSession, StdioServerParameters
+<span class="tok-kw">from</span> mcp.client.stdio <span class="tok-kw">import</span> stdio_client
+
+<span class="tok-kw">async</span> <span class="tok-kw">def</span> <span class="tok-fn">chay_thu_nghiem</span>():
+    server_params = StdioServerParameters(
+        command=<span class="tok-str">"python3"</span>,
+        args=[<span class="tok-str">"/home/claude/mcp_demo/usbc_server.py"</span>],
+    )
+    <span class="tok-kw">async with</span> stdio_client(server_params) <span class="tok-kw">as</span> (read, write):
+        <span class="tok-kw">async with</span> ClientSession(read, write) <span class="tok-kw">as</span> session:
+            <span class="tok-kw">await</span> session.initialize()  <span class="tok-com"># "bai su" truoc khi duoc day chieu</span>
+
+            danh_sach_tools = <span class="tok-kw">await</span> session.list_tools()
+            <span class="tok-fn">print</span>(<span class="tok-str">"=== Danh sach tools server cong khai ==="</span>)
+            <span class="tok-kw">for</span> tool <span class="tok-kw">in</span> danh_sach_tools.tools:
+                <span class="tok-fn">print</span>(f<span class="tok-str">"- {tool.name}: {tool.description}"</span>)
+
+            ket_qua_a = <span class="tok-kw">await</span> session.call_tool(
+                <span class="tok-str">"sac_pin_thiet_bi"</span>,
+                arguments={<span class="tok-str">"ten_thiet_bi"</span>: <span class="tok-str">"Laptop-FrameworkA"</span>, <span class="tok-str">"phan_tram_pin"</span>: <span class="tok-str">20</span>},
+            )
+            <span class="tok-fn">print</span>(ket_qua_a.content[<span class="tok-str">0</span>].text)
+
+            ket_qua_b = <span class="tok-kw">await</span> session.call_tool(
+                <span class="tok-str">"doc_du_lieu_thiet_bi"</span>,
+                arguments={<span class="tok-str">"ten_thiet_bi"</span>: <span class="tok-str">"Dien-thoai-FrameworkB"</span>},
+            )
+            <span class="tok-fn">print</span>(ket_qua_b.content[<span class="tok-str">0</span>].text)
+
+asyncio.run(chay_thu_nghiem())</pre>
+
+      <div class="output-label">Output thật, đã chạy kiểm chứng</div>
+      <div class="output-block">Processing request of type ListToolsRequest
+=== Danh sach tools server cong khai ===
+- sac_pin_thiet_bi: Gia lap 'sac pin' cho 1 thiet bi bat ky cam vao cong USB-C (tool).
+- doc_du_lieu_thiet_bi: Gia lap doc du lieu tu 1 thiet bi (resource-like tool) qua cung 1 cong.
+
+=== Thiet bi A goi tool sac_pin_thiet_bi ===
+Processing request of type CallToolRequest
+[Laptop-FrameworkA] da sac tu 20% len 55% qua cong chuan MCP.
+
+=== Thiet bi B goi tool doc_du_lieu_thiet_bi ===
+Processing request of type CallToolRequest
+[Dien-thoai-FrameworkB] tra ve du lieu: {'trang_thai': 'ok', 'nguon': 'MCP server'}</div>
+
+      <div class="why-box">
+        <b>Tại sao code này chạy được:</b> <code>FastMCP</code> và <code>ClientSession</code> không quan tâm tên hàm là <code>sac_pin_thiet_bi</code> hay Hashira nào đứng đằng sau ẩn dụ — framework chỉ quan tâm đúng thứ tự giao thức: (1) client spawn/kết nối server qua transport đã khai, (2) <code>initialize()</code> để handshake JSON-RPC, (3) <code>list_tools()</code> lấy schema (tên hàm + docstring + type hint tự động serialize), (4) <code>call_tool(ten, arguments)</code> đúng tên đã đăng ký bằng <code>@mcp.tool()</code>. Đổi hết tên biến sang tiếng Việt không dấu, code vẫn chạy y hệt — vì đây không phải phép màu "Hơi Thở", mà do nắm đúng nguyên lý decorator + JSON-RPC mà SDK cung cấp.
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">Lesson 8.1 · Intro to MCP · Generated study kit — dark theme build</footer>
+</div>
+
+<script>
+// ---------- TAB SWITCH ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('section.tab').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- MINDMAP ----------
+const mmData = {
+  root: {title:"MCP (Lesson 8.1)", text:"Model Context Protocol — giao thức mở của Anthropic chuẩn hoá cách agent nói chuyện với tool/dữ liệu bên ngoài."},
+  usbc: {title:"Ẩn dụ USB-C", text:"1 cổng chuẩn cắm được mọi thiết bị, thay vì mỗi hãng 1 chân sạc riêng — giống MCP thay thế N integration riêng lẻ."},
+  problem: {title:"Vấn đề N×M", text:"Không có MCP: mỗi framework × mỗi tool = 1 lần viết integration riêng, không tái dùng được."},
+  solution: {title:"Giải pháp N+M", text:"Có MCP: viết 1 server (M lần), viết 1 client chuẩn (N lần) — tổng N+M, tái dùng chéo được."},
+  creator: {title:"Anthropic", text:"Tạo ra và open-source MCP để chuẩn hoá hệ sinh thái agent đang phân mảnh — giống USB-IF chuẩn hoá USB-C cho cả ngành."},
+  frameworks: {title:"Framework (N)", text:"LangChain, CrewAI, AutoGen, OpenAI SDK... — mỗi cái có thể đóng vai MCP Client."},
+  tools: {title:"Tool bên ngoài (M)", text:"Google Drive, Slack, GitHub, Postgres, Brave Search, Polygon... — mỗi cái được wrap thành 1 MCP Server."},
+  next82: {title:"Lesson 8.2 tiếp theo", text:"Học sâu mô hình Host / Client / Server và 2 loại transport: stdio (local) vs HTTP/SSE (remote)."},
+  opensource: {title:"Open-source", text:"MCP là chuẩn mở — bất kỳ ai cũng viết được server/client tuân theo giao thức, không khoá vào 1 vendor."},
+  v7: {title:"Roadmap checkpoint v7", text:"Build mspanda-exam-server bằng fastmcp, 4 tools, connect qua MultiServerMCPClient, test qua MCP Inspector."},
+  lab: {title:"Lab thực hành", text:"Server 2 tools chạy stdio + Client tự spawn, verify list_tools() và call_tool() — xem tab Cheat Sheet để tóm tắt bước."}
+};
+document.querySelectorAll('.mm-node').forEach(node=>{
+  node.addEventListener('click', ()=>{
+    const key = node.getAttribute('data-key');
+    const d = mmData[key];
+    if(!d) return;
+    document.getElementById('mm-info').innerHTML = `<h4>${d.title}</h4><p>${d.text}</p>`;
+  });
+});
+
+// ---------- QUIZ ----------
+const quizData = [
+  {type:"Multiple choice", q:"MCP là viết tắt của?", opts:["Multi Client Protocol","Model Context Protocol","Managed Connection Point","Message Chain Processor"], correct:1, exp:"MCP = Model Context Protocol, giao thức chuẩn hoá agent ↔ tool/dữ liệu bên ngoài."},
+  {type:"Multiple choice", q:"Ai tạo ra và open-source MCP?", opts:["OpenAI","Google DeepMind","Anthropic","Microsoft"], correct:2, exp:"Anthropic tạo ra MCP và open-source để chuẩn hoá hệ sinh thái agent."},
+  {type:"True/False", q:"Trước khi có MCP, mỗi framework agent phải viết integration riêng cho từng tool/API bên ngoài.", opts:["True","False"], correct:0, exp:"Đúng — đây chính là vấn đề N×M mà MCP giải quyết."},
+  {type:"Fill-in", q:"Ẩn dụ được dùng để giải thích MCP trong Lesson 8.1 là cổng __________.", opts:["HDMI","USB-C","Bluetooth","Ethernet"], correct:1, exp:"Ẩn dụ 'cổng USB-C' — 1 chuẩn cắm được mọi thiết bị."},
+  {type:"Multiple choice", q:"Nếu có N framework và M tool, effort viết integration KHÔNG dùng MCP là?", opts:["N + M","N × M","N - M","Chỉ 1 lần"], correct:1, exp:"Không có chuẩn chung → mỗi cặp framework-tool phải viết riêng: N×M."},
+  {type:"Multiple choice", q:"Sau khi dùng MCP, tổng effort giảm còn?", opts:["N + M","N × M","0","N × M × 2"], correct:0, exp:"MCP cho phép viết 1 server dùng chung → tổng effort chỉ còn N+M."},
+  {type:"True/False", q:"MCP chỉ hoạt động với LangGraph, không dùng được cho framework khác.", opts:["True","False"], correct:1, exp:"Sai — MCP là chuẩn mở, bất kỳ framework nào có MCP client đều dùng được."},
+  {type:"Sequence", q:"Thứ tự đúng trong Module 8 (theo roadmap): Intro to MCP, Hosts/Clients/Servers, Build Your Own MCP Server Intro, Business Logic in MCP Server?", opts:["Đúng thứ tự: 8.1 → 8.2 → 8.7 → 8.8","Sai thứ tự: 8.2 → 8.1 → 8.8 → 8.7","Sai thứ tự: 8.7 → 8.1 → 8.2 → 8.8","Sai thứ tự: 8.8 → 8.7 → 8.2 → 8.1"], correct:0, exp:"Thứ tự chuẩn theo roadmap: 8.1 Intro → 8.2 Host/Client/Server → 8.7 Build Server Intro → 8.8 Business Logic."},
+  {type:"Fill-in", q:"Trong FastMCP, decorator đăng ký 1 hàm Python thành tool là @mcp.__________().", opts:["resource","tool","prompt","server"], correct:1, exp:"@mcp.tool() đăng ký hàm thành tool cho LLM gọi được."},
+  {type:"Multiple choice", q:"Checkpoint thực hành nào trong roadmap gắn liền trực tiếp với Module 8 (MCP)?", opts:["v3: Session persistence","v5: Generator thành tool-calling agent","v7: MCP server","v10: Async pipeline"], correct:2, exp:"v7: MCP server — build mspanda-exam-server bằng fastmcp, test qua MCP Inspector."}
+];
+let curQ = 0, score = 0;
+const answered = new Array(quizData.length).fill(false);
+
+function renderQuiz(){
+  const c = document.getElementById('quiz-container');
+  if(curQ >= quizData.length){
+    c.innerHTML = '';
+    document.getElementById('final-score').textContent = score + '/10';
+    document.getElementById('quiz-final').classList.add('show');
+    return;
+  }
+  document.getElementById('quiz-final').classList.remove('show');
+  const item = quizData[curQ];
+  document.getElementById('q-current').textContent = curQ+1;
+  document.getElementById('q-score').textContent = score;
+
+  let html = `<div class="qcard">
+    <div class="qtype">${item.type}</div>
+    <div class="qtext">${item.q}</div>`;
+  item.opts.forEach((opt,i)=>{
+    html += `<button class="opt" data-i="${i}">${opt}</button>`;
+  });
+  html += `<div class="explain" id="explain-box">${item.exp}</div></div>`;
+  c.innerHTML = html;
+
+  c.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = parseInt(btn.getAttribute('data-i'));
+      c.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+      if(i === item.correct){
+        btn.classList.add('correct');
+        score++;
+      } else {
+        btn.classList.add('wrong');
+        c.querySelectorAll('.opt')[item.correct].classList.add('correct');
+      }
+      document.getElementById('explain-box').classList.add('show');
+      document.getElementById('q-score').textContent = score;
+      setTimeout(()=>{ curQ++; renderQuiz(); }, 1400);
+    });
+  });
+}
+function resetQuiz(){ curQ=0; score=0; renderQuiz(); }
+renderQuiz();
+</script>
+</body>
+</html>
