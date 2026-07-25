@@ -12,4 +12,4 @@ One file per task, named `TaskID_TaskDetail_Status.md`.
 | [TASK-05](TASK-05_VPC-Pho24h-Interactive-Diagram_Done.md) | VPC "Pho24h Factory" interactive diagram | ✅ Done |
 | [TASK-06](TASK-06_Lazier-Project-Pages_Done.md) | Lazier project + privacy policy pages | ✅ Done |
 | [TASK-07](TASK-07_Lazier-Delete-Account-Page_Done.md) | Lazier account deletion page | ✅ Done |
-| [TASK-08](TASK-08_Three-Study-Modes-Menu_InProgress.md) | Three study modes (AWS/MCP/React) + header menu | 🟡 In progress — menu shipped, MCP/React content still placeholder |
+| [TASK-08](TASK-08_Three-Study-Modes-Menu_InProgress.md) | Three study modes (AWS/MCP/React) + header menu | 🟢 Done — menu shipped, first lesson + quiz written for MCP and React; lesson 2 in each still placeholder |

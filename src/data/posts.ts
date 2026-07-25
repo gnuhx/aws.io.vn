@@ -1506,15 +1506,97 @@ Leaked role creds → Deny policy + aws:TokenIssueTime → Full revocation</code
   },
   {
     id: 'mcp-lesson-1',
-    title: 'Lesson 1 MCP',
+    title: 'What is MCP? The USB-C Port for AI Tools',
     excerpt:
-      'Placeholder lesson for the first topic inside Study MCP.',
+      'MCP standardizes how AI apps connect to tools and data — one shared protocol instead of a custom integration per app.',
     date: '2026-07-25',
     readTime: 8,
     tags: ['MCP', 'Roadmap'],
     content: `
-      <p>This lesson is ready for your content.</p>
-      <p>Add your first MCP lesson here.</p>
+      <h2>Concept</h2>
+      <p>
+        <strong>MCP (Model Context Protocol)</strong> is an open protocol that standardizes how AI
+        applications connect to external data sources and tools. Before MCP, every AI app that wanted
+        to talk to Slack, a database, or a filesystem had to write a custom, one-off integration. MCP
+        replaces those N×M custom integrations with one shared protocol — the same way USB-C replaced
+        a drawer full of proprietary charging cables.
+      </p>
+      <p>Three roles make up every MCP setup:</p>
+      <ul>
+        <li><strong>Host</strong> — the AI application the user talks to (e.g. Claude Code, Claude Desktop).</li>
+        <li><strong>Client</strong> — lives inside the host, keeps one 1:1 connection to a single server.</li>
+        <li><strong>Server</strong> — a lightweight program that exposes capabilities: tools, resources, and prompts.</li>
+      </ul>
+
+      <h2>Building Blocks</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr>
+            <th>Primitive</th>
+            <th>What it is</th>
+            <th>Who calls it</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tool</td>
+            <td>A function the model can invoke (e.g. <code>create_issue</code>, <code>run_query</code>)</td>
+            <td>The model, autonomously</td>
+          </tr>
+          <tr>
+            <td>Resource</td>
+            <td>Read-only data the host can attach as context (e.g. a file, a DB row)</td>
+            <td>The application/user</td>
+          </tr>
+          <tr>
+            <td>Prompt</td>
+            <td>A reusable, parameterized prompt template the server exposes</td>
+            <td>The user, explicitly</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Real Project Example</h2>
+      <p>
+        A team wants Claude to be able to read their internal ticket tracker and file new bugs.
+        Without MCP, that means a custom plugin per AI tool they use. With MCP, they write one MCP
+        server exposing a <code>create_ticket</code> tool and a <code>tickets://open</code> resource.
+        Any MCP-compatible host — Claude Code, Claude Desktop, a custom agent — can now use it
+        immediately, with no extra integration work.
+      </p>
+
+      <h2>Funny Analogy</h2>
+      <p>
+        Before USB-C, every device came with its own charger: one for your phone, another for your
+        laptop, a third for that ancient camera nobody remembers buying. Every cable was proprietary,
+        and every new device meant a new cable in the drawer.
+      </p>
+
+      <div class="story-chart" aria-label="MCP as USB-C diagram">
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--danger">N custom cables</div>
+          <div class="story-chart__label">One integration per AI app per tool</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">One USB-C port</div>
+          <div class="story-chart__label">MCP: one protocol, any host, any server</div>
+        </div>
+      </div>
+
+      <p>
+        MCP is USB-C for AI tools. Instead of every AI app inventing its own private "plug" for every
+        tool it wants to use, the tool exposes one standard port. Plug any MCP-compatible AI into it,
+        and it just works — no adapter, no custom wiring, no drawer full of dead cables.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Pro tip:</strong> The key mental model is 1 client ↔ 1 server. A host can run many
+          clients at once to talk to many servers in parallel — that's how one AI app ends up
+          connected to your filesystem, GitHub, and Slack simultaneously.
+        </p>
+      </blockquote>
     `,
     isListed: false,
   },
@@ -1534,15 +1616,110 @@ Leaked role creds → Deny policy + aws:TokenIssueTime → Full revocation</code
   },
   {
     id: 'react-lesson-1',
-    title: 'Lesson 1 React',
+    title: 'What is React? Components, JSX, and the Virtual DOM Mental Model',
     excerpt:
-      'Placeholder lesson for the first topic inside Study React.',
+      'React builds UIs out of small reusable components — you describe what the UI should look like, and React figures out the DOM updates.',
     date: '2026-07-25',
     readTime: 8,
     tags: ['React', 'Roadmap'],
     content: `
-      <p>This lesson is ready for your content.</p>
-      <p>Add your first React lesson here.</p>
+      <h2>Concept</h2>
+      <p>
+        <strong>React</strong> is a JavaScript library for building UIs out of small, reusable pieces
+        called <strong>components</strong>. Instead of manually finding DOM nodes and mutating them
+        when data changes, you describe what the UI should look like for the current state, and React
+        figures out the minimal set of real DOM changes needed to get there.
+      </p>
+      <p>The two ideas that make this work:</p>
+      <ul>
+        <li><strong>JSX</strong> — HTML-like syntax inside JavaScript. <code>&lt;h1&gt;Hello&lt;/h1&gt;</code>
+          compiles down to <code>React.createElement('h1', null, 'Hello')</code> — it's just a function
+          call in disguise.</li>
+        <li><strong>Virtual DOM</strong> — React keeps a lightweight in-memory tree of what the UI should
+          look like, diffs it against the previous tree, and only touches the real DOM where something
+          actually changed.</li>
+      </ul>
+
+      <h2>Building Blocks</h2>
+      <table class="lesson-table">
+        <thead>
+          <tr>
+            <th>Concept</th>
+            <th>What it is</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Component</td>
+            <td>A function that returns JSX describing part of the UI</td>
+            <td><code>function Header() { return &lt;h1&gt;Hi&lt;/h1&gt; }</code></td>
+          </tr>
+          <tr>
+            <td>Props</td>
+            <td>Read-only inputs passed into a component from its parent</td>
+            <td><code>&lt;Greeting name="Ana" /&gt;</code></td>
+          </tr>
+          <tr>
+            <td>State</td>
+            <td>Data a component owns and can change over time</td>
+            <td><code>const [count, setCount] = useState(0)</code></td>
+          </tr>
+          <tr>
+            <td>Re-render</td>
+            <td>React calling your component again after state/props change</td>
+            <td>Triggered by <code>setCount(count + 1)</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Real Project Example</h2>
+      <p>
+        A <code>PostCard</code> component takes a <code>post</code> prop (title, excerpt, date) and
+        renders it as a clickable card — exactly the pattern this site uses in
+        <code>src/components/PostCard.tsx</code>. The <code>HomePage</code> component owns the list of
+        posts as data, and hands one <code>post</code> prop to each <code>PostCard</code> it renders.
+        Change the underlying data, and only the cards that actually changed get updated in the real
+        DOM — the rest are left untouched.
+      </p>
+
+      <h2>Funny Analogy</h2>
+      <p>
+        Imagine a restaurant where, every time an order changes, the chef doesn't repaint the whole
+        dining room — they just swap the one plate that's wrong.
+      </p>
+
+      <div class="story-chart" aria-label="Virtual DOM as kitchen notepad diagram">
+        <div class="story-chart__column">
+          <div class="story-chart__box">State changes</div>
+          <div class="story-chart__label">"Extra napkins at table 4"</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box story-chart__box--safe">Virtual DOM diff</div>
+          <div class="story-chart__label">Kitchen notepad compares old vs. new</div>
+        </div>
+        <div class="story-chart__arrow">→</div>
+        <div class="story-chart__column">
+          <div class="story-chart__box">Real DOM update</div>
+          <div class="story-chart__label">Waiter fixes only the wrong plate</div>
+        </div>
+      </div>
+
+      <p>
+        The <strong>Virtual DOM</strong> is the kitchen's notepad: it jots down what should be on every
+        table, compares it to what's actually there, and sends the waiter to fix only the mismatched
+        plates. Repainting the whole room every time someone asks for extra napkins would be exhausting
+        — and slow.
+      </p>
+
+      <blockquote class="lesson-tip">
+        <p>
+          <strong>Pro tip:</strong> Components should be pure with respect to props and state — given
+          the same inputs, they should render the same output. Side effects (fetching data,
+          subscriptions) belong in <code>useEffect</code>, not directly in the render body.
+        </p>
+      </blockquote>
     `,
     isListed: false,
   },

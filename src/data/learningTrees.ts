@@ -147,14 +147,14 @@ export const learningTrees: LearningTree[] = [
       {
         id: 'mcp-basics',
         title: 'MCP Basics',
-        description: 'Placeholder MCP track so you can add lessons next.',
+        description: 'Foundational MCP concepts: hosts, clients, servers, tools, resources, and prompts.',
         accent: '#6d6f8d',
         lessons: [
           {
             id: 'mcp-lesson-1',
-            title: 'Lesson 1 MCP',
+            title: 'What is MCP? The USB-C Port for AI Tools',
             postId: 'mcp-lesson-1',
-            summary: 'Placeholder for your first MCP lesson.',
+            summary: 'How MCP standardizes AI-to-tool connections with hosts, clients, and servers.',
             duration: '8 min',
             difficulty: 'Beginner',
           },
@@ -184,14 +184,14 @@ export const learningTrees: LearningTree[] = [
       {
         id: 'react-basics',
         title: 'React Basics',
-        description: 'Placeholder React track so you can add lessons next.',
+        description: 'Foundational React concepts: components, JSX, props, state, and the virtual DOM.',
         accent: '#6d6f8d',
         lessons: [
           {
             id: 'react-lesson-1',
-            title: 'Lesson 1 React',
+            title: 'What is React? Components, JSX, and the Virtual DOM Mental Model',
             postId: 'react-lesson-1',
-            summary: 'Placeholder for your first React lesson.',
+            summary: 'Why React exists and how components, props, state, and the virtual DOM fit together.',
             duration: '8 min',
             difficulty: 'Beginner',
           },

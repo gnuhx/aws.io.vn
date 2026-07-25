@@ -3002,6 +3002,237 @@ DO NOT start with forensics (attacker still active).`,
       },
     ],
   },
+  {
+    postId: 'mcp-lesson-1',
+    questions: [
+      {
+        id: 'mcp1-q1',
+        difficulty: 'beginner',
+        topic: 'MCP Purpose',
+        question: 'What core problem does MCP (Model Context Protocol) solve?',
+        options: [
+          { id: 'A', text: 'It makes AI models run faster' },
+          { id: 'B', text: 'It replaces custom, one-off AI-to-tool integrations with one shared protocol' },
+          { id: 'C', text: 'It trains AI models on new data automatically' },
+          { id: 'D', text: 'It encrypts traffic between two AI models' },
+        ],
+        correct: 'B',
+        explanation: 'Before MCP, every AI app needed a custom integration per tool it wanted to use. MCP standardizes that connection so any MCP-compatible host can use any MCP server without custom wiring.',
+        wrongExplanations: {
+          A: 'MCP is a connection protocol, not a performance optimization for model inference.',
+          C: 'MCP has nothing to do with model training — it connects an already-trained model to live tools and data.',
+          D: 'MCP is not primarily an encryption protocol; it defines how hosts, clients, and servers exchange tools/resources/prompts.',
+        },
+        flowchart: `Without MCP:
+App A ─custom code→ Slack
+App A ─custom code→ Database
+App B ─custom code→ Slack (again!)
+App B ─custom code→ Database (again!)
+
+With MCP:
+App A ─┐
+       ├─ MCP ─→ Slack Server
+App B ─┘
+App A ─┐
+       ├─ MCP ─→ Database Server
+App B ─┘
+One protocol, reused by every host.`,
+        wrongGuidance: 'Think "USB-C for AI tools" — one standard port instead of a proprietary cable per device.',
+      },
+      {
+        id: 'mcp1-q2',
+        difficulty: 'beginner',
+        topic: 'MCP Roles',
+        question: 'In MCP terminology, what is a "Host"?',
+        options: [
+          { id: 'A', text: 'The server machine running the database' },
+          { id: 'B', text: 'The AI application the user interacts with, such as Claude Code or Claude Desktop' },
+          { id: 'C', text: 'A cloud region where MCP servers are deployed' },
+          { id: 'D', text: 'The connection between a client and a server' },
+        ],
+        correct: 'B',
+        explanation: 'The Host is the AI application itself — the thing the user is talking to. It contains one or more Clients, each of which connects 1:1 to a Server.',
+        wrongExplanations: {
+          A: 'That describes infrastructure, not an MCP role.',
+          C: 'MCP roles are logical (Host/Client/Server), not tied to a specific cloud region.',
+          D: 'That connection is made by the Client, not the Host itself — the Host is the application containing the client(s).',
+        },
+        flowchart: `Host (e.g. Claude Code)
+  │
+  ├── Client 1 ──1:1──→ Server A (filesystem)
+  ├── Client 2 ──1:1──→ Server B (GitHub)
+  └── Client 3 ──1:1──→ Server C (Slack)`,
+        wrongGuidance: 'Remember the nesting: Host contains Clients, each Client talks to exactly one Server.',
+      },
+      {
+        id: 'mcp1-q3',
+        difficulty: 'intermediate',
+        topic: 'MCP Primitives',
+        question: 'A server exposes a function called `create_ticket` that the model can decide to call on its own when it judges it useful. Which MCP primitive is this?',
+        options: [
+          { id: 'A', text: 'Resource' },
+          { id: 'B', text: 'Prompt' },
+          { id: 'C', text: 'Tool' },
+          { id: 'D', text: 'Client' },
+        ],
+        correct: 'C',
+        explanation: 'Tools are functions the model can invoke autonomously. Resources are read-only data attached as context by the application/user, and Prompts are reusable templates the user explicitly triggers — neither is called by the model on its own initiative.',
+        wrongExplanations: {
+          A: 'Resources are read-only context, not callable actions — and they are pulled in by the app/user, not invoked by the model.',
+          B: 'Prompts are explicit, user-triggered templates, not autonomous model actions.',
+          D: 'Client is a connection role, not a capability a server exposes.',
+        },
+        flowchart: `Tool     → called BY the model, autonomously
+Resource → attached BY the app/user, read-only
+Prompt   → triggered BY the user, explicitly`,
+        wrongGuidance: 'The "who calls it" column is the fastest way to tell these three apart: model → Tool, app/user → Resource, user → Prompt.',
+      },
+      {
+        id: 'mcp1-q4',
+        difficulty: 'intermediate',
+        topic: 'Host/Client/Server Cardinality',
+        question: 'A single AI host is connected to a filesystem server, a GitHub server, and a Slack server at the same time. How many Clients does the host have?',
+        options: [
+          { id: 'A', text: 'One shared Client for all three servers' },
+          { id: 'B', text: 'Three Clients — one per server' },
+          { id: 'C', text: 'Zero — Hosts talk to Servers directly, without a Client' },
+          { id: 'D', text: 'It depends on how many Tools each server exposes' },
+        ],
+        correct: 'B',
+        explanation: 'Each Client maintains a 1:1 connection to exactly one Server. To talk to three servers at once, the host runs three separate clients internally.',
+        wrongExplanations: {
+          A: 'A single client cannot fan out to multiple servers — the 1:1 relationship is a core part of the spec.',
+          C: 'The Client is the component inside the Host that actually holds the connection to a Server; it is never skipped.',
+          D: 'The number of Clients depends on the number of Servers connected to, not the number of Tools any one server exposes.',
+        },
+        flowchart: `1 Host
+ ├── Client → Filesystem Server
+ ├── Client → GitHub Server
+ └── Client → Slack Server
+3 servers = 3 clients, always 1:1.`,
+        wrongGuidance: 'If you see "N servers," the client count is also N — never fewer, never shared.',
+      },
+    ],
+  },
+  {
+    postId: 'react-lesson-1',
+    questions: [
+      {
+        id: 'react1-q1',
+        difficulty: 'beginner',
+        topic: 'React Purpose',
+        question: 'What problem does React primarily solve?',
+        options: [
+          { id: 'A', text: 'It replaces JavaScript with a faster compiled language' },
+          { id: 'B', text: 'It lets you describe what the UI should look like for the current state, instead of manually mutating the DOM' },
+          { id: 'C', text: 'It automatically writes your CSS for you' },
+          { id: 'D', text: 'It hosts your website on a CDN' },
+        ],
+        correct: 'B',
+        explanation: 'React\'s core idea is declarative UI: you describe the desired output for a given state, and React computes and applies the minimal real DOM changes needed — instead of you manually finding nodes and mutating them.',
+        wrongExplanations: {
+          A: 'React is a JavaScript library, not a replacement language — components are still plain JS/TS functions.',
+          C: 'Styling is unrelated to what React solves; React does not generate CSS for you.',
+          D: 'Hosting/CDN concerns are deployment infrastructure, unrelated to what React itself does.',
+        },
+        flowchart: `Old way: find DOM node → manually mutate it
+React way: describe desired UI for current state
+             │
+             ▼
+     React diffs old vs. new
+             │
+             ▼
+   Only the changed DOM nodes are touched`,
+        wrongGuidance: '"Declarative, not imperative" is the one-line summary to remember.',
+      },
+      {
+        id: 'react1-q2',
+        difficulty: 'beginner',
+        topic: 'JSX',
+        question: 'What does `<h1>Hello</h1>` actually become once compiled?',
+        options: [
+          { id: 'A', text: 'A raw HTML string inserted with innerHTML' },
+          { id: 'B', text: 'A call to React.createElement(\'h1\', null, \'Hello\')' },
+          { id: 'C', text: 'A CSS-in-JS style object' },
+          { id: 'D', text: 'A browser-native custom element definition' },
+        ],
+        correct: 'B',
+        explanation: 'JSX is syntax sugar — it compiles down to plain JavaScript function calls (React.createElement, or the newer jsx runtime equivalent), which is why JSX can only appear where an expression is valid.',
+        wrongExplanations: {
+          A: 'JSX is not inserted as an HTML string; it becomes a description of elements React builds into real DOM nodes itself.',
+          C: 'JSX describes UI structure, not styling — CSS-in-JS is a separate, unrelated pattern.',
+          D: 'JSX has nothing to do with the browser Custom Elements API; it is purely a build-time transform.',
+        },
+        flowchart: `JSX:        <h1>Hello</h1>
+                │  (compiled by Babel/TS)
+                ▼
+Function call: React.createElement('h1', null, 'Hello')
+                │
+                ▼
+        A plain JS object (a "React element")`,
+        wrongGuidance: 'If JSX looks like magic, remember: it is just a function call with nicer syntax.',
+      },
+      {
+        id: 'react1-q3',
+        difficulty: 'intermediate',
+        topic: 'Props vs. State',
+        question: 'A `Greeting` component receives `name` from its parent and cannot change it itself. What is `name`?',
+        options: [
+          { id: 'A', text: 'State' },
+          { id: 'B', text: 'Props' },
+          { id: 'C', text: 'A ref' },
+          { id: 'D', text: 'Context' },
+        ],
+        correct: 'B',
+        explanation: 'Props are read-only inputs passed down from a parent component. A component cannot modify its own props — only the parent that passed them down can change what it sends next.',
+        wrongExplanations: {
+          A: 'State is data a component owns and can change itself via a setter (e.g. setCount) — this value is neither owned nor mutable by the component receiving it.',
+          C: 'Refs are an escape hatch for mutable values/DOM handles that don\'t trigger re-renders; unrelated to parent-provided data.',
+          D: 'Context is a way to pass data through the tree without prop drilling, but the mechanism here — a direct parent-to-child value — is a prop.',
+        },
+        flowchart: `Parent component
+   │  passes name="Ana"
+   ▼
+<Greeting name="Ana" />
+   │
+   ▼
+Greeting cannot change "name" itself —
+only the parent can pass a new value.`,
+        wrongGuidance: 'Rule of thumb: if a component received it from outside and can\'t change it, it\'s a prop. If the component owns it and can change it, it\'s state.',
+      },
+      {
+        id: 'react1-q4',
+        difficulty: 'intermediate',
+        topic: 'Virtual DOM',
+        question: 'Why does React use a Virtual DOM instead of mutating the real DOM directly on every state change?',
+        options: [
+          { id: 'A', text: 'The real DOM cannot be mutated by JavaScript at all' },
+          { id: 'B', text: 'To diff the old and new UI trees first, so only the actually-changed nodes are touched in the real DOM' },
+          { id: 'C', text: 'To store user data between page reloads' },
+          { id: 'D', text: 'To bypass the need for JavaScript entirely' },
+        ],
+        correct: 'B',
+        explanation: 'Real DOM updates are relatively expensive. By diffing a lightweight in-memory tree against the previous one, React figures out the minimal set of real DOM mutations needed and applies only those — avoiding a full re-render of everything on every change.',
+        wrongExplanations: {
+          A: 'The real DOM absolutely can be mutated directly by JavaScript — that is what React itself does under the hood, just selectively.',
+          C: 'That describes persistence (e.g. localStorage), not what the Virtual DOM is for.',
+          D: 'React is a JavaScript library; it does not eliminate the need for JavaScript.',
+        },
+        flowchart: `State changes
+     │
+     ▼
+New Virtual DOM tree built
+     │
+     ▼
+Diffed against previous Virtual DOM tree
+     │
+     ▼
+Only the changed nodes are patched
+into the real DOM`,
+        wrongGuidance: 'The Virtual DOM exists purely to make diffing cheap before touching the (expensive) real DOM.',
+      },
+    ],
+  },
 ];
 
 export function getQuizByPostId(postId: string): LessonQuiz | undefined {
