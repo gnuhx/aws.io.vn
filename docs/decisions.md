@@ -5,7 +5,7 @@ Why things are the way they are. Newest first.
 - **Status:** Proposed → Accepted | Rejected | Superseded by D-xxx
 - Never delete an entry. To reverse a decision, add a new one that says `Supersedes D-xxx`.
 - Keep rejected ideas: "why didn't we do X?" is the question you'll ask most.
-- A decision is never coded directly. Once accepted, create task issues and list them under **Tasks**.
+- A decision is never coded directly. Once accepted, create task files in [tasks/](../tasks/) and list their IDs under **Tasks**.
 
 Template:
 
@@ -15,7 +15,7 @@ Template:
 **Options:** (a) ...; (b) ...
 **Decision:** _open_ | which option, and the evidence for it
 **Consequences:** what this changes (docs, schema, roadmap steps)
-**Tasks:** #N, #M | —
+**Tasks:** TASK-012, TASK-013 | —
 ```
 
 ---

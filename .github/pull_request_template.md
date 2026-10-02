@@ -1,10 +1,10 @@
-Closes #
+Task: TASK-
 
 ## What changed
 One or two lines.
 
 ## Acceptance criteria
-Copy from the issue and tick each one.
+Copy from the task file and tick each one.
 - [ ] ...
 
 ## How I tested
@@ -14,6 +14,7 @@ Copy from the issue and tick each one.
 
 ## Checklist
 - [ ] lint + typecheck + test pass
+- [ ] Task file renamed to `_Done` (in this PR)
 - [ ] Docs updated (or not needed)
 - [ ] decisions.md updated (or no decision was made)
-- [ ] Nothing outside the issue's Scope → In
+- [ ] Nothing outside the task's Scope → In

@@ -46,27 +46,29 @@ In Module 2 the ready-check and Definition of Done move to `docs/conventions.md`
 
 ```
 idea ──► triage ──┬─► needs a decision? ──► decisions.md (D-xxx Proposed → Accepted) ──┐
-                  ├─► feature ──► GitHub issue (task template)  ◄────────────────────────┘
-                  ├─► chore   ──► GitHub issue (task template, light)
-                  └─► hotfix  ──► GitHub issue (bug template)
+                  ├─► feature ──► tasks/TASK-NNN_<Title>_<Status>.md  ◄────────────────┘
+                  ├─► chore   ──► tasks/ (same template, light)
+                  └─► hotfix  ──► tasks/ (bug template)
                                     │
-                       ready-check passes? ── no ──► label status:needs-info
-                                    │ yes
-                       branch ──► plan (plan mode) ──► you approve ──► PR "Closes #N" ──► merge
+                       ready-check passes? ── no ──► _NeedsInfo (Notes say what's missing)
+                                    │ yes ──► _Ready
+                       branch ──► _InProgress ──► plan (plan mode) ──► you approve ──► PR "Task: TASK-NNN" ──► merge ──► _Done
 ```
+
+Task files, naming and status values: [tasks/README.md](../tasks/README.md). Templates: `tasks/_TEMPLATE.md`, `tasks/_TEMPLATE-BUG.md`.
 
 **Triage:**
 
 | Type | When | Goes to | Branch |
 |---|---|---|---|
 | Decision | 2+ viable options; or touches architecture, data schema, security, or money; or reverses an earlier decision | [decisions.md](decisions.md) | none, never coded directly |
-| Feature | new behavior for a user or for you | issue: Task | `feat/<N>-<slug>` |
-| Chore | refactor, deps, docs; no behavior change | issue: Task (Acceptance = "nothing observable changes" + checks pass) | `chore/<N>-<slug>` |
-| Hotfix | something that worked is now broken | issue: Bug / hotfix | `hotfix/<N>-<slug>` from `main` |
+| Feature | new behavior for a user or for you | `tasks/`, `_TEMPLATE.md` | `feat/<NNN>-<slug>` |
+| Chore | refactor, deps, docs; no behavior change | `tasks/`, `_TEMPLATE.md` (Acceptance = "nothing observable changes" + checks pass) | `chore/<NNN>-<slug>` |
+| Hotfix | something that worked is now broken | `tasks/`, `_TEMPLATE-BUG.md` | `hotfix/<NNN>-<slug>` from `main` |
 
 Rule of thumb: **if you can't write the "Out" line of Scope, it's not a task yet, it's a decision.**
 
-**Ready-check** (before planning; any failure → label `status:needs-info`, no plan):
+**Ready-check** (before planning; any failure → status `NeedsInfo`, no plan):
 
 - [ ] **Goal** is one sentence.
 - [ ] **Scope → Out** has at least one line.
@@ -81,8 +83,7 @@ Rule of thumb: **if you can't write the "Out" line of Scope, it's not a task yet
 - [ ] Every test case run; unit tests committed
 - [ ] lint + typecheck + test pass
 - [ ] Docs updated if behavior or an API changed; `decisions.md` updated if a decision was made along the way
-
-**Labels:** `type:feature` `type:chore` `type:hotfix` · `status:needs-info` `status:ready` · `module:M1` … `module:M7` (optional).
+- [ ] Task file renamed to `_Done` in the same PR
 
 ## Re-check against current docs
 
@@ -109,16 +110,6 @@ Tools change fast, so verify these before starting each module instead of trusti
 - [ ] Extensions: ESLint, Prettier, **Claude Code** (VS Code extension), optionally MongoDB for VS Code.
 - [ ] Install **Claude Code** following the current guide at docs.claude.com, run `claude` to sign in, then `claude doctor`.
 - [ ] `gh auth login` + SSH key for GitHub.
-- [ ] Create the task-workflow labels (the issue templates in `.github/ISSUE_TEMPLATE/` rely on them):
-
-```bash
-gh label create "type:feature"      --color 1D76DB --description "New behavior"
-gh label create "type:chore"        --color C5DEF5 --description "No behavior change"
-gh label create "type:hotfix"       --color D93F0B --description "Something that worked is broken"
-gh label create "status:needs-info" --color FBCA04 --description "Failed the ready-check"
-gh label create "status:ready"      --color 0E8A16 --description "Passed the ready-check"
-for i in 1 2 3 4 5 6 7; do gh label create "module:M$i" --color EDEDED; done
-```
 - [ ] Netlify CLI (`npm i -g netlify-cli`), `netlify login`, `netlify link` inside the repo.
 - [ ] Raise the file watcher limit for Vite/VS Code:
   `echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p`
@@ -175,7 +166,7 @@ for i in 1 2 3 4 5 6 7; do gh label create "module:M$i" --color EDEDED; done
 
 ### Lab
 1. [ ] Run `/init` to see a draft, then **cut it down and rewrite to ≤ 100 lines**. Every line must answer: "if I remove this line, where would Claude go wrong?"
-   - Include a `Current module: M2` line (update it as you move on) and one rule: "Don't start coding without an issue that passes the ready-check in docs/conventions.md." Exact wording is yours.
+   - Include a `Current module: M2` line (update it as you move on) and one rule: "Don't start coding without a task file in tasks/ that passes the ready-check in docs/conventions.md." Exact wording is yours.
 2. [ ] Write docs:
    - `docs/architecture.md`: already drafted. **Trim it for Claude**: cut what Claude doesn't need, verify every path against the real repo.
    - `docs/chat-api.md` (request/response, SSE events: `token`, `citations`, `done`, `error`, error codes)
@@ -251,19 +242,19 @@ Feature: $ARGUMENTS
 4. Stop and wait for my approval.
 ```
 
-5. [ ] Upgrade `/new-feature` to take an **issue number**: `gh issue view $ARGUMENTS` → run the ready-check from `docs/conventions.md` (fail → add label `status:needs-info`, say what's missing, stop) → branch `feat|chore|hotfix/<N>-<slug>` by the issue's `type:` label → plan → stop.
-6. [ ] Write `.claude/commands/new-task.md`: takes an idea → triages it (decision / feature / chore / hotfix) → asks until the template is filled → runs the ready-check → `gh issue create` with the right template and labels. A decision becomes a `docs/decisions.md` entry instead of an issue.
-7. [ ] Write `/ship`: run lint + typecheck + test → summarize the diff → commit using conventional commits → push → `gh pr create` filling `.github/pull_request_template.md`, with `Closes #N` and the issue's acceptance criteria ticked.
+5. [ ] Upgrade `/new-feature` to take a **task ID** (`/new-feature 004`): find `tasks/TASK-004_*` → run the ready-check from `docs/conventions.md` (fail → `git mv` to `_NeedsInfo`, write what's missing in Notes, stop) → branch `feat|chore|hotfix/<NNN>-<slug>` by the file's `type:` → `git mv` to `_InProgress` → plan → stop.
+6. [ ] Write `.claude/commands/new-task.md`: takes an idea → triages it (decision / feature / chore / hotfix) → asks until the template is filled → runs the ready-check → writes `tasks/TASK-<next>_<Title>_<Ready|NeedsInfo>.md`. A decision becomes a `docs/decisions.md` entry instead of a task.
+7. [ ] Write `/ship`: run lint + typecheck + test → `git mv` the task file to `_Done` → summarize the diff → commit using conventional commits → push → `gh pr create` filling `.github/pull_request_template.md`, with `Task: TASK-NNN` and the task's acceptance criteria ticked.
 8. [ ] Write 1 **personal** command in `~/.claude/commands/` (e.g. `/standup`) to see the scope difference.
 9. [ ] Run the full workflow twice, `/new-task` all the way to a merged PR:
    - a feature: a "Copy answer" button in the chat
    - a hotfix: any real bug you've hit so far (with a regression test)
 
-**Done when:** a feature and a hotfix each go from idea to PR without typing git by hand; an incomplete issue is stopped by the ready-check; deny rules are proven to work; the hook doesn't noticeably slow the session.
+**Done when:** a feature and a hotfix each go from idea to PR without typing git by hand; an incomplete task is stopped by the ready-check; deny rules are proven to work; the hook doesn't noticeably slow the session.
 
 **Traps:** overly broad allows like `Bash(*)`; hooks causing loops; long commands stuffing context; `/new-task` filling in acceptance criteria *for* you instead of asking (vague criteria pass through unnoticed).
 
-**Submit:** `settings.json`, 3 commands, both PR links, one issue the ready-check rejected, measured hook time.
+**Submit:** `settings.json`, 3 commands, both PR links, one task the ready-check rejected, measured hook time.
 
 ---
 
@@ -420,7 +411,7 @@ Run `git diff main...HEAD`. Return: definite bugs / risks / suggestions, each wi
    - (a) CI: lint + typecheck + test on every PR
    - (b) Claude Code Action: mentioning `@claude` in an issue produces a PR
    - (c) **auto ingest** workflow when `content/**` changes on main (secrets: `OPENAI_API_KEY`, `MONGODB_URI`)
-7. [ ] Create 2 small real issues ("add a domain filter to the quiz form", "fix code block rendering in chat") and let Claude handle them. **Review the PRs like a senior**, record how many fixes you had to request.
+7. [ ] Write 2 small real tasks ("add a domain filter to the quiz form", "fix code block rendering in chat") with `/new-task`, open a GitHub issue for each whose body is the task file plus `Task: TASK-NNN`, mention `@claude`, and let Claude handle them. **Review the PRs like a senior**, record how many fixes you had to request.
 8. [ ] 1 script using `claude -p` (e.g. summarize commits into a changelog).
 
 **Done when:** you have a before/after metrics table; at least 1 issue → PR merged; CI green; ingest runs automatically on content changes.

@@ -45,7 +45,6 @@ Target layout; adjust to the real repo in Module 1 (see D-003). Folders appear a
 aws.io.vn/
 ├── CLAUDE.md, CLAUDE.local.md (gitignored), .mcp.json
 ├── .github/
-│   ├── ISSUE_TEMPLATE/  task.md, bug.md, config.yml
 │   ├── pull_request_template.md
 │   └── workflows/       CI, Claude Action, auto-ingest
 ├── .claude/
@@ -55,6 +54,7 @@ aws.io.vn/
 │   ├── skills/     quiz-question-format/{SKILL.md, checklist.md, examples.json}
 │   └── agent-memory/  (created when memory: project is enabled)
 ├── content/        aws-saa-c03/, context-engineering/, reactjs/, agentic-ai-code/
+├── tasks/          TASK-NNN_<Title>_<Status>.md, _TEMPLATE.md, _TEMPLATE-BUG.md
 ├── docs/           roadmap.md, decisions.md, architecture.md, quiz-schema.md, repo-map.md, chat-api.md, conventions.md
 ├── scripts/        ingest.ts, eval-retrieval.ts, eval-generation.ts, validate-quiz.ts
 ├── evals/          golden.jsonl, results/

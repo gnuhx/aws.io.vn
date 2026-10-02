@@ -22,7 +22,7 @@ Added by later modules:
 | You have… | Put it in |
 |---|---|
 | A question with 2+ options, or a choice you'll want to explain later | [decisions.md](decisions.md) |
-| A piece of work | a GitHub issue (Task or Bug template), see [roadmap → Task workflow](roadmap.md#task-workflow-idea--decision--task--ship) |
+| A piece of work | a task file in [`tasks/`](../tasks/README.md), see [roadmap → Task workflow](roadmap.md#task-workflow-idea--decision--task--ship) |
 | A new lesson | `content/<topic>/<number>-<short-slug>.md`, from [LESSON_TEMPLATE.md](LESSON_TEMPLATE.md) |
 
 ## Archive

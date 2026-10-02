@@ -1,9 +1,12 @@
 ---
-name: Task (feature / chore)
-about: New behavior or a no-behavior-change chore. Must pass the ready-check before work starts.
-title: "[feat] "
-labels: ["type:feature", "status:needs-info"]
+id: TASK-NNN
+type: feature            # feature | chore
+module: M3               # roadmap module, or "none"
+decisions: []            # e.g. [D-004]
+created: YYYY-MM-DD
 ---
+
+# TASK-NNN: <Title>
 
 ## Goal
 One sentence: what changes for the user (or for you), and why.

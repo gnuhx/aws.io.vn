@@ -1,9 +1,14 @@
 ---
-name: Bug / hotfix
-about: Something that worked is broken. Smallest fix + regression test; refactors go in a follow-up task.
-title: "[fix] "
-labels: ["type:hotfix", "status:needs-info"]
+id: TASK-NNN
+type: hotfix
+module: none
+decisions: []
+created: YYYY-MM-DD
 ---
+
+# TASK-NNN: <What's broken>
+
+Smallest fix + regression test; refactors go in a follow-up task.
 
 ## What's broken
 Where, since when, who is affected.
