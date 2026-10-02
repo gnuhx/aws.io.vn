@@ -16,7 +16,7 @@ The module-by-module build plan for the AI Study Assistant. For how the system w
 
 | Week | Modules | Hours |
 |---|---|---|
-| 1 | M0 + M1 + M2 + M3 | ~14–15h |
+| 1 | M0 + Release 0.1 + M1 + M2 + M3 | ~19–21h |
 | 2 | M4 + M5 | ~12–13h |
 | 3 | M6 + M7 | ~9–10h |
 
@@ -120,6 +120,34 @@ Tools change fast, so verify these before starting each module instead of trusti
 **Done when:** `node -v`, `claude --version`, `gh auth status`, `netlify status` all look good; you can run `claude` in VS Code's integrated terminal and (per current docs) connect it to the IDE to view diffs in the editor.
 
 **Submit:** output of the 4 commands above + the current repo tree (`tree -L 2 -I node_modules`).
+
+---
+
+## RELEASE 0.1: Walking skeleton on Netlify (4–6h)
+
+**Why:** the old code was removed, and Module 1 needs a real, deployed codebase to map. Keep it small: no MongoDB, OpenAI, chat or auth yet, so Modules 2–5 still have everything to teach.
+
+**Before starting:** accept D-001…D-006 in [decisions.md](decisions.md), then rename the tasks below from `_NeedsInfo` to `_Ready`.
+
+| Task | What |
+|---|---|
+| TASK-001 | Scaffold: Vite + React + TS, React Router, CSS Modules, ESLint/Prettier, `.gitignore`, `.nvmrc`, minimal `.claude/settings.json` |
+| TASK-002 | Vitest + React Testing Library; `npm run verify` = lint + typecheck + test |
+| TASK-003 | Lesson pages from `content/**/*.md` + content validation test |
+| TASK-004 | `GET /api/health` Netlify Function + footer status |
+| TASK-005 | Netlify Git deploy; build command `npm run verify && npm run build` blocks broken deploys |
+| TASK-006 | Post-deploy smoke test (script + GitHub Action on deploy status) |
+
+Order: 001 → 002 → 003 + 004 (either order) → 005 → 006.
+
+**Automated checks after this release:**
+
+| When | What runs | Fails → |
+|---|---|---|
+| Every Netlify build (preview + production) | `npm run verify`: lint, typecheck, unit + component tests, lesson frontmatter validation | build fails, previous deploy stays live |
+| After every deploy | `scripts/smoke.ts`: `/`, a lesson, `/api/health`, a deep link | red check on the commit/PR |
+
+**Done when:** https://aws.io.vn serves one real lesson, `/api/health` is green, a PR with a failing test cannot deploy, and smoke runs on every deploy. Tag `v0.1`.
 
 ---
 
@@ -408,7 +436,7 @@ Run `git diff main...HEAD`. Return: definite bugs / risks / suggestions, each wi
 4. [ ] `scripts/eval-generation.ts`: generate 20 quizzes, measure schema pass rate, duplication rate, groundedness via a judge (use a cheap model, watch the cost).
 5. [ ] Command `/eval`: run both scripts, compare to the previous run, **summarize regressions**.
 6. [ ] GitHub Actions:
-   - (a) CI: lint + typecheck + test on every PR
+   - (a) CI: `npm run verify` on every PR (the same gate Netlify already runs since Release 0.1, now as a PR check before merge)
    - (b) Claude Code Action: mentioning `@claude` in an issue produces a PR
    - (c) **auto ingest** workflow when `content/**` changes on main (secrets: `OPENAI_API_KEY`, `MONGODB_URI`)
 7. [ ] Write 2 small real tasks ("add a domain filter to the quiz form", "fix code block rendering in chat") with `/new-task`, open a GitHub issue for each whose body is the task file plus `Task: TASK-NNN`, mention `@claude`, and let Claude handle them. **Review the PRs like a senior**, record how many fixes you had to request.
