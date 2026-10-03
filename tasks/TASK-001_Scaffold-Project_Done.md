@@ -19,11 +19,11 @@ docs/architecture.md (repository structure), D-003 (repo shape), D-005 (frontend
 - Out: tests (TASK-002), lesson pages (TASK-003), functions (TASK-004), `netlify.toml` (TASK-005), `CLAUDE.md` (Module 2)
 
 ## Acceptance criteria
-- [ ] Given a fresh clone, when I run `nvm use && npm ci && npm run dev`, then the placeholder home page loads at localhost
-- [ ] Given the scaffold, when I run `npm run lint` and `npm run typecheck`, then both exit 0 with no warnings
-- [ ] Given the scaffold, when I run `npm run build`, then `dist/` contains `index.html` and hashed assets
-- [ ] Given a file `.env` exists, when I run `git status`, then it is not listed
-- [ ] Given Claude Code in this repo, when it is asked to read `.env`, then the read is denied
+- [x] Given a fresh clone, when I run `nvm use && npm ci && npm run dev`, then the placeholder home page loads at localhost
+- [x] Given the scaffold, when I run `npm run lint` and `npm run typecheck`, then both exit 0 with no warnings
+- [x] Given the scaffold, when I run `npm run build`, then `dist/` contains `index.html` and hashed assets
+- [x] Given a file `.env` exists, when I run `git status`, then it is not listed
+- [x] Given Claude Code in this repo, when it is asked to read `.env`, then the read is denied
 
 ## Test cases
 | # | Input / action | Expected result | Type |
@@ -36,3 +36,6 @@ docs/architecture.md (repository structure), D-003 (repo shape), D-005 (frontend
 
 ## Notes
 - D-003 (option d) and D-005 accepted 2026-10-03. Ready to start.
+- Verified 2026-10-03 on Node 24.21.0: all 5 test cases pass. TC1 checked in headless Chrome (page renders, console has only Vite/React info messages, no errors); TC2–3 also pass from a fresh clone with `npm ci`; TC5: Claude's Read tool is refused by `.claude/settings.json`.
+- Follow-up (Module 3): the deny rule covers Claude's Read tool only; shell commands such as `cat .env` are not blocked yet.
+- Installed majors differ from the old template: React Router 8, TypeScript 6, Vite 8, ESLint 10 (ESLint kept over the template's new default, oxlint).
