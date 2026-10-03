@@ -9,13 +9,13 @@ created: 2026-10-02
 # TASK-001: Scaffold project
 
 ## Goal
-Create an empty but runnable React + Vite + TypeScript project in a single folder, so every later task has a working base.
+Create an empty but runnable React + Vite + TypeScript project, with all source code under `src/` split into `frontend/`, `backend/` and `shared/`, so every later task has a working base.
 
 ## Context
 docs/architecture.md (repository structure), D-003 (repo shape), D-005 (frontend libraries). Requires the Module 0 environment: Node LTS via nvm.
 
 ## Scope
-- In: Vite React TS app in `src/`; empty `netlify/functions/` and `shared/`; React Router with a placeholder home page; CSS Modules; ESLint + Prettier; `tsconfig` covering `src/`, `netlify/`, `shared/`, `scripts/`; npm scripts `dev`, `build`, `preview`, `lint`, `format`, `typecheck`; `.gitignore` (`node_modules`, `dist`, `.env*`, `.netlify`, `CLAUDE.local.md`, `.claude/settings.local.json`); `.nvmrc` with the current Node LTS; minimal `.claude/settings.json` denying `Read(./.env*)`
+- In: Vite React TS app with Vite root `src/frontend/` (build output `dist/` at repo root); empty `src/backend/functions/` and `src/shared/` (`.gitkeep`); React Router with a placeholder home page (`src/frontend/pages/Home/`); CSS Modules; ESLint (flat config; browser globals for `src/frontend`, Node for `src/backend`; `frontend` ↔ `backend` imports forbidden) + Prettier; `tsconfig.json` referencing `tsconfig.app.json` (`src/frontend` + `src/shared`, DOM) and `tsconfig.node.json` (`src/backend` + `src/shared` + `vite.config.ts`, Node); alias `@shared/*` in tsconfig and Vite; single root `package.json`; npm scripts `dev`, `build`, `preview`, `lint`, `format`, `typecheck`; `.gitignore` (`node_modules`, `dist`, `.env*`, `.netlify`, `CLAUDE.local.md`, `.claude/settings.local.json`); `.nvmrc` with the current Node LTS; minimal `.claude/settings.json` denying `Read(./.env*)`
 - Out: tests (TASK-002), lesson pages (TASK-003), functions (TASK-004), `netlify.toml` (TASK-005), `CLAUDE.md` (Module 2)
 
 ## Acceptance criteria
@@ -35,4 +35,4 @@ docs/architecture.md (repository structure), D-003 (repo shape), D-005 (frontend
 | 5 | ask Claude "read .env" | permission denied | manual |
 
 ## Notes
-- Blocked by D-003 and D-005 (Proposed). Rename to `_Ready` once both are accepted.
+- D-003 (option d) and D-005 accepted 2026-10-03. Ready to start.

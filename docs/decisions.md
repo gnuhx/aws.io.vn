@@ -27,10 +27,10 @@ Template:
 **Consequences:** test stack = Vitest + React Testing Library + jsdom; `npm run verify` is the single gate command used by Netlify now and by CI in M6; E2E (Playwright) deferred until there is UI worth clicking through
 **Tasks:** TASK-002, TASK-005, TASK-006
 
-## D-005 · 2026-10-02 · Proposed
+## D-005 · 2026-10-02 · Accepted
 **Question:** Frontend libraries not covered by the design: router, styling, lesson rendering
 **Options:** router: React Router | TanStack Router; styling: plain CSS / CSS Modules | Tailwind; lessons: Markdown read at build time + react-markdown | MDX
-**Decision:** _open_. Recommended: **React Router + CSS Modules + react-markdown**. Fewest new concepts; react-markdown is already planned for the chat in M2, so one renderer for both.
+**Decision:** **React Router + CSS Modules + react-markdown**, accepted 2026-10-03. Fewest new concepts; react-markdown is already planned for the chat in M2, so one renderer for both.
 **Consequences:** fixes the component and file structure that `docs/conventions.md` describes in M2
 **Tasks:** TASK-001, TASK-003
 
@@ -41,12 +41,17 @@ Template:
 **Consequences:** `main` = production; the Netlify site is linked to `gnuhx/aws.io.vn`; `aws.io.vn` DNS points to Netlify
 **Tasks:** TASK-005
 
-## D-003 · 2026-10-02 · Proposed
+## D-003 · 2026-10-02 · Accepted
 **Question:** Repo shape: single folder, or separate `client/` + `server/`?
-**Options:** (a) single folder with `src/` + `netlify/functions/` + `shared/`; (b) `client/` + `server/`; (c) monorepo with workspaces
-**Decision:** _open_. Recommended: **(a)**. Netlify builds one site from one repo; `shared/` imports need no package linking; workspaces only pay off with several deployables or a team.
-**Consequences:** fixes paths in [architecture.md](architecture.md), `CLAUDE.md`, and permission rules in Module 3
-**Tasks:** TASK-001
+**Options:** (a) single folder with `src/` + `netlify/functions/` + `shared/`; (b) `client/` + `server/`; (c) monorepo with workspaces; (d) one package like (a), but all source code under `src/`, split into `src/frontend/`, `src/backend/`, `src/shared/`
+**Decision:** **(d)**, accepted 2026-10-03. Keeps the benefits of (a): Netlify builds one site from one repo, one `package.json`, `shared/` imports need no package linking, no workspaces. It also makes the frontend/backend split visible and keeps every line of source code in `src/`. The only cost: Netlify's functions dir is set to `src/backend/functions` instead of the default `netlify/functions` (one line in `netlify.toml`).
+**Consequences:**
+- Vite root = `src/frontend` (holds `index.html`), build output still `dist/` at repo root
+- Two tsconfigs: `tsconfig.app.json` (frontend + shared, DOM types) and `tsconfig.node.json` (backend + shared, Node types), so using the wrong runtime's APIs is a type error
+- ESLint forbids `frontend` ↔ `backend` imports; both may import `shared` via alias `@shared/*`
+- Node tooling lives in `src/backend/` too: `scripts/` (ingest, evals, smoke) and `mcp/lesson-search/`, since they reuse backend code such as `retrieve()`
+- Paths updated in [architecture.md](architecture.md), [roadmap.md](roadmap.md) and TASK-001…006; `CLAUDE.md` and Module 3 permission rules follow these paths
+**Tasks:** TASK-001, TASK-004, TASK-005
 
 ## D-002 · 2026-10-02 · Proposed
 **Question:** Does the site have login/users?

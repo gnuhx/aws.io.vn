@@ -15,7 +15,7 @@ Add the first backend endpoint, `GET /api/health`, and show its status on the si
 docs/architecture.md (backend = Netlify Functions), D-003. Depends on TASK-001, TASK-002. Check current Netlify docs for the function format (modern functions can declare their own `/api/...` path).
 
 ## Scope
-- In: `netlify/functions/health.ts` returning `{ ok: true, version, time }` (`version` = short git commit from the build env, or `"dev"`); a footer badge in the app calling `/api/health` (shows "API ok" / "API down"); local run via `netlify dev`
+- In: `src/backend/functions/health.ts` returning `{ ok: true, version, time }` (`version` = short git commit from the build env, or `"dev"`); a footer badge in the app calling `/api/health` (shows "API ok" / "API down"); local run via `netlify dev`
 - Out: MongoDB/OpenAI checks in health (Module 4–5); auth; rate limiting (Module 7)
 
 ## Acceptance criteria
@@ -33,5 +33,6 @@ docs/architecture.md (backend = Netlify Functions), D-003. Depends on TASK-001, 
 | 5 | `netlify dev`, `curl localhost:8888/api/health` | 200 JSON | manual |
 
 ## Notes
-- Blocked by D-003 (Proposed).
+- D-003 accepted 2026-10-03 (functions live in `src/backend/functions/`). Still waits on TASK-001 and TASK-002.
+- Check that Netlify's function bundler resolves the `@shared/*` alias; if not, use relative imports.
 - Needs the `netlify` CLI (Module 0).

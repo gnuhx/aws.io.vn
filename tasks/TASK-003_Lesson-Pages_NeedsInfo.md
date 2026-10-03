@@ -15,7 +15,7 @@ Render lessons from `content/` as pages on the site, so the deployed skeleton sh
 docs/LESSON_TEMPLATE.md (frontmatter + structure), D-005. Depends on TASK-001, TASK-002.
 
 ## Scope
-- In: build-time loading of `content/**/*.md`; frontmatter schema in `shared/schemas/lesson.ts` (Zod: `title`, `topic` ∈ the 4 topics, `order`, `date`, `tags`, optional `domain`); routes `/` (topic list), `/:topic` (lessons sorted by `order`), `/:topic/:slug` (lesson rendered with react-markdown); a not-found page; a content validation test that checks every lesson file against the schema
+- In: build-time loading of `content/**/*.md`; frontmatter schema in `src/shared/schemas/lesson.ts` (Zod: `title`, `topic` ∈ the 4 topics, `order`, `date`, `tags`, optional `domain`); routes `/` (topic list), `/:topic` (lessons sorted by `order`), `/:topic/:slug` (lesson rendered with react-markdown); a not-found page; a content validation test that checks every lesson file against the schema
 - Out: `.html` lessons (later); search; styling beyond readable defaults; the chat widget (Module 2)
 
 ## Acceptance criteria
@@ -38,6 +38,6 @@ docs/LESSON_TEMPLATE.md (frontmatter + structure), D-005. Depends on TASK-001, T
 | 8 | open one real lesson on the dev server | renders | manual |
 
 ## Notes
-- Blocked by D-005 (Proposed).
+- D-005 accepted 2026-10-03. Still waits on TASK-001 and TASK-002.
 - Needs one real lesson in `content/` **written by you**. Claude doesn't write lesson content.
 - Gotcha: `gray-matter` needs Node's `Buffer` and breaks in the browser. Parse frontmatter at build time (Vite `import.meta.glob` with `?raw` + a small YAML parser such as `yaml`, or a tiny Vite plugin) and keep the browser bundle free of Node APIs. Module 4's ingest can still use gray-matter, since it runs in Node.

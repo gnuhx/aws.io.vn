@@ -19,13 +19,13 @@ An AI study assistant for the aws.io.vn learning site. Learners read lessons, as
 ## System overview
 
 ```
-[You] content/*.md|html ─► scripts/ingest.ts ─► parse + chunk + embed ─► MongoDB Atlas (vector index)
+[You] content/*.md|html ─► src/backend/scripts/ingest.ts ─► parse + chunk + embed ─► MongoDB Atlas (vector index)
                                                                               │
 [User] ChatWidget (React) ─SSE─► Netlify Function /api/chat ──retrieve top-k──┘
                                    ├─ Q&A mode: answer only from the material + cite lesson links
                                    └─ Quiz mode: generate JSON → Zod validate → retry → take quiz → grade
                                    + quota / rate limit / daily cost ceiling
-[Claude Code] ─MCP (stdio)─► mcp/lesson-search ─► same retrieve() function as above
+[Claude Code] ─MCP (stdio)─► src/backend/mcp/lesson-search ─► same retrieve() function as above
 ```
 
 Key decisions:
@@ -35,15 +35,17 @@ Key decisions:
 - **One `retrieve()` function** shared by the chat API and the MCP server.
 - **Below the score threshold, don't call the LLM.** Reply "not found in the material" instead, which saves money.
 - **`content/` is the source of truth for RAG.** Claude Code is denied write access to it.
-- **One Zod schema** in `shared/schemas/` used by both the web app and the functions. See [quiz-schema.md](quiz-schema.md).
+- **One Zod schema** in `src/shared/schemas/` used by both the web app and the functions. See [quiz-schema.md](quiz-schema.md).
 
 ## Repository structure
 
-Target layout; adjust to the real repo in Module 1 (see D-003). Folders appear as the [roadmap](roadmap.md) modules create them.
+Target layout (D-003): one npm package, one Netlify site. **All source code lives in `src/`**, split into `frontend/`, `backend/` and `shared/`. Everything else at the root is config, content or docs. Folders appear as the [roadmap](roadmap.md) modules create them.
 
 ```
 aws.io.vn/
 ├── CLAUDE.md, CLAUDE.local.md (gitignored), .mcp.json
+├── package.json, vite.config.ts, eslint.config.js, netlify.toml, .nvmrc
+├── tsconfig.json        references only → tsconfig.app.json (frontend, DOM) + tsconfig.node.json (backend, Node)
 ├── .github/
 │   ├── pull_request_template.md
 │   └── workflows/       CI, Claude Action, auto-ingest
@@ -56,14 +58,21 @@ aws.io.vn/
 ├── content/        aws-saa-c03/, context-engineering/, reactjs/, agentic-ai-code/
 ├── tasks/          TASK-NNN_<Title>_<Status>.md, _TEMPLATE.md, _TEMPLATE-BUG.md
 ├── docs/           roadmap.md, decisions.md, architecture.md, quiz-schema.md, repo-map.md, chat-api.md, conventions.md
-├── scripts/        ingest.ts, eval-retrieval.ts, eval-generation.ts, validate-quiz.ts
 ├── evals/          golden.jsonl, results/
 ├── data/seed-exams/
-├── mcp/lesson-search/
-├── netlify/functions/   chat.ts, generate-quiz.ts, _lib/{rag,openai,quota}/
-├── src/ (or client/)    components/ChatWidget/, pages/Quiz/
-└── shared/schemas/      quiz.ts (Zod)
+└── src/
+    ├── frontend/        Vite root: index.html, main.tsx, router.tsx, styles/, public/
+    │   ├── pages/       Home/, Quiz/  (Page.tsx + Page.module.css per folder)
+    │   └── components/  ChatWidget/, Footer/
+    ├── backend/
+    │   ├── functions/   Netlify Functions: health.ts, chat.ts, generate-quiz.ts, _lib/{rag,openai,quota}/
+    │   ├── scripts/     ingest.ts, eval-retrieval.ts, eval-generation.ts, validate-quiz.ts, smoke.ts (run with tsx)
+    │   └── mcp/lesson-search/
+    └── shared/          code used by both sides; must run in browser and Node
+        └── schemas/     quiz.ts, lesson.ts (Zod)
 ```
+
+Import rules (enforced by ESLint): `frontend/` and `backend/` never import each other; both may import `shared/` (alias `@shared/*`).
 
 ### `content/` vs `docs/`
 
