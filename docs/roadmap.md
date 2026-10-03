@@ -55,6 +55,8 @@ idea ──► triage ──┬─► needs a decision? ──► decisions.md (
                        branch ──► _InProgress ──► plan (plan mode) ──► you approve ──► PR "Task: TASK-NNN" ──► merge ──► _Done
 ```
 
+**Review before commit:** Claude Code never commits or pushes on its own. It leaves its changes uncommitted; you review them in VS Code's Source Control view, revert what you don't want, then tell it to commit (or commit yourself). Approving a step ("do it now") is not approval to commit. This rule moves into `CLAUDE.md` in Module 2.
+
 Task files, naming and status values: [tasks/README.md](../tasks/README.md). Templates: `tasks/_TEMPLATE.md`, `tasks/_TEMPLATE-BUG.md`.
 
 **Triage:**
