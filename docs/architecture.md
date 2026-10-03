@@ -61,18 +61,42 @@ aws.io.vn/
 ├── evals/          golden.jsonl, results/
 ├── data/seed-exams/
 └── src/
-    ├── frontend/        Vite root: index.html, main.tsx, router.tsx, styles/, public/
-    │   ├── pages/       Home/, Quiz/  (Page.tsx + Page.module.css per folder)
-    │   └── components/  ChatWidget/, Footer/
-    ├── backend/
-    │   ├── functions/   Netlify Functions: health.ts, chat.ts, generate-quiz.ts, _lib/{rag,openai,quota}/
-    │   ├── scripts/     ingest.ts, eval-retrieval.ts, eval-generation.ts, validate-quiz.ts, smoke.ts (run with tsx)
+    ├── frontend/            Vite root: index.html, main.tsx, router.tsx, public/
+    │   ├── pages/           one folder per route: Home/, Topic/, Lesson/, Quiz/, NotFound/
+    │   │                    (XxxPage.tsx + XxxPage.module.css + XxxPage.test.tsx)
+    │   ├── components/      reusable UI: ChatWidget/, Footer/, Markdown/
+    │   ├── hooks/           useChat.ts, useApiHealth.ts
+    │   ├── api/             typed fetch calls to /api/* (the only place that calls fetch)
+    │   └── styles/          global.css, design tokens
+    ├── backend/             layering: D-007
+    │   ├── functions/       endpoints only, one file = one /api/* route (Netlify Functions)
+    │   │   ├── health.ts, chat.ts, generate-quiz.ts
+    │   │   └── __tests__/   endpoint tests (kept out of the deployed function list)
+    │   ├── middleware/      withAuth, publicEndpoint, withRateLimit, withErrorHandler
+    │   ├── services/        business logic: retrieval/ (retrieve()), chat/, quiz/, quota/
+    │   ├── repositories/    MongoDB access only: chunks, usage, attempts
+    │   ├── clients/         mongo.ts, openai.ts (created once, reused across invocations)
+    │   ├── config/          env.ts (reads and Zod-validates env vars at startup)
+    │   ├── scripts/         ingest.ts, eval-retrieval.ts, eval-generation.ts, validate-quiz.ts, smoke.ts (run with tsx)
     │   └── mcp/lesson-search/
-    └── shared/          code used by both sides; must run in browser and Node
-        └── schemas/     quiz.ts, lesson.ts (Zod)
+    └── shared/              code used by both sides; must run in browser and Node
+        ├── schemas/         quiz.ts, lesson.ts, chat.ts (Zod: API request/response shapes)
+        └── types/           types inferred from the schemas
 ```
 
 Import rules (enforced by ESLint): `frontend/` and `backend/` never import each other; both may import `shared/` (alias `@shared/*`).
+
+Backend dependency direction (D-007), one way only:
+
+```
+functions ──► middleware
+    │
+    └──────► services ──► repositories ──► clients
+                 ▲    └──────────────────► clients
+scripts, mcp ────┘
+```
+
+A request flows: `functions/chat.ts` → `withErrorHandler(withRateLimit(withAuth(handler)))` → Zod-parse the body → `services/chat` → `services/retrieval` → `repositories/chunks` → `clients/mongo`.
 
 ### `content/` vs `docs/`
 

@@ -370,7 +370,7 @@ Run `git diff main...HEAD`. Return: definite bugs / risks / suggestions, each wi
 ```
 
 2. [ ] Configure the **official MongoDB MCP server** (check the current package name), in **read-only mode**, connection string via environment variable. Ask Claude to list collections, count chunks by topic, check the index.
-3. [ ] Write `src/backend/functions/_lib/rag/retrieve.ts`: embed query → `$vectorSearch` → return chunks + scores. **Create the Mongo client outside the handler** so it's reused across invocations.
+3. [ ] Write `src/backend/services/retrieval/retrieve.ts` (D-007): embed query → `$vectorSearch` → return chunks + scores. **Create the Mongo client outside the handler** so it's reused across invocations.
 
 ```js
 { $vectorSearch: { index: "chunks_vec", path: "embedding", queryVector,

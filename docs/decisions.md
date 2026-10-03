@@ -20,6 +20,24 @@ Template:
 
 ---
 
+## D-007 · 2026-10-03 · Accepted
+**Question:** How is backend code organised inside `src/backend/`? Netlify Functions are one file per endpoint; where do business logic, database access, auth and external clients live?
+**Options:** (a) helpers inside the functions folder (`functions/_lib/`), as first sketched; (b) layered folders next to `functions/`: thin endpoints in `functions/`, composable wrappers in `middleware/`, logic in `services/`, MongoDB access in `repositories/`, SDK clients in `clients/`; (c) one Express app wrapped in a single Netlify Function (`serverless-http`)
+**Decision:** **(b)**, accepted 2026-10-03.
+- Keeps the functions folder for endpoints only. Netlify deploys what's in it, so helpers and tests in there risk being treated as functions.
+- Same controller → service → repository layering as Express/NestJS, so the clean-code patterns carry over; services don't know about Netlify and could move to Express or AWS Lambda unchanged.
+- Auth, rate limit and error handling are wrappers (`withAuth(handler)`), the serverless version of Express middleware, and are unit-testable on their own.
+- (c) was rejected: it brings back a framework and router we don't need, makes cold starts slower, and hides per-endpoint config such as paths and timeouts.
+**Consequences:**
+- Dependency direction (one way only): `functions → middleware, services` · `services → repositories, clients` · `repositories → clients`. Nothing imports `functions/`. `scripts/` and `mcp/` call `services/` like a function does. Enforced by ESLint once there is code to enforce it on.
+- Every endpoint is wrapped in `withAuth(...)` or explicitly marked public with `publicEndpoint(...)`; a test fails if a file in `functions/` has neither (default deny).
+- Every input is parsed with a Zod schema from `src/shared/schemas/` before reaching a service.
+- Clients (Mongo, OpenAI) are created once per module, outside the handler, and reused across invocations.
+- Only endpoint files sit directly in `functions/`; their tests go in `functions/__tests__/` (TASK-004 verifies Netlify ignores that folder). All other backend tests sit next to their code.
+- Rate limit/quota state lives in MongoDB (`usage`), never in memory: each invocation may be a fresh instance.
+- `retrieve()` moves from `functions/_lib/rag/` to `services/retrieval/`; architecture.md and roadmap updated.
+**Tasks:** TASK-004 (first endpoint follows this layout)
+
 ## D-006 · 2026-10-02 · Proposed
 **Question:** How do we make sure nothing broken reaches production, before Module 6 adds GitHub Actions CI?
 **Options:** (a) no automation until M6; (b) gate in the Netlify build: `npm run verify` (lint + typecheck + unit tests + content validation) runs before `vite build`, so a failure blocks the deploy; plus a post-deploy smoke test; (c) full GitHub Actions CI now
