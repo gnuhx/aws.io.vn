@@ -38,10 +38,10 @@ Template:
 - `retrieve()` moves from `functions/_lib/rag/` to `services/retrieval/`; architecture.md and roadmap updated.
 **Tasks:** TASK-004 (first endpoint follows this layout)
 
-## D-006 · 2026-10-02 · Proposed
+## D-006 · 2026-10-02 · Accepted
 **Question:** How do we make sure nothing broken reaches production, before Module 6 adds GitHub Actions CI?
 **Options:** (a) no automation until M6; (b) gate in the Netlify build: `npm run verify` (lint + typecheck + unit tests + content validation) runs before `vite build`, so a failure blocks the deploy; plus a post-deploy smoke test; (c) full GitHub Actions CI now
-**Decision:** _open_. Recommended: **(b)**. Every deploy, preview or production, is gated with zero extra infrastructure. Smoke tests run from a small GitHub Action on Netlify's deployment status. M6 still teaches PR-level CI on top.
+**Decision:** **(b)**, accepted 2026-10-04. Every deploy, preview or production, is gated with zero extra infrastructure. Smoke tests run from a small GitHub Action on Netlify's deployment status. M6 still teaches PR-level CI on top.
 **Consequences:** test stack = Vitest + React Testing Library + jsdom; `npm run verify` is the single gate command used by Netlify now and by CI in M6; E2E (Playwright) deferred until there is UI worth clicking through
 **Tasks:** TASK-002, TASK-005, TASK-006
 
