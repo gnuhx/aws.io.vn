@@ -15,14 +15,14 @@ Add a unit/component test setup and one `npm run verify` command that every buil
 D-006 (test strategy). Depends on TASK-001. `verify` is reused by Netlify (TASK-005) and by GitHub Actions CI in Module 6.
 
 ## Scope
-- In: Vitest; React Testing Library + jsdom for components; Node environment for `netlify/` and `scripts/` tests; test file convention `*.test.ts(x)` next to the code; scripts `test` (single run), `test:watch`, `verify` = `lint && typecheck && test`; one smoke test for the placeholder home page
+- In: Vitest; React Testing Library + jsdom for components; Node environment for `src/backend/` tests (functions, scripts, MCP); test file convention `*.test.ts(x)` next to the code; scripts `test` (single run), `test:watch`, `verify` = `lint && typecheck && test`; one smoke test for the placeholder home page
 - Out: coverage thresholds (add when there is real code to cover); E2E/Playwright; GitHub Actions (Module 6)
 
 ## Acceptance criteria
 - [ ] Given the scaffold, when I run `npm run verify`, then lint, typecheck and tests all run and it exits 0
 - [ ] Given a deliberately failing test, when I run `npm run verify`, then it exits non-zero and names the failing test
 - [ ] Given a type error in `src/`, when I run `npm run verify`, then it exits non-zero before tests run
-- [ ] Given a test under `netlify/functions/`, when tests run, then it runs in the Node environment (not jsdom)
+- [ ] Given a test under `src/backend/`, when tests run, then it runs in the Node environment (not jsdom)
 
 ## Test cases
 | # | Input / action | Expected result | Type |

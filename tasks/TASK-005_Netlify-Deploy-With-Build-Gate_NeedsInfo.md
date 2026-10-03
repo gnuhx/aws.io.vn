@@ -15,7 +15,7 @@ Deploy the site to Netlify from git, with tests gating every deploy, so `main` i
 D-004 (deploy method), D-006 (build gate). Depends on TASK-001…004. Check current Netlify docs: build settings, functions directory, redirects, Node version from `.nvmrc`.
 
 ## Scope
-- In: `netlify.toml` with build command `npm run verify && npm run build`, publish `dist`, functions `netlify/functions`, SPA fallback (`/* → /index.html 200`) without breaking `/api/*`; Netlify site linked to `gnuhx/aws.io.vn` with production branch `main` and deploy previews on PRs; `aws.io.vn` custom domain + HTTPS
+- In: `netlify.toml` with build command `npm run verify && npm run build`, publish `dist`, functions `src/backend/functions` (D-003), SPA fallback (`/* → /index.html 200`) without breaking `/api/*`; Netlify site linked to `gnuhx/aws.io.vn` with production branch `main` and deploy previews on PRs; `aws.io.vn` custom domain + HTTPS
 - Out: environment variables/secrets (Module 4–5); post-deploy smoke test (TASK-006); GitHub Actions CI (Module 6)
 
 ## Acceptance criteria

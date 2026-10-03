@@ -15,7 +15,7 @@ Automatically check every finished deploy (preview and production) with a few re
 D-006. Depends on TASK-005. Unit tests (TASK-002) catch code errors before deploy; this catches config errors after it (redirects, functions missing, wrong publish dir).
 
 ## Scope
-- In: `scripts/smoke.ts <baseUrl>` (run with `tsx`) checking: `/` → 200 HTML; one known lesson URL → 200; `/api/health` → 200 JSON with `ok: true`; an unknown deep link → app's not-found page (200 from SPA fallback, not Netlify's 404); `npm run smoke -- <url>` for manual runs; a GitHub Action triggered on `deployment_status` = success that runs the script against the deploy URL
+- In: `src/backend/scripts/smoke.ts <baseUrl>` (run with `tsx`) checking: `/` → 200 HTML; one known lesson URL → 200; `/api/health` → 200 JSON with `ok: true`; an unknown deep link → app's not-found page (200 from SPA fallback, not Netlify's 404); `npm run smoke -- <url>` for manual runs; a GitHub Action triggered on `deployment_status` = success that runs the script against the deploy URL
 - Out: browser E2E (Playwright, later); alerting beyond the GitHub check result; the broader CI workflow (Module 6)
 
 ## Acceptance criteria

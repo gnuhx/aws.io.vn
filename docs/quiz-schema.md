@@ -1,6 +1,6 @@
 # Quiz schema
 
-The shape of generated quizzes. Shared by the web app and Netlify Functions via `shared/schemas/quiz.ts` (created in Module 2).
+The shape of generated quizzes. Shared by the web app and Netlify Functions via `src/shared/schemas/quiz.ts` (created in Module 2).
 Every generated quiz is validated against it; on failure, generation retries up to 2 times with the validation error.
 
 ## Zod schema (sketch)

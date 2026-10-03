@@ -55,6 +55,8 @@ idea ──► triage ──┬─► needs a decision? ──► decisions.md (
                        branch ──► _InProgress ──► plan (plan mode) ──► you approve ──► PR "Task: TASK-NNN" ──► merge ──► _Done
 ```
 
+**Review before commit:** Claude Code never commits or pushes on its own. It leaves its changes uncommitted; you review them in VS Code's Source Control view, revert what you don't want, then tell it to commit (or commit yourself). Approving a step ("do it now") is not approval to commit. This rule moves into `CLAUDE.md` in Module 2.
+
 Task files, naming and status values: [tasks/README.md](../tasks/README.md). Templates: `tasks/_TEMPLATE.md`, `tasks/_TEMPLATE-BUG.md`.
 
 **Triage:**
@@ -145,7 +147,7 @@ Order: 001 → 002 → 003 + 004 (either order) → 005 → 006.
 | When | What runs | Fails → |
 |---|---|---|
 | Every Netlify build (preview + production) | `npm run verify`: lint, typecheck, unit + component tests, lesson frontmatter validation | build fails, previous deploy stays live |
-| After every deploy | `scripts/smoke.ts`: `/`, a lesson, `/api/health`, a deep link | red check on the commit/PR |
+| After every deploy | `src/backend/scripts/smoke.ts`: `/`, a lesson, `/api/health`, a deep link | red check on the commit/PR |
 
 **Done when:** https://aws.io.vn serves one real lesson, `/api/health` is green, a PR with a failing test cannot deploy, and smoke runs on every deploy. Tag `v0.1`.
 
@@ -207,7 +209,7 @@ Order: 001 → 002 → 003 + 004 (either order) → 005 → 006.
    - fake stream through a mock `/api/chat` returning SSE
    - render markdown (react-markdown), citation chips, loading/error states, mobile-friendly
    - `aria-live` for the streaming region
-6. [ ] Create `shared/schemas/quiz.ts` (Zod) shared by the web app and functions.
+6. [ ] Create `src/shared/schemas/quiz.ts` (Zod) shared by the web app and functions.
 7. [ ] Deploy preview, test on your phone.
 
 **Done when:** `CLAUDE.md` ≤ 100 lines, A/B table has numbers, widget runs on the preview.
@@ -332,7 +334,7 @@ Run `git diff main...HEAD`. Return: definite bugs / risks / suggestions, each wi
 7. [ ] Parser: **md** (gray-matter for frontmatter, split by heading), **html** (cheerio; drop nav/script/style/footer, take `main`/`article`). Map file path → lesson URL on the site.
 8. [ ] Chunker: by heading; split long sections by paragraph; **never cut through a code block**; target chunk size about 300–800 tokens.
 9. [ ] Embed in batches with retry + backoff; upsert by `contentHash`; delete chunks of removed files.
-10. [ ] `scripts/ingest.ts` (run locally with `tsx`) with a `--dry-run` flag: prints file count, chunk count, and **estimated tokens** before calling the API.
+10. [ ] `src/backend/scripts/ingest.ts` (run locally with `tsx`) with a `--dry-run` flag: prints file count, chunk count, and **estimated tokens** before calling the API.
 11. [ ] Test parser/chunker with vitest using a few fixture files.
 12. [ ] Have `code-reviewer` review the ingest script.
 
@@ -368,7 +370,7 @@ Run `git diff main...HEAD`. Return: definite bugs / risks / suggestions, each wi
 ```
 
 2. [ ] Configure the **official MongoDB MCP server** (check the current package name), in **read-only mode**, connection string via environment variable. Ask Claude to list collections, count chunks by topic, check the index.
-3. [ ] Write `netlify/functions/_lib/rag/retrieve.ts`: embed query → `$vectorSearch` → return chunks + scores. **Create the Mongo client outside the handler** so it's reused across invocations.
+3. [ ] Write `src/backend/services/retrieval/retrieve.ts` (D-007): embed query → `$vectorSearch` → return chunks + scores. **Create the Mongo client outside the handler** so it's reused across invocations.
 
 ```js
 { $vectorSearch: { index: "chunks_vec", path: "embedding", queryVector,
@@ -389,7 +391,7 @@ Run `git diff main...HEAD`. Return: definite bugs / risks / suggestions, each wi
   "mcpServers": {
     "lesson-search": {
       "command": "npx",
-      "args": ["tsx", "mcp/lesson-search/index.ts"],
+      "args": ["tsx", "src/backend/mcp/lesson-search/index.ts"],
       "env": { "MONGODB_URI": "${MONGODB_URI}", "OPENAI_API_KEY": "${OPENAI_API_KEY}" }
     }
   }
@@ -397,7 +399,7 @@ Run `git diff main...HEAD`. Return: definite bugs / risks / suggestions, each wi
 ```
 
    - `/mcp` in Claude Code must show `connected`.
-7. [ ] Subagent `quiz-writer`: uses MCP `lesson-search` + skill `quiz-question-format`, generates 2 sample SAA-C03 exams (20 questions) into `data/seed-exams/`, each question with sources. Add a `PostToolUse` hook (matcher `Write`) running `scripts/validate-quiz.ts` to **Zod-validate the moment the file is written**.
+7. [ ] Subagent `quiz-writer`: uses MCP `lesson-search` + skill `quiz-question-format`, generates 2 sample SAA-C03 exams (20 questions) into `data/seed-exams/`, each question with sources. Add a `PostToolUse` hook (matcher `Write`) running `src/backend/scripts/validate-quiz.ts` to **Zod-validate the moment the file is written**.
 8. [ ] **Quiz mode:** form (topic, number of questions, difficulty) → `/api/generate-quiz`:
    - retrieve in multiple rounds per sub-topic so the exam isn't lopsided
    - LLM structured output → Zod validate → on failure retry up to 2 times with the error
@@ -431,9 +433,9 @@ Run `git diff main...HEAD`. Return: definite bugs / risks / suggestions, each wi
 
 ### Lab
 1. [ ] `evals/golden.jsonl`: 30–40 entries `{ q, expectedFiles[], type: "answerable" | "unanswerable" | "adversarial" }`. Let Claude suggest; **you review and label**.
-2. [ ] `scripts/eval-retrieval.ts`: compute hit@1/3/5, MRR; write `evals/results/<date>.json`.
+2. [ ] `src/backend/scripts/eval-retrieval.ts`: compute hit@1/3/5, MRR; write `evals/results/<date>.json`.
 3. [ ] **A/B with numbers:** compare heading-based chunks vs fixed 500-token chunks; or top-k 3 vs 6; or different score thresholds. Pick the config by the numbers, record a table.
-4. [ ] `scripts/eval-generation.ts`: generate 20 quizzes, measure schema pass rate, duplication rate, groundedness via a judge (use a cheap model, watch the cost).
+4. [ ] `src/backend/scripts/eval-generation.ts`: generate 20 quizzes, measure schema pass rate, duplication rate, groundedness via a judge (use a cheap model, watch the cost).
 5. [ ] Command `/eval`: run both scripts, compare to the previous run, **summarize regressions**.
 6. [ ] GitHub Actions:
    - (a) CI: `npm run verify` on every PR (the same gate Netlify already runs since Release 0.1, now as a PR check before merge)

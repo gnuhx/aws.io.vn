@@ -2,7 +2,7 @@
 id: TASK-004
 type: feature
 module: none             # Release 0.1 (walking skeleton)
-decisions: [D-003]
+decisions: [D-003, D-007]
 created: 2026-10-02
 ---
 
@@ -12,10 +12,10 @@ created: 2026-10-02
 Add the first backend endpoint, `GET /api/health`, and show its status on the site, to prove the frontend → Netlify Functions path works locally and in production.
 
 ## Context
-docs/architecture.md (backend = Netlify Functions), D-003. Depends on TASK-001, TASK-002. Check current Netlify docs for the function format (modern functions can declare their own `/api/...` path).
+docs/architecture.md (backend = Netlify Functions, backend layering), D-003, D-007. Depends on TASK-001, TASK-002. Check current Netlify docs for the function format (modern functions can declare their own `/api/...` path).
 
 ## Scope
-- In: `netlify/functions/health.ts` returning `{ ok: true, version, time }` (`version` = short git commit from the build env, or `"dev"`); a footer badge in the app calling `/api/health` (shows "API ok" / "API down"); local run via `netlify dev`
+- In: `src/backend/functions/health.ts` wrapped in `publicEndpoint(...)` from `src/backend/middleware/` (first default-deny wrapper, D-007), returning `{ ok: true, version, time }` (`version` = short git commit from the build env, or `"dev"`); a footer badge in the app calling `/api/health` (shows "API ok" / "API down"); local run via `netlify dev`: `netlify-cli` as a dev dependency, a minimal `netlify.toml` (functions dir `src/backend/functions`, `[dev]` starting Vite), npm script `dev:full` (frontend + API at localhost:8888; `dev` stays frontend-only)
 - Out: MongoDB/OpenAI checks in health (Module 4–5); auth; rate limiting (Module 7)
 
 ## Acceptance criteria
@@ -33,5 +33,7 @@ docs/architecture.md (backend = Netlify Functions), D-003. Depends on TASK-001, 
 | 5 | `netlify dev`, `curl localhost:8888/api/health` | 200 JSON | manual |
 
 ## Notes
-- Blocked by D-003 (Proposed).
+- Endpoint tests go in `src/backend/functions/__tests__/`; confirm Netlify does not deploy that folder as a function (check the function list in `netlify dev` / the deploy log). If it does, move them and update D-007.
+- D-003 accepted 2026-10-03 (functions live in `src/backend/functions/`). Still waits on TASK-001 and TASK-002.
+- Check that Netlify's function bundler resolves the `@shared/*` alias; if not, use relative imports.
 - Needs the `netlify` CLI (Module 0).
