@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nhà máy nền · SAA-C03 · Module 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0D1B2A;
+  --navy-2:#122840;
+  --grid:rgba(150,190,220,0.09);
+  --paper:#E9F1F7;
+  --muted:#8FAFC7;
+  --cyan:#4FB3C9;
+  --cyan-soft:rgba(79,179,201,0.14);
+  --amber:#E8A33D;
+  --amber-soft:rgba(232,163,61,0.16);
+  --line:rgba(180,210,230,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--navy);color:var(--paper);font-family:'JetBrains Mono',monospace;}
+body{
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, var(--navy-2) 0%, var(--navy) 70%);
+  background-size:28px 28px, 28px 28px, 100% 100%;
+  padding:36px 16px 60px;
+}
+.sheet{max-width:920px;margin:0 auto;}
+.title-block{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;}
+.title-block h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.7rem;margin:0 0 6px;color:var(--paper);letter-spacing:.01em;}
+.title-block .sub{font-size:12.5px;color:var(--muted);letter-spacing:.04em;}
+.title-block .meta{text-align:right;font-size:11px;color:var(--muted);line-height:1.6;}
+.legend{display:flex;gap:22px;margin:18px 0 6px;font-size:12px;color:var(--muted);flex-wrap:wrap;}
+.legend span{display:inline-flex;align-items:center;gap:7px;}
+.swatch{width:13px;height:13px;border-radius:3px;display:inline-block;}
+.sw-cyan{background:var(--cyan);}
+.sw-amber{background:var(--amber);}
+figure{margin:18px 0 0;}
+svg{display:block;width:100%;height:auto;}
+.caption{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
+.caption h2{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--amber);margin:0 0 10px;letter-spacing:.03em;}
+.caption ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.85;color:var(--paper);}
+.caption li b{color:var(--amber);}
+.footer-note{margin-top:22px;font-size:11px;color:var(--muted);text-align:center;letter-spacing:.03em;}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="title-block">
+    <div>
+      <h1>Nhà máy nền — SAA-C03</h1>
+      <div class="sub">BẢN ĐỒ TÍCH LŨY · CẬP NHẬT SAU MODULE 5</div>
+    </div>
+    <div class="meta">MODULE 5 · CONTAINERS &amp; SERVERLESS<br>DOCKER/ECS + SERVERLESS APPLICATIONS</div>
+  </div>
+
+  <div class="legend">
+    <span><i class="swatch sw-cyan"></i> Trạm nền (có từ module trước)</span>
+    <span><i class="swatch sw-amber"></i> Trạm / nhánh mới thêm ở Module 5</span>
+  </div>
+
+  <figure>
+<svg viewBox="0 0 900 1520" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Sơ đồ nhà máy nền tích lũy tới Module 5</title>
+<desc>Khách hàng đi qua Route 53 và CloudFront, vào khuôn viên VPC gồm Sảnh phân luồng (ALB, và API Gateway mới), Xưởng lắp ráp (EC2/ASG, cùng ECS, EKS, Lambda mới), và Kho tổng (RDS/Aurora, ElastiCache). Bên ngoài VPC là Kho tĩnh S3 và Kho khuôn mẫu ECR mới. Hệ thống loa phóng thanh gồm SQS, SNS, EventBridge mới và đội trưởng dây chuyền Step Functions mới điều phối xuyên suốt. Toàn bộ được phủ bởi lớp bảo mật IAM, KMS, GuardDuty, WAF.</desc>
+
+<defs>
+  <marker id="arrowC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#4FB3C9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arrowA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<style>
+  .lbl-t{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;fill:#0D1B2A;}
+  .lbl-s{font-family:'JetBrains Mono',monospace;font-size:12px;fill:#0D1B2A;opacity:.75;}
+  .lbl-w{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;fill:#E9F1F7;}
+  .lbl-ws{font-family:'JetBrains Mono',monospace;font-size:11.5px;fill:#8FAFC7;letter-spacing:.03em;}
+  .box-cyan{fill:#4FB3C9;stroke:#1E4E5C;stroke-width:1.2;}
+  .box-amber{fill:#E8A33D;stroke:#7A5218;stroke-width:1.2;}
+  .box-outline{fill:none;stroke:#4FB3C9;stroke-width:1.2;stroke-dasharray:5 4;}
+  .box-outline-amber{fill:none;stroke:#E8A33D;stroke-width:1.4;stroke-dasharray:5 4;}
+  .rivet{fill:#0D1B2A;opacity:.35;}
+</style>
+
+<circle class="rivet" cx="60" cy="30" r="3"/><circle class="rivet" cx="840" cy="30" r="3"/>
+<text class="lbl-ws" x="450" y="34" text-anchor="middle">— DÒNG CHẢY 1 REQUEST QUA NHÀ MÁY —</text>
+
+<g>
+  <rect x="360" y="60" width="180" height="52" rx="8" class="box-cyan"/>
+  <text class="lbl-t" x="450" y="82" text-anchor="middle" dominant-baseline="central">Khách hàng</text>
+  <text class="lbl-s" x="450" y="100" text-anchor="middle" dominant-baseline="central">gõ web / gọi API</text>
+</g>
+<line x1="450" y1="112" x2="450" y2="150" stroke="#4FB3C9" stroke-width="1.4" marker-end="url(#arrowC)"/>
+
+<g>
+  <rect x="300" y="150" width="300" height="60" rx="8" class="box-cyan"/>
+  <text class="lbl-t" x="450" y="172" text-anchor="middle" dominant-baseline="central">Route 53 · CloudFront</text>
+  <text class="lbl-s" x="450" y="192" text-anchor="middle" dominant-baseline="central">trạm bảo vệ cổng + kho hàng gần cổng</text>
+</g>
+<line x1="450" y1="210" x2="450" y2="248" stroke="#4FB3C9" stroke-width="1.4" marker-end="url(#arrowC)"/>
+
+<rect x="80" y="248" width="740" height="400" rx="26" class="box-outline"/>
+<text class="lbl-w" x="112" y="284" text-anchor="start">KHUÔN VIÊN VPC</text>
+<text class="lbl-ws" x="112" y="304" text-anchor="start">tường rào · Security Group (từng cửa) · NACL (cổng khuôn viên)</text>
+
+<g>
+  <rect x="140" y="330" width="620" height="66" rx="10" class="box-amber"/>
+  <text class="lbl-t" x="450" y="352" text-anchor="middle" dominant-baseline="central">Sảnh phân luồng</text>
+  <text class="lbl-s" x="450" y="372" text-anchor="middle" dominant-baseline="central">ALB / NLB + API Gateway (mới — chuyên cho Lambda)</text>
+</g>
+<line x1="450" y1="396" x2="450" y2="424" stroke="#E8A33D" stroke-width="1.4" marker-end="url(#arrowA)"/>
+
+<g>
+  <rect x="140" y="424" width="620" height="90" rx="10" class="box-amber"/>
+  <text class="lbl-t" x="450" y="450" text-anchor="middle" dominant-baseline="central">Xưởng lắp ráp</text>
+  <text class="lbl-s" x="450" y="472" text-anchor="middle" dominant-baseline="central">EC2 trong ASG (thợ biên chế)</text>
+  <text class="lbl-s" x="450" y="492" text-anchor="middle" dominant-baseline="central">+ ECS, EKS (đội trưởng khuôn đúc) + Lambda (thợ thời vụ) — mới</text>
+</g>
+<line x1="450" y1="514" x2="450" y2="542" stroke="#4FB3C9" stroke-width="1.4" marker-end="url(#arrowC)"/>
+
+<g>
+  <rect x="140" y="542" width="620" height="66" rx="10" class="box-cyan"/>
+  <text class="lbl-t" x="450" y="564" text-anchor="middle" dominant-baseline="central">Kho tổng</text>
+  <text class="lbl-s" x="450" y="584" text-anchor="middle" dominant-baseline="central">RDS / Aurora + quầy tạm ElastiCache</text>
+</g>
+
+<line x1="450" y1="608" x2="450" y2="640" stroke="#4FB3C9" stroke-width="1.2" stroke-dasharray="3 3"/>
+<text class="lbl-ws" x="450" y="654" text-anchor="middle">(khuôn viên VPC kết thúc — các trạm dưới đây nằm ngoài tường)</text>
+
+<line x1="450" y1="748" x2="450" y2="786" stroke="#E8A33D" stroke-width="1.4" marker-end="url(#arrowA)"/>
+
+<g>
+  <rect x="220" y="786" width="460" height="66" rx="10" class="box-amber"/>
+  <text class="lbl-t" x="450" y="808" text-anchor="middle" dominant-baseline="central">Kho tĩnh &amp; kho khuôn mẫu</text>
+  <text class="lbl-s" x="450" y="828" text-anchor="middle" dominant-baseline="central">S3 (file/object) + ECR (mới — khuôn mẫu container có khóa)</text>
+</g>
+<line x1="450" y1="852" x2="450" y2="890" stroke="#E8A33D" stroke-width="1.4" marker-end="url(#arrowA)"/>
+
+<rect x="120" y="890" width="660" height="140" rx="20" class="box-outline-amber"/>
+<text class="lbl-w" x="150" y="922" text-anchor="start" fill="#E8A33D" style="fill:#E8A33D;">HỆ THỐNG LOA PHÓNG THANH &amp; ĐIỀU PHỐI</text>
+<text class="lbl-ws" x="150" y="942" text-anchor="start">các trạm không cần đứng chờ nhau trực tiếp — chỉ cần nghe loa</text>
+
+<g>
+  <rect x="150" y="960" width="140" height="50" rx="8" class="box-amber"/>
+  <text class="lbl-t" x="220" y="978" text-anchor="middle" dominant-baseline="central" style="font-size:13px;">SQS</text>
+  <text class="lbl-s" x="220" y="994" text-anchor="middle" dominant-baseline="central" style="font-size:10.5px;">hộp thư đợi</text>
+</g>
+<g>
+  <rect x="305" y="960" width="140" height="50" rx="8" class="box-amber"/>
+  <text class="lbl-t" x="375" y="978" text-anchor="middle" dominant-baseline="central" style="font-size:13px;">SNS</text>
+  <text class="lbl-s" x="375" y="994" text-anchor="middle" dominant-baseline="central" style="font-size:10.5px;">loa phát thanh</text>
+</g>
+<g>
+  <rect x="460" y="960" width="170" height="50" rx="8" class="box-amber"/>
+  <text class="lbl-t" x="545" y="978" text-anchor="middle" dominant-baseline="central" style="font-size:13px;">EventBridge</text>
+  <text class="lbl-s" x="545" y="994" text-anchor="middle" dominant-baseline="central" style="font-size:10.5px;">bảng thông báo có luật lọc</text>
+</g>
+<g>
+  <rect x="645" y="960" width="115" height="50" rx="8" class="box-amber"/>
+  <text class="lbl-t" x="702" y="978" text-anchor="middle" dominant-baseline="central" style="font-size:12.5px;">Step</text>
+  <text class="lbl-t" x="702" y="991" text-anchor="middle" dominant-baseline="central" style="font-size:12.5px;">Functions</text>
+</g>
+
+<line x1="450" y1="1030" x2="450" y2="1064" stroke="#E8A33D" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text class="lbl-ws" x="450" y="1080" text-anchor="middle">Step Functions cũng vươn tay điều phối ngược lại mọi trạm phía trên</text>
+
+<rect x="60" y="1100" width="780" height="86" rx="16" class="box-outline"/>
+<text class="lbl-w" x="450" y="1132" text-anchor="middle">LỚP PHỦ TOÀN NHÀ MÁY</text>
+<text class="lbl-ws" x="450" y="1156" text-anchor="middle">IAM (thẻ ra vào) · KMS (tủ khóa trung tâm) · GuardDuty (tuần tra) · WAF (soát tại cổng)</text>
+<text class="lbl-ws" x="450" y="1174" text-anchor="middle">— phủ lên tất cả các trạm ở trên, không phải 1 trạm riêng —</text>
+
+<circle class="rivet" cx="60" cy="1220" r="3"/><circle class="rivet" cx="840" cy="1220" r="3"/>
+<text class="lbl-ws" x="450" y="1220" text-anchor="middle">SAA-C03 · MODULE 5 · CONTAINERS &amp; SERVERLESS · BẢN ĐỒ NHÀ MÁY NỀN TÍCH LŨY</text>
+
+</svg>
+  </figure>
+
+  <div class="caption">
+    <h2>Trạm mới thêm vào Module 5</h2>
+    <ul>
+      <li><b>API Gateway</b> — gắn cùng khu Sảnh phân luồng, chuyên đứng trước Lambda thay vì EC2/container.</li>
+      <li><b>ECS · EKS</b> — 2 "đội trưởng điều phối khuôn đúc container" song song tại Xưởng lắp ráp.</li>
+      <li><b>Lambda</b> — thợ thời vụ chính thức ra mắt đầy đủ vai trò tại Xưởng lắp ráp.</li>
+      <li><b>ECR</b> — kho khuôn mẫu container có khóa, cạnh logic Kho tĩnh S3.</li>
+      <li><b>SQS · SNS · EventBridge</b> — 3 kiểu loa cụ thể hiện thực hóa Hệ thống loa phóng thanh.</li>
+      <li><b>Step Functions</b> — đội trưởng dây chuyền tổng, điều phối xuyên suốt nhiều trạm khác nhau trong cả nhà máy.</li>
+    </ul>
+  </div>
+
+  <div class="footer-note">Roadmap AWS SAA-C03 (SkillCertPro) · Bản đồ ẩn dụ dùng xuyên suốt Module 2 → Module 5</div>
+</div>
+</body>
+</html>

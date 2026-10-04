@@ -1,0 +1,7 @@
+dist/
+package-lock.json
+# hand-written prose; keep its formatting
+content/
+docs/
+tasks/
+.github/

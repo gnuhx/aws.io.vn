@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serverless Applications · SAA-C03</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBFAF7;
+  --ink:#1D1C19;
+  --muted:#65605A;
+  --line:#E4DFD5;
+  --accent:#7A4FB5;      /* lambda-purple, khác accent section trước cho dễ phân biệt */
+  --accent-soft:#EEE5F7;
+  --steel:#2F6B5E;
+  --steel-soft:#DFEEE9;
+  --surface:#F3F0E9;
+  --code-bg:#EDE8DC;
+  --sidebar-w:250px;
+  --navh:54px;
+  --tabh:48px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+html,body{margin:0;padding:0;width:100%;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:16px;line-height:1.6;}
+.serif{font-family:'Source Serif 4',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+h1,h2,h3,h4{font-family:'Source Serif 4',Georgia,serif;font-weight:600;line-height:1.28;margin:0 0 .5em 0;}
+a{color:var(--accent);text-decoration:none;}
+code{font-family:'IBM Plex Mono',monospace;background:var(--code-bg);padding:1px 5px;border-radius:3px;font-size:.88em;}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.55;font-family:'IBM Plex Mono',monospace;}
+pre code{background:none;padding:0;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px;}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+th{background:var(--surface);font-weight:600;}
+
+/* ---- Nav ---- */
+.nav{position:sticky;top:0;z-index:60;height:var(--navh);display:flex;align-items:center;justify-content:space-between;
+  padding:0 3vw;background:rgba(251,250,247,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+.nav .brand{font-family:'IBM Plex Mono';font-size:12.5px;letter-spacing:.04em;color:var(--muted);}
+.nav .brand b{color:var(--ink);}
+.roadmap-nav{display:flex;gap:16px;font-family:'IBM Plex Mono';font-size:11px;color:var(--muted);}
+.roadmap-nav .cur{color:var(--accent);font-weight:600;}
+.roadmap-nav .done{color:#5C8C6B;}
+
+/* ---- Tabbar ---- */
+.tabbar{position:sticky;top:var(--navh);z-index:55;display:flex;gap:26px;padding:0 3vw;background:var(--bg);border-bottom:1px solid var(--line);height:var(--tabh);align-items:center;}
+.tab-btn{font-family:'IBM Plex Mono';font-size:12.5px;letter-spacing:.03em;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px 0;border-bottom:2px solid transparent;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ---- Sidebar (fixed, not sticky) ---- */
+.sidebar{position:fixed;top:calc(var(--navh) + var(--tabh));left:0;width:var(--sidebar-w);height:calc(100vh - var(--navh) - var(--tabh));
+  overflow-y:auto;border-right:1px solid var(--line);padding:18px 14px;background:var(--bg);z-index:40;}
+.sidebar .sb-title{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.sidebar a{display:block;font-size:13px;color:var(--ink);padding:6px 8px;border-radius:5px;margin-bottom:2px;}
+.sidebar a:hover{background:var(--surface);}
+.sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+body.has-sidebar .content-wrap, body.has-sidebar .hero{margin-left:var(--sidebar-w);}
+body:not(.has-sidebar) .sidebar{display:none;}
+
+/* ---- Hero ---- */
+.hero{padding:38px 3vw 10px;}
+.hero .eyebrow{font-family:'IBM Plex Mono';font-size:11.5px;color:var(--accent);letter-spacing:.05em;margin-bottom:8px;}
+.hero h1{font-size:2rem;margin-bottom:10px;}
+.hero .lede{color:var(--muted);max-width:800px;font-size:15px;}
+
+.content-wrap{padding:10px 3vw 80px;}
+
+/* ---- Lesson block (2-col) ---- */
+.lesson{border-top:2px solid var(--ink);padding:34px 0;}
+.lesson-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.lesson-num{font-family:'IBM Plex Mono';color:var(--accent);font-size:14px;font-weight:600;}
+.lesson h2{font-size:1.45rem;margin:0;}
+.lesson-grid{display:grid;grid-template-columns:56% 44%;gap:34px;align-items:start;}
+.lesson-grid .prose h4, .lesson-grid .data h4{font-family:'Inter';font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:18px 0 8px;}
+.lesson-grid .prose h4:first-child, .lesson-grid .data h4:first-child{margin-top:0;}
+.case-box{background:var(--steel-soft);border-left:3px solid var(--steel);padding:12px 14px;border-radius:0 6px 6px 0;font-size:14px;margin-top:8px;}
+.case-box b{color:var(--steel);}
+@media(max-width:900px){.lesson-grid{grid-template-columns:1fr;}}
+
+/* ---- Quiz tab grid ---- */
+.quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:26px 3vw 80px;}
+.quiz-grid .qcard{border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--surface);}
+.quiz-grid .qcard .qnum{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent);}
+.quiz-grid details summary{cursor:pointer;font-weight:500;margin-top:4px;}
+.quiz-grid details p{color:var(--muted);margin:8px 0 0;font-size:13.5px;}
+@media(max-width:900px){.quiz-grid{grid-template-columns:1fr;}}
+
+/* ---- Lab tab ---- */
+.lab-wrap{display:grid;grid-template-columns:38% 62%;gap:30px;padding:26px 3vw 80px;}
+.lab-left h3{font-size:1rem;margin-top:22px;}
+.lab-left h3:first-child{margin-top:0;}
+@media(max-width:900px){.lab-wrap{grid-template-columns:1fr;}}
+
+/* ---- Cheat sheet tab ---- */
+.cheat-wrap{padding:26px 3vw 80px;}
+.cheat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.cheat-card{border:1px solid var(--line);border-radius:8px;padding:16px;background:var(--surface);}
+.cheat-card h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:8px;}
+.cheat-card ul{margin:0;padding-left:18px;font-size:13.5px;}
+.pattern-block{background:var(--accent-soft);border-radius:8px;padding:18px 20px;margin-bottom:22px;}
+.pattern-block .tag{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;}
+.pattern-block p{margin:8px 0 0;font-size:14.5px;}
+.station-card{border:1px dashed var(--steel);border-radius:8px;padding:16px;background:var(--steel-soft);}
+.station-card h4{color:var(--steel);}
+.finish-card{border:1px solid var(--accent);border-radius:8px;padding:16px;background:var(--accent-soft);margin-top:16px;}
+@media(max-width:900px){.cheat-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body class="has-sidebar">
+
+<div class="nav">
+  <div class="brand"><b>SAA-C03</b> · Module 5 · Serverless Applications</div>
+  <div class="roadmap-nav">
+    <span class="done">01 Docker/ECS</span>
+    <span class="cur">02 Serverless</span>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab-btn active" data-tab="theory">Lý thuyết</button>
+  <button class="tab-btn" data-tab="quiz">Quiz</button>
+  <button class="tab-btn" data-tab="lab">Lab</button>
+  <button class="tab-btn" data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sb-title">8 bài kỹ thuật</div>
+  <div id="sidebar-links"></div>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Domain — High-Performing 24% · Resilient 26% · Cost-Optimized 20%</p>
+  <h1 class="serif">Serverless Applications</h1>
+  <p class="lede">Thợ thời vụ Lambda chính thức ra mắt, cùng cả hệ thống loa phóng thanh (SQS/SNS/EventBridge), 1 đội trưởng dây chuyền tổng (Step Functions) và 1 cổng vào API chuyên dụng (API Gateway) — mỗi bài theo format tra cứu nhanh: khái niệm+ví dụ, lệnh kèm từ điển flag, bảng so sánh, tham số, pattern nâng cao+case thực tế, vị trí kiến trúc nhà máy nền.</p>
+</div>
+
+<div class="content-wrap">
+  <div class="tab-panel active" id="panel-theory"><div id="theory-content"></div></div>
+  <div class="tab-panel" id="panel-quiz"><div class="quiz-grid" id="quiz-content"></div></div>
+
+  <div class="tab-panel" id="panel-lab">
+    <div class="lab-wrap">
+      <div class="lab-left">
+        <h3>🧭 Bối cảnh</h3>
+        <p>Startup SaaS giao tuần này: xây API nhận đơn hàng (API Gateway + Lambda), xử lý bất đồng bộ qua SQS, thông báo đa kênh qua SNS, orchestrate xác minh nhiều bước bằng Step Functions, tự động dọn dẹp theo lịch bằng EventBridge.</p>
+        <h3>✅ Lệnh verify</h3>
+        <pre><code>API_URL=$(aws apigatewayv2 get-api --api-id $API_ID --query 'ApiEndpoint' --output text)
+curl -X POST $API_URL/prod/orders -d '{"item":"widget"}'
+# Kỳ vọng: {"message":"Order received"}
+
+aws sqs send-message --queue-url $QUEUE_URL --message-body '{"orderId":"999"}'
+aws lambda invoke --function-name process-order --payload '{}' /tmp/out.json && cat /tmp/out.json</code></pre>
+        <h3>🧹 Cleanup</h3>
+        <pre><code>aws apigatewayv2 delete-api --api-id $API_ID
+aws lambda delete-function --function-name process-order
+aws sqs delete-queue --queue-url $QUEUE_URL
+aws sqs delete-queue --queue-url $DLQ_ARN
+aws sns delete-topic --topic-arn $TOPIC_ARN
+aws stepfunctions delete-state-machine --state-machine-arn &lt;arn&gt;
+aws events remove-targets --rule nightly-cleanup --ids "1"
+aws events delete-rule --name nightly-cleanup
+aws iam delete-role --role-name lambda-exec-role
+aws iam delete-role --role-name step-functions-role</code></pre>
+        <h3>⚠️ Lưu ý dễ sai/dễ tốn phí</h3>
+        <ul style="font-size:13.5px;padding-left:18px;">
+          <li>Quên <code>lambda add-permission</code> cho API Gateway/EventBridge → lỗi AccessDenied dù IAM Role đã đúng (resource-based policy riêng của Lambda).</li>
+          <li>Visibility Timeout của SQS phải &gt;= Lambda timeout, tránh xử lý trùng message.</li>
+          <li>API Gateway HTTP API timeout cứng 29 giây.</li>
+          <li>EventBridge Scheduled Rule chạy theo giờ UTC — quy đổi giờ Việt Nam (UTC+7) khi đặt cron.</li>
+        </ul>
+      </div>
+      <div class="lab-right">
+        <h3>📜 Script đầy đủ (copy-paste được)</h3>
+        <pre><code># --- Bước 1: Lambda xử lý đơn hàng ---
+mkdir order-lambda && cd order-lambda
+cat > index.js << 'EOF'
+exports.handler = async (event) => {
+  console.log("Order received:", event.body);
+  return { statusCode: 200, body: JSON.stringify({ message: "Order received" }) };
+};
+EOF
+zip function.zip index.js
+aws iam create-role --role-name lambda-exec-role \
+  --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+aws iam attach-role-policy --role-name lambda-exec-role \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+aws lambda create-function \
+  --function-name process-order --runtime nodejs20.x \
+  --role arn:aws:iam::$ACCOUNT_ID:role/lambda-exec-role \
+  --handler index.handler --zip-file fileb://function.zip
+
+# --- Bước 2: API Gateway HTTP API ---
+API_ID=$(aws apigatewayv2 create-api --name order-api --protocol-type HTTP --query 'ApiId' --output text)
+aws lambda add-permission --function-name process-order \
+  --statement-id apigw-invoke --action lambda:InvokeFunction \
+  --principal apigateway.amazonaws.com \
+  --source-arn "arn:aws:execute-api:ap-southeast-1:$ACCOUNT_ID:$API_ID/*"
+INTEGRATION_ID=$(aws apigatewayv2 create-integration --api-id $API_ID \
+  --integration-type AWS_PROXY \
+  --integration-uri arn:aws:lambda:ap-southeast-1:$ACCOUNT_ID:function:process-order \
+  --payload-format-version 2.0 --query 'IntegrationId' --output text)
+aws apigatewayv2 create-route --api-id $API_ID \
+  --route-key "POST /orders" --target integrations/$INTEGRATION_ID
+aws apigatewayv2 create-stage --api-id $API_ID --stage-name prod --auto-deploy
+
+# --- Bước 3: SQS + DLQ ---
+DLQ_URL=$(aws sqs create-queue --queue-name order-dlq --query 'QueueUrl' --output text)
+DLQ_ARN=$(aws sqs get-queue-attributes --queue-url $DLQ_URL --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
+QUEUE_URL=$(aws sqs create-queue --queue-name order-queue \
+  --attributes "RedrivePolicy={\"deadLetterTargetArn\":\"$DLQ_ARN\",\"maxReceiveCount\":3}" \
+  --query 'QueueUrl' --output text)
+QUEUE_ARN=$(aws sqs get-queue-attributes --queue-url $QUEUE_URL --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
+aws lambda create-event-source-mapping --function-name process-order \
+  --event-source-arn $QUEUE_ARN --batch-size 5
+
+# --- Bước 4: SNS thông báo đa kênh ---
+TOPIC_ARN=$(aws sns create-topic --name order-notifications --query 'TopicArn' --output text)
+aws sns subscribe --topic-arn $TOPIC_ARN --protocol email --notification-endpoint ops@company.com
+aws sns subscribe --topic-arn $TOPIC_ARN --protocol sqs --notification-endpoint $DLQ_ARN
+aws sns publish --topic-arn $TOPIC_ARN --message "Order pipeline is live"
+
+# --- Bước 5: Step Functions orchestrate xác minh ---
+cat > statemachine.json << EOF
+{
+  "Comment": "Order verification workflow",
+  "StartAt": "VerifyOrder",
+  "States": {
+    "VerifyOrder": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:ap-southeast-1:$ACCOUNT_ID:function:process-order",
+      "Retry": [{ "ErrorEquals": ["States.TaskFailed"], "IntervalSeconds": 2, "MaxAttempts": 3, "BackoffRate": 2.0 }],
+      "End": true
+    }
+  }
+}
+EOF
+aws iam create-role --role-name step-functions-role \
+  --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"states.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+aws iam attach-role-policy --role-name step-functions-role \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+aws stepfunctions create-state-machine \
+  --name order-workflow --definition file://statemachine.json \
+  --role-arn arn:aws:iam::$ACCOUNT_ID:role/step-functions-role
+
+# --- Bước 6: EventBridge dọn dẹp theo lịch ---
+aws events put-rule --name nightly-cleanup --schedule-expression "cron(0 2 * * ? *)"
+aws lambda add-permission --function-name process-order \
+  --statement-id eventbridge-invoke --action lambda:InvokeFunction \
+  --principal events.amazonaws.com \
+  --source-arn arn:aws:events:ap-southeast-1:$ACCOUNT_ID:rule/nightly-cleanup
+aws events put-targets --rule nightly-cleanup \
+  --targets "Id"="1","Arn"="arn:aws:lambda:ap-southeast-1:$ACCOUNT_ID:function:process-order"</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-cheat">
+    <div class="cheat-wrap">
+      <div class="pattern-block">
+        <span class="tag">Pattern chuẩn cần nhớ nằm lòng</span>
+        <p>API Gateway (cổng vào, auth/throttle) → Lambda (thợ thời vụ xử lý) → SQS (đệm tải nếu bất đồng bộ) → SNS/EventBridge (thông báo/định tuyến đa đích) → Step Functions (orchestrate nhiều bước có retry/rẽ nhánh) — chọn EventBridge thay SNS khi cần lọc nội dung sâu hoặc tích hợp SaaS ngoài.</p>
+      </div>
+      <div class="cheat-grid" id="cheat-container"></div>
+      <div class="station-card">
+        <h4>🏭 Trạm mới thêm vào nhà máy nền ở section này</h4>
+        <ul>
+          <li><b>Thợ thời vụ chính thức — Lambda (5.17):</b> xác nhận đầy đủ vai trò đã có sẵn ở mục 5, không phải trạm mới nhưng chính thức "ra mắt".</li>
+          <li><b>Hộp thư đợi — SQS (5.20):</b> kiểu loa cụ thể đầu tiên hiện thực hóa mục 9.</li>
+          <li><b>Loa phát thanh — SNS (5.21):</b> kiểu loa thứ 2 ở mục 9, push tới nhiều subscriber.</li>
+          <li><b>Bảng thông báo có luật lọc — EventBridge (5.25):</b> mở rộng mục 9, lọc sâu theo nội dung + nhận tin ngoài nhà máy.</li>
+          <li><b>Đội trưởng dây chuyền tổng — Step Functions (5.23):</b> trạm mới hoàn toàn, điều phối xuyên nhiều trạm khác nhau (khác ECS/EKS chỉ trong Xưởng lắp ráp).</li>
+          <li><b>Cổng vào API chuyên dụng — API Gateway (5.27):</b> trạm mới cùng khu Sảnh phân luồng (mục 4), đứng trước Lambda thay vì EC2/container.</li>
+        </ul>
+      </div>
+      <div class="finish-card">
+        <h4>🎉 Hoàn tất Module 5 — Modern Architecture (Containers &amp; Serverless)</h4>
+        <p style="margin:0;font-size:.92rem;">Đã xong ✅ Docker Containers &amp; ECS · ✅ Serverless Applications.<br>Chuyển sang <b>Module 6: Vận hành, Bảo mật &amp; Quản trị</b> nên mở đoạn chat mới, nhớ mang theo mục "🏭 Trạm mới" của cả 2 section Module 5.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LESSONS = [
+{
+  id:"5.16", title:"Serverless Services and Event-Driven Architecture",
+  concept:`<p>Serverless không nghĩa là "không có server" — mà bạn không thấy/không quản lý server, trả tiền theo dùng thật. Event-Driven Architecture (EDA): thành phần phản ứng theo <b>sự kiện</b> thay vì gọi trực tiếp lẫn nhau. Ví dụ: Serverless như thuê taxi thay vì mua xe riêng; EDA như hệ thống chuông báo trong nhà máy.</p>
+    <ul><li><b>Producer</b>: nơi phát sinh sự kiện.</li><li><b>Event Router</b>: định tuyến (SQS/SNS/EventBridge).</li><li><b>Consumer</b>: nơi xử lý (thường Lambda).</li></ul>`,
+  pattern:`<p>Pattern nền tảng: <b>Fan-out</b> — 1 event phát 1 lần (SNS) nhưng nhiều consumer độc lập cùng nhận, không cái nào chặn cái nào.</p>
+    <div class="case-box"><b>Case thực tế:</b> TMĐT có đơn hàng mới cần đồng thời trừ kho, gửi email, ghi log, cập nhật dashboard. Gọi tuần tự sẽ bị delay nếu 1 service chậm. Chuyển EDA: phát 1 event "OrderCreated", 4 consumer độc lập xử lý song song.</div>`,
+  arch:`<p>Nguyên lý vận hành của <b>mục 9 (Hệ thống loa phóng thanh & bảng thông báo)</b> — lý do các trạm không cần đứng chờ nhau trực tiếp. Không phải trạm mới, là lý thuyết đứng sau mục 9.</p>`,
+  cmd:`(Bài khái niệm tổng quan, không có lệnh CLI riêng —
+ xem chi tiết ở các bài Lambda/SQS/SNS/EventBridge phía sau)`,
+  flags:[["EDA","Event-Driven Architecture","Kiến trúc phản ứng theo sự kiện"],["Producer","—","Nơi phát sinh sự kiện"],["Consumer","—","Nơi xử lý sự kiện"],["Decoupling","—","Tách rời các thành phần"],["Cold Start","—","Độ trễ lần đầu khởi động hàm serverless"]],
+  compare:{head:["Tiêu chí","Request/Response trực tiếp","Event-Driven Architecture"],rows:[["Liên kết","Chặt (A gọi B trực tiếp)","Lỏng (A phát event, B tự xử lý)"],["Chịu lỗi","B sập → A bị ảnh hưởng ngay","B sập → event vẫn nằm hàng đợi"],["Scale","Phải scale đồng bộ","Producer/Consumer scale độc lập"]]},
+  limits:[["—","—","Không có tham số số liệu ở bài khái niệm này"]],
+  config:null,
+  quiz:[["Serverless nghĩa là gì?","Không phải 'không có server' — AWS quản lý, bạn không thấy/không patch."],["EDA khác gọi trực tiếp ở điểm nào?","Liên kết lỏng — producer không cần biết consumer tồn tại."],["Fan-out pattern là gì?","1 event phát 1 lần, nhiều consumer độc lập cùng xử lý song song."],["Vì sao TMĐT chuyển sang EDA?","Để service chậm không làm delay các service khác."],["EDA khớp vào đâu trong nhà máy nền?","Nguyên lý vận hành của mục 9 (loa phóng thanh & bảng thông báo)."]]
+},
+{
+  id:"5.17", title:"AWS Lambda",
+  concept:`<p>Lambda chạy code theo sự kiện, không quản lý server — cấp phát tài nguyên khi có event, chạy xong biến mất, trả tiền theo số lần gọi + ms chạy. Ví dụ: <b>thợ thời vụ gọi qua app</b> — chỉ xuất hiện đúng lúc có việc.</p>
+    <ul><li><b>Trigger</b>: sự kiện kích hoạt (S3, API Gateway, SQS, EventBridge...).</li><li><b>Handler</b>: hàm chính được gọi.</li><li><b>Cold Start</b>: độ trễ lần đầu khởi tạo môi trường.</li></ul>`,
+  pattern:`<p>Ít người để ý: <b>Provisioned Concurrency</b> — giữ sẵn N instance ấm để loại bỏ cold start (khác Reserved Concurrency chỉ giới hạn số chạy tối đa).</p>
+    <div class="case-box"><b>Case thực tế:</b> Fintech có API thanh toán realtime, SLA p99 &lt;200ms nhưng cold start làm vi phạm SLA giờ thấp điểm. Bật Provisioned Concurrency=5, loại bỏ hoàn toàn cold start.</div>`,
+  arch:`<p>Chính là <b>"thợ thời vụ" đã nhắc sẵn ở mục 5</b> — cùng vị trí Xưởng lắp ráp với EC2/ECS, gọi tới làm đúng lúc có việc rồi biến mất. Không phải trạm mới — bài này là lúc thợ thời vụ "ra mắt" đầy đủ.</p>`,
+  cmd:`aws lambda create-function \\
+  --function-name my-func --runtime nodejs20.x \\
+  --role arn:aws:iam::123456789012:role/lambda-exec-role \\
+  --handler index.handler --zip-file fileb://function.zip
+aws lambda invoke --function-name my-func --payload '{"key":"value"}' response.json
+aws lambda update-function-code --function-name my-func --zip-file fileb://function.zip
+aws lambda update-function-configuration --function-name my-func --memory-size 512 --timeout 30
+aws lambda create-event-source-mapping --function-name my-func \\
+  --event-source-arn arn:aws:sqs:ap-southeast-1:123456789012:my-queue --batch-size 10
+aws lambda publish-version --function-name my-func
+aws lambda create-alias --function-name my-func --name prod --function-version 3`,
+  flags:[["--runtime","—","Ngôn ngữ/phiên bản môi trường chạy"],["--role","—","Execution Role Lambda mượn để chạy"],["--handler","—","Tên hàm entry-point"],["--zip-file fileb://","binary file","Nạp code zip từ local"],["--memory-size","—","RAM cấp cho function (CPU tỉ lệ theo RAM)"],["--timeout","—","Thời gian tối đa 1 lần chạy"],["create-event-source-mapping","—","Gắn nguồn poll (SQS/Kinesis/DynamoDB Streams)"],["--batch-size","—","Số message/record gộp 1 lần"],["publish-version","—","Đóng băng snapshot code thành version"],["create-alias","—","Tên trỏ version cụ thể"]],
+  compare:{head:["Tiêu chí","Lambda","EC2/ASG","ECS/EKS"],rows:[["Quản lý hạ tầng","Không thấy gì","Tự quản lý OS","AWS lo phần lớn (Fargate)"],["Billing","Theo lần gọi+ms","Theo giờ instance","Theo task/giờ EC2"],["Thời gian tối đa","15 phút/lần","Không giới hạn","Không giới hạn"],["Phù hợp","Việc ngắn, tải không đều","Chạy liên tục","Microservice đóng gói sẵn"]]},
+  limits:[["Timeout tối đa","15 phút (900s)","Dài hơn dùng Step Functions/ECS"],["Memory","128MB–10,240MB","CPU tỉ lệ theo memory"],["Ephemeral storage /tmp","Mặc định 512MB, tối đa 10,240MB","Tăng riêng, tính phí thêm"],["Deployment package","50MB (zip)/250MB (unzip)","Vượt thì dùng Container Image (10GB)"],["Concurrent executions","Mặc định 1,000/account/region","Xin tăng quota hoặc Reserved Concurrency riêng"]],
+  config:`template.yaml (AWS SAM):
+Resources:
+  MyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 512
+      Timeout: 30
+      Environment:
+        Variables: { TABLE_NAME: my-table }
+      Events:
+        ApiEvent: { Type: Api, Properties: { Path: /hello, Method: get } }
+→ Sửa khi: thêm biến môi trường, tăng memory/timeout, thêm trigger mới.`,
+  quiz:[["Vì sao gọi Lambda là serverless dù vẫn chạy trên server?","Người dùng không thấy/quản lý server, AWS lo hạ tầng."],["Provisioned Concurrency khác Reserved Concurrency?","Provisioned giữ sẵn instance ấm; Reserved chỉ giới hạn số chạy tối đa."],["Timeout tối đa Lambda?","15 phút (900 giây)."],["Vì sao fintech bật Provisioned Concurrency?","Loại bỏ cold start, đảm bảo SLA p99 latency."],["Lambda khớp vào đâu trong nhà máy nền?","Thợ thời vụ tại Xưởng lắp ráp (mục 5)."]]
+},
+{
+  id:"5.19", title:"Application Integration Services Overview",
+  concept:`<p>Tổng quan 3 dịch vụ kết nối chính trước khi học sâu:</p>
+    <ul><li><b>SQS</b>: hàng đợi point-to-point, 1 message/1 consumer.</li><li><b>SNS</b>: pub/sub, phát tới nhiều subscriber.</li><li><b>EventBridge</b>: event bus lọc sâu theo nội dung, tích hợp SaaS.</li></ul>
+    <p>Ví dụ: SQS = hộp thư đến chờ xử lý; SNS = loa phát thanh công cộng; EventBridge = tổng đài phân loại thư tự động.</p>`,
+  pattern:`<p>Pattern kết hợp thường gặp: <b>SNS + SQS Fan-out</b> — 1 topic phát, nhiều queue subscribe, mỗi queue phục vụ 1 team xử lý độc lập.</p>
+    <div class="case-box"><b>Case thực tế:</b> Sàn giao dịch khi khớp lệnh cần: team risk, accounting, notification mỗi team 1 SQS riêng subscribe chung 1 SNS topic "TradeMatched" — tránh 1 team lỗi ảnh hưởng team khác.</div>`,
+  arch:`<p>Bài giới thiệu tổng quan cho <b>mục 9 (loa phóng thanh & bảng thông báo)</b>, xác nhận 3 kiểu loa sẽ mô tả chi tiết ở các bài sau.</p>`,
+  cmd:`(Bài tổng quan — lệnh chi tiết ở 3 bài riêng SQS/SNS/EventBridge)`,
+  flags:[["SQS","Simple Queue Service","Hàng đợi point-to-point"],["SNS","Simple Notification Service","Pub/Sub broadcast"],["EventBridge","—","Event bus lọc theo nội dung"],["Point-to-point","—","1 message → đúng 1 consumer"],["Pub/Sub","Publish/Subscribe","1 message → nhiều subscriber"]],
+  compare:{head:["Tiêu chí","SQS","SNS","EventBridge"],rows:[["Mô hình","Point-to-point","Pub/Sub","Event bus lọc nội dung"],["Ai đọc","Consumer poll","Subscriber được đẩy","Target route theo rule"],["Tích hợp SaaS","Không","Không","Có"],["Dùng khi","Đệm tải","Broadcast đơn giản","Định tuyến phức tạp"]]},
+  limits:[["—","—","Xem chi tiết ở từng bài riêng"]],
+  config:null,
+  quiz:[["SQS khác SNS ở mô hình nào?","SQS point-to-point; SNS pub/sub 1-nhiều."],["EventBridge khác SNS ở điểm nào?","Lọc/định tuyến theo nội dung event bằng rule, tích hợp SaaS."],["SNS+SQS Fan-out giải quyết gì?","Broadcast 1 sự kiện tới nhiều team xử lý độc lập."],["Vì sao sàn giao dịch dùng nhiều SQS subscribe 1 SNS topic?","Để 1 team lỗi không ảnh hưởng queue team khác."],["Bài này khớp vào đâu trong nhà máy nền?","Giới thiệu 3 kiểu loa của mục 9."]]
+},
+{
+  id:"5.20", title:"Amazon SQS",
+  concept:`<p>Hàng đợi tin nhắn quản lý hoàn toàn — producer gửi vào queue, consumer chủ động poll ra xử lý. Đệm tải và tách rời producer/consumer. Ví dụ: <b>hộp thư đến ở quầy tiếp nhận</b>.</p>
+    <ul><li><b>Standard Queue</b>: throughput cao, at-least-once, thứ tự không đảm bảo.</li><li><b>FIFO Queue</b>: đúng thứ tự + exactly-once, throughput giới hạn hơn.</li><li><b>Visibility Timeout</b>: message ẩn khỏi consumer khác sau khi 1 consumer lấy.</li><li><b>DLQ</b>: chứa message lỗi quá N lần.</li></ul>`,
+  pattern:`<p>Pattern hay hỏi thi: <b>Visibility Timeout phải &gt;= Lambda timeout</b> khi Lambda là consumer — tránh xử lý trùng.</p>
+    <div class="case-box"><b>Case thực tế:</b> Team xử lý ảnh nhận traffic dồn dập giờ cao điểm. Đặt SQS giữa S3 event và Lambda — đệm hoàn toàn đột biến, không mất request, chỉ chậm lại chứ không sập.</div>`,
+  arch:`<p>1 kiểu loa cụ thể trong <b>mục 9 — "hộp thư đợi"</b>: nơi thợ thời vụ Lambda (mục 5) ghé lấy việc khi rảnh. Là dạng cụ thể đầu tiên hiện thực hóa mục 9.</p>`,
+  cmd:`aws sqs create-queue --queue-name my-queue
+aws sqs create-queue --queue-name my-queue.fifo --attributes FifoQueue=true
+aws sqs send-message --queue-url &lt;url&gt; --message-body "hello"
+aws sqs receive-message --queue-url &lt;url&gt; --max-number-of-messages 5
+aws sqs delete-message --queue-url &lt;url&gt; --receipt-handle &lt;handle&gt;
+aws sqs set-queue-attributes --queue-url &lt;url&gt; \\
+  --attributes VisibilityTimeout=60,RedrivePolicy='{"deadLetterTargetArn":"&lt;dlq-arn&gt;","maxReceiveCount":3}'`,
+  flags:[["--attributes FifoQueue=true","First-In-First-Out","Bật chế độ FIFO"],["--message-body","—","Nội dung message"],["--max-number-of-messages","—","Số message tối đa 1 lần poll"],["--receipt-handle","—","Mã tạm xác nhận/xóa đúng message"],["VisibilityTimeout","—","Thời gian message ẩn với consumer khác"],["RedrivePolicy","—","Quy tắc đẩy message sang DLQ"],["maxReceiveCount","—","Số lần retry tối đa trước DLQ"]],
+  compare:{head:["Tiêu chí","Standard Queue","FIFO Queue"],rows:[["Thứ tự","Không đảm bảo","Đảm bảo đúng thứ tự"],["Delivery","At-least-once","Exactly-once processing"],["Throughput","Gần như không giới hạn","Giới hạn hơn (300-3000 msg/s)"],["Tên queue","Tự do","Bắt buộc hậu tố .fifo"]]},
+  limits:[["Message retention","Mặc định 4 ngày, tối đa 14 ngày","Quá hạn message sẽ mất"],["Message size tối đa","256 KB","Lớn hơn dùng Extended Client Library"],["Visibility Timeout mặc định","30 giây","Tăng nếu consumer xử lý lâu hơn"],["Long Polling","Tối đa 20 giây/lần","Giảm request rỗng so Short Polling"]],
+  config:`DLQ Redrive Policy:
+{
+  "deadLetterTargetArn": "arn:aws:sqs:ap-southeast-1:123456789012:my-dlq",
+  "maxReceiveCount": 3
+}
+→ Sửa khi: message lỗi liên tục cần cô lập debug, consumer xử lý chậm hơn dự kiến.`,
+  quiz:[["Standard khác FIFO Queue ở điểm cốt lõi nào?","FIFO đảm bảo thứ tự+exactly-once; Standard không đảm bảo, có thể trùng."],["Vì sao Visibility Timeout phải >= Lambda timeout?","Tránh message bị đẩy lại consumer khác khi đang xử lý."],["DLQ dùng để làm gì?","Cô lập message lỗi quá N lần, tránh lặp vô hạn."],["Vì sao team ảnh đặt SQS giữa S3 event và Lambda?","Đệm traffic đột biến, tránh vượt Concurrent Execution limit."],["SQS khớp vào đâu trong nhà máy nền?","1 kiểu loa ở mục 9 — hộp thư đợi cho các trạm lấy việc khi rảnh."]]
+},
+{
+  id:"5.21", title:"Amazon SNS",
+  concept:`<p>Pub/sub — message gửi vào 1 <b>topic</b> được đẩy ngay tới mọi <b>subscriber</b> đã đăng ký, không cần chủ động hỏi như SQS. Ví dụ: <b>loa phát thanh trong nhà máy</b> — thông báo 1 lần, mọi công nhân đăng ký kênh đều nghe.</p>
+    <ul><li><b>Topic</b>: kênh phát.</li><li><b>Subscription</b>: đăng ký nhận (email, SMS, SQS, Lambda, HTTP).</li><li><b>Fan-out</b>: 1 topic, nhiều loại subscriber cùng nhận.</li></ul>`,
+  pattern:`<p>Pattern hay dùng: <b>Message Filtering</b> qua FilterPolicy — SNS tự lọc trước theo attribute, giảm tải xử lý thừa ở consumer.</p>
+    <div class="case-box"><b>Case thực tế:</b> Hệ thống vận hành gửi mọi alert qua 1 topic "SystemAlerts". Team database và network mỗi team set FilterPolicy riêng theo attribute <code>service</code> — chỉ nhận đúng phần liên quan.</div>`,
+  arch:`<p>1 kiểu loa khác trong <b>mục 9 — "loa phát thanh"</b>: khác SQS (1 người lấy), SNS phát nhiều người nghe cùng lúc. Thường đứng trước nhiều SQS theo pattern fan-out.</p>`,
+  cmd:`aws sns create-topic --name order-events
+aws sns subscribe --topic-arn &lt;topic-arn&gt; --protocol sqs --notification-endpoint &lt;queue-arn&gt;
+aws sns subscribe --topic-arn &lt;topic-arn&gt; --protocol email --notification-endpoint ops@company.com
+aws sns publish --topic-arn &lt;topic-arn&gt; --message "Order #123 created"
+aws sns set-subscription-attributes --subscription-arn &lt;sub-arn&gt; \\
+  --attribute-name FilterPolicy --attribute-value '{"eventType":["OrderCreated"]}'`,
+  flags:[["--protocol","—","Loại subscriber (sqs/email/sms/lambda/http)"],["--notification-endpoint","—","Địa chỉ/ARN đích nhận"],["--topic-arn","—","Định danh topic"],["FilterPolicy","—","Lọc message theo attribute"]],
+  compare:{head:["Tiêu chí","Amazon SNS","Amazon SQS"],rows:[["Mô hình","Push, 1-nhiều","Pull, 1 message/1 consumer"],["Lưu trữ","Không lưu lâu dài","Lưu tới khi consumer xóa (14 ngày)"],["Loại subscriber","Email/SMS/SQS/Lambda/HTTP","Chỉ consumer tự poll"]]},
+  limits:[["Message size tối đa","256 KB","Giống SQS"],["Số subscription/topic","Hàng nghìn","Đủ cho hầu hết use case"],["FIFO Topic","Có hỗ trợ (SNS FIFO)","Đảm bảo thứ tự khi kết hợp SQS FIFO"]],
+  config:`FilterPolicy khi subscribe:
+{ "eventType": ["OrderCreated", "OrderCancelled"] }
+→ Sửa khi: 1 topic chung phục vụ nhiều team, mỗi team chỉ cần 1 phần message.`,
+  quiz:[["SNS khác SQS ở mô hình nào?","SNS push nhiều subscriber cùng lúc; SQS 1 consumer poll."],["FilterPolicy giải quyết vấn đề gì?","SNS tự lọc theo attribute, giảm tải xử lý thừa."],["Loại subscriber SNS có mà SQS không?","Email, SMS, HTTP/HTTPS endpoint."],["Vì sao dùng FilterPolicy thay vì mỗi team tự lọc code?","Giảm tải xử lý thừa, mỗi team chỉ nhận đúng phần liên quan."],["SNS khớp vào đâu trong nhà máy nền?","1 kiểu loa khác ở mục 9 — loa phát thanh, thường trước nhiều SQS."]]
+},
+{
+  id:"5.23", title:"AWS Step Functions",
+  concept:`<p>Điều phối chuỗi bước gồm nhiều Lambda/service theo <b>State Machine</b> (JSON) — branching, retry tự động, chạy song song, chờ. Ví dụ: nếu Lambda là thợ thời vụ riêng lẻ, Step Functions là <b>bản quy trình sản xuất tổng</b>.</p>
+    <ul><li><b>State Machine</b>: định nghĩa toàn bộ workflow.</li><li><b>State</b>: 1 bước (Task/Choice/Parallel/Wait...).</li><li><b>Standard Workflow</b>: tới 1 năm.</li><li><b>Express Workflow</b>: tối đa 5 phút, throughput cao.</li></ul>`,
+  pattern:`<p>Pattern nâng cao: khai báo <b>Retry/Catch ngay trong state</b> — tách logic chịu lỗi khỏi logic nghiệp vụ.</p>
+    <div class="case-box"><b>Case thực tế:</b> Ngân hàng số mở tài khoản: xác minh CMND (API bên thứ 3), check blacklist, tạo tài khoản, email chào mừng. API xác minh chập chờn → khai Retry 3 lần với backoff ngay trong state, không cần deploy lại Lambda.</div>`,
+  arch:`<p><b>Trạm mới</b>: "Đội trưởng dây chuyền tổng" — khác ECS/EKS (chỉ điều phối container trong Xưởng lắp ráp), Step Functions điều phối xuyên nhiều trạm khác nhau (Lambda ở mục 5, Kho tổng ở mục 6, loa ở mục 9...) theo 1 kịch bản, tự làm lại khi 1 trạm báo lỗi.</p>`,
+  cmd:`aws stepfunctions create-state-machine \\
+  --name order-workflow --definition file://statemachine.json \\
+  --role-arn arn:aws:iam::123456789012:role/step-functions-role
+aws stepfunctions start-execution \\
+  --state-machine-arn &lt;arn&gt; --input '{"orderId":"123"}'
+aws stepfunctions describe-execution --execution-arn &lt;execution-arn&gt;
+aws stepfunctions list-executions --state-machine-arn &lt;arn&gt; --status-filter FAILED`,
+  flags:[["--definition","Amazon States Language","File JSON mô tả workflow"],["--role-arn","—","IAM Role gọi các service khác"],["start-execution","—","Bắt đầu 1 lần chạy thật"],["--status-filter","—","Lọc execution theo trạng thái"]],
+  compare:{head:["Tiêu chí","Standard Workflow","Express Workflow"],rows:[["Thời gian tối đa","1 năm","5 phút"],["Throughput","Thấp hơn","Cao (nghìn execution/s)"],["Billing","Theo state transition","Theo thời gian chạy+request"],["Dùng khi","Quy trình dài, cần audit","Xử lý event tần suất cao"]]},
+  limits:[["Standard max duration","1 năm","Phù hợp quy trình phê duyệt dài"],["Express max duration","5 phút","Không hợp workflow chờ người lâu"],["Execution history (Standard)","Lưu chi tiết từng transition","Dùng audit/debug"],["Payload giữa các state","Tối đa 256 KB","Lớn hơn nên truyền reference (S3 key)"]],
+  config:`statemachine.json:
+{
+  "Comment": "Order workflow",
+  "StartAt": "VerifyPayment",
+  "States": {
+    "VerifyPayment": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:verify-payment",
+      "Retry": [{ "ErrorEquals": ["States.TaskFailed"], "IntervalSeconds": 2, "MaxAttempts": 3, "BackoffRate": 2.0 }],
+      "Next": "ShipOrder"
+    },
+    "ShipOrder": { "Type": "Task", "Resource": "arn:aws:lambda:...:ship-order", "End": true }
+  }
+}
+→ Sửa khi: thêm bước mới, chỉnh retry policy, thêm nhánh Choice.`,
+  quiz:[["Step Functions khác ECS/EKS ở phạm vi nào?","ECS/EKS trong Xưởng lắp ráp; Step Functions xuyên nhiều trạm cả nhà máy."],["Standard khác Express Workflow?","Standard tới 1 năm, throughput thấp; Express tối đa 5 phút, throughput cao."],["Vì sao ngân hàng số dùng Retry trong state thay vì code?","Tách logic chịu lỗi khỏi nghiệp vụ, dễ chỉnh không cần deploy lại."],["Payload giữa các state giới hạn bao nhiêu?","256 KB — lớn hơn nên truyền reference."],["Step Functions khớp vào đâu trong nhà máy nền?","Trạm mới Đội trưởng dây chuyền tổng, điều phối xuyên nhiều trạm."]]
+},
+{
+  id:"5.25", title:"Amazon EventBridge",
+  concept:`<p>Event bus thế hệ mới, lọc theo nội dung bằng <b>rule pattern</b> mạnh hơn SNS, tích hợp sẵn hàng trăm nguồn (AWS, SaaS bên thứ 3, custom). Ví dụ: nếu SNS là loa phát nguyên văn, EventBridge là <b>tổng đài phân loại thư thông minh</b>.</p>
+    <ul><li><b>Event Bus</b>: kênh trung tâm (default/custom/partner).</li><li><b>Rule</b>: điều kiện lọc + target.</li><li><b>Target</b>: nơi nhận (Lambda/SQS/SNS/Step Functions...).</li><li><b>Schema Registry</b>: tự phát hiện cấu trúc event.</li></ul>`,
+  pattern:`<p>Ít người để ý: <b>Scheduled Rule</b> (cron/rate expression) thay hoàn toàn cho EC2 chạy cronjob.</p>
+    <div class="case-box"><b>Case thực tế:</b> Team vận hành cần dọn S3 mỗi đêm 2AM VÀ phản ứng ngay khi EC2 instance bị stop ngoài kế hoạch. 2 EventBridge Rule (1 theo lịch, 1 theo sự kiện gốc AWS) trỏ 2 Lambda khác nhau, không dựng thêm hạ tầng.</div>`,
+  arch:`<p>Phiên bản mở rộng của <b>mục 9 — "bảng thông báo trung tâm có luật lọc thông minh"</b>: cùng vai trò SNS/SQS nhưng đọc kỹ nội dung, tự quyết định chuyển đúng trạm, kể cả nhận tin từ ngoài nhà máy (SaaS).</p>`,
+  cmd:`aws events create-event-bus --name order-events-bus
+aws events put-rule --name high-value-orders \\
+  --event-bus-name order-events-bus \\
+  --event-pattern '{"source":["myapp.orders"],"detail":{"amount":[{"numeric":[">",1000]}]}}'
+aws events put-targets --rule high-value-orders --event-bus-name order-events-bus \\
+  --targets "Id"="1","Arn"="arn:aws:lambda:...:notify-vip"
+aws events put-events --entries '[{
+  "Source": "myapp.orders", "DetailType": "OrderCreated",
+  "Detail": "{\\"amount\\": 1500}", "EventBusName": "order-events-bus"
+}]'`,
+  flags:[["create-event-bus","—","Tạo kênh trung tâm riêng"],["--event-pattern","—","Điều kiện lọc theo nội dung"],["put-targets","—","Gắn nơi nhận khi rule khớp"],["put-events","—","Gửi custom event vào bus"],["Source/DetailType/Detail","—","3 trường bắt buộc của 1 event"]],
+  compare:{head:["Tiêu chí","Amazon SNS","Amazon EventBridge"],rows:[["Cách lọc","FilterPolicy theo attribute","Event Pattern lọc sâu JSON (numeric, prefix...)"],["Nguồn sự kiện","Chỉ publisher tự gọi API","Hàng trăm nguồn AWS+SaaS sẵn có"],["Schema","Không có registry","Có Schema Registry"]]},
+  limits:[["Event size tối đa","256 KB","Giống SNS/SQS"],["Số rule/event bus","Hàng nghìn","Đủ cho hệ thống lớn"],["Archive & Replay","Có thể lưu event để replay","Hữu ích debug/test lại sự kiện"],["Scheduled Rule","Hỗ trợ cron/rate","Thay cron job truyền thống"]],
+  config:`Event Pattern:
+{ "source": ["aws.ec2"], "detail-type": ["EC2 Instance State-change Notification"], "detail": { "state": ["stopped"] } }
+
+Scheduled Rule:
+aws events put-rule --name nightly-cleanup --schedule-expression "cron(0 2 * * ? *)"
+→ Sửa khi: thêm điều kiện lọc mới, đổi lịch chạy định kỳ.`,
+  quiz:[["EventBridge khác SNS ở khả năng lọc nào?","Lọc sâu theo nội dung JSON bằng event pattern, SNS chỉ lọc attribute đơn giản."],["Scheduled Rule thay thế cho cái gì?","EC2 chạy cronjob — biến thành serverless."],["Archive & Replay dùng để làm gì?","Lưu event để replay sau, debug/test lại sự kiện đã xảy ra."],["Vì sao team vận hành dùng 2 rule riêng?","1 theo lịch, 1 theo sự kiện AWS gốc — xử lý gọn độc lập."],["EventBridge khớp vào đâu trong nhà máy nền?","Mở rộng mục 9 — bảng thông báo có luật lọc, nhận tin ngoài nhà máy."]]
+},
+{
+  id:"5.27", title:"Amazon API Gateway",
+  concept:`<p>Cổng vào trung tâm cho API — đứng trước Lambda/backend xử lý auth, throttling, transform, cache, versioning, CORS. Ví dụ: <b>quầy lễ tân chuyên nghiệp</b> — kiểm tra thẻ, phát số thứ tự, hướng dẫn đúng phòng ban.</p>
+    <ul><li><b>REST API</b>: đầy đủ tính năng nhất, độ trễ cao hơn 1 chút.</li><li><b>HTTP API</b>: nhẹ, rẻ, nhanh — phù hợp phần lớn use case.</li><li><b>WebSocket API</b>: giao tiếp 2 chiều realtime.</li></ul>`,
+  pattern:`<p>Pattern hay hỏi thi: <b>timeout 29s cứng luôn ngắn hơn Lambda timeout (15 phút)</b> — backend lâu hơn phải chuyển sang <b>async pattern</b>.</p>
+    <div class="case-box"><b>Case thực tế:</b> TMĐT có API tạo báo cáo doanh thu mất 2-3 phút. Đổi sang: API Gateway nhận request → trigger Step Functions xử lý nền → trả ngay reportId → client poll API khác check kết quả.</div>`,
+  arch:`<p><b>Trạm mới</b>, cùng khu <b>mục 4 (Sảnh phân luồng)</b> — nhưng đứng trước <b>thợ thời vụ Lambda (mục 5)</b> thay vì EC2/container, làm thêm auth/throttling/transform mà ALB không có. 2 trạm không thay thế nhau, phục vụ 2 kiểu backend khác nhau.</p>`,
+  cmd:`aws apigatewayv2 create-api --name my-http-api --protocol-type HTTP
+aws apigatewayv2 create-integration --api-id &lt;api-id&gt; \\
+  --integration-type AWS_PROXY --integration-uri &lt;lambda-arn&gt; \\
+  --payload-format-version 2.0
+aws apigatewayv2 create-route --api-id &lt;api-id&gt; \\
+  --route-key "GET /hello" --target integrations/&lt;integration-id&gt;
+aws apigatewayv2 create-stage --api-id &lt;api-id&gt; --stage-name prod --auto-deploy
+aws apigatewayv2 create-usage-plan --name basic-plan --throttle BurstLimit=50,RateLimit=20`,
+  flags:[["--protocol-type","—","HTTP, WEBSOCKET, hoặc REST"],["AWS_PROXY","Lambda Proxy Integration","Chuyển nguyên request cho Lambda tự xử lý"],["--route-key","—","METHOD /path"],["--stage-name","—","Môi trường deploy, mỗi stage URL riêng"],["--auto-deploy","—","Tự deploy thay đổi mới nhất"],["BurstLimit/RateLimit","—","Giới hạn request tức thời/trung bình"]],
+  compare:{head:["Tiêu chí","REST API","HTTP API"],rows:[["Tính năng","Đầy đủ (API key, WAF, validation)","Tối giản, đủ dùng"],["Chi phí","Cao hơn","Thấp hơn (~70%)"],["Độ trễ","Cao hơn chút","Thấp hơn"],["Dùng khi","Kiểm soát chi tiết, WAF","Ưu tiên đơn giản, rẻ, nhanh"]]},
+  limits:[["Timeout tích hợp","Tối đa 29 giây","Backend lâu hơn bị lỗi timeout dù vẫn chạy"],["Payload tối đa","10 MB","Lớn hơn cần presigned S3 URL"],["Throttle mặc định","10,000 req/s (soft limit)","Xin tăng qua Service Quotas"],["Caching (REST)","TTL mặc định 300s","Giảm gọi backend cho response ít đổi"]],
+  config:`CORS cho HTTP API:
+aws apigatewayv2 update-api --api-id &lt;api-id&gt; \\
+  --cors-configuration AllowOrigins="*",AllowMethods="GET,POST",AllowHeaders="content-type"
+→ Sửa khi: frontend báo lỗi CORS, cần giới hạn origin cụ thể khi lên production.`,
+  quiz:[["REST API khác HTTP API ở điểm nào?","REST đầy đủ tính năng hơn nhưng đắt/chậm hơn; HTTP tối giản, rẻ, nhanh."],["Timeout tối đa API Gateway, vấn đề khi backend lâu?","29 giây — cần chuyển async pattern (job ID, poll sau)."],["Vì sao TMĐT đổi API báo cáo sang async?","Tổng hợp mất 2-3 phút, vượt xa 29s timeout cứng."],["AWS_PROXY integration nghĩa là gì?","Chuyển nguyên request cho Lambda tự xử lý."],["API Gateway khớp vào đâu trong nhà máy nền?","Trạm mới cùng khu Sảnh phân luồng (mục 4), đứng trước Lambda."]]
+}
+];
+
+function tableHTML(head, rows){
+  let h = "<table><tr>" + head.map(c=>`<th>${c}</th>`).join("") + "</tr>";
+  rows.forEach(r=>{ h += "<tr>" + r.map(c=>`<td>${c}</td>`).join("") + "</tr>"; });
+  return h + "</table>";
+}
+function flagTable(flags){
+  return tableHTML(["Flag/Lệnh","Viết tắt/nguồn gốc","Ý nghĩa"], flags);
+}
+
+const theoryEl = document.getElementById('theory-content');
+const sidebarLinks = document.getElementById('sidebar-links');
+const quizEl = document.getElementById('quiz-content');
+const cheatEl = document.getElementById('cheat-container');
+
+LESSONS.forEach(L=>{
+  const a = document.createElement('a');
+  a.href = "#lesson-"+L.id; a.textContent = L.id+" · "+L.title; a.dataset.target = "lesson-"+L.id;
+  sidebarLinks.appendChild(a);
+
+  const sec = document.createElement('div');
+  sec.className = 'lesson'; sec.id = 'lesson-'+L.id;
+  let compareHTML = L.compare ? `<h4>So sánh nhanh</h4>${tableHTML(L.compare.head, L.compare.rows)}` : '';
+  let configHTML = L.config ? `<h4>Cấu hình liên quan</h4><pre><code>${L.config}</code></pre>` : '';
+  sec.innerHTML = `
+    <div class="lesson-head"><span class="lesson-num">${L.id}</span><h2>${L.title}</h2></div>
+    <div class="lesson-grid">
+      <div class="prose">
+        <h4>Khái niệm + ví dụ</h4>${L.concept}
+        <h4>Pattern nâng cao + case thực tế</h4>${L.pattern}
+        <h4>Vị trí trong kiến trúc (nhà máy nền)</h4>${L.arch}
+      </div>
+      <div class="data">
+        <h4>Lệnh quan trọng</h4><pre><code>${L.cmd}</code></pre>
+        <h4>Từ điển flag nhanh</h4>${flagTable(L.flags)}
+        ${compareHTML}
+        <h4>Giới hạn/tham số</h4>${tableHTML(["Khái niệm/Tham số","Giá trị/Ví dụ","Ghi chú"], L.limits)}
+        ${configHTML}
+      </div>
+    </div>`;
+  theoryEl.appendChild(sec);
+
+  L.quiz.forEach((q,i)=>{
+    const card = document.createElement('div'); card.className = 'qcard';
+    card.innerHTML = `<div class="qnum">${L.id}.q${i+1}</div><details><summary>${q[0]}</summary><p>${q[1]}</p></details>`;
+    quizEl.appendChild(card);
+  });
+
+  const cc = document.createElement('div'); cc.className = 'cheat-card';
+  cc.innerHTML = `<h4>${L.id} ${L.title}</h4><ul><li>${L.compare ? L.compare.rows.map(r=>r[0]).join(' vs ') : 'Xem chi tiết ở tab Lý thuyết'}</li></ul>`;
+  cheatEl.appendChild(cc);
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    const showSidebar = (btn.dataset.tab === 'theory' || btn.dataset.tab === 'quiz');
+    document.body.classList.toggle('has-sidebar', showSidebar);
+  });
+});
+
+const links = Array.from(document.querySelectorAll('#sidebar-links a'));
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      links.forEach(l=>l.classList.remove('active'));
+      const match = links.find(l=>l.dataset.target === entry.target.id);
+      if(match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: "-20% 0px -70% 0px" });
+document.querySelectorAll('.lesson').forEach(sec=>observer.observe(sec));
+
+links.forEach(l=>{
+  l.addEventListener('click', (e)=>{
+    e.preventDefault();
+    document.getElementById(l.dataset.target).scrollIntoView({behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Bản đồ Nhà máy Nền — SAA-C03 Hoàn tất</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0D1B2A; --grid:#96BEDC; --paper:#0D1B2A;
+    --cyan:#4FB3C9; --cyan-line:#1E4E5C;
+    --amber:#E8A33D; --amber-line:#7A5218;
+    --text:#E7EEF3; --sub:#8CA6B8;
+    --head:'Space Grotesk',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--navy); color:var(--text); font-family:var(--mono);
+    background-image:
+      linear-gradient(rgba(150,190,220,.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(150,190,220,.09) 1px, transparent 1px);
+    background-size:28px 28px;
+    padding:3rem 3vw 5rem;
+    overflow-x:hidden;
+  }
+  .sheet{width:100%;margin:0 auto;position:relative;}
+  .rivet{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--grid);opacity:.35;}
+  .r-tl{top:-14px;left:-14px;} .r-tr{top:-14px;right:-14px;}
+  .r-bl{bottom:-14px;left:-14px;} .r-br{bottom:-14px;right:-14px;}
+
+  .title-block{display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2px solid var(--grid);padding-bottom:.8rem;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem;}
+  .title-block h1{font-family:var(--head);font-weight:700;font-size:1.5rem;margin:0;color:var(--text);}
+  .title-block .sub{font-family:var(--mono);font-size:.78rem;color:var(--sub);margin-top:.2rem;}
+  .title-block .meta{font-family:var(--mono);font-size:.82rem;color:var(--amber);text-align:right;}
+  .title-block .meta small{display:block;color:var(--sub);font-size:.7rem;margin-top:.2rem;}
+
+  .legend{display:flex;gap:1.6rem;margin:1rem 0 1.6rem;font-size:.78rem;font-family:var(--mono);flex-wrap:wrap;}
+  .legend .item{display:flex;align-items:center;gap:.5rem;}
+  .swatch{width:16px;height:16px;border-radius:3px;flex-shrink:0;}
+  .sw-cyan{background:var(--cyan);border:1.5px solid var(--cyan-line);}
+  .sw-amber{background:var(--amber);border:1.5px solid var(--amber-line);}
+
+  .diagram-wrap{border:1px solid rgba(150,190,220,.2);border-radius:4px;padding:1rem;background:rgba(255,255,255,.01);}
+  .diagram-wrap svg{width:100%;height:auto;display:block;}
+  svg text{font-family:var(--mono);}
+  .lbl-head{font-family:var(--head);font-weight:600;}
+
+  .station-list{margin-top:1.6rem;border:1px dashed var(--amber-line);border-radius:6px;padding:1.2rem 1.4rem;background:rgba(232,163,61,.05);}
+  .station-list h3{font-family:var(--head);color:var(--amber);font-size:1rem;margin:0 0 .8rem;}
+  .station-list ul{margin:0;padding-left:1.2rem;font-size:.85rem;line-height:1.75;color:var(--text);}
+  .station-list li b{color:var(--amber);}
+
+  .footnote{margin-top:1.2rem;font-size:.75rem;color:var(--sub);text-align:center;font-family:var(--mono);}
+
+  @media(max-width:700px){
+    .title-block .meta{text-align:left;}
+    svg{width:100%;height:auto;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="rivet r-tl"></div><div class="rivet r-tr"></div>
+  <div class="rivet r-bl"></div><div class="rivet r-br"></div>
+
+  <div class="title-block">
+    <div>
+      <h1>🏭 Bản đồ Nhà máy Nền</h1>
+      <div class="sub">AWS Certified Solutions Architect – Associate (SAA-C03)</div>
+    </div>
+    <div class="meta">Module 7 hoàn tất — Toàn khóa Module 1→7
+      <small>Cyan = nền có từ Module 1-6 · Amber = mới thêm ở Module 7</small>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="swatch sw-cyan"></span> Trạm/thành phần nền có từ trước (Module 1–6)</div>
+    <div class="item"><span class="swatch sw-amber"></span> Trạm/nhánh mới thêm ở Module 7</div>
+  </div>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 920 1780" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#4FB3C9"/>
+        </marker>
+        <marker id="arrow-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#E8A33D"/>
+        </marker>
+      </defs>
+
+      <!-- Khách hàng -->
+      <rect x="380" y="10" width="160" height="44" rx="6" fill="none" stroke="#8CA6B8" stroke-width="1.5"/>
+      <text x="460" y="37" text-anchor="middle" fill="#E7EEF3" font-size="13">👤 Khách hàng gõ web</text>
+      <line x1="460" y1="54" x2="460" y2="76" stroke="#4FB3C9" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+
+      <!-- Route 53 -->
+      <rect x="360" y="78" width="200" height="46" rx="6" fill="#4FB3C9" fill-opacity="0.12" stroke="#1E4E5C" stroke-width="1.5"/>
+      <text x="460" y="98" text-anchor="middle" fill="#4FB3C9" font-size="12" class="lbl-head">Route 53 (DNS)</text>
+      <text x="460" y="114" text-anchor="middle" fill="#8CA6B8" font-size="9.5">Trạm bảo vệ cổng — tra sổ địa chỉ</text>
+      <line x1="460" y1="124" x2="460" y2="146" stroke="#4FB3C9" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+
+      <!-- CloudFront -->
+      <rect x="330" y="148" width="260" height="46" rx="6" fill="#4FB3C9" fill-opacity="0.12" stroke="#1E4E5C" stroke-width="1.5"/>
+      <text x="460" y="168" text-anchor="middle" fill="#4FB3C9" font-size="12" class="lbl-head">CloudFront (CDN)</text>
+      <text x="460" y="184" text-anchor="middle" fill="#8CA6B8" font-size="9.5">Kho hàng gần cổng — WAF/Shield phủ tại đây</text>
+      <line x1="460" y1="194" x2="460" y2="216" stroke="#4FB3C9" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+
+      <!-- VPC boundary -->
+      <rect x="60" y="218" width="800" height="640" rx="14" fill="none" stroke="#96BEDC" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <text x="80" y="242" fill="#96BEDC" font-size="11" class="lbl-head">Khuôn viên có tường rào — VPC (SG + NACL)</text>
+
+      <!-- ALB/NLB -->
+      <rect x="330" y="256" width="260" height="46" rx="6" fill="#4FB3C9" fill-opacity="0.12" stroke="#1E4E5C" stroke-width="1.5"/>
+      <text x="460" y="276" text-anchor="middle" fill="#4FB3C9" font-size="12" class="lbl-head">ALB / NLB</text>
+      <text x="460" y="292" text-anchor="middle" fill="#8CA6B8" font-size="9.5">Sảnh phân luồng, khu công cộng (subnet public)</text>
+
+      <!-- Amplify/AppSync amber branch -->
+      <rect x="630" y="256" width="200" height="46" rx="6" fill="#E8A33D" fill-opacity="0.12" stroke="#7A5218" stroke-width="1.5"/>
+      <text x="730" y="273" text-anchor="middle" fill="#E8A33D" font-size="11" class="lbl-head">Amplify + AppSync</text>
+      <text x="730" y="289" text-anchor="middle" fill="#8CA6B8" font-size="8.5">Quầy tiếp tân nhanh web/mobile</text>
+      <line x1="630" y1="279" x2="592" y2="279" stroke="#E8A33D" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+
+      <line x1="460" y1="302" x2="460" y2="324" stroke="#4FB3C9" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+
+      <!-- EC2 ASG + Lambda -->
+      <rect x="280" y="326" width="360" height="52" rx="6" fill="#4FB3C9" fill-opacity="0.12" stroke="#1E4E5C" stroke-width="1.5"/>
+      <text x="460" y="348" text-anchor="middle" fill="#4FB3C9" font-size="12" class="lbl-head">Xưởng lắp ráp — EC2 trong ASG + Lambda</text>
+      <text x="460" y="364" text-anchor="middle" fill="#8CA6B8" font-size="9.5">Khu riêng tư (subnet private) — MGN đưa server cũ vào đây</text>
+
+      <!-- License Manager tag (amber, small, overlay on EC2) -->
+      <rect x="90" y="330" width="150" height="42" rx="6" fill="#E8A33D" fill-opacity="0.1" stroke="#7A5218" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <text x="165" y="348" text-anchor="middle" fill="#E8A33D" font-size="9.5" class="lbl-head">License Manager</text>
+      <text x="165" y="362" text-anchor="middle" fill="#8CA6B8" font-size="8">Sổ theo dõi giấy phép</text>
+      <line x1="240" y1="352" x2="278" y2="352" stroke="#E8A33D" stroke-width="1.3" marker-end="url(#arrow-amber)"/>
+
+      <!-- AI/ML services amber branch -->
+      <rect x="650" y="326" width="180" height="52" rx="6" fill="#E8A33D" fill-opacity="0.12" stroke="#7A5218" stroke-width="1.5"/>
+      <text x="740" y="346" text-anchor="middle" fill="#E8A33D" font-size="10.5" class="lbl-head">Rekognition/Comprehend/</text>
+      <text x="740" y="359" text-anchor="middle" fill="#E8A33D" font-size="10.5" class="lbl-head">Textract/SageMaker...</text>
+      <text x="740" y="373" text-anchor="middle" fill="#8CA6B8" font-size="8">Phòng chuyên gia thuê ngoài</text>
+      <line x1="650" y1="352" x2="642" y2="352" stroke="#E8A33D" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+
+      <line x1="460" y1="378" x2="460" y2="400" stroke="#4FB3C9" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+
+      <!-- ECS/EKS -->
+      <rect x="330" y="402" width="260" height="40" rx="6" fill="#4FB3C9" fill-opacity="0.12" stroke="#1E4E5C" stroke-width="1.5"/>
+      <text x="460" y="426" text-anchor="middle" fill="#4FB3C9" font-size="11.5" class="lbl-head">ECS / EKS / ECR (container)</text>
+
+      <line x1="460" y1="442" x2="460" y2="464" stroke="#4FB3C9" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+
+      <!-- RDS/Aurora + ElastiCache -->
+      <rect x="300" y="466" width="320" height="52" rx="6" fill="#4FB3C9" fill-opacity="0.12" stroke="#1E4E5C" stroke-width="1.5"/>
+      <text x="460" y="488" text-anchor="middle" fill="#4FB3C9" font-size="12" class="lbl-head">Kho tổng — RDS/Aurora + ElastiCache</text>
+      <text x="460" y="504" text-anchor="middle" fill="#8CA6B8" font-size="9.5">Khu khóa kỹ nhất trong VPC</text>
+
+      <!-- DMS amber arrow feeding RDS -->
+      <rect x="90" y="470" width="170" height="46" rx="6" fill="#E8A33D" fill-opacity="0.12" stroke="#7A5218" stroke-width="1.5"/>
+      <text x="175" y="490" text-anchor="middle" fill="#E8A33D" font-size="10.5" class="lbl-head">AWS DMS</text>
+      <text x="175" y="505" text-anchor="middle" fill="#8CA6B8" font-size="8.5">Đội bốc dỡ tạm thời</text>
+      <line x1="260" y1="493" x2="298" y2="493" stroke="#E8A33D" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+
+      <!-- Bastion/NAT small -->
+      <rect x="80" y="580" width="150" height="60" rx="6" fill="#4FB3C9" fill-opacity="0.08" stroke="#1E4E5C" stroke-width="1.2"/>
+      <text x="155" y="602" text-anchor="middle" fill="#4FB3C9" font-size="10" class="lbl-head">Bastion Host</text>
+      <text x="155" y="618" text-anchor="middle" fill="#4FB3C9" font-size="10" class="lbl-head">+ NAT Gateway</text>
+      <text x="155" y="632" text-anchor="middle" fill="#8CA6B8" font-size="8">Cổng ra/vào có kiểm soát</text>
+
+      <!-- Security overlay band inside VPC -->
+      <rect x="80" y="660" width="760" height="60" rx="6" fill="none" stroke="#96BEDC" stroke-width="1.2" stroke-dasharray="4 4"/>
+      <text x="460" y="683" text-anchor="middle" fill="#96BEDC" font-size="11" class="lbl-head">Lớp thẻ ra vào + camera an ninh — IAM · KMS · GuardDuty · WAF · Shield · Cognito · ACM</text>
+      <text x="460" y="700" text-anchor="middle" fill="#8CA6B8" font-size="9">Phủ lên TẤT CẢ các trạm trong nhà máy, không phải 1 trạm riêng</text>
+
+      <!-- Message bus band -->
+      <rect x="80" y="740" width="760" height="60" rx="6" fill="none" stroke="#96BEDC" stroke-width="1.2" stroke-dasharray="4 4"/>
+      <text x="460" y="763" text-anchor="middle" fill="#96BEDC" font-size="11" class="lbl-head">Loa phóng thanh &amp; bảng thông báo — SQS · SNS · EventBridge · Step Functions</text>
+      <text x="460" y="780" text-anchor="middle" fill="#8CA6B8" font-size="9">Các trạm nhắn tin/báo hiệu cho nhau, không cần đứng chờ trực tiếp</text>
+
+      <!-- Migration Hub / Discovery / 7Rs - left side outside VPC -->
+      <rect x="60" y="880" width="280" height="90" rx="8" fill="#E8A33D" fill-opacity="0.12" stroke="#7A5218" stroke-width="1.5"/>
+      <text x="200" y="905" text-anchor="middle" fill="#E8A33D" font-size="12" class="lbl-head">Migration Hub + Discovery</text>
+      <text x="200" y="922" text-anchor="middle" fill="#E8A33D" font-size="12" class="lbl-head">+ Strategy Recommendations (7R)</text>
+      <text x="200" y="940" text-anchor="middle" fill="#8CA6B8" font-size="9">Phòng kế hoạch mở rộng — quan sát</text>
+      <text x="200" y="954" text-anchor="middle" fill="#8CA6B8" font-size="9">toàn bộ bản đồ, không nằm trong luồng request</text>
+      <line x1="340" y1="925" x2="440" y2="700" stroke="#E8A33D" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arrow-amber)"/>
+
+      <!-- S3 outside VPC -->
+      <rect x="640" y="880" width="220" height="70" rx="8" fill="#4FB3C9" fill-opacity="0.12" stroke="#1E4E5C" stroke-width="1.5"/>
+      <text x="750" y="906" text-anchor="middle" fill="#4FB3C9" font-size="12" class="lbl-head">Kho hàng tĩnh — S3</text>
+      <text x="750" y="922" text-anchor="middle" fill="#8CA6B8" font-size="9">Ngoài tường khuôn viên, không cần VPC</text>
+      <text x="750" y="938" text-anchor="middle" fill="#8CA6B8" font-size="9">(+ EFS/FSx tương tự)</text>
+
+      <!-- DataSync amber -->
+      <rect x="600" y="990" width="180" height="50" rx="6" fill="#E8A33D" fill-opacity="0.12" stroke="#7A5218" stroke-width="1.5"/>
+      <text x="690" y="1010" text-anchor="middle" fill="#E8A33D" font-size="10.5" class="lbl-head">AWS DataSync</text>
+      <text x="690" y="1025" text-anchor="middle" fill="#8CA6B8" font-size="8.5">Băng chuyền định kỳ</text>
+      <line x1="690" y1="990" x2="720" y2="952" stroke="#E8A33D" stroke-width="1.3" marker-end="url(#arrow-amber)"/>
+
+      <!-- Snow Family amber -->
+      <rect x="800" y="990" width="180" height="50" rx="6" fill="#E8A33D" fill-opacity="0.12" stroke="#7A5218" stroke-width="1.5" transform="translate(-140,0)"/>
+      <text x="800" y="1010" text-anchor="middle" fill="#E8A33D" font-size="10.5" class="lbl-head">Snow Family</text>
+      <text x="800" y="1025" text-anchor="middle" fill="#8CA6B8" font-size="8.5">Cửa nhận hàng vật lý</text>
+      <line x1="800" y1="990" x2="780" y2="952" stroke="#E8A33D" stroke-width="1.3" marker-end="url(#arrow-amber)"/>
+
+      <!-- MGN amber into EC2 -->
+      <rect x="60" y="990" width="280" height="50" rx="6" fill="#E8A33D" fill-opacity="0.12" stroke="#7A5218" stroke-width="1.5"/>
+      <text x="200" y="1010" text-anchor="middle" fill="#E8A33D" font-size="10.5" class="lbl-head">AWS MGN (Application Migration)</text>
+      <text x="200" y="1025" text-anchor="middle" fill="#8CA6B8" font-size="8.5">Đội dựng nhà y hệt bản gốc</text>
+      <line x1="200" y1="990" x2="330" y2="378" stroke="#E8A33D" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arrow-amber)"/>
+
+      <!-- Device Farm amber, standalone QA -->
+      <rect x="370" y="1060" width="180" height="60" rx="8" fill="#E8A33D" fill-opacity="0.1" stroke="#7A5218" stroke-width="1.3" stroke-dasharray="3 3"/>
+      <text x="460" y="1084" text-anchor="middle" fill="#E8A33D" font-size="10.5" class="lbl-head">AWS Device Farm</text>
+      <text x="460" y="1100" text-anchor="middle" fill="#8CA6B8" font-size="8.5">Phòng QA — ngoài luồng production</text>
+
+      <!-- Finance overlay band (amber, bottom) -->
+      <rect x="60" y="1150" width="800" height="90" rx="8" fill="#E8A33D" fill-opacity="0.08" stroke="#7A5218" stroke-width="1.3" stroke-dasharray="4 4"/>
+      <text x="460" y="1178" text-anchor="middle" fill="#E8A33D" font-size="12" class="lbl-head">Phòng kế toán trung tâm + kỹ thuật</text>
+      <text x="460" y="1197" text-anchor="middle" fill="#8CA6B8" font-size="9.5">Compute Optimizer · AWS Budgets · Cost Explorer · CUR · Cost Allocation Tags</text>
+      <text x="460" y="1214" text-anchor="middle" fill="#8CA6B8" font-size="9">Lớp phủ tài chính/hiệu suất áp lên TẤT CẢ các trạm phía trên</text>
+
+      <!-- Bottom summary connectors -->
+      <line x1="200" y1="970" x2="200" y2="990" stroke="#E8A33D" stroke-width="1.3" marker-end="url(#arrow-amber)"/>
+
+    </svg>
+  </div>
+
+  <div class="station-list">
+    <h3>🏭 Trạm mới thêm vào nhà máy nền ở Module 7 (section cuối cùng)</h3>
+    <ul>
+      <li><b>Phòng kế hoạch mở rộng</b> — Migration Hub + Application Discovery Service + Strategy Recommendations (7 Rs), đứng tách biệt quan sát toàn bộ bản đồ.</li>
+      <li><b>Đội bốc dỡ hàng chuyên trách tạm thời</b> — AWS DMS, giữa database cũ và Kho tổng RDS/Aurora.</li>
+      <li><b>Đội dựng nhà y hệt bản gốc</b> — AWS MGN, đưa nguyên khối server cũ vào Xưởng lắp ráp EC2.</li>
+      <li><b>Băng chuyền chạy định kỳ</b> — AWS DataSync, nối kho cũ-mới quanh khu Kho hàng tĩnh S3/EFS/FSx.</li>
+      <li><b>Cửa nhận hàng hóa vật lý</b> — AWS Snow Family, cổng riêng ngoài network layer thông thường.</li>
+      <li><b>Quầy tiếp tân nhanh cho web/mobile</b> — Amplify + AppSync, song song ALB/API Gateway.</li>
+      <li><b>Phòng QA kiểm định trước khi xuất xưởng</b> — AWS Device Farm, ngoài luồng production.</li>
+      <li><b>Phòng ban chuyên gia thuê ngoài</b> — Rekognition, Comprehend, Transcribe, Polly, Translate, Lex, Textract, SageMaker.</li>
+      <li><b>Sổ theo dõi giấy phép thiết bị</b> — AWS License Manager, lớp phủ toàn Xưởng lắp ráp EC2.</li>
+      <li><b>Phòng kế toán trung tâm + kỹ thuật</b> — Compute Optimizer, AWS Budgets, Cost Explorer, CUR, Cost Allocation Tags.</li>
+    </ul>
+  </div>
+
+  <div class="footnote">Bản đồ tổng — dùng để ôn thi cuối cùng trước khi thi thật · SAA-C03 Module 1 → 7 hoàn tất</div>
+</div>
+</body>
+</html>

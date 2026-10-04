@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELB & Auto Scaling · SAA-C03</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#FFFFFF;
+  --ink:#1A1A1A;
+  --muted:#6B6B6B;
+  --line:#E7E5E0;
+  --accent:#D9720B;
+  --accent-soft:#FDF1E4;
+  --surface:#FAF9F7;
+  --navh:53px;
+  --tabh:49px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;width:100%;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+.serif{font-family:'Source Serif 4',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+
+/* ---- Top nav ---- */
+.nav{position:sticky;top:0;z-index:50;height:var(--navh);display:flex;align-items:center;justify-content:space-between;
+  padding:0 4vw;background:rgba(255,255,255,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.nav .brand{font-family:'IBM Plex Mono';font-size:12.5px;letter-spacing:.06em;color:var(--muted);}
+.nav .brand b{color:var(--ink);}
+.roadmap-nav{display:flex;gap:18px;font-family:'IBM Plex Mono';font-size:11.5px;color:var(--muted);}
+.roadmap-nav .cur{color:var(--accent);font-weight:600;}
+.roadmap-nav .done{color:#7A8A6F;}
+
+/* ---- Tabs ---- */
+.tabbar{position:sticky;top:var(--navh);z-index:49;height:var(--tabh);display:flex;align-items:center;gap:28px;padding:0 4vw;
+  background:#fff;border-bottom:1px solid var(--line);}
+.tab-btn{font-family:'IBM Plex Mono';font-size:13px;padding:16px 0;background:none;border:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;letter-spacing:.02em;}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ---- Hero ---- */
+.hero{padding:4vw 4vw 3vw;border-bottom:1px solid var(--line);transition:padding-left .1s;}
+body.has-sidebar .hero{padding-left:calc(230px + 4vw);}
+.eyebrow{font-family:'IBM Plex Mono';font-size:12px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin:0 0 16px;}
+.hero h1{font-family:'Source Serif 4';font-weight:600;font-size:clamp(30px,4.4vw,52px);line-height:1.08;margin:0 0 18px;max-width:26ch;}
+.hero p.lede{font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:#3C3C3C;max-width:70ch;margin:0;}
+
+/* ---- Layout w/ sidebar (fixed) ---- */
+.layout{position:relative;width:100%;}
+.sidebar{position:fixed;top:calc(var(--navh) + var(--tabh));left:0;width:230px;
+  height:calc(100vh - var(--navh) - var(--tabh));overflow-y:auto;
+  border-right:1px solid var(--line);padding:32px 20px 40px;background:#fff;z-index:20;}
+.sidebar .stitle{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 14px 12px;}
+.sidebar a{display:block;font-family:'IBM Plex Mono';font-size:12.5px;padding:8px 12px;color:var(--muted);border-left:2px solid transparent;line-height:1.5;}
+.sidebar a:hover{color:var(--ink);}
+.sidebar a.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-soft);font-weight:600;}
+.sidebar a .t{display:block;font-family:'Inter';font-size:12px;color:inherit;opacity:.85;margin-top:1px;}
+
+.main{margin-left:230px;padding:0 4vw;min-width:0;}
+
+/* ---- Lesson block: 2-col content grid ---- */
+.lesson-block{padding:5vw 0 4.5vw;border-bottom:1px solid var(--line);scroll-margin-top:calc(var(--navh) + var(--tabh) + 20px);}
+.lesson-block:first-child{padding-top:3vw;}
+.lesson-tag{font-family:'IBM Plex Mono';font-size:12px;color:var(--accent);margin:0 0 8px;}
+.lesson-block h2{font-family:'Source Serif 4';font-weight:600;font-size:clamp(22px,2.2vw,30px);line-height:1.25;margin:0 0 28px;max-width:38ch;}
+
+.lgrid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:60px;align-items:start;}
+.lgrid .prose h3{font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:26px 0 8px;}
+.lgrid .prose h3:first-child{margin-top:0;}
+.lgrid .prose p{font-size:16px;line-height:1.8;color:#262626;margin:0 0 6px;max-width:56ch;}
+.role-box{border-left:3px solid var(--accent);background:var(--accent-soft);padding:16px 20px;border-radius:0 6px 6px 0;margin:8px 0 4px;}
+.role-box p{font-size:15px;max-width:none !important;}
+.reality-box{border-left:3px solid #7A8A6F;background:#F1F4EE;padding:16px 20px;border-radius:0 6px 6px 0;margin:8px 0 4px;}
+.reality-box p{font-size:15px;max-width:none !important;}
+.reality-box ul{margin:4px 0 0;padding-left:18px;font-size:15px;line-height:1.8;}
+
+.aside{position:static;}
+.aside h3{font-family:'IBM Plex Mono';font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 8px;}
+.aside table{width:100%;border-collapse:collapse;margin:0 0 22px;font-size:13.5px;}
+.aside th,.aside td{border-bottom:1px solid var(--line);padding:8px 4px;text-align:left;}
+.aside th{font-family:'IBM Plex Mono';font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:500;}
+.aside pre{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px;overflow-x:auto;font-size:12.5px;line-height:1.65;margin:0 0 18px;}
+.limit-line{font-size:13.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px;}
+.limit-line b{color:var(--ink);}
+
+/* ---- Quiz: 2-col grid ---- */
+.quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 48px;}
+.q-item{padding:16px 0;border-top:1px solid var(--line);break-inside:avoid;}
+.q-item p.qtext{font-size:15px;font-weight:500;margin:0 0 10px;line-height:1.5;}
+.q-answer{font-size:13.5px;color:var(--accent);cursor:pointer;display:inline-block;font-family:'IBM Plex Mono';}
+.q-answer-text{display:none;font-size:14px;color:#2E5F2E;margin-top:8px;padding:10px 14px;background:#F1F4EE;border-radius:6px;}
+.q-answer-text.show{display:block;}
+
+/* ---- Lab: 2-col ---- */
+.lab-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:60px;align-items:start;padding:3vw 0 5vw;}
+.lab-grid pre{position:sticky;top:calc(var(--navh) + var(--tabh) + 24px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:22px 26px;overflow-x:auto;font-size:13px;line-height:1.75;max-height:calc(100vh - var(--navh) - var(--tabh) - 60px);overflow-y:auto;}
+.lab-info h2{font-family:'Source Serif 4';font-weight:600;font-size:26px;margin:0 0 14px;}
+.context-line{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:24px;font-style:italic;}
+.lab-info .verify,.lab-info .cleanup{font-size:14.5px;margin:10px 0;line-height:1.6;}
+.lab-info .verify{color:#2E5F2E;}
+.lab-info .cleanup{color:var(--accent);}
+.warn-line{border-top:1px solid var(--line);margin-top:20px;padding-top:16px;font-size:14.5px;color:#8A2E2E;line-height:1.6;}
+
+/* ---- Cheat sheet: card grid ---- */
+.cheat-wrap{padding:4vw 0 6vw;}
+.cheat-wrap h2{font-family:'Source Serif 4';font-weight:600;font-size:28px;margin:0 0 26px;}
+.cheat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:30px;}
+.cheat-card{background:#fff;padding:20px 22px;}
+.cheat-card .k{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.cheat-card .v{font-family:'IBM Plex Mono';font-size:13.5px;color:var(--ink);margin-bottom:8px;}
+.cheat-card .note{font-size:13.5px;color:var(--muted);line-height:1.6;}
+.pattern-line{font-family:'Source Serif 4';font-size:19px;line-height:1.7;padding:28px 32px;background:var(--accent-soft);border-radius:8px;border-left:3px solid var(--accent);max-width:80ch;}
+
+@media (max-width:900px){
+  body.has-sidebar .hero{padding-left:4vw;}
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .lgrid,.lab-grid{grid-template-columns:1fr;gap:24px;}
+  .lab-grid pre{position:static;max-height:none;}
+  .quiz-grid{grid-template-columns:1fr;}
+  .cheat-cards{grid-template-columns:1fr;}
+  .roadmap-nav{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="brand"><b>SAA-C03</b> · Module 2 · ELB &amp; Auto Scaling</div>
+  <div class="roadmap-nav">
+    <span class="done">01 IAM</span>
+    <span class="done">02a EC2·P1</span>
+    <span class="done">02b EC2·P2</span>
+    <span class="cur">03 ELB/ASG</span>
+    <span>04 Org</span>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab-btn active" data-tab="theory">Lý thuyết</button>
+  <button class="tab-btn" data-tab="quiz">Quiz</button>
+  <button class="tab-btn" data-tab="lab">Lab</button>
+  <button class="tab-btn" data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Domain — Resilient 26% · High-Performing 24%</p>
+  <h1>Elastic Load Balancing &amp; Auto Scaling</h1>
+  <p class="lede">Khi hệ thống phải chịu tải thật và không được phép sập: ai phân phối traffic, ai tự thêm/bớt server. Mỗi bài theo format tra cứu nhanh: khái niệm+ví dụ, lệnh kèm từ điển flag, bảng so sánh, bảng tham số, pattern nâng cao+case thực tế, vị trí trong kiến trúc.</p>
+</div>
+
+<div class="tab-panel active" id="panel-theory">
+  <div class="layout">
+    <div class="sidebar">
+      <p class="stitle">9 bài trong section</p>
+      <div id="theoryToc"></div>
+    </div>
+    <div class="main" id="theoryArticle"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-quiz">
+  <div class="layout">
+    <div class="sidebar">
+      <p class="stitle">Nhảy nhanh</p>
+      <div id="quizToc"></div>
+    </div>
+    <div class="main" id="quizArticle"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-lab">
+  <div style="padding:0 4vw;" id="labArticle"></div>
+</div>
+
+<div class="tab-panel" id="panel-cheat">
+  <div style="padding:0 4vw;" id="cheatArticle"></div>
+</div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    document.body.classList.toggle('has-sidebar', btn.dataset.tab==='theory' || btn.dataset.tab==='quiz');
+    window.scrollTo({top:0,behavior:'instant'});
+  });
+});
+document.body.classList.add('has-sidebar');
+
+const lessons = [
+{code:"2.45", title:"Scaling Up vs Scaling Out",
+ concept:"Scale Up (vertical) = nâng cấp instance mạnh hơn. Scale Out (horizontal) = thêm nhiều instance cùng loại chạy song song. Giống quán ăn đông khách: Scale Up là xây bếp lớn hơn cho 1 đầu bếp giỏi hơn (có trần công suất), Scale Out là thuê thêm nhiều đầu bếp làm cùng lúc (gần như không giới hạn).",
+ cmd:`# Không có lệnh riêng — đây là quyết định kiến trúc trước khi cấu hình ASG/ELB`,
+ flagTable:null,
+ compareCols:["","Scale Up","Scale Out"],
+ compareRows:[["Cách làm","Đổi instance lớn hơn","Thêm instance cùng loại"],["Downtime","Có (stop/resize)","Không (nếu stateless)"],["Giới hạn","Có trần","Gần như không giới hạn"]],
+ paramTable:[["Điều kiện Scale Out","App phải stateless","Session/state lưu ngoài instance"]],
+ advCmd:`aws ec2 modify-instance-attribute --instance-id i-xxxx --instance-type t3.xlarge
+<span style="color:#6B6B6B"># resize instance — CẦN stop trước, không thể đổi type khi đang running</span>`,
+ advReality:"TMĐT/sàn giao dịch thiết kế app tier stateless ngay từ đầu (session ở Redis/DynamoDB) để scale out tự do qua ASG, đáp ứng traffic tăng vọt dịp khuyến mãi mà không cần downtime — startup giai đoạn đầu hay scale up database vì đơn giản nhưng nhanh chóng chạm trần.",
+ config:null,
+ role:"Scale Up là <b>xây thêm 1 tầng cho cùng 1 dây chuyền</b>, Scale Out là <b>dựng thêm dây chuyền song song</b>. Mọi kiến trúc chịu tải cao đều ưu tiên Scale Out ở app tier, Scale Up chỉ dùng cho tầng khó chia nhỏ (vd primary database).",
+ quiz:[
+  {q:"Vì sao kiến trúc chịu tải cao ưu tiên thiết kế scale out?",a:"Gần như không giới hạn, không downtime, khác Scale Up có trần cứng"},
+  {q:"Điều kiện bắt buộc để Scale Out hoạt động đúng?",a:"Ứng dụng phải stateless"},
+  {q:"Scale Up có luôn kèm downtime không?",a:"Có, vì phải stop/start để resize"},
+  {q:"Tầng nào thường buộc phải Scale Up?",a:"Primary database instance"},
+  {q:"TMĐT thiết kế app tier stateless để làm gì?",a:"Scale out tự do qua ASG, không cần downtime"}
+ ]
+},
+{code:"2.46", title:"Amazon EC2 Auto Scaling",
+ concept:"Auto Scaling Group (ASG) tự động thêm/bớt instance dựa trên Launch Template + policy min/max/desired capacity. Giống hệ thống tự động gọi thêm nhân viên ca gấp khi quán đông và tự cho nghỉ khi vắng khách.",
+ cmd:`aws autoscaling create-auto-scaling-group --auto-scaling-group-name my-asg \\
+  --launch-template LaunchTemplateName=my-template,Version='$Latest' \\
+  --min-size 2 --max-size 10 --desired-capacity 2 \\
+  --vpc-zone-identifier "subnet-aaa,subnet-bbb" \\
+  --health-check-type ELB --health-check-grace-period 300`,
+ flagTable:[["--min-size / --max-size","—","Biên dưới/trên số instance ASG được giữ"],["--desired-capacity","—","Số instance ASG cố gắng duy trì"],["--vpc-zone-identifier","—","Danh sách subnet ASG được launch vào"],["--health-check-type ELB","—","Check cả tầng application, không chỉ OS"],["--health-check-grace-period","—","Thời gian ân hạn trước khi check health (mặc định 300s)"]],
+ compareCols:null, compareRows:null,
+ paramTable:[["desired-capacity","Phải trong [min, max]","Ràng buộc bắt buộc"],["health-check-grace-period","Mặc định 300s","Tránh terminate nhầm instance mới"]],
+ advCmd:`aws autoscaling set-instance-health --instance-id i-xxxx --health-status Unhealthy
+<span style="color:#6B6B6B"># ép ASG coi 1 instance là unhealthy để test cơ chế self-healing</span>`,
+ advReality:"Mọi công ty vận hành web/app server production đều đặt EC2 sau ASG — kể cả traffic ổn định, ASG vẫn đáng dùng chỉ để có self-healing: instance chết vì lỗi phần cứng/OS crash tự động được thay thế mà không cần kỹ sư trực nửa đêm.",
+ config:{name:"Launch Template",code:`Mọi thay đổi AMI/instance type cho fleet đều qua version mới của Launch Template`,when:"Không sửa tay từng instance — mọi ASG đều cần Launch Template làm nguồn cấu hình chuẩn."},
+ role:"ASG là <b>quản đốc tự động</b> của xưởng — không chỉ gọi thêm/giảm công nhân mà còn tự phát hiện và thay thế công nhân 'bệnh' (instance lỗi). Đây là lý do ASG gần như luôn đi kèm ELB.",
+ quiz:[
+  {q:"Self-healing của ASG nghĩa là gì?",a:"Instance lỗi tự động bị terminate và thay thế"},
+  {q:"Vì sao ASG gần như luôn đi kèm ELB?",a:"ELB phân phối traffic, ASG đảm bảo đủ instance khỏe mạnh"},
+  {q:"--health-check-type ELB khác gì mặc định EC2?",a:"Kiểm tra cả tầng application, không chỉ OS"},
+  {q:"Vì sao nên dùng ASG kể cả khi traffic ổn định?",a:"Để có self-healing"},
+  {q:"health-check-grace-period dùng để làm gì?",a:"Tránh terminate nhầm instance mới khởi động"}
+ ]
+},
+{code:"2.48", title:"High Availability and Fault Tolerance",
+ concept:"HA = hệ thống vẫn hoạt động khi có sự cố nhưng có thể gián đoạn ngắn. FT = tiếp tục hoạt động ngay lập tức, không gián đoạn — tốn kém hơn nhiều. Giống sân bay: HA có đường băng dự phòng nhưng máy bay chờ vài phút chuyển hướng; FT có sẵn 2 đường băng song song, không bao giờ phải chờ.",
+ cmd:`# Không có lệnh riêng — đây là khái niệm thiết kế, không phải thao tác CLI`,
+ flagTable:null,
+ compareCols:["","HA","FT"],
+ compareRows:[["Gián đoạn khi lỗi","Có, ngắn","Không"],["Chi phí","Vừa phải","Cao (dư thừa hoàn toàn)"],["Ví dụ","Multi-AZ RDS failover, ASG","2 hệ thống song song độc lập"]],
+ paramTable:null,
+ advCmd:`# Trọng tâm phân biệt đúng khái niệm khi đề thi mô tả tình huống`,
+ advReality:"SaaS B2B thông thường dùng Multi-AZ + ASG + ELB → đạt HA, đủ cho SLA 99.9%. Sàn giao dịch/thanh toán core cần FT thực sự — chạy song song 2 hệ thống độc lập, chấp nhận chi phí gấp đôi để đạt SLA 99.99%+.",
+ config:null,
+ role:"HA là <b>có dây chuyền dự phòng, chuyển qua mất vài giây</b> khi dây chính hỏng. FT là <b>2 dây chuyền chạy song song thật sự</b>, không khoảnh khắc nào ngừng sản xuất. Phần lớn hệ thống business chỉ cần HA.",
+ quiz:[
+  {q:"Khác biệt cốt lõi giữa HA và FT?",a:"HA chấp nhận gián đoạn ngắn, FT không gián đoạn dù có lỗi"},
+  {q:"Vì sao rất ít hệ thống thực sự cần FT?",a:"Chi phí dư thừa tăng gấp đôi/ba so với HA"},
+  {q:"SaaS B2B với Multi-AZ ASG+ELB đạt mức nào?",a:"HA"},
+  {q:"Hệ thống nào thường cần FT thực sự?",a:"Giao dịch tài chính real-time, y tế"},
+  {q:"HA có nghĩa là không bao giờ downtime dù 1 giây không?",a:"Không — đó là định nghĩa của FT"}
+ ]
+},
+{code:"2.49", title:"Amazon Elastic Load Balancing",
+ concept:"ELB phân phối traffic đến nhiều target qua 1 endpoint DNS duy nhất, tự động health check và loại target lỗi khỏi vòng quay. Giống tổng đài trung tâm — khách gọi vào 1 số duy nhất, tổng đài tự chuyển đến nhân viên đang rảnh.",
+ cmd:`aws elbv2 create-load-balancer --name web-alb --subnets subnet-aaa subnet-bbb \\
+  --security-groups sg-alb --type application
+aws elbv2 create-target-group --name web-tg --protocol HTTP --port 80 \\
+  --vpc-id vpc-xxxx --health-check-path /health`,
+ flagTable:[["--type","—","Loại ELB: application (ALB) / network (NLB) / gateway"],["--health-check-path","—","Đường dẫn ELB gọi định kỳ kiểm tra target còn sống"]],
+ compareCols:["Loại ELB","Tầng","Dùng cho"],
+ compareRows:[["ALB","Layer 7","HTTP/HTTPS, routing theo path/host"],["NLB","Layer 4","TCP/UDP hiệu năng cực cao, static IP"],["Gateway LB","Layer 3/4","Appliance bảo mật bên thứ 3"]],
+ paramTable:null,
+ advCmd:`aws elbv2 describe-target-health --target-group-arn $TG_ARN`,
+ advReality:"Mọi hệ thống web production đều đặt ELB trước app tier — kể cả chỉ 1 instance, vì ELB cho phép thay instance (maintenance, deploy version mới) mà DNS client dùng không đổi.",
+ config:{name:"Health check path (/health)",code:`Endpoint app cần tự implement để trả về 200 khi service khỏe mạnh`,when:"Mọi Target Group đều cần endpoint này, thiếu nó ELB dùng path mặc định / có thể không phản ánh đúng tình trạng."},
+ role:"ELB là <b>cổng tiếp nhận đơn hàng trung tâm</b> của xưởng — khách hàng chỉ biết 1 địa chỉ duy nhất. Nằm ngay trước app tier trong stack Client → CloudFront → ELB → EC2/ASG → RDS.",
+ quiz:[
+  {q:"Vì sao EC2 app server hiếm khi cần Public IP riêng khi có ELB?",a:"Traffic luôn qua ELB trước"},
+  {q:"Lợi ích của ELB kể cả khi chỉ có 1 instance?",a:"Cho phép thay instance mà DNS client dùng không đổi"},
+  {q:"--health-check-path dùng để làm gì?",a:"Đường dẫn ELB gọi định kỳ kiểm tra target còn sống"},
+  {q:"Loại ELB nào dùng cho appliance bảo mật bên thứ 3?",a:"Gateway Load Balancer"},
+  {q:"NLB phù hợp cho nhu cầu nào ALB không đáp ứng?",a:"Hiệu năng cực cao, static IP, TCP/UDP thuần"}
+ ]
+},
+{code:"2.50", title:"ALB and NLB Deployments",
+ concept:"ALB định tuyến theo nội dung HTTP (path, host, header); NLB định tuyến theo IP/port thuần, giữ nguyên IP gốc client. Giống lễ tân thông minh đọc yêu cầu để chuyển đúng phòng ban (ALB) so với đường ống trực tiếp giữ nguyên tín hiệu gốc (NLB).",
+ cmd:`aws elbv2 create-listener --load-balancer-arn $ALB_ARN --protocol HTTP --port 80 \\
+  --default-actions Type=forward,TargetGroupArn=$TG_ARN
+aws elbv2 create-rule --listener-arn $LISTENER_ARN --priority 10 \\
+  --conditions Field=path-pattern,Values='/api/*' --actions Type=forward,TargetGroupArn=$API_TG_ARN`,
+ flagTable:[["create-rule","—","Thêm rule routing theo điều kiện vào Listener"],["--conditions Field=path-pattern","—","Điều kiện routing dựa theo path URL"],["--priority","—","Thứ tự ưu tiên rule khi có nhiều rule khớp"]],
+ compareCols:["","ALB","NLB"],
+ compareRows:[["Tầng","Layer 7","Layer 4"],["Routing","Path/host/header","IP/port"],["Giữ IP gốc client","Không (X-Forwarded-For)","Có"]],
+ paramTable:[["IP gốc client qua ALB","Header X-Forwarded-For","ALB không giữ IP gốc trực tiếp"]],
+ advCmd:`# Startup SaaS route /api/* đến service A, /admin/* đến service B trên cùng 1 ALB`,
+ advReality:"Công ty gaming/streaming real-time cần latency cực thấp và giữ nguyên client IP để chống gian lận (anti-cheat) dùng NLB thay vì ALB.",
+ config:{name:"Listener Rule (path-based routing)",code:`create-rule như ví dụ mục Lệnh quan trọng`,when:"Kiến trúc microservices cần route nhiều service qua cùng 1 domain/ALB."},
+ role:"ALB là <b>lễ tân đọc hiểu yêu cầu</b> rồi phân việc đúng phòng ban; NLB là <b>đường ống trực tiếp tốc độ cao</b>, không đọc nội dung. ALB là lựa chọn mặc định, NLB chỉ khi ALB không đáp ứng về hiệu năng/giao thức.",
+ quiz:[
+  {q:"Vì sao ALB là lựa chọn mặc định cho web app hiện đại?",a:"Routing linh hoạt theo path/host, phù hợp microservices"},
+  {q:"NLB được chọn khi nào thay vì ALB?",a:"Traffic cực lớn, cần giữ IP client, hoặc giao thức không phải HTTP"},
+  {q:"Muốn lấy IP gốc client khi dùng ALB, đọc gì?",a:"Header X-Forwarded-For"},
+  {q:"--conditions Field=path-pattern dùng để làm gì?",a:"Định tuyến theo path URL"},
+  {q:"Công ty gaming cần giữ IP client chống gian lận nên chọn gì?",a:"NLB"}
+ ]
+},
+{code:"2.52", title:"EC2 Scaling Policies",
+ concept:"Target Tracking (giữ metric ở mức mục tiêu), Step Scaling (thêm/bớt theo bậc), Scheduled Scaling (theo lịch cố định). Giống 3 cách quản lý nhân sự quán ăn: tự động gọi thêm khi đông, gọi theo từng mức cụ thể, hoặc sắp lịch trước ca đông cuối tuần.",
+ cmd:`aws autoscaling put-scaling-policy --auto-scaling-group-name my-asg \\
+  --policy-name cpu-target-tracking --policy-type TargetTrackingScaling \\
+  --target-tracking-configuration file://ttconfig.json`,
+ flagTable:[["--policy-type","—","TargetTrackingScaling / StepScaling / SimpleScaling"],["--target-tracking-configuration","—","File JSON chứa TargetValue + metric muốn theo dõi"]],
+ compareCols:["Loại policy","Cần tự tạo Alarm?","Đặc điểm"],
+ compareRows:[["Target Tracking","Không (tự động)","Giữ 1 metric ở mức mục tiêu"],["Step Scaling","Có","Scale theo bậc dựa mức vượt ngưỡng"],["Scheduled Scaling","Không (theo lịch)","Scale theo thời gian cố định"]],
+ paramTable:null,
+ advCmd:`aws autoscaling put-scheduled-update-group-action --auto-scaling-group-name web-asg \\
+  --scheduled-action-name pre-sale-scale-up \\
+  --start-time "2026-11-27T00:00:00Z" --min-size 6 --max-size 20 --desired-capacity 6`,
+ advReality:"TMĐT biết trước lịch sale (0h Black Friday) dùng Scheduled Scaling để tăng sẵn capacity trước khi traffic đổ vào, tránh độ trễ vài phút của scaling phản ứng theo metric — tránh lỗi 'flapping' (scale quá tay gây dao động liên tục) khi chọn ngưỡng Step Scaling.",
+ config:{name:"ttconfig.json",code:`{"TargetValue": 50, "PredefinedMetricSpecification": {"PredefinedMetricType": "ASGAverageCPUUtilization"}}`,when:"Cấu hình mặc định nên bắt đầu với hầu hết ứng dụng web trước khi cần tinh chỉnh phức tạp hơn."},
+ role:"Scaling Policy là <b>luật chơi</b> quyết định quản đốc (ASG) phản ứng nhanh/chậm. Chọn sai dẫn đến scale quá chậm (downtime) hoặc scale quá tay (dao động liên tục, tốn chi phí).",
+ quiz:[
+  {q:"Vì sao TMĐT dùng Scheduled Scaling cho sự kiện đã biết trước?",a:"Tăng sẵn capacity trước khi traffic đổ vào, tránh độ trễ"},
+  {q:"Lỗi scale quá tay gây dao động liên tục gọi là gì?",a:"Flapping"},
+  {q:"Target Tracking có cần tự tạo CloudWatch Alarm không?",a:"Không, tự động"},
+  {q:"Step Scaling khác Target Tracking ở điểm nào?",a:"Cần định nghĩa Alarm thủ công, scale theo bậc"},
+  {q:"Đa số web app nên bắt đầu với loại policy nào?",a:"Target Tracking"}
+ ]
+},
+{code:"2.54", title:"Cross-Zone Load Balancing",
+ concept:"Khi bật, ELB phân phối traffic đều cho mọi target ở mọi AZ. Khi tắt, mỗi node ELB chỉ phân phối cho target cùng AZ. Giống tổng đài đa chi nhánh: bật là điều phối đều mọi chi nhánh; tắt là mỗi chi nhánh tự lo khách của mình.",
+ cmd:`aws elbv2 modify-load-balancer-attributes --load-balancer-arn $ALB_ARN \\
+  --attributes Key=load_balancing.cross_zone.enabled,Value=true`,
+ flagTable:[["--attributes Key=load_balancing.cross_zone.enabled","—","Công tắc bật/tắt Cross-Zone Load Balancing"]],
+ compareCols:["","ALB","NLB"],
+ compareRows:[["Cross-Zone mặc định","Bật, miễn phí","Tắt, cần tự bật"]],
+ paramTable:null,
+ advCmd:`aws elbv2 describe-load-balancer-attributes --load-balancer-arn $ALB_ARN`,
+ advReality:"Hệ thống có traffic không đồng đều giữa AZ (do zonal outage tạm thời hoặc scale-out lệch) luôn nên bật Cross-Zone để tránh 1 AZ gánh tải gấp đôi AZ khác.",
+ config:null,
+ role:"Cross-Zone Load Balancing là <b>công tắc điều phối liên chi nhánh</b> của tổng đài trung tâm — quyết định traffic có bị lệch tải khi số 'nhân viên' (instance) giữa các chi nhánh (AZ) không đều.",
+ quiz:[
+  {q:"Cross-Zone Load Balancing giải quyết vấn đề gì?",a:"Tránh 1 AZ quá tải khi số instance giữa các AZ không đều"},
+  {q:"Khi tắt Cross-Zone, mỗi node ELB phân phối traffic cho đâu?",a:"Chỉ target trong cùng AZ"},
+  {q:"Loại ELB nào mặc định bật Cross-Zone miễn phí?",a:"ALB"},
+  {q:"Tình huống nào dễ khiến instance giữa các AZ lệch nhau?",a:"ASG scale-out không đồng đều hoặc 1 AZ mất instance"},
+  {q:"NLB có bật Cross-Zone mặc định giống ALB không?",a:"Không, là tùy chọn cần tự bật"}
+ ]
+},
+{code:"2.55", title:"Session State and Session Stickiness",
+ concept:"Sticky session dùng cookie đảm bảo user luôn được route về đúng 1 instance trong suốt phiên. Giống luôn được phục vụ bởi đúng 1 nhân viên quen thuộc — tiện nhưng nếu người đó bận thì khách phải chờ thay vì được người khác phục vụ ngay.",
+ cmd:`aws elbv2 modify-target-group-attributes --target-group-arn $TG_ARN \\
+  --attributes Key=stickiness.enabled,Value=true Key=stickiness.type,Value=lb_cookie`,
+ flagTable:[["stickiness.enabled","—","Bật/tắt sticky session cho Target Group"],["stickiness.type","—","lb_cookie (ELB tự tạo) hoặc app_cookie (do app tự set)"]],
+ compareCols:null, compareRows:null,
+ paramTable:[["Rủi ro chính","Traffic dồn lệch","Instance có nhiều session dính bị quá tải hơn"]],
+ advCmd:`# Target Group Console tab "Attributes" cũng bật được sticky session tương tự`,
+ advReality:"Hệ thống legacy monolith cũ (chưa refactor sang stateless) buộc phải bật sticky session trong khi chờ migrate session ra Redis/ElastiCache. Microservices hiện đại gần như không bao giờ dùng sticky.",
+ config:{name:"Target Group attributes",code:`stickiness.enabled=true, stickiness.type=lb_cookie`,when:"Giải pháp tạm thời (workaround) cho app cũ trong lúc chờ refactor, không phải giải pháp lâu dài."},
+ role:"Sticky Session là <b>quy tắc phục vụ khách quen</b> áp đặt lên hệ thống điều phối tự động — hữu ích tạm thời nhưng đi ngược triết lý cân bằng tải thật sự.",
+ quiz:[
+  {q:"Vì sao sticky session là giải pháp tạm thời, không phải kiến trúc chuẩn?",a:"Phá vỡ tính stateless cần thiết để scale out mượt"},
+  {q:"Hệ thống nào buộc phải dùng sticky session?",a:"App lưu session trong memory instance, chưa refactor"},
+  {q:"stickiness.type=app_cookie khác lb_cookie ở điểm nào?",a:"app_cookie dùng cookie do app tự set, lb_cookie do ELB tự tạo"},
+  {q:"Sticky session dùng cơ chế gì để giữ user về đúng instance?",a:"Cookie"},
+  {q:"Rủi ro chính khi bật sticky session?",a:"Traffic dồn lệch về 1 số instance có nhiều session dính"}
+ ]
+},
+{code:"2.56", title:"Secure Listeners for ELB",
+ concept:"Secure Listener nhận traffic HTTPS, giải mã SSL/TLS ngay tại ELB (SSL termination), có thể forward tiếp bằng HTTP hoặc HTTPS. Giống trạm kiểm soát an ninh ở cổng chính — khách kiểm tra kỹ 1 lần ở cổng, bên trong di chuyển tự do.",
+ cmd:`aws acm request-certificate --domain-name app.example.com --validation-method DNS
+aws elbv2 create-listener --load-balancer-arn $ALB_ARN --protocol HTTPS --port 443 \\
+  --certificates CertificateArn=$CERT_ARN --default-actions Type=forward,TargetGroupArn=$TG_ARN`,
+ flagTable:[["request-certificate","ACM = AWS Certificate Manager","Xin certificate SSL/TLS miễn phí, tự động renew"],["--validation-method DNS","—","Xác thực quyền sở hữu domain qua bản ghi DNS"],["--certificates CertificateArn","—","Gắn certificate đã ISSUED vào Listener"]],
+ compareCols:["","SSL termination tại ELB","HTTPS end-to-end (2 chặng)"],
+ compareRows:[["Tải CPU cho EC2","Thấp","Cao hơn"],["Quản lý certificate","Chỉ ở ELB (ACM)","Cả ELB và từng EC2"],["Phù hợp","Đa số hệ thống","Compliance nghiêm ngặt (PCI-DSS, HIPAA)"]],
+ paramTable:[["Trạng thái certificate","ISSUED","Phải đạt trạng thái này trước khi tạo Listener HTTPS"]],
+ advCmd:`aws acm describe-certificate --certificate-arn $CERT_ARN --query "Certificate.Status"`,
+ advReality:"Đa số hệ thống production dùng SSL termination tại ALB + ACM (tự renew, miễn phí), chấp nhận traffic nội bộ VPC không mã hóa vì VPC vốn cô lập. Tài chính/y tế bật HTTPS listener cả 2 chặng.",
+ config:{name:"Certificate validation qua DNS",code:`Thêm CNAME record do ACM cung cấp vào Route 53/DNS provider`,when:"Mọi lần xin certificate mới cho domain mới đều cần bước này trước khi certificate ISSUED."},
+ role:"SSL Termination tại ELB là <b>trạm kiểm soát an ninh duy nhất ở cổng chính</b> — giảm tải cho từng phòng ban (EC2). Đánh đổi: khu vực bên trong (VPC nội bộ) không kiểm soát nghiêm như ở cổng, chấp nhận được vì đã có tường rào VPC bao quanh.",
+ quiz:[
+  {q:"Lợi ích chính của SSL termination tại ELB thay vì từng EC2?",a:"Giảm tải CPU cho EC2, đơn giản hóa quản lý certificate"},
+  {q:"Đánh đổi khi SSL termination tại ELB là gì?",a:"Traffic ELB→EC2 không mã hóa trừ khi chủ động bật lại"},
+  {q:"Ngành nào cần mã hóa end-to-end thật sự?",a:"Tài chính/y tế cần compliance PCI-DSS, HIPAA"},
+  {q:"Certificate cần đạt trạng thái nào trước khi tạo Listener HTTPS?",a:"ISSUED"},
+  {q:"--validation-method DNS dùng để làm gì?",a:"Xác thực quyền sở hữu domain qua bản ghi DNS"}
+ ]
+}
+];
+
+function renderTable(cols, rows){
+  return '<table><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table>';
+}
+
+// ---- Sidebar TOC (theory) ----
+const theoryToc = document.getElementById('theoryToc');
+const theoryEl = document.getElementById('theoryArticle');
+lessons.forEach((l,i)=>{
+  const a=document.createElement('a');
+  a.href='#lesson-'+i;
+  a.innerHTML = l.code+'<span class="t">'+l.title+'</span>';
+  a.addEventListener('click',(e)=>{e.preventDefault();document.getElementById('lesson-'+i).scrollIntoView({behavior:'smooth'});});
+  theoryToc.appendChild(a);
+
+  const flagHtml = l.flagTable ? '<h3>📖 Từ điển flag nhanh</h3>'+renderTable(["Flag/Lệnh","Nguồn gốc","Ý nghĩa"], l.flagTable) : '';
+  const compareHtml = l.compareCols ? '<h3>So sánh nhanh</h3>'+renderTable(l.compareCols, l.compareRows) : '';
+  const paramHtml = l.paramTable ? '<h3>Giới hạn/tham số</h3>'+renderTable(["Tham số","Giá trị","Ghi chú"], l.paramTable) : '';
+  const configHtml = l.config ? `<h3>Cấu hình liên quan</h3><p style="font-size:13.5px;margin-bottom:6px;"><b>${l.config.name}</b></p><pre>${l.config.code}</pre><p style="font-size:13px;color:#6B6B6B;">${l.config.when}</p>` : '';
+  const div=document.createElement('div');
+  div.className='lesson-block';
+  div.id='lesson-'+i;
+  div.innerHTML=`
+    <p class="lesson-tag mono">${l.code}</p>
+    <h2>${l.title}</h2>
+    <div class="lgrid">
+      <div class="prose">
+        <h3>Khái niệm + ví dụ đời sống</h3><p>${l.concept}</p>
+        <h3>Pattern nâng cao / thực tế</h3><pre>${l.advCmd}</pre><div class="reality-box"><p>${l.advReality}</p></div>
+        <h3>Vị trí trong kiến trúc</h3><div class="role-box"><p>${l.role}</p></div>
+      </div>
+      <div class="aside">
+        <h3>Lệnh quan trọng</h3><pre>${l.cmd}</pre>
+        ${flagHtml}
+        ${compareHtml}
+        ${paramHtml}
+        ${configHtml}
+      </div>
+    </div>
+  `;
+  theoryEl.appendChild(div);
+});
+
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    const idx = entry.target.id.split('-')[1];
+    const link = theoryToc.children[idx];
+    if(entry.isIntersecting){
+      document.querySelectorAll('#theoryToc a').forEach(a=>a.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+document.querySelectorAll('.lesson-block').forEach(el=>observer.observe(el));
+
+// ---- Quiz ----
+const quizToc = document.getElementById('quizToc');
+const quizEl = document.getElementById('quizArticle');
+lessons.forEach((l,i)=>{
+  const a=document.createElement('a');
+  a.href='#quiz-'+i;
+  a.innerHTML = l.code+'<span class="t">'+l.title+'</span>';
+  a.addEventListener('click',(e)=>{e.preventDefault();document.getElementById('quiz-'+i).scrollIntoView({behavior:'smooth'});});
+  quizToc.appendChild(a);
+
+  const wrap=document.createElement('div'); wrap.className='lesson-block'; wrap.id='quiz-'+i;
+  let qHtml = l.quiz.map((q,qi)=>`
+    <div class="q-item">
+      <p class="qtext">${l.code}.${qi+1} — ${q.q}</p>
+      <span class="q-answer">Xem đáp án →</span>
+      <div class="q-answer-text">${q.a}</div>
+    </div>`).join('');
+  wrap.innerHTML = `<p class="lesson-tag mono">${l.code}</p><h2>${l.title}</h2><div class="quiz-grid">${qHtml}</div>`;
+  quizEl.appendChild(wrap);
+});
+document.querySelectorAll('.q-answer').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const ans = el.nextElementSibling;
+    ans.classList.toggle('show');
+    el.textContent = ans.classList.contains('show') ? 'Ẩn đáp án ↑' : 'Xem đáp án →';
+  });
+});
+
+// ---- Lab ----
+document.getElementById('labArticle').innerHTML = `
+<div class="lab-grid">
+  <div class="lab-info">
+    <p class="lesson-tag mono">LAB TỔNG</p>
+    <h2>Dựng ASG + ALB hoàn chỉnh với HTTPS</h2>
+    <p class="context-line">🧭 Bạn được giao dựng hạ tầng chịu tải cho 1 web app mới: tự động scale theo CPU, phân phối traffic qua ALB, HTTPS termination, và policy scale theo lịch cho sự kiện sắp tới.</p>
+    <p class="verify">✅ Verify: curl -I https://app.example.com → 200 qua HTTPS; describe-auto-scaling-groups → đủ instance healthy; giả lập tải cao và quan sát ASG tự thêm instance qua CloudWatch.</p>
+    <p class="cleanup">🧹 Cleanup: delete-scheduled-action → delete-policy → delete-auto-scaling-group --force-delete → delete-listener → delete-target-group → delete-load-balancer → delete-launch-template.</p>
+    <div class="warn-line">⚠️ ALB tính phí theo giờ + LCU dù traffic thấp; --force-delete sẽ terminate toàn bộ instance trong group, cẩn thận với group production; chứng chỉ ACM chờ validate DNS mất vài phút, đừng tạo Listener HTTPS trước khi cert ISSUED.</div>
+  </div>
+  <pre># 1. Launch Template làm khuôn mẫu cho ASG
+aws ec2 create-launch-template --launch-template-name web-template \\
+  --launch-template-data '{"ImageId":"ami-xxxx","InstanceType":"t3.micro","SecurityGroupIds":["sg-xxxx"]}'
+
+# 2. Application Load Balancer + Target Group
+aws elbv2 create-load-balancer --name web-alb --subnets subnet-aaa subnet-bbb \\
+  --security-groups sg-alb --type application
+aws elbv2 create-target-group --name web-tg --protocol HTTP --port 80 \\
+  --vpc-id vpc-xxxx --health-check-path /health
+
+# 3. HTTPS Listener với certificate từ ACM
+aws acm request-certificate --domain-name app.example.com --validation-method DNS
+aws elbv2 create-listener --load-balancer-arn $ALB_ARN --protocol HTTPS --port 443 \\
+  --certificates CertificateArn=$CERT_ARN --default-actions Type=forward,TargetGroupArn=$TG_ARN
+
+# 4. Auto Scaling Group gắn Target Group
+aws autoscaling create-auto-scaling-group --auto-scaling-group-name web-asg \\
+  --launch-template LaunchTemplateName=web-template,Version='$Latest' \\
+  --min-size 2 --max-size 10 --desired-capacity 2 \\
+  --vpc-zone-identifier "subnet-aaa,subnet-bbb" \\
+  --target-group-arns $TG_ARN --health-check-type ELB --health-check-grace-period 300
+
+# 5. Target Tracking Policy — giữ CPU ở 50%
+aws autoscaling put-scaling-policy --auto-scaling-group-name web-asg \\
+  --policy-name cpu-target-tracking --policy-type TargetTrackingScaling \\
+  --target-tracking-configuration '{"TargetValue":50.0,"PredefinedMetricSpecification":{"PredefinedMetricType":"ASGAverageCPUUtilization"}}'
+
+# 6. Scheduled Scaling cho sự kiện sale đã biết trước
+aws autoscaling put-scheduled-update-group-action --auto-scaling-group-name web-asg \\
+  --scheduled-action-name pre-sale-scale-up \\
+  --start-time "2026-11-27T00:00:00Z" --min-size 6 --max-size 20 --desired-capacity 6
+
+# 7. Verify Cross-Zone Load Balancing (ALB đã mặc định bật)
+aws elbv2 describe-load-balancer-attributes --load-balancer-arn $ALB_ARN</pre>
+</div>`;
+
+// ---- Cheat sheet ----
+document.getElementById('cheatArticle').innerHTML = `
+<div class="cheat-wrap">
+  <h2>Cheat Sheet</h2>
+  <div class="cheat-cards">
+    <div class="cheat-card"><div class="k">Chọn hướng scale</div><div class="v">Scale Up vs Scale Out</div><div class="note">Scale Out cần app stateless</div></div>
+    <div class="cheat-card"><div class="k">Tự thêm/bớt + tự chữa lành</div><div class="v">Auto Scaling Group</div><div class="note">Luôn đi kèm ELB trong production</div></div>
+    <div class="cheat-card"><div class="k">Phân biệt độ sẵn sàng</div><div class="v">HA vs FT</div><div class="note">Đa số hệ thống chỉ cần HA</div></div>
+    <div class="cheat-card"><div class="k">Chọn loại ELB</div><div class="v">ALB (L7) / NLB (L4) / GWLB</div><div class="note">ALB mặc định, NLB khi cần hiệu năng cực cao/giữ IP</div></div>
+    <div class="cheat-card"><div class="k">Quy tắc scale</div><div class="v">Target Tracking / Step / Scheduled</div><div class="note">Scheduled cho sự kiện biết trước</div></div>
+    <div class="cheat-card"><div class="k">Cân bằng traffic giữa AZ</div><div class="v">Cross-Zone Load Balancing</div><div class="note">ALB bật mặc định, NLB cần tự bật</div></div>
+    <div class="cheat-card"><div class="k">Giữ session đúng server</div><div class="v">Sticky Session</div><div class="note">Chỉ dùng tạm cho app chưa stateless</div></div>
+    <div class="cheat-card"><div class="k">Vị trí mã hóa TLS</div><div class="v">SSL Termination tại ELB</div><div class="note">ACM tự renew miễn phí</div></div>
+    <div class="cheat-card"><div class="k">Domain thi</div><div class="v">Resilient 26% + High-Performing 24%</div><div class="note">2 domain lớn nhất xoay quanh chính section này</div></div>
+  </div>
+  <p class="pattern-line">Client → ACM HTTPS → ALB (Cross-Zone, Target Tracking) → ASG (health check ELB, self-healing) → EC2 stateless (session ở ElastiCache) — bộ khung chịu tải chuẩn của gần như mọi hệ thống web production nghiêm túc, không chỉ để thi.</p>
+</div>`;
+</script>
+</body>
+</html>

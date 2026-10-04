@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Monitoring, Logging &amp; Auditing · SAA-C03</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdfcfa; --ink:#1a1a1a; --sub:#5b5b5b; --line:#e5e2dc;
+    --accent:#8a5cf6; --accent2:#c9781c; --sidebar-w:250px;
+    --serif:'Source Serif 4',serif; --sans:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;}
+  a{color:var(--accent);}
+  table{border-collapse:collapse;width:100%;font-size:.9rem;margin:.8rem 0;}
+  th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top;}
+  th{background:#f4f1ea;font-family:var(--sans);font-weight:600;}
+  code{font-family:var(--mono);background:#f2efe8;padding:.1rem .35rem;border-radius:4px;font-size:.85em;}
+  pre{font-family:var(--mono);background:#1e1e1e;color:#e8e6e1;padding:1rem;border-radius:8px;overflow-x:auto;font-size:.82rem;line-height:1.55;}
+  pre code{background:none;padding:0;color:inherit;}
+  h1,h2,h3{font-family:var(--serif);}
+  h2{border-bottom:1px solid var(--line);padding-bottom:.4rem;margin-top:2.2rem;}
+  .nav{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line);
+       display:flex;align-items:center;justify-content:space-between;padding:.7rem 3vw;}
+  .brand{font-family:var(--serif);font-weight:700;font-size:1rem;}
+  .roadmap-nav{display:flex;gap:1rem;font-size:.78rem;font-family:var(--mono);}
+  .roadmap-nav span{color:var(--sub);}
+  .roadmap-nav .cur{color:var(--accent);font-weight:700;}
+  .roadmap-nav .done{color:var(--accent2);}
+  .tabbar{position:sticky;top:44px;z-index:49;background:var(--bg);border-bottom:1px solid var(--line);
+          display:flex;gap:0;padding:0 3vw;}
+  .tabbtn{padding:.75rem 1.2rem;font-family:var(--sans);font-weight:600;font-size:.88rem;color:var(--sub);
+          cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;}
+  .tabbtn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  body.has-sidebar .hero{margin-left:var(--sidebar-w);}
+  body.has-sidebar .tabpanel-content{margin-left:var(--sidebar-w);}
+  .hero{padding:2.2rem 3vw 1.2rem;}
+  .eyebrow{font-family:var(--mono);font-size:.78rem;color:var(--accent2);text-transform:uppercase;letter-spacing:.04em;}
+  .hero h1{font-size:2rem;margin:.3rem 0;}
+  .lede{color:var(--sub);max-width:70ch;}
+  .sidebar{position:fixed;top:90px;left:0;width:var(--sidebar-w);bottom:0;overflow-y:auto;
+           border-right:1px solid var(--line);padding:1rem 1rem 3rem;font-size:.82rem;display:block;}
+  .sidebar h4{font-family:var(--mono);text-transform:uppercase;font-size:.7rem;color:var(--sub);margin:0 0 .6rem;}
+  .sidebar a{display:block;color:var(--ink);text-decoration:none;padding:.35rem .5rem;border-radius:6px;margin-bottom:.1rem;}
+  .sidebar a:hover{background:#f2efe8;}
+  .sidebar a.active{background:#efe7fb;color:var(--accent);font-weight:600;}
+  .tabpanel{display:none;padding:0 3vw 4rem;}
+  .tabpanel.active{display:block;}
+  .lesson{padding:2.2rem 0;border-bottom:1px dashed var(--line);}
+  .lesson-grid{display:grid;grid-template-columns:56% 44%;gap:2rem;}
+  .lesson-grid .col-right{border-left:1px solid var(--line);padding-left:1.5rem;}
+  .lesson h3{margin-top:0;color:var(--accent2);}
+  .qa{background:#f7f4ee;border-radius:8px;padding:.9rem 1.1rem;margin-top:.6rem;font-size:.9rem;}
+  .qa ol{margin:.3rem 0 0;padding-left:1.2rem;}
+  .lab-grid{display:grid;grid-template-columns:38% 62%;gap:2rem;margin-top:1.5rem;}
+  .warn-box{background:#fdf2ee;border:1px solid #e8c3ae;border-radius:8px;padding:1rem;margin-top:1rem;font-size:.88rem;}
+  .quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.2rem;}
+  .qcard{border:1px solid var(--line);border-radius:8px;padding:1rem;background:#fff;}
+  .qcard .ans{display:none;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--line);color:var(--accent2);font-size:.88rem;}
+  .qcard.revealed .ans{display:block;}
+  .qcard button{margin-top:.5rem;font-family:var(--sans);font-size:.78rem;background:var(--accent);color:#fff;border:none;padding:.35rem .8rem;border-radius:6px;cursor:pointer;}
+  .cheat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.2rem;}
+  .cheat-card{border:1px solid var(--line);border-radius:8px;padding:1rem;background:#fff;font-size:.86rem;}
+  .cheat-card h4{margin-top:0;font-family:var(--sans);color:var(--accent2);}
+  .pattern-box{margin-top:1.5rem;background:#efe7fb;border-radius:10px;padding:1.3rem;}
+  .factory-card{grid-column:1/-1;background:#0D1B2A;color:#e8e6e1;border:none;}
+  .factory-card h4{color:#E8A33D;}
+  @media(max-width:900px){
+    .sidebar{display:none!important;}
+    body.has-sidebar .hero,body.has-sidebar .tabpanel-content{margin-left:0;}
+    .lesson-grid,.lab-grid{grid-template-columns:1fr;}
+    .lesson-grid .col-right{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:1rem;}
+    .cheat-grid,.quiz-grid{grid-template-columns:1fr;}
+    .roadmap-nav{display:none;}
+  }
+</style>
+</head>
+<body class="has-sidebar">
+
+<div class="nav">
+  <div class="brand">SAA-C03 · Module 6 · Monitoring, Logging &amp; Auditing</div>
+  <div class="roadmap-nav">
+    <span class="done">01 Deployment&amp;Mgmt</span>
+    <span class="cur">02 Monitoring/Logging</span>
+    <span>03 Security</span>
+  </div>
+</div>
+
+<div class="tabbar" id="tabbar">
+  <button class="tabbtn active" data-tab="theory">Lý thuyết</button>
+  <button class="tabbtn" data-tab="quiz">Quiz</button>
+  <button class="tabbtn" data-tab="lab">Lab</button>
+  <button class="tabbtn" data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Domain — Resilient 26% · Secure 30%</p>
+  <h1>Monitoring, Logging, and Auditing</h1>
+  <p class="lede">Đồng hồ đo + còi báo động (CloudWatch), sổ nhật ký chi tiết (Logs), cảm biến trong máy (Agent), camera an ninh ghi ai làm gì (CloudTrail), bảng thông báo phản ứng tức thời (EventBridge), và định vị GPS theo từng request (X-Ray).</p>
+</div>
+
+<div class="sidebar" id="sidebar-theory">
+  <h4>Bài trong section</h4>
+  <a href="#l6-19" class="side-link">6.19 CloudWatch Overview</a>
+  <a href="#l6-21" class="side-link">6.21 CloudWatch Logs</a>
+  <a href="#l6-22" class="side-link">6.22 Unified CW Agent</a>
+  <a href="#l6-23" class="side-link">6.23 CloudTrail</a>
+  <a href="#l6-25" class="side-link">6.25 EventBridge Refresher</a>
+  <a href="#l6-27" class="side-link">6.27 Metric Analysis & Tracing</a>
+</div>
+
+<div class="tabpanel-content">
+
+<div class="tabpanel active" id="tab-theory">
+
+<section class="lesson" id="l6-19">
+<h3>6.19 — Amazon CloudWatch Overview</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Thu thập metric, tạo Alarm khi vượt ngưỡng, Dashboard hiển thị. Như đồng hồ đo áp suất/nhiệt độ gắn khắp nhà máy, kim vượt vạch đỏ thì còi kêu.</p>
+    <ul><li>Basic: 5 phút, miễn phí</li><li>Detailed: 1 phút, trả phí thêm</li><li>Custom Metric: tự đẩy số liệu app riêng</li></ul>
+    <p><b>Pattern nâng cao:</b> Composite Alarm (AND/OR nhiều alarm con) tránh báo động giả. <b>Case:</b> sàn TMĐT bật Detailed Monitoring tạm thời dịp sale để scale sớm trước khi khách timeout.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ đồng hồ đo + còi báo động gắn lên mọi trạm, khác vai trò camera an ninh (GuardDuty/Config).</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Tránh báo động giả do spike ngắn, chỉnh gì? → evaluation-periods.</li>
+        <li>Sàn TMĐT phát hiện quá tải nhạy hơn dịp sale? → Detailed Monitoring tạm thời.</li>
+        <li>Kết hợp nhiều alarm AND/OR gọi là gì? → Composite Alarm.</li>
+        <li>Metric mặc định lưu tối đa? → 15 tháng.</li>
+        <li>Khớp đâu trong nhà máy? → Đồng hồ đo + còi báo động, khác camera an ninh.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws cloudwatch put-metric-alarm --alarm-name high-cpu \
+  --metric-name CPUUtilization --namespace AWS/EC2 \
+  --statistic Average --period 300 --threshold 80 \
+  --comparison-operator GreaterThanThreshold \
+  --evaluation-periods 2 \
+  --alarm-actions arn:aws:sns:...:topic/ops-alert
+
+aws cloudwatch describe-alarms --state-value ALARM</code></pre>
+    <table><tr><th>Flag</th><th>Ý nghĩa</th></tr>
+      <tr><td>--period</td><td>Độ dài 1 khoảng đánh giá (giây)</td></tr>
+      <tr><td>--evaluation-periods</td><td>Số khoảng liên tiếp vi phạm mới ALARM</td></tr>
+    </table>
+    <table><tr><th>So sánh</th><th>Basic</th><th>Detailed</th></tr>
+      <tr><td>Tần suất</td><td>5 phút</td><td>1 phút</td></tr>
+      <tr><td>Chi phí</td><td>Miễn phí</td><td>Trả phí</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-21">
+<h3>6.21 — Amazon CloudWatch Logs</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Thu thập, lưu, tìm kiếm log text. Log Group (nhóm theo app) + Log Stream (1 nguồn cụ thể). Như sổ nhật ký ca trực gom vào tủ hồ sơ theo phân xưởng.</p>
+    <p><b>Pattern nâng cao:</b> Metric Filter biến pattern "ERROR" thành metric để alarm. <b>Case:</b> team K8s đếm "OutOfMemoryError" phát hiện memory leak sớm.</p>
+    <p><b>Vị trí kiến trúc:</b> Nhánh mở rộng CloudWatch — sổ nhật ký chi tiết dạng chữ từ mọi trạm.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Logs khác CloudTrail? → Log ứng dụng tự do vs log API có cấu trúc.</li>
+        <li>Retention mặc định, rủi ro gì? → Giữ vĩnh viễn, tốn phí tăng dần.</li>
+        <li>Biến "ERROR" thành metric gọi là gì? → Metric Filter.</li>
+        <li>K8s phát hiện memory leak bằng gì? → Metric Filter + Alarm.</li>
+        <li>Khớp đâu trong nhà máy? → Nhánh mở rộng CloudWatch, sổ nhật ký chữ.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws logs create-log-group --log-group-name /myapp/prod
+aws logs put-retention-policy --log-group-name /myapp/prod \
+  --retention-in-days 30
+aws logs create-log-metric-filter --log-group-name /myapp/prod \
+  --filter-name error-count --filter-pattern "ERROR" \
+  --metric-transformations metricName=ErrorCount,metricNamespace=MyApp,metricValue=1</code></pre>
+    <table><tr><th>So sánh</th><th>CW Logs</th><th>CloudTrail</th></tr>
+      <tr><td>Nội dung</td><td>Log tự do</td><td>Log API có cấu trúc</td></tr>
+      <tr><td>Dùng khi</td><td>Debug app</td><td>Audit bảo mật</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-22">
+<h3>6.22 — The Unified CloudWatch Agent</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Metric mặc định chỉ thấy "ngoài" instance (CPU/Network). Agent cài bên trong OS để thấy Memory/Disk %. Như nhân viên đứng trong xưởng báo cáo kho nguyên liệu bên trong sắp hết.</p>
+    <p><b>Pattern nâng cao:</b> Đẩy log app + metric Memory cùng lúc qua 1 agent. <b>Case:</b> Java app OOM phát hiện được nhờ theo dõi Memory % — CPU vẫn thấp nên trước đó không phát hiện.</p>
+    <p><b>Vị trí kiến trúc:</b> Nhánh mở rộng CloudWatch — cảm biến bên trong từng máy ở Xưởng lắp ráp.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Vì sao mặc định không thấy % RAM? → Chỉ đo tầng hypervisor, không thấy trong OS.</li>
+        <li>Muốn Memory Utilization cần gì? → Cài Unified CloudWatch Agent.</li>
+        <li>Agent cần quyền IAM gì? → CloudWatchAgentServerPolicy.</li>
+        <li>Case Java OOM phát hiện nhờ gì? → Theo dõi Memory % qua Agent.</li>
+        <li>Khớp đâu trong nhà máy? → Cảm biến bên trong máy, nhánh CloudWatch.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>sudo yum install amazon-cloudwatch-agent -y
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json</code></pre>
+    <table><tr><th>So sánh</th><th>Metric mặc định</th><th>Agent</th></tr>
+      <tr><td>Phạm vi</td><td>Ngoài instance</td><td>Trong OS</td></tr>
+      <tr><td>Cần cài</td><td>Không</td><td>Có + IAM Role</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-23">
+<h3>6.23 — AWS CloudTrail</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Ghi mọi lệnh gọi API (ai, khi nào, gọi gì). Event History mặc định 90 ngày; Trail để lưu lâu dài/multi-region. Như camera an ninh + sổ ra vào ghi ai mở cửa nào.</p>
+    <ul><li>Management events: bật mặc định</li><li>Data events: bật thêm, tốn phí cao hơn</li></ul>
+    <p><b>Pattern nâng cao:</b> Log file integrity validation cho forensic. <b>Case:</b> security dùng lookup-events lọc GetObject để xác định ai đọc file nhạy cảm.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ camera an ninh — sổ ghi ai làm hành động gì (khác Config = trạng thái).</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Event History mặc định lưu bao lâu? → 90 ngày, chỉ Management events.</li>
+        <li>Ghi log API ở tất cả region dùng flag nào? → --is-multi-region-trail.</li>
+        <li>Data events khác Management events? → Mức dữ liệu (S3 GetObject...), phải bật thêm.</li>
+        <li>Chứng minh log chưa bị sửa? → Log file integrity validation.</li>
+        <li>Khớp đâu trong nhà máy? → Camera an ninh, sổ ghi hành động.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws cloudtrail create-trail --name org-trail \
+  --s3-bucket-name my-cloudtrail-logs --is-multi-region-trail
+aws cloudtrail start-logging --name org-trail
+aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=Username,AttributeValue=alice</code></pre>
+    <table><tr><th>So sánh</th><th>Event History</th><th>Trail</th></tr>
+      <tr><td>Lưu</td><td>90 ngày</td><td>Vô thời hạn (S3)</td></tr>
+      <tr><td>Chi phí</td><td>Miễn phí</td><td>Trả phí S3+data events</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-25">
+<h3>6.25 — Amazon EventBridge (Refresher)</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> "Bảng thông báo" route event theo rule tới target. Bài này kết hợp với CloudTrail để phản ứng tức thời theo hành vi API — khác Config Auto Remediation (theo chu kỳ trạng thái).</p>
+    <p><b>Pattern nâng cao:</b> Rule bắt StopLogging/DeleteTrail. <b>Case:</b> fintech tự động bật lại logging + alert SNS trong vài giây khi phát hiện ai cố xóa dấu vết.</p>
+    <p><b>Vị trí kiến trúc:</b> Vẫn là hệ thống loa phóng thanh (từ Module 5), nay nhận thêm tin từ CloudTrail.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Khác Config Auto Remediation ở tốc độ? → Gần tức thời vs theo chu kỳ.</li>
+        <li>Dấu hiệu kẻ tấn công xóa dấu vết? → StopLogging/DeleteTrail.</li>
+        <li>1 rule gắn tối đa bao nhiêu target? → 5.</li>
+        <li>Fintech dùng để làm gì? → Tự bật lại logging + alert ngay.</li>
+        <li>Khớp đâu? → Loa phóng thanh, nhận thêm tin từ CloudTrail.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws events put-rule --name detect-trail-tamper \
+  --event-pattern '{"source":["aws.cloudtrail"],
+  "detail":{"eventName":["StopLogging","DeleteTrail"]}}'
+aws events put-targets --rule detect-trail-tamper \
+  --targets '[{"Id":"1","Arn":"arn:aws:sns:...:topic/security-alert"}]'</code></pre>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-27">
+<h3>6.27 — Metric Analysis and Tracing</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> X-Ray vẽ bản đồ đường đi 1 request qua nhiều service (trace/segment), đo latency từng chặng. Như GPS gắn vào lô hàng đi qua nhiều trạm — biết chính xác kẹt ở đâu.</p>
+    <p><b>Pattern nâng cao:</b> Sampling Rule 100% cho endpoint quan trọng. <b>Case:</b> sàn TMĐT khoanh vùng payment service chậm do gọi API ngân hàng ngoài, nhờ X-Ray Service Graph.</p>
+    <p><b>Vị trí kiến trúc:</b> Nhánh mở rộng CloudWatch — GPS theo từng request xuyên suốt nhiều trạm.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>X-Ray trả lời câu hỏi gì CloudWatch không trả lời được? → Chậm ở chặng nào cụ thể.</li>
+        <li>Sampling rate mặc định? → 1 req/giây + 5% còn lại.</li>
+        <li>Trace 100% cho 1 API quan trọng làm sao? → Sampling Rule tùy chỉnh.</li>
+        <li>Case sàn TMĐT phát hiện gì? → Payment service chậm do API ngân hàng ngoài.</li>
+        <li>Khớp đâu? → Nhánh CloudWatch, GPS theo request.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws xray get-trace-summaries \
+  --start-time 2026-08-01T00:00:00 \
+  --end-time 2026-08-01T01:00:00
+aws xray get-service-graph \
+  --start-time 2026-08-01T00:00:00 \
+  --end-time 2026-08-01T01:00:00</code></pre>
+    <table><tr><th>So sánh</th><th>CW Metric</th><th>X-Ray Trace</th></tr>
+      <tr><td>Trả lời</td><td>Có chậm không</td><td>Chậm ở đâu</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+</div>
+
+<div class="tabpanel" id="tab-quiz">
+<h2>Quiz — Monitoring, Logging, and Auditing</h2>
+<div class="quiz-grid">
+  <div class="qcard"><b>1. Metric mặc định EC2 có thấy được % RAM đang dùng không?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Không — cần cài Unified CloudWatch Agent để thấy metric bên trong OS.</div></div>
+  <div class="qcard"><b>2. Muốn alarm không kêu vì 1 spike CPU ngắn hạn, chỉnh tham số nào?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Tăng --evaluation-periods (số khoảng liên tiếp phải vi phạm).</div></div>
+  <div class="qcard"><b>3. Muốn biến số lần xuất hiện "ERROR" trong log thành alarm, dùng gì?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">CloudWatch Logs Metric Filter.</div></div>
+  <div class="qcard"><b>4. Event History CloudTrail mặc định lưu bao lâu?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">90 ngày, chỉ Management events, miễn phí.</div></div>
+  <div class="qcard"><b>5. Dấu hiệu kẻ tấn công cố xóa dấu vết trên CloudTrail?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Gọi StopLogging hoặc DeleteTrail.</div></div>
+  <div class="qcard"><b>6. Công cụ nào cho biết chính xác service nào trong chuỗi microservices đang chậm?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">AWS X-Ray (Service Graph + Trace).</div></div>
+  <div class="qcard"><b>7. EventBridge + CloudTrail phản ứng nhanh hơn hay chậm hơn Config Auto Remediation?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Nhanh hơn — gần tức thời theo hành động API, thay vì theo chu kỳ đánh giá rule.</div></div>
+  <div class="qcard"><b>8. Chi phí ẩn hay gặp nhất khi setup CloudWatch Logs là gì?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Quên đặt retention policy → log giữ vĩnh viễn, chi phí tăng dần âm thầm.</div></div>
+</div>
+</div>
+
+<div class="tabpanel" id="tab-lab">
+<h2>Lab tổng — Dựng hệ thống giám sát + audit toàn diện</h2>
+<div class="lab-grid">
+  <div>
+    <p>🧭 <b>Bối cảnh:</b> Thiết lập giám sát cho app trên EC2: Memory metric, alarm lỗi log, audit mọi API call, tự động cảnh báo khi ai cố xóa dấu vết log.</p>
+    <p><b>Verify:</b></p>
+    <pre><code>aws cloudwatch describe-alarms --alarm-names high-cpu app-error-spike
+aws logs filter-log-events --log-group-name /myapp/prod --filter-pattern "ERROR"
+aws cloudtrail get-trail-status --name org-trail
+aws events list-rules --name-prefix detect-trail-tamper</code></pre>
+    <p><b>Cleanup:</b></p>
+    <pre><code>aws events remove-targets --rule detect-trail-tamper --ids 1
+aws events delete-rule --name detect-trail-tamper
+aws cloudtrail stop-logging --name org-trail
+aws cloudtrail delete-trail --name org-trail
+aws s3 rb s3://my-cloudtrail-logs-2026 --force
+aws logs delete-log-group --log-group-name /myapp/prod
+aws cloudwatch delete-alarms --alarm-names high-cpu app-error-spike</code></pre>
+    <div class="warn-box"><b>⚠️ Lưu ý dễ sai/dễ tốn phí:</b>
+    <ul>
+      <li>Quên retention policy cho log group → chi phí tăng âm thầm.</li>
+      <li>Multi-region trail ghi log mọi region — cần lifecycle rule dọn S3.</li>
+      <li>Agent cần IAM Role CloudWatchAgentServerPolicy, thiếu quyền sẽ chạy nhưng không đẩy được metric.</li>
+      <li>Data events CloudTrail tính phí theo số lượng — không bật tràn lan.</li>
+    </ul></div>
+  </div>
+  <div>
+<pre><code># BƯỚC 1: Alarm CPU cơ bản
+aws cloudwatch put-metric-alarm --alarm-name high-cpu \
+  --metric-name CPUUtilization --namespace AWS/EC2 \
+  --statistic Average --period 300 --threshold 80 \
+  --comparison-operator GreaterThanThreshold --evaluation-periods 2 \
+  --alarm-actions arn:aws:sns:...:topic/ops-alert
+
+# BƯỚC 2: Unified CloudWatch Agent (Memory)
+sudo yum install amazon-cloudwatch-agent -y
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 -s -c file:.../config.json
+
+# BƯỚC 3: Log group + metric filter
+aws logs create-log-group --log-group-name /myapp/prod
+aws logs put-retention-policy --log-group-name /myapp/prod --retention-in-days 30
+aws logs create-log-metric-filter --log-group-name /myapp/prod \
+  --filter-name error-count --filter-pattern "ERROR" \
+  --metric-transformations metricName=ErrorCount,metricNamespace=MyApp,metricValue=1
+aws cloudwatch put-metric-alarm --alarm-name app-error-spike \
+  --metric-name ErrorCount --namespace MyApp --statistic Sum --period 300 \
+  --threshold 5 --comparison-operator GreaterThanThreshold --evaluation-periods 1 \
+  --alarm-actions arn:aws:sns:...:topic/ops-alert
+
+# BƯỚC 4: CloudTrail
+aws s3 mb s3://my-cloudtrail-logs-2026
+aws cloudtrail create-trail --name org-trail \
+  --s3-bucket-name my-cloudtrail-logs-2026 --is-multi-region-trail
+aws cloudtrail update-trail --name org-trail --enable-log-file-validation
+aws cloudtrail start-logging --name org-trail
+
+# BƯỚC 5: EventBridge rule chống xóa dấu vết
+aws events put-rule --name detect-trail-tamper \
+  --event-pattern '{"source":["aws.cloudtrail"],"detail":{"eventName":["StopLogging","DeleteTrail"]}}'
+aws events put-targets --rule detect-trail-tamper \
+  --targets '[{"Id":"1","Arn":"arn:aws:sns:...:topic/security-alert"}]'</code></pre>
+  </div>
+</div>
+</div>
+
+<div class="tabpanel" id="tab-cheat">
+<h2>Cheat Sheet — Monitoring, Logging, and Auditing</h2>
+<div class="cheat-grid">
+  <div class="cheat-card"><h4>CloudWatch vs Logs</h4>CloudWatch = số liệu + báo động. CloudWatch Logs = lưu/tìm log text. Đừng nhầm.</div>
+  <div class="cheat-card"><h4>Bẫy Memory Metric</h4>Metric mặc định KHÔNG có Memory/Disk % — phải cài Unified CloudWatch Agent.</div>
+  <div class="cheat-card"><h4>CloudTrail</h4>Ai gọi API gì. Event History 90 ngày miễn phí; Trail để lưu lâu/multi-region.</div>
+  <div class="cheat-card"><h4>EventBridge vs Config Remediation</h4>EventBridge+CloudTrail = phản ứng tức thời theo hành động. Config = phản ứng theo chu kỳ đánh giá trạng thái.</div>
+  <div class="cheat-card"><h4>X-Ray</h4>Biết CHÍNH XÁC request chậm ở chặng nào trong kiến trúc microservices/Lambda.</div>
+  <div class="cheat-card"><h4>Chi phí ẩn</h4>Quên retention policy log group, bật Data events tràn lan trên CloudTrail.</div>
+  <div class="pattern-box" style="grid-column:1/-1"><h4>🎯 Pattern chuẩn thi</h4>Câu hỏi "audit ai làm gì" → CloudTrail. "Phát hiện lỗi ứng dụng dù CPU bình thường" → CloudWatch Logs Metric Filter. "Xác định chặng chậm trong microservices" → X-Ray. "Cần Memory metric" → nhớ phải cài Agent, không có sẵn.</div>
+  <div class="cheat-card factory-card"><h4>🏭 Trạm mới thêm vào nhà máy nền</h4>
+    <ul>
+      <li>CloudWatch (metric/alarm) — đồng hồ đo + còi báo động gắn mọi trạm</li>
+      <li>CloudWatch Logs — sổ nhật ký chi tiết dạng chữ</li>
+      <li>Unified CloudWatch Agent — cảm biến bên trong Xưởng lắp ráp (EC2)</li>
+      <li>CloudTrail — camera an ninh, sổ ghi ai làm hành động gì</li>
+      <li>EventBridge — không mới, thêm nguồn tin từ CloudTrail</li>
+      <li>AWS X-Ray — GPS theo từng request xuyên suốt các trạm</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+</div>
+
+<script>
+  const tabbtns = document.querySelectorAll('.tabbtn');
+  const panels = {theory:'tab-theory', quiz:'tab-quiz', lab:'tab-lab', cheat:'tab-cheat'};
+  tabbtns.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      tabbtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(panels).forEach(id=>document.getElementById(id).classList.remove('active'));
+      document.getElementById(panels[btn.dataset.tab]).classList.add('active');
+      const showSidebar = btn.dataset.tab==='theory' || btn.dataset.tab==='quiz';
+      document.body.classList.toggle('has-sidebar', showSidebar);
+      document.getElementById('sidebar-theory').style.display = showSidebar? 'block':'none';
+    });
+  });
+  const links = document.querySelectorAll('.side-link');
+  const sections = document.querySelectorAll('.lesson');
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(l=>l.classList.remove('active'));
+        const match = document.querySelector('.side-link[href="#'+e.target.id+'"]');
+        if(match) match.classList.add('active');
+      }
+    });
+  },{rootMargin:'-20% 0px -70% 0px'});
+  sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

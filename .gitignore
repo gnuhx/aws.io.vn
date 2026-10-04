@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.netlify/
+*.tsbuildinfo
+.env*
+CLAUDE.local.md
+.claude/settings.local.json
+.DS_Store
+*.log
