@@ -1,7 +1,11 @@
 :root {
-  --color-text: #1a1a1a;
-  --color-muted: #5c5c5c;
-  --color-bg: #ffffff;
+  --color-text: #2a1d1a;
+  --color-muted: #5f483e;
+  --color-bg: #f8f1e9;
+  --color-accent: #8c4d35;
+  --color-accent-dark: #442a22;
+  --color-card: #fffaf5;
+  --color-line: rgba(88, 61, 49, 0.18);
 
   font-family:
     system-ui,
@@ -12,15 +16,6 @@
   line-height: 1.5;
   color: var(--color-text);
   background: var(--color-bg);
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-text: #ececec;
-    --color-muted: #a3a3a3;
-    --color-bg: #161616;
-  }
 }
 
 *,
@@ -29,6 +24,45 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+p,
+a,
+li,
+blockquote,
+button,
+span {
+  color: inherit;
+}
+
+a {
+  color: var(--color-accent-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

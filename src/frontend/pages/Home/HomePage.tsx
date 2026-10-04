@@ -10,7 +10,7 @@ export function HomePage() {
       <header className={styles.hero}>
         <p className={styles.kicker}>aws.io.vn</p>
         <h1 className={styles.title}>AWS Learning Paths</h1>
-        <p className={styles.lead}>Browse lessons by topic and continue learning from the project content.</p>
+        <p className={styles.lead}>A calm, practical study flow for engineers who like to learn by seeing the full picture first.</p>
       </header>
 
       {topics.length === 0 ? (
