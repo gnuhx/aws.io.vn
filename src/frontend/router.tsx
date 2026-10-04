@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router'
-import { HomePage } from './pages/Home/HomePage.tsx'
+import { lessonIndex } from './lessons.ts'
+import { createRoutes } from './routes.tsx'
 
-export const router = createBrowserRouter([{ path: '/', element: <HomePage /> }])
+export const router = createBrowserRouter(createRoutes(lessonIndex))

@@ -13,3 +13,9 @@
   margin: 0;
   color: var(--color-muted);
 }
+
+.topics {
+  margin: 2rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 1.125rem;
+}

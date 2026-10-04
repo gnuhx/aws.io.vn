@@ -1,0 +1,36 @@
+.page {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.article {
+  overflow-wrap: break-word;
+}
+
+.article table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+
+.article th,
+.article td {
+  border: 1px solid var(--color-muted);
+  padding: 0.25rem 0.75rem;
+  text-align: left;
+}
+
+.article pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid var(--color-muted);
+  border-radius: 0.25rem;
+}
+
+.article blockquote {
+  margin: 1rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-muted);
+  color: var(--color-muted);
+}
