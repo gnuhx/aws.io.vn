@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luồng request: Mobile App → EC2 → ElastiCache → RDS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c2340;
+    --bg-deep: #081a30;
+    --grid: rgba(255,255,255,0.05);
+    --node-fill: #103457;
+    --node-stroke: #4f7ea3;
+    --node-stroke-dim: #2c4a63;
+    --text-main: #f2ede1;
+    --text-dim: #90aac2;
+    --cyan: #6fd6ff;
+    --amber: #ffb454;
+    --amber-dim: #7a5a2e;
+    --cyan-dim: #2c5468;
+    --panel-bg: #0a2038;
+    --panel-border: #1e4a6e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color: var(--text-main);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 28px 20px 60px;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; }
+
+  header{ margin-bottom: 22px; }
+  .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+  }
+  h1{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: clamp(20px, 3.4vw, 28px);
+    font-weight:600;
+    margin: 6px 0 8px;
+    line-height:1.3;
+  }
+  p.lede{
+    color: var(--text-dim);
+    max-width: 620px;
+    font-size: 14.5px;
+    line-height:1.6;
+    margin:0;
+  }
+
+  .scenario-toggle{
+    display:flex;
+    gap:10px;
+    margin: 22px 0 18px;
+    flex-wrap: wrap;
+  }
+  .scenario-toggle button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 9px 16px;
+    border-radius: 3px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .scenario-toggle button.active[data-mode="hit"]{
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(111,214,255,0.08);
+  }
+  .scenario-toggle button.active[data-mode="miss"]{
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(255,180,84,0.08);
+  }
+
+  .diagram-frame{
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+    background: var(--bg-deep);
+    padding: 6px;
+    position:relative;
+  }
+  .diagram-frame::before{
+    content: "SƠ ĐỒ 4.53 — ELASTICACHE";
+    position:absolute;
+    top:-1px; left:-1px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    color: var(--text-dim);
+    background: var(--panel-border);
+    padding: 3px 8px;
+    border-radius: 0 0 4px 0;
+  }
+  svg{ display:block; width:100%; height:auto; }
+
+  .node rect{
+    fill: var(--node-fill);
+    stroke: var(--node-stroke-dim);
+    stroke-width: 1.5;
+    transition: stroke .2s ease, fill .2s ease;
+  }
+  .node.active rect{ stroke-width: 2.2; }
+  .node.active-hit rect{ stroke: var(--cyan); fill: #123a52; }
+  .node.active-miss rect{ stroke: var(--amber); fill: #3a2c14; }
+
+  .node .label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    font-weight:600;
+    fill: var(--text-main);
+  }
+  .node .sub{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size: 10.5px;
+    fill: var(--text-dim);
+  }
+
+  .edge{
+    fill:none;
+    stroke: var(--node-stroke-dim);
+    stroke-width: 1.6;
+    marker-end: url(#arrow-dim);
+    transition: stroke .2s ease;
+  }
+  .edge.active-hit{ stroke: var(--cyan); stroke-width: 2.2; marker-end: url(#arrow-cyan); }
+  .edge.active-miss{ stroke: var(--amber); stroke-width: 2.2; marker-end: url(#arrow-amber); }
+  .edge.dashed{ stroke-dasharray: 5 4; }
+
+  .pulse{
+    r: 4.5;
+    fill: var(--cyan);
+    opacity: 0;
+  }
+  .pulse.miss{ fill: var(--amber); }
+
+  .step-panel{
+    margin-top: 20px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    border-radius: 4px;
+    padding: 18px 20px;
+    display:flex;
+    gap: 18px;
+    align-items:flex-start;
+  }
+  .step-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight:700;
+    color: var(--text-dim);
+    min-width: 34px;
+  }
+  .step-num.hit{ color: var(--cyan); }
+  .step-num.miss{ color: var(--amber); }
+  .step-body h3{
+    margin: 0 0 6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 14.5px;
+    font-weight:600;
+  }
+  .step-body p{
+    margin:0;
+    font-size: 13.5px;
+    line-height:1.65;
+    color: var(--text-dim);
+  }
+
+  .step-controls{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    margin-top: 14px;
+    gap:10px;
+  }
+  .step-controls .dots{ display:flex; gap:6px; }
+  .step-controls .dots span{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--node-stroke-dim);
+    display:inline-block;
+  }
+  .step-controls .dots span.on{ background: var(--cyan); }
+  .step-controls .dots span.on.miss{ background: var(--amber); }
+
+  .navbtns{ display:flex; gap:8px; }
+  .navbtns button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-main);
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor:pointer;
+  }
+  .navbtns button:disabled{ opacity:0.35; cursor:default; }
+  .navbtns button:not(:disabled):hover{ border-color: var(--cyan); }
+
+  .legend{
+    margin-top: 18px;
+    display:flex;
+    gap: 22px;
+    flex-wrap:wrap;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+  }
+  .legend .item{ display:flex; align-items:center; gap:7px; }
+  .legend .swatch{ width:14px; height:3px; border-radius:2px; }
+  .legend .swatch.cyan{ background: var(--cyan); }
+  .legend .swatch.amber{ background: var(--amber); }
+
+  @media (max-width: 640px){
+    .step-panel{ flex-direction:column; }
+    .step-num{ min-width:auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">4.53 · AMAZON ELASTICACHE</div>
+    <h1>Luồng request: Mobile App → EC2 → ElastiCache → RDS</h1>
+    <p class="lede">Bấm từng bước để xem request đi đâu, và tại sao "quầy tạm" (ElastiCache) lại đứng ngay cạnh "kho tổng" (RDS) trong nhà máy.</p>
+  </header>
+
+  <div class="scenario-toggle">
+    <button data-mode="hit" class="active">● Cache HIT — dữ liệu đã có sẵn</button>
+    <button data-mode="miss">● Cache MISS — lần đầu tiên / đã hết hạn</button>
+  </div>
+
+  <div class="diagram-frame">
+    <svg id="diagram" viewBox="0 0 960 380" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow-dim" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#2c4a63"/>
+        </marker>
+        <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#6fd6ff"/>
+        </marker>
+        <marker id="arrow-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#ffb454"/>
+        </marker>
+      </defs>
+
+      <!-- Edges -->
+      <!-- 1: mobile -> alb -->
+      <path id="edge-1" class="edge" d="M120,190 L215,190"/>
+      <!-- 2: alb -> ec2 -->
+      <path id="edge-2" class="edge" d="M335,190 L430,190"/>
+      <!-- 3: ec2 -> cache (check) -->
+      <path id="edge-3" class="edge" d="M520,165 Q560,90 610,90 L680,90"/>
+      <!-- 4a: cache -> ec2 (HIT return) -->
+      <path id="edge-4-hit" class="edge" d="M680,110 Q590,120 520,175"/>
+      <!-- 4b: ec2 -> rds (MISS path) -->
+      <path id="edge-4-miss" class="edge dashed" d="M520,215 Q560,290 610,290 L680,290"/>
+      <!-- 5: rds -> ec2 (data back) -->
+      <path id="edge-5-miss" class="edge dashed" d="M680,310 Q590,300 520,225"/>
+      <!-- 6: ec2 -> cache (write-back after miss) -->
+      <path id="edge-6-miss" class="edge dashed" d="M545,175 Q610,140 685,105"/>
+      <!-- 7: ec2 -> mobile (final response) -->
+      <path id="edge-7" class="edge" d="M430,205 L120,205"/>
+
+      <!-- Nodes -->
+      <g class="node" id="node-mobile">
+        <rect x="20" y="160" width="100" height="60" rx="4"/>
+        <text x="70" y="186" text-anchor="middle" class="label">Mobile App</text>
+        <text x="70" y="203" text-anchor="middle" class="sub">Người dùng bấm nút</text>
+      </g>
+
+      <g class="node" id="node-alb">
+        <rect x="215" y="160" width="120" height="60" rx="4"/>
+        <text x="275" y="186" text-anchor="middle" class="label">API / ALB</text>
+        <text x="275" y="203" text-anchor="middle" class="sub">Cổng bảo vệ xưởng</text>
+      </g>
+
+      <g class="node" id="node-ec2">
+        <rect x="430" y="160" width="120" height="60" rx="4"/>
+        <text x="490" y="186" text-anchor="middle" class="label">EC2 App</text>
+        <text x="490" y="203" text-anchor="middle" class="sub">Xưởng chế biến</text>
+      </g>
+
+      <g class="node" id="node-cache">
+        <rect x="680" y="60" width="150" height="60" rx="4"/>
+        <text x="755" y="86" text-anchor="middle" class="label">ElastiCache</text>
+        <text x="755" y="103" text-anchor="middle" class="sub">Quầy tạm (Redis)</text>
+      </g>
+
+      <g class="node" id="node-rds">
+        <rect x="680" y="260" width="150" height="60" rx="4"/>
+        <text x="755" y="286" text-anchor="middle" class="label">RDS</text>
+        <text x="755" y="303" text-anchor="middle" class="sub">Kho tổng</text>
+      </g>
+
+      <circle class="pulse" id="pulse"/>
+    </svg>
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="swatch cyan"></span> Đường đi khi HIT (nhanh, không chạm kho tổng)</div>
+    <div class="item"><span class="swatch amber"></span> Đường đi khi MISS (chậm hơn, phải hỏi kho tổng)</div>
+  </div>
+
+  <div class="step-panel">
+    <div class="step-num" id="stepNum">1</div>
+    <div class="step-body">
+      <h3 id="stepTitle">Mobile App gửi request</h3>
+      <p id="stepDesc">Người dùng mở app, kéo đến mục "Top sản phẩm bán chạy". App gửi request đến backend qua Internet.</p>
+    </div>
+  </div>
+
+  <div class="step-controls">
+    <div class="dots" id="dots"></div>
+    <div class="navbtns">
+      <button id="prevBtn">← Trước</button>
+      <button id="nextBtn">Tiếp →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const scenarios = {
+  hit: [
+    {
+      nodes: ["node-mobile"], edges: [],
+      title: "Mobile App gửi request",
+      desc: "Người dùng mở app, xem mục \"Top sản phẩm bán chạy\". App gửi request qua Internet đến backend."
+    },
+    {
+      nodes: ["node-mobile","node-alb"], edges: ["edge-1"],
+      title: "Đi qua API / Load Balancer",
+      desc: "Request tới cổng vào của hệ thống (ALB / API Gateway) — giống bảo vệ cổng nhà máy, phân luồng request vào đúng xưởng đang rảnh."
+    },
+    {
+      nodes: ["node-alb","node-ec2"], edges: ["edge-2"],
+      title: "EC2 nhận việc",
+      desc: "Server ứng dụng (EC2) — \"xưởng chế biến\" — nhận request và bắt đầu xử lý logic nghiệp vụ."
+    },
+    {
+      nodes: ["node-ec2","node-cache"], edges: ["edge-3"],
+      title: "EC2 hỏi quầy tạm trước",
+      desc: "Theo pattern Lazy Loading (Cache-Aside), EC2 luôn hỏi ElastiCache trước: \"Top sản phẩm bán chạy có sẵn không?\""
+    },
+    {
+      nodes: ["node-cache","node-ec2"], edges: ["edge-4-hit"],
+      title: "CACHE HIT — có sẵn!",
+      desc: "Dữ liệu vẫn còn trong 5 phút TTL. Quầy tạm trả kết quả ngay, không cần chạy vào Kho tổng (RDS). Cực nhanh, tốn ít tài nguyên."
+    },
+    {
+      nodes: ["node-ec2","node-mobile"], edges: ["edge-7"],
+      title: "Trả kết quả về Mobile App",
+      desc: "EC2 gói kết quả và trả về cho app. Toàn bộ chuyến đi không hề \"làm phiền\" Kho tổng RDS — đây chính là lý do đặt cache."
+    }
+  ],
+  miss: [
+    {
+      nodes: ["node-mobile"], edges: [],
+      title: "Mobile App gửi request",
+      desc: "Giống hệt kịch bản HIT: người dùng mở mục \"Top sản phẩm bán chạy\", app gửi request đi."
+    },
+    {
+      nodes: ["node-mobile","node-alb"], edges: ["edge-1"],
+      title: "Đi qua API / Load Balancer",
+      desc: "Request qua cổng vào hệ thống như bình thường."
+    },
+    {
+      nodes: ["node-alb","node-ec2"], edges: ["edge-2"],
+      title: "EC2 nhận việc",
+      desc: "Xưởng chế biến (EC2) nhận request, chuẩn bị xử lý."
+    },
+    {
+      nodes: ["node-ec2","node-cache"], edges: ["edge-3"],
+      title: "EC2 hỏi quầy tạm trước",
+      desc: "EC2 vẫn hỏi ElastiCache trước tiên — đúng nguyên tắc Lazy Loading, không bỏ qua bước này."
+    },
+    {
+      nodes: ["node-cache","node-ec2"], edges: ["edge-4-miss"],
+      title: "CACHE MISS — hết hạn / chưa từng cache",
+      desc: "Có thể là lần đầu request loại dữ liệu này, hoặc TTL 5 phút đã hết. Quầy tạm báo \"không có\", buộc phải đi tiếp."
+    },
+    {
+      nodes: ["node-ec2","node-rds"], edges: ["edge-4-miss"],
+      title: "EC2 phải chạy vào Kho tổng",
+      desc: "EC2 buộc phải query trực tiếp RDS để lấy dữ liệu gốc — bước này chậm hơn và tốn tải cho DB, đúng như cái giá phải trả khi miss."
+    },
+    {
+      nodes: ["node-rds","node-ec2"], edges: ["edge-5-miss"],
+      title: "Kho tổng trả dữ liệu",
+      desc: "RDS trả kết quả truy vấn về cho EC2."
+    },
+    {
+      nodes: ["node-ec2","node-cache"], edges: ["edge-6-miss"],
+      title: "Ghi ngược vào quầy tạm",
+      desc: "EC2 lưu (SET) kết quả vừa lấy vào ElastiCache với TTL 5 phút, để lần sau request tương tự sẽ HIT ngay, không phải làm phiền RDS nữa."
+    },
+    {
+      nodes: ["node-ec2","node-mobile"], edges: ["edge-7"],
+      title: "Trả kết quả về Mobile App",
+      desc: "EC2 trả kết quả cho app — chậm hơn kịch bản HIT một chút, nhưng từ request thứ 2 trở đi (trong 5 phút) sẽ nhanh như kịch bản HIT."
+    }
+  ]
+};
+
+let mode = "hit";
+let idx = 0;
+
+const allNodeIds = ["node-mobile","node-alb","node-ec2","node-cache","node-rds"];
+const allEdgeIds = ["edge-1","edge-2","edge-3","edge-4-hit","edge-4-miss","edge-5-miss","edge-6-miss","edge-7"];
+
+const stepNumEl = document.getElementById("stepNum");
+const stepTitleEl = document.getElementById("stepTitle");
+const stepDescEl = document.getElementById("stepDesc");
+const dotsEl = document.getElementById("dots");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const pulse = document.getElementById("pulse");
+
+function activeClass(){ return mode === "hit" ? "active-hit" : "active-miss"; }
+function nodeClass(){ return mode === "hit" ? "active-hit" : "active-miss"; }
+
+function render(){
+  const steps = scenarios[mode];
+  const step = steps[idx];
+
+  // reset
+  allNodeIds.forEach(id => document.getElementById(id).classList.remove("active-hit","active-miss","active"));
+  allEdgeIds.forEach(id => document.getElementById(id).classList.remove("active-hit","active-miss"));
+
+  step.nodes.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.add("active", nodeClass());
+  });
+  step.edges.forEach(id => {
+    document.getElementById(id).classList.add(activeClass());
+  });
+
+  stepNumEl.textContent = idx + 1;
+  stepNumEl.className = "step-num " + mode;
+  stepTitleEl.textContent = step.title;
+  stepDescEl.textContent = step.desc;
+
+  // dots
+  dotsEl.innerHTML = "";
+  steps.forEach((_, i) => {
+    const d = document.createElement("span");
+    if (i === idx) d.classList.add("on", mode === "miss" ? "miss" : "");
+    dotsEl.appendChild(d);
+  });
+
+  prevBtn.disabled = idx === 0;
+  nextBtn.disabled = idx === steps.length - 1;
+
+  // pulse animation along active edge
+  const edgeId = step.edges[step.edges.length - 1];
+  if (edgeId) {
+    const path = document.getElementById(edgeId);
+    animatePulse(path);
+  } else {
+    pulse.style.opacity = 0;
+  }
+}
+
+function animatePulse(path){
+  const len = path.getTotalLength();
+  pulse.classList.toggle("miss", mode === "miss");
+  pulse.style.opacity = 1;
+  const duration = 900;
+  const start = performance.now();
+  function frame(now){
+    const t = Math.min(1, (now - start) / duration);
+    const pt = path.getPointAtLength(t * len);
+    pulse.setAttribute("cx", pt.x);
+    pulse.setAttribute("cy", pt.y);
+    if (t < 1) requestAnimationFrame(frame);
+    else setTimeout(() => { pulse.style.opacity = 0; }, 200);
+  }
+  requestAnimationFrame(frame);
+}
+
+document.querySelectorAll(".scenario-toggle button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".scenario-toggle button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    mode = btn.dataset.mode;
+    idx = 0;
+    render();
+  });
+});
+
+prevBtn.addEventListener("click", () => { if (idx > 0){ idx--; render(); } });
+nextBtn.addEventListener("click", () => { if (idx < scenarios[mode].length - 1){ idx++; render(); } });
+
+render();
+</script>
+</body>
+</html>

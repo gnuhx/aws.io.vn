@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EC2 Core & Networking · SAA-C03</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#FFFFFF;
+  --ink:#1A1A1A;
+  --muted:#6B6B6B;
+  --line:#E7E5E0;
+  --accent:#D9720B;
+  --accent-soft:#FDF1E4;
+  --surface:#FAF9F7;
+  --navh:53px;
+  --tabh:49px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;width:100%;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+.serif{font-family:'Source Serif 4',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+
+/* ---- Top nav ---- */
+.nav{position:sticky;top:0;z-index:50;height:var(--navh);display:flex;align-items:center;justify-content:space-between;
+  padding:0 4vw;background:rgba(255,255,255,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.nav .brand{font-family:'IBM Plex Mono';font-size:12.5px;letter-spacing:.06em;color:var(--muted);}
+.nav .brand b{color:var(--ink);}
+.roadmap-nav{display:flex;gap:18px;font-family:'IBM Plex Mono';font-size:11.5px;color:var(--muted);}
+.roadmap-nav .cur{color:var(--accent);font-weight:600;}
+.roadmap-nav .done{color:#7A8A6F;}
+
+/* ---- Tabs ---- */
+.tabbar{position:sticky;top:var(--navh);z-index:49;height:var(--tabh);display:flex;align-items:center;gap:28px;padding:0 4vw;
+  background:#fff;border-bottom:1px solid var(--line);}
+.tab-btn{font-family:'IBM Plex Mono';font-size:13px;padding:16px 0;background:none;border:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;letter-spacing:.02em;}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ---- Hero ---- */
+.hero{padding:4vw 4vw 3vw;border-bottom:1px solid var(--line);transition:padding-left .1s;}
+body.has-sidebar .hero{padding-left:calc(230px + 4vw);}
+.eyebrow{font-family:'IBM Plex Mono';font-size:12px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin:0 0 16px;}
+.hero h1{font-family:'Source Serif 4';font-weight:600;font-size:clamp(30px,4.4vw,52px);line-height:1.08;margin:0 0 18px;max-width:26ch;}
+.hero p.lede{font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:#3C3C3C;max-width:70ch;margin:0;}
+
+/* ---- Layout w/ sidebar (fixed) ---- */
+.layout{position:relative;width:100%;}
+.sidebar{position:fixed;top:calc(var(--navh) + var(--tabh));left:0;width:230px;
+  height:calc(100vh - var(--navh) - var(--tabh));overflow-y:auto;
+  border-right:1px solid var(--line);padding:32px 20px 40px;background:#fff;z-index:20;}
+.sidebar .stitle{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 14px 12px;}
+.sidebar a{display:block;font-family:'IBM Plex Mono';font-size:12.5px;padding:8px 12px;color:var(--muted);border-left:2px solid transparent;line-height:1.5;}
+.sidebar a:hover{color:var(--ink);}
+.sidebar a.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-soft);font-weight:600;}
+.sidebar a .t{display:block;font-family:'Inter';font-size:12px;color:inherit;opacity:.85;margin-top:1px;}
+
+.main{margin-left:230px;padding:0 4vw;min-width:0;}
+
+/* ---- Lesson block: 2-col content grid ---- */
+.lesson-block{padding:5vw 0 4.5vw;border-bottom:1px solid var(--line);scroll-margin-top:calc(var(--navh) + var(--tabh) + 20px);}
+.lesson-block:first-child{padding-top:3vw;}
+.lesson-tag{font-family:'IBM Plex Mono';font-size:12px;color:var(--accent);margin:0 0 8px;}
+.lesson-block h2{font-family:'Source Serif 4';font-weight:600;font-size:clamp(22px,2.2vw,30px);line-height:1.25;margin:0 0 28px;max-width:38ch;}
+
+.lgrid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:60px;align-items:start;}
+.lgrid .prose h3{font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:26px 0 8px;}
+.lgrid .prose h3:first-child{margin-top:0;}
+.lgrid .prose p{font-size:16px;line-height:1.8;color:#262626;margin:0 0 6px;max-width:56ch;}
+.role-box{border-left:3px solid var(--accent);background:var(--accent-soft);padding:16px 20px;border-radius:0 6px 6px 0;margin:8px 0 4px;}
+.role-box p{font-size:15px;max-width:none !important;}
+.reality-box{border-left:3px solid #7A8A6F;background:#F1F4EE;padding:16px 20px;border-radius:0 6px 6px 0;margin:8px 0 4px;}
+.reality-box p{font-size:15px;max-width:none !important;}
+.reality-box ul{margin:4px 0 0;padding-left:18px;font-size:15px;line-height:1.8;}
+
+.aside{position:static;}
+.aside h3{font-family:'IBM Plex Mono';font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 8px;}
+.aside table{width:100%;border-collapse:collapse;margin:0 0 22px;font-size:13.5px;}
+.aside th,.aside td{border-bottom:1px solid var(--line);padding:8px 4px;text-align:left;}
+.aside th{font-family:'IBM Plex Mono';font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:500;}
+.aside pre{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px;overflow-x:auto;font-size:12.5px;line-height:1.65;margin:0 0 18px;}
+.limit-line{font-size:13.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px;}
+.limit-line b{color:var(--ink);}
+
+/* ---- Quiz: 2-col grid ---- */
+.quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 48px;}
+.q-item{padding:16px 0;border-top:1px solid var(--line);break-inside:avoid;}
+.q-item p.qtext{font-size:15px;font-weight:500;margin:0 0 10px;line-height:1.5;}
+.q-answer{font-size:13.5px;color:var(--accent);cursor:pointer;display:inline-block;font-family:'IBM Plex Mono';}
+.q-answer-text{display:none;font-size:14px;color:#2E5F2E;margin-top:8px;padding:10px 14px;background:#F1F4EE;border-radius:6px;}
+.q-answer-text.show{display:block;}
+
+/* ---- Lab: 2-col ---- */
+.lab-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:60px;align-items:start;padding:3vw 0 5vw;}
+.lab-grid pre{position:sticky;top:calc(var(--navh) + var(--tabh) + 24px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:22px 26px;overflow-x:auto;font-size:13px;line-height:1.75;max-height:calc(100vh - var(--navh) - var(--tabh) - 60px);overflow-y:auto;}
+.lab-info h2{font-family:'Source Serif 4';font-weight:600;font-size:26px;margin:0 0 14px;}
+.context-line{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:24px;font-style:italic;}
+.lab-info .verify,.lab-info .cleanup{font-size:14.5px;margin:10px 0;line-height:1.6;}
+.lab-info .verify{color:#2E5F2E;}
+.lab-info .cleanup{color:var(--accent);}
+.warn-line{border-top:1px solid var(--line);margin-top:20px;padding-top:16px;font-size:14.5px;color:#8A2E2E;line-height:1.6;}
+
+/* ---- Cheat sheet: card grid ---- */
+.cheat-wrap{padding:4vw 0 6vw;}
+.cheat-wrap h2{font-family:'Source Serif 4';font-weight:600;font-size:28px;margin:0 0 26px;}
+.cheat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:30px;}
+.cheat-card{background:#fff;padding:20px 22px;}
+.cheat-card .k{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.cheat-card .v{font-family:'IBM Plex Mono';font-size:13.5px;color:var(--ink);margin-bottom:8px;}
+.cheat-card .note{font-size:13.5px;color:var(--muted);line-height:1.6;}
+.pattern-line{font-family:'Source Serif 4';font-size:19px;line-height:1.7;padding:28px 32px;background:var(--accent-soft);border-radius:8px;border-left:3px solid var(--accent);max-width:80ch;}
+
+@media (max-width:900px){
+  body.has-sidebar .hero{padding-left:4vw;}
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .lgrid,.lab-grid{grid-template-columns:1fr;gap:24px;}
+  .lab-grid pre{position:static;max-height:none;}
+  .quiz-grid{grid-template-columns:1fr;}
+  .cheat-cards{grid-template-columns:1fr;}
+  .roadmap-nav{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="brand"><b>SAA-C03</b> · Module 2 · EC2 Part 1</div>
+  <div class="roadmap-nav">
+    <span class="done">01 IAM</span>
+    <span class="cur">02a EC2·P1</span>
+    <span class="done">02b EC2·P2</span>
+    <span class="done">03 ELB/ASG</span>
+    <span>04 Org</span>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab-btn active" data-tab="theory">Lý thuyết</button>
+  <button class="tab-btn" data-tab="quiz">Quiz</button>
+  <button class="tab-btn" data-tab="lab">Lab</button>
+  <button class="tab-btn" data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Domain — High-Performing 24% · Resilient 26%</p>
+  <h1>EC2 Core &amp; Networking</h1>
+  <p class="lede">Mỗi bài đi theo format tra cứu nhanh: khái niệm + ví dụ, lệnh kèm từ điển flag, bảng so sánh, bảng tham số/giới hạn, pattern nâng cao + case thực tế, cấu hình liên quan (nếu có), và vị trí thật trong kiến trúc.</p>
+</div>
+
+<div class="tab-panel active" id="panel-theory">
+  <div class="layout">
+    <div class="sidebar">
+      <p class="stitle">9 bài trong section</p>
+      <div id="theoryToc"></div>
+    </div>
+    <div class="main" id="theoryArticle"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-quiz">
+  <div class="layout">
+    <div class="sidebar">
+      <p class="stitle">Nhảy nhanh</p>
+      <div id="quizToc"></div>
+    </div>
+    <div class="main" id="quizArticle"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-lab">
+  <div style="padding:0 4vw;" id="labArticle"></div>
+</div>
+
+<div class="tab-panel" id="panel-cheat">
+  <div style="padding:0 4vw;" id="cheatArticle"></div>
+</div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    document.body.classList.toggle('has-sidebar', btn.dataset.tab==='theory' || btn.dataset.tab==='quiz');
+    window.scrollTo({top:0,behavior:'instant'});
+  });
+});
+document.body.classList.add('has-sidebar');
+
+const lessons = [
+{code:"2.18", title:"Amazon EC2 Overview",
+ concept:"EC2 là dịch vụ cho thuê máy chủ ảo theo nhu cầu, trả tiền theo mức dùng thực tế. Giống thuê xe theo ngày ở hãng cho thuê xe — bạn chọn loại xe (instance type) phù hợp nhu cầu chuyến đi, trả tiền theo số ngày dùng, không cần mua đứt cả chiếc xe.",
+ cmd:`aws ec2 run-instances --image-id ami-0abcd1234 --instance-type t3.micro \\
+  --key-name mykey --security-group-ids sg-xxxx --subnet-id subnet-xxxx
+aws ec2 describe-instance-types --instance-types t3.micro --query "InstanceTypes[0].VCpuInfo"`,
+ flagTable:[["--image-id","AMI = Amazon Machine Image","Bản snapshot OS+software cài sẵn, khuôn mẫu tạo instance"],["--instance-type","—","Loại phần cứng ảo (CPU/RAM/network)"],["--key-name","—","Tên key pair SSH dùng đăng nhập lần đầu"],["--security-group-ids","SG = Security Group","Firewall ảo cấp instance"],["--query","JMESPath query","Lọc riêng phần JSON cần lấy"]],
+ compareCols:["Family","Tối ưu cho","Ví dụ"],
+ compareRows:[["General Purpose","Cân bằng CPU/RAM, web server","t3, m6i"],["Compute Optimized","CPU nặng, batch, ML inference","c6i"],["Memory Optimized","RAM nặng, in-memory DB","r6i"],["Storage Optimized","IOPS/throughput cao","i4i"]],
+ paramTable:[["vCPU-based quota","Theo family, soft limit","Giới hạn tổng vCPU chạy cùng lúc"],["Free Tier","750h/tháng","t2.micro/t3.micro, 12 tháng đầu"],["CPU Credit (T family)","Burstable","Hết credit → bị throttle CPU"]],
+ advCmd:`aws ec2 modify-instance-attribute --instance-id i-xxxx \\
+  --credit-specification CpuCredits=unlimited
+<span style="color:#6B6B6B"># cho phép instance T-family giữ hiệu năng khi hết burst credit, tránh downtime lúc traffic spike</span>`,
+ advReality:"Startup traffic khó đoán hay bật T3 Unlimited cho instance chạy business logic quan trọng, chấp nhận phụ phí nhỏ để tránh throttle CPU đúng lúc traffic tăng đột ngột.",
+ config:{name:"Launch Template (JSON)",code:`{"ImageId":"ami-0abcd1234","InstanceType":"t3.micro","KeyName":"mykey","SecurityGroupIds":["sg-xxxx"]}`,when:"Mọi kiến trúc có ASG đều cần Launch Template làm nguồn cấu hình chuẩn, tránh config drift khi launch tay."},
+ role:"EC2 là <b>công nhân đứng máy trực tiếp sản xuất</b> — khác Lambda là 'thợ thời vụ' chỉ đến khi có việc. Trong stack 3-tier <b>Client → ALB → [EC2] → RDS</b>, EC2 nằm ở tầng xử lý logic nghiệp vụ, giữa load balancer và database.",
+ quiz:[
+  {q:"Vì sao chọn sai instance family là lỗi cost-optimization hay gặp?",a:"Trả phí cao hơn cần thiết mà không cải thiện hiệu năng tương ứng"},
+  {q:"CpuCredits=unlimited giải quyết vấn đề gì?",a:"Tránh instance T-family bị throttle khi hết burst credit lúc traffic tăng"},
+  {q:"Launch Template dùng để làm gì trong kiến trúc có ASG?",a:"Làm nguồn cấu hình chuẩn, tránh config drift"},
+  {q:"EC2 nằm ở đâu trong stack 3-tier chuẩn?",a:"Giữa ALB và RDS, tầng xử lý logic nghiệp vụ"},
+  {q:"--query trong AWS CLI dùng cú pháp nào để lọc?",a:"JMESPath"}
+ ]
+},
+{code:"2.21", title:"User Data and Metadata",
+ concept:"Metadata là thông tin tự thân instance (IP, instance-id...), qua 169.254.169.254. User Data là script chạy đúng 1 lần lúc launch. Metadata giống thẻ nhân viên đeo sẵn, User Data giống tờ hướng dẫn việc cần làm dán sẵn ở bàn ngày đầu tiên.",
+ cmd:`TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \\
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+curl -H "X-aws-ec2-metadata-token: $TOKEN" \\
+  http://169.254.169.254/latest/meta-data/instance-id`,
+ flagTable:[["-X PUT","Request method","IMDSv2 dùng PUT để lấy token, chống SSRF"],["-H","Header","Gắn header HTTP vào request"],["token-ttl-seconds","Time To Live","Thời gian sống token, tối đa 21600s (6h)"],["X-aws-ec2-metadata-token","—","Header mang token khi gọi API metadata thật"]],
+ compareCols:["","Metadata","User Data"],
+ compareRows:[["Mục đích","Thông tin instance","Script bootstrap"],["Khi chạy","Đọc bất kỳ lúc nào","Chỉ lúc launch"],["Endpoint","/latest/meta-data/","/latest/user-data"]],
+ paramTable:[["Kích thước User Data","≤ 16 KB","Base64-encoded"],["Token TTL (IMDSv2)","Tối đa 21600s","6h, có thể ngắn hơn"],["HttpTokens","optional/required","required = bắt buộc IMDSv2"]],
+ advCmd:`aws ec2 modify-instance-metadata-options --instance-id i-xxxx \\
+  --http-tokens required --http-endpoint enabled
+<span style="color:#6B6B6B"># ép buộc toàn bộ truy cập metadata phải qua IMDSv2, chặn hoàn toàn IMDSv1</span>`,
+ advReality:"Checklist audit CIS AWS Benchmark luôn kiểm tra HttpTokens=required trên toàn bộ instance để giảm rủi ro SSRF — câu compliance thật sự nhiều công ty chạy định kỳ.",
+ config:{name:"User Data script (bash)",code:`#!/bin/bash\nyum update -y\nyum install -y httpd\nsystemctl enable httpd --now`,when:"ASG launch instance mới cần tự cài phần mềm/join cluster (kubeadm join, ECS agent) ngay lúc khởi động."},
+ role:"User Data là <b>tờ hướng dẫn ca làm đầu tiên</b> dán sẵn ở bàn. Đây là cầu nối giữa AMI tĩnh và cấu hình runtime động — nằm ngay trước khi app code chạy, được ASG gọi lại mỗi lần scale-out.",
+ quiz:[
+  {q:"Vì sao IMDSv2 an toàn hơn IMDSv1?",a:"Bắt buộc lấy token qua PUT trước, chống khai thác SSRF"},
+  {q:"--http-tokens required dùng để làm gì?",a:"Ép buộc toàn bộ truy cập metadata phải qua IMDSv2"},
+  {q:"Giới hạn kích thước User Data?",a:"16 KB"},
+  {q:"ASG gọi lại User Data khi nào?",a:"Mỗi lần scale-out, để instance mới tự cấu hình"},
+  {q:"Audit CIS AWS Benchmark kiểm tra thiết lập nào liên quan bài này?",a:"HttpTokens=required trên toàn bộ instance"}
+ ]
+},
+{code:"2.24", title:"Access Keys and IAM Roles with EC2",
+ concept:"Access Key là credential tĩnh dài hạn — không nên nhúng vào EC2. IAM Role gắn qua Instance Profile, cấp credential tạm thời tự xoay vòng. Access Key như chìa khóa nhà đưa người lạ giữ hộ; IAM Role như thẻ khách tạm thời tự hết hạn.",
+ cmd:`aws iam create-role --role-name EC2-S3-Read --assume-role-policy-document file://trust.json
+aws iam create-instance-profile --instance-profile-name EC2-S3-Read-Profile
+aws iam add-role-to-instance-profile --instance-profile-name EC2-S3-Read-Profile --role-name EC2-S3-Read
+aws ec2 associate-iam-instance-profile --instance-id i-xxxx --iam-instance-profile Name=EC2-S3-Read-Profile`,
+ flagTable:[["--assume-role-policy-document","Trust policy","Quy định AI được mặc role này"],["--role-name","—","Tên Role IAM"],["--instance-profile-name","—","Tên Instance Profile — lớp bọc gắn Role vào EC2"],["associate-iam-instance-profile","—","Gắn Instance Profile vào instance đang chạy, không cần restart"]],
+ compareCols:["","Access Key","IAM Role"],
+ compareRows:[["Thời hạn","Dài hạn, tĩnh","Tạm thời, tự xoay (STS)"],["Rủi ro rò rỉ","Cao (commit nhầm Git)","Thấp — hết hạn tự vô hiệu"],["Gắn vào EC2","Không nên","Chuẩn khuyến nghị"]],
+ paramTable:[["Instance Profile/instance","Tối đa 1","Role bên trong chứa nhiều Policy được"],["MaxSessionDuration","1h–12h (mặc định ~6h)","Trước khi STS token tự xoay lại"]],
+ advCmd:`aws ec2 replace-iam-instance-profile-association \\
+  --iam-instance-profile Name=New-Profile --association-id iip-assoc-xxxx
+<span style="color:#6B6B6B"># thay Instance Profile mà KHÔNG cần dừng/restart instance</span>`,
+ advReality:"Audit SOC2/ISO 27001 luôn có hạng mục 'no long-lived credentials on compute resources'. Nhiều vụ rò rỉ AWS nổi tiếng bắt nguồn từ access key commit nhầm lên GitHub.",
+ config:{name:"Trust policy (trust.json)",code:`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ec2.amazonaws.com"},"Action":"sts:AssumeRole"}]}`,when:"Tạo mới bất kỳ Role nào định gắn cho EC2 — thiếu đúng Principal thì role không gắn được vào instance."},
+ role:"Role là <b>đồng phục tạm thời</b> cấp đúng khu vực cho ca làm. Đây là điểm giao giữa IAM và EC2: quyền hạn không còn tĩnh gắn chết vào server, mà là danh tính runtime AWS STS cấp phát động.",
+ quiz:[
+  {q:"replace-iam-instance-profile-association có cần restart instance không?",a:"Không"},
+  {q:"Hạng mục audit SOC2/ISO27001 nào liên quan trực tiếp bài này?",a:"No long-lived credentials on compute resources"},
+  {q:"Trust policy thiếu đúng Principal thì hậu quả gì?",a:"Role tạo xong không gắn được vào EC2"},
+  {q:"1 instance gắn tối đa bao nhiêu Instance Profile?",a:"1"},
+  {q:"'Danh tính runtime' nghĩa là gì?",a:"Quyền hạn cấp phát động qua Role, không cố định như Access Key"}
+ ]
+},
+{code:"2.27", title:"EC2 Placement Groups",
+ concept:"Placement Group kiểm soát cách instance được đặt vật lý. Giống chọn ghế rạp phim — ngồi sát nhau (Cluster), ngồi tách xa (Spread), chia theo dãy (Partition).",
+ cmd:`aws ec2 create-placement-group --group-name hpc-cluster --strategy cluster
+aws ec2 run-instances --placement GroupName=hpc-cluster,PartitionNumber=1 --count 4`,
+ flagTable:[["--strategy","—","Loại placement: cluster/spread/partition"],["--placement","—","Gắn instance vào placement group lúc launch"],["PartitionNumber","—","Chỉ định partition cụ thể, chỉ dùng khi strategy=partition"]],
+ compareCols:["Loại","Mục đích","Đặc điểm"],
+ compareRows:[["Cluster","Latency thấp (HPC)","Cùng 1 AZ, rack gần nhau"],["Spread","Tránh SPOF","Phần cứng riêng, max 7/AZ"],["Partition","Hệ phân tán lớn","Chia partition, mỗi rack riêng"]],
+ paramTable:[["Spread instance/AZ","Tối đa 7","Ràng buộc cứng"],["Cluster Placement Group","Cùng 1 AZ","Không thể merge 2 group khác nhau"]],
+ advCmd:`aws ec2 describe-placement-groups --group-names hpc-cluster --query "PlacementGroups[0].State"`,
+ advReality:"Sàn giao dịch chứng khoán/crypto dùng Cluster Placement Group cho matching engine — chênh lệch vài chục microsecond latency có thể ảnh hưởng trực tiếp kết quả giao dịch.",
+ config:null,
+ role:"Placement Group là <b>cách sắp xếp dây chuyền trong xưởng</b> — quyết định khoảng cách vật lý giữa các máy. Tầng hạ tầng vật lý bên dưới compute, chỉ có ý nghĩa khi latency giữa node là yếu tố sống còn.",
+ quiz:[
+  {q:"Loại placement group nào phù hợp HPC low-latency?",a:"Cluster"},
+  {q:"Spread Placement Group tối đa bao nhiêu instance/AZ?",a:"7"},
+  {q:"Kafka/Cassandra dùng loại nào để 1 rack lỗi không kéo sập cả cluster?",a:"Partition"},
+  {q:"Vì sao đa số ứng dụng web không cần Placement Group?",a:"AWS tự đặt instance hợp lý, latency không phải yếu tố quyết định"},
+  {q:"Có thể merge 2 Cluster Placement Group khác nhau không?",a:"Không"}
+ ]
+},
+{code:"2.28", title:"Network Interfaces (ENI, ENA, EFA)",
+ concept:"ENI là card mạng ảo. ENA là driver mạng hiệu năng cao. EFA là ENA mở rộng cho HPC/ML, thêm OS-bypass. ENI như cổng mạng vật lý, ENA như cáp tốc độ cao, EFA như đường truyền chuyên dụng siêu tốc.",
+ cmd:`aws ec2 create-network-interface --subnet-id subnet-xxxx --groups sg-xxxx
+aws ec2 attach-network-interface --network-interface-id eni-xxxx --instance-id i-xxxx --device-index 1
+aws ec2 detach-network-interface --attachment-id eni-attach-xxxx --force`,
+ flagTable:[["--groups","Security Groups","Gắn SG cho ENI ngay lúc tạo"],["--device-index","—","0 là ENI chính (không detach được), 1+ là phụ"],["--force","—","Gỡ ENI ngay cả khi instance đang chạy"]],
+ compareCols:["","ENI","ENA","EFA"],
+ compareRows:[["Là gì","Card mạng ảo","Driver hiệu năng cao","ENA + OS-bypass"],["Dùng cho","Kết nối cơ bản, failover","Băng thông cao (100Gbps)","HPC, MPI, ML distributed"]],
+ paramTable:[["Số ENI tối đa/instance","Phụ thuộc instance type","Instance lớn hơn cho nhiều ENI hơn"],["ENI device-index 0","Không thể detach","Là ENI chính"]],
+ advCmd:`aws ec2 modify-network-interface-attribute --network-interface-id eni-xxxx --groups sg-new`,
+ advReality:"Team vận hành production dùng detach/attach ENI để chuyển traffic sang instance dự phòng trong vài giây khi lỗi phần cứng — nhanh hơn gán lại EIP hay đổi DNS.",
+ config:null,
+ role:"ENI là <b>cổng giao hàng</b> của xưởng, ENA/EFA là chất lượng đường cao tốc dẫn đến cổng đó. Instance hiện đại (Nitro-based) đã có sẵn ENI+ENA mặc định; EFA hiếm khi chạm tới trừ khi thực sự là HPC/distributed training.",
+ quiz:[
+  {q:"Vì sao đa số ứng dụng không cần cấu hình ENA thủ công?",a:"Instance Nitro-based đã có sẵn ENA mặc định"},
+  {q:"Ai thực sự cần EFA?",a:"Cluster huấn luyện AI đa node GPU (distributed training)"},
+  {q:"ENI device-index 0 có thể detach không?",a:"Không"},
+  {q:"Kỹ thuật failover bằng ENI nhanh hơn cách nào?",a:"Gán lại Elastic IP hoặc đổi DNS"},
+  {q:"--force trong detach-network-interface dùng khi nào?",a:"Instance đang chạy vẫn muốn gỡ ngay (failover khẩn cấp)"}
+ ]
+},
+{code:"2.29", title:"Public, Private and Elastic IP Addresses",
+ concept:"Private IP cố định trong VPC. Public IP tự cấp, đổi mỗi lần stop/start. Elastic IP (EIP) là public IP tĩnh, giữ nguyên dù stop/start. Private IP như số phòng nội bộ, Public IP như sim tạm, EIP như số cố định giữ mãi.",
+ cmd:`aws ec2 allocate-address --domain vpc
+aws ec2 associate-address --instance-id i-xxxx --allocation-id eipalloc-xxxx
+aws ec2 release-address --allocation-id eipalloc-xxxx`,
+ flagTable:[["--domain vpc","—","Cấp EIP dùng cho VPC"],["--allocation-id","—","ID định danh 1 EIP đã cấp phát"],["release-address","—","Trả lại EIP, bắt buộc khi không dùng để tránh phí"]],
+ compareCols:["","Private IP","Public IP","Elastic IP"],
+ compareRows:[["Đổi khi stop/start?","Không","Có","Không"],["Phí","Miễn phí","Miễn phí","Phí nếu idle"]],
+ paramTable:[["EIP/region","5 mặc định","Soft limit, xin tăng qua Service Quotas"],["EIP idle","Bị tính phí","Không gắn vào tài nguyên đang chạy"]],
+ advCmd:`aws ec2 describe-addresses --query "Addresses[?AssociationId==null]"
+<span style="color:#6B6B6B"># lọc EIP chưa gắn vào tài nguyên nào — công cụ dọn dẹp chi phí định kỳ</span>`,
+ advReality:"Elastic IP trong production thực tế chủ yếu gắn vào NAT Gateway, VPN endpoint, hệ thống legacy cần whitelist IP tĩnh — không phải gắn trực tiếp vào app server.",
+ config:null,
+ role:"Loại IP là <b>loại danh thiếp</b> instance dùng giao tiếp ra ngoài xưởng. Trong kiến trúc hiện đại, EC2 app server hiếm khi gắn EIP trực tiếp — traffic luôn qua ALB/NLB, EC2 nằm hoàn toàn private subnet.",
+ quiz:[
+  {q:"Vì sao EC2 app server hiện đại hiếm khi gắn EIP trực tiếp?",a:"Traffic đi qua ALB/NLB có DNS cố định, EC2 ở hoàn toàn private subnet"},
+  {q:"Lệnh nào lọc ra EIP chưa gắn tài nguyên nào?",a:"describe-addresses --query Addresses[?AssociationId==null]"},
+  {q:"Giới hạn EIP mặc định/region?",a:"5"},
+  {q:"Khi nào EIP bị tính phí?",a:"Khi không gắn vào tài nguyên đang chạy"},
+  {q:"EIP trong production thực tế chủ yếu gắn vào đâu?",a:"NAT Gateway, VPN endpoint, hệ thống legacy cần whitelist IP"}
+ ]
+},
+{code:"2.30", title:"NAT for Public Addresses",
+ concept:"NAT dịch giữa Private IP và Public IP tại Internet Gateway — Public IP không gắn trực tiếp vào network interface. Giống lễ tân nhận thư gửi đến địa chỉ công ty rồi chuyển vào hộp thư nội bộ nhân viên.",
+ cmd:`# Không có lệnh riêng — cơ chế nền tự động của AWS tại Internet Gateway`,
+ flagTable:null,
+ compareCols:null, compareRows:null,
+ paramTable:[["Tỉ lệ NAT tại IGW","1:1","1 Public IP ánh xạ đúng 1 Private IP"]],
+ advCmd:`ip addr    # chạy trong instance có Public IP/EIP — chỉ thấy Private IP`,
+ advReality:"Đây là kiến thức nền để debug đúng khi có sự cố — kỹ sư mới thường nhầm tưởng lỗi cấu hình khi thấy ip addr chỉ hiện Private IP dù instance có Public IP/EIP.",
+ config:null,
+ role:"NAT tại IGW là <b>phòng chuyển thư</b> của nhà máy — đứng ở biên giới VPC, dịch địa chỉ công khai ↔ nội bộ mà không ai trong xưởng cần biết.",
+ quiz:[
+  {q:"ip addr trong instance có Public IP sẽ hiện gì?",a:"Chỉ Private IP"},
+  {q:"NAT 1:1 xảy ra ở đâu?",a:"Internet Gateway"},
+  {q:"Đây là kiến thức nền để làm gì trong công việc thật?",a:"Debug đúng hướng, tránh nhầm tưởng lỗi cấu hình"},
+  {q:"NAT ở Internet Gateway có cần cấu hình thủ công không?",a:"Không, tự động"},
+  {q:"Tỉ lệ NAT 1:1 nghĩa là gì?",a:"1 Public IP ánh xạ đúng 1 Private IP"}
+ ]
+},
+{code:"2.32", title:"Private Subnets and Bastion Hosts",
+ concept:"Private Subnet không route trực tiếp ra Internet Gateway. Bastion Host là EC2 ở Public Subnet, làm cửa ngõ SSH duy nhất vào Private Subnet. Giống bảo vệ cổng chính tòa nhà — khách không vào thẳng phòng nội bộ.",
+ cmd:`ssh -J ec2-user@<bastion-public-ip> ec2-user@<private-instance-ip>`,
+ flagTable:[["-J","ProxyJump","Nhảy qua Bastion trong 1 lệnh, không cần copy key lên Bastion"],["-i","Identity file","Chỉ định file private key SSH"]],
+ compareCols:["","Bastion truyền thống","SSM Session Manager"],
+ compareRows:[["Port 22 công khai","Cần mở","Không cần"],["Quản lý key SSH","Cần","Không cần"],["Log truy cập","Tự cấu hình","Tự động vào CloudTrail"]],
+ paramTable:[["SG instance private","Chỉ port 22 từ SG Bastion","Không mở 0.0.0.0/0"]],
+ advCmd:`# ~/.ssh/config
+Host private-app
+  HostName &lt;private-instance-ip&gt;
+  ProxyJump ec2-user@&lt;bastion-public-ip&gt;
+  User ec2-user`,
+ advReality:"Nhiều tổ chức hiện đại đã thay Bastion bằng AWS Systems Manager Session Manager — không mở port 22, không quản lý key SSH, tự log CloudTrail. SAA-C03 vẫn hỏi Bastion vì là pattern nền tảng.",
+ config:{name:"~/.ssh/config",code:`Host private-app\n  HostName <private-ip>\n  ProxyJump ec2-user@<bastion-ip>\n  User ec2-user`,when:"SSH vào cùng 1 tập instance private thường xuyên, tránh gõ lệnh dài lặp lại."},
+ role:"Bastion Host là <b>bảo vệ đứng ở cổng chính duy nhất</b> của toàn xưởng. Điểm kiểm soát truy cập admin tập trung — mọi audit bảo mật đều muốn thấy 1 điểm truy cập duy nhất.",
+ quiz:[
+  {q:"Giải pháp hiện đại nào đang thay thế Bastion truyền thống?",a:"AWS Systems Manager Session Manager"},
+  {q:"-J trong lệnh SSH dùng để làm gì?",a:"Nhảy qua Bastion (ProxyJump) trong 1 lệnh"},
+  {q:"SG instance private nên mở port 22 cho nguồn nào?",a:"SG của Bastion"},
+  {q:"Lợi ích chính của SSM Session Manager so với Bastion?",a:"Không mở port 22, không quản lý key SSH, tự log CloudTrail"},
+  {q:"Vì sao audit bảo mật ưu tiên 1 điểm truy cập admin duy nhất?",a:"Dễ log, dễ giới hạn, giảm bề mặt tấn công"}
+ ]
+},
+{code:"2.34", title:"NAT Gateways and NAT Instances",
+ concept:"NAT Gateway cho instance Private Subnet ra Internet (1 chiều), đặt ở Public Subnet. Giống cửa một chiều — trong nhà ra ngoài được, ngoài không tự vào được.",
+ cmd:`aws ec2 create-nat-gateway --subnet-id <public-subnet-id> --allocation-id <eip-allocation-id>
+aws ec2 create-route --route-table-id <private-rt-id> \\
+  --destination-cidr-block 0.0.0.0/0 --nat-gateway-id nat-xxxx`,
+ flagTable:[["--subnet-id","—","NAT Gateway phải đặt ở Public Subnet"],["--allocation-id","—","EIP gắn cho NAT Gateway (bắt buộc)"],["--destination-cidr-block","—","0.0.0.0/0 = default route"],["--nat-gateway-id","—","Route Private Subnet trỏ đến NAT Gateway này"]],
+ compareCols:["","NAT Gateway","NAT Instance"],
+ compareRows:[["Quản lý","AWS managed","Tự quản lý (EC2)"],["Băng thông","Đến 100 Gbps","Theo instance type"],["Bảo trì","Không cần patch","Cần tự patch OS"]],
+ paramTable:[["NAT Gateway/AZ","1 (khuyến nghị)","Cần để đạt HA thật sự"],["Chi phí","Theo giờ + GB xử lý","Tính phí dù không dùng"]],
+ advCmd:`aws ec2 create-vpc-endpoint --vpc-id $VPC_ID --service-name com.amazonaws.ap-southeast-1.s3 \\
+  --route-table-ids $PRIVATE_RT_ID --vpc-endpoint-type Gateway
+<span style="color:#6B6B6B"># Gateway VPC Endpoint cho S3: MIỄN PHÍ, bypass NAT Gateway hoàn toàn</span>`,
+ advReality:"Case study cost-optimization kinh điển: instance private gọi S3 nhiều → traffic qua NAT Gateway → tốn phí. Thêm VPC Endpoint giúp giảm đáng kể hóa đơn — hay gặp ở domain Cost-Optimized (20%).",
+ config:{name:"Route table entry (Private Subnet)",code:`Destination: 0.0.0.0/0\nTarget: nat-xxxx`,when:"Mọi Private Subnet cần ra Internet đều phải có route này, thiếu route = instance không kết nối được ra ngoài."},
+ role:"NAT Gateway là <b>cửa ra một chiều</b> của xưởng — đối xứng với Bastion Host (cửa vào). Thường là dòng chi phí ẩn lớn nhất trong hóa đơn VPC hàng tháng.",
+ quiz:[
+  {q:"NAT Gateway đặt ở subnet nào?",a:"Public Subnet"},
+  {q:"Giải pháp cost-optimization khi instance private gọi S3 rất nhiều?",a:"Thêm Gateway VPC Endpoint cho S3 (miễn phí), bypass NAT Gateway"},
+  {q:"Vì sao cần 1 NAT Gateway/AZ thay vì dùng chung?",a:"Tránh single point of failure khi 1 AZ gặp sự cố"},
+  {q:"Route table Private Subnet thiếu route đến NAT Gateway thì hậu quả gì?",a:"Instance private không kết nối được ra Internet"},
+  {q:"NAT Gateway tính phí theo gì?",a:"Theo giờ và theo GB xử lý, dù không dùng"}
+ ]
+}
+];
+
+function renderTable(cols, rows){
+  return '<table><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table>';
+}
+
+// ---- Sidebar TOC (theory) ----
+const theoryToc = document.getElementById('theoryToc');
+const theoryEl = document.getElementById('theoryArticle');
+lessons.forEach((l,i)=>{
+  const a=document.createElement('a');
+  a.href='#lesson-'+i;
+  a.innerHTML = l.code+'<span class="t">'+l.title+'</span>';
+  a.addEventListener('click',(e)=>{e.preventDefault();document.getElementById('lesson-'+i).scrollIntoView({behavior:'smooth'});});
+  theoryToc.appendChild(a);
+
+  const flagHtml = l.flagTable ? '<h3>📖 Từ điển flag nhanh</h3>'+renderTable(["Flag/Lệnh","Nguồn gốc","Ý nghĩa"], l.flagTable) : '';
+  const compareHtml = l.compareCols ? '<h3>So sánh nhanh</h3>'+renderTable(l.compareCols, l.compareRows) : '';
+  const paramHtml = l.paramTable ? '<h3>Giới hạn/tham số</h3>'+renderTable(["Tham số","Giá trị","Ghi chú"], l.paramTable) : '';
+  const configHtml = l.config ? `<h3>Cấu hình liên quan</h3><p style="font-size:13.5px;margin-bottom:6px;"><b>${l.config.name}</b></p><pre>${l.config.code}</pre><p style="font-size:13px;color:#6B6B6B;">${l.config.when}</p>` : '';
+  const div=document.createElement('div');
+  div.className='lesson-block';
+  div.id='lesson-'+i;
+  div.innerHTML=`
+    <p class="lesson-tag mono">${l.code}</p>
+    <h2>${l.title}</h2>
+    <div class="lgrid">
+      <div class="prose">
+        <h3>Khái niệm + ví dụ đời sống</h3><p>${l.concept}</p>
+        <h3>Pattern nâng cao / thực tế</h3><pre>${l.advCmd}</pre><div class="reality-box"><p>${l.advReality}</p></div>
+        <h3>Vị trí trong kiến trúc</h3><div class="role-box"><p>${l.role}</p></div>
+      </div>
+      <div class="aside">
+        <h3>Lệnh quan trọng</h3><pre>${l.cmd}</pre>
+        ${flagHtml}
+        ${compareHtml}
+        ${paramHtml}
+        ${configHtml}
+      </div>
+    </div>
+  `;
+  theoryEl.appendChild(div);
+});
+
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    const idx = entry.target.id.split('-')[1];
+    const link = theoryToc.children[idx];
+    if(entry.isIntersecting){
+      document.querySelectorAll('#theoryToc a').forEach(a=>a.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+document.querySelectorAll('.lesson-block').forEach(el=>observer.observe(el));
+
+// ---- Quiz ----
+const quizToc = document.getElementById('quizToc');
+const quizEl = document.getElementById('quizArticle');
+lessons.forEach((l,i)=>{
+  const a=document.createElement('a');
+  a.href='#quiz-'+i;
+  a.innerHTML = l.code+'<span class="t">'+l.title+'</span>';
+  a.addEventListener('click',(e)=>{e.preventDefault();document.getElementById('quiz-'+i).scrollIntoView({behavior:'smooth'});});
+  quizToc.appendChild(a);
+
+  const wrap=document.createElement('div'); wrap.className='lesson-block'; wrap.id='quiz-'+i;
+  let qHtml = l.quiz.map((q,qi)=>`
+    <div class="q-item">
+      <p class="qtext">${l.code}.${qi+1} — ${q.q}</p>
+      <span class="q-answer">Xem đáp án →</span>
+      <div class="q-answer-text">${q.a}</div>
+    </div>`).join('');
+  wrap.innerHTML = `<p class="lesson-tag mono">${l.code}</p><h2>${l.title}</h2><div class="quiz-grid">${qHtml}</div>`;
+  quizEl.appendChild(wrap);
+});
+document.querySelectorAll('.q-answer').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const ans = el.nextElementSibling;
+    ans.classList.toggle('show');
+    el.textContent = ans.classList.contains('show') ? 'Ẩn đáp án ↑' : 'Xem đáp án →';
+  });
+});
+
+// ---- Lab ----
+document.getElementById('labArticle').innerHTML = `
+<div class="lab-grid">
+  <div class="lab-info">
+    <p class="lesson-tag mono">LAB TỔNG</p>
+    <h2>Dựng kiến trúc Public/Private Subnet hoàn chỉnh</h2>
+    <p class="context-line">🧭 Ghép toàn bộ 9 khái niệm trên thành 1 hệ thống thật — đúng những gì 1 kỹ sư mới vào công ty sẽ được giao làm trong tuần đầu.</p>
+    <p class="verify">✅ Verify: ssh -J qua Bastion vào App Server → "systemctl status httpd && aws s3 ls && curl -I https://amazon.com"</p>
+    <p class="cleanup">🧹 Cleanup: xóa NAT Gateway → release EIP → terminate instances → xóa route table/subnet/IGW/VPC.</p>
+    <div class="warn-line">⚠️ NAT Gateway tính phí theo giờ+GB dù không dùng; VPC Endpoint cho S3 miễn phí và nên luôn có trong production thật để giảm phí NAT; quên release EIP là nguồn phí phổ biến nhất.</div>
+  </div>
+  <pre># 1. VPC + 2 Subnet
+aws ec2 create-vpc --cidr-block 10.0.0.0/16
+aws ec2 create-subnet --vpc-id $VPC_ID --cidr-block 10.0.1.0/24   # Public
+aws ec2 create-subnet --vpc-id $VPC_ID --cidr-block 10.0.2.0/24   # Private
+
+# 2. Internet Gateway + Public Route
+aws ec2 create-internet-gateway
+aws ec2 attach-internet-gateway --vpc-id $VPC_ID --internet-gateway-id $IGW_ID
+aws ec2 create-route --route-table-id $PUBLIC_RT_ID --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID
+
+# 3. IAM Role cho App Server (đọc S3)
+aws iam create-role --role-name AppServer-S3Read --assume-role-policy-document file://trust.json
+aws iam attach-role-policy --role-name AppServer-S3Read --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+aws iam create-instance-profile --instance-profile-name AppServer-Profile
+aws iam add-role-to-instance-profile --instance-profile-name AppServer-Profile --role-name AppServer-S3Read
+
+# 4. Bastion Host (Public Subnet)
+aws ec2 run-instances --image-id ami-xxxx --instance-type t3.micro \\
+  --subnet-id $PUBLIC_SUBNET_ID --associate-public-ip-address --security-groups $SG_BASTION
+
+# 5. App Server (Private Subnet, User Data + IAM Role)
+aws ec2 run-instances --image-id ami-xxxx --instance-type t3.micro \\
+  --subnet-id $PRIVATE_SUBNET_ID --security-group-ids $SG_APP \\
+  --iam-instance-profile Name=AppServer-Profile --user-data file://install-httpd.sh
+
+# 6. NAT Gateway cho Private Subnet ra Internet
+aws ec2 allocate-address --domain vpc
+aws ec2 create-nat-gateway --subnet-id $PUBLIC_SUBNET_ID --allocation-id $EIP_ALLOC_ID
+aws ec2 create-route --route-table-id $PRIVATE_RT_ID --destination-cidr-block 0.0.0.0/0 --nat-gateway-id $NAT_GW_ID
+
+# 7. (Cost-optimization thật) Gateway VPC Endpoint cho S3 — bypass NAT Gateway
+aws ec2 create-vpc-endpoint --vpc-id $VPC_ID --service-name com.amazonaws.ap-southeast-1.s3 \\
+  --route-table-ids $PRIVATE_RT_ID --vpc-endpoint-type Gateway</pre>
+</div>`;
+
+// ---- Cheat sheet ----
+document.getElementById('cheatArticle').innerHTML = `
+<div class="cheat-wrap">
+  <h2>Cheat Sheet</h2>
+  <div class="cheat-cards">
+    <div class="cheat-card"><div class="k">Launch instance</div><div class="v">run-instances</div><div class="note">Chọn family theo workload, CpuCredits=unlimited nếu cần tránh throttle</div></div>
+    <div class="cheat-card"><div class="k">Bootstrap</div><div class="v">User Data ≤16KB</div><div class="note">ASG gọi lại mỗi lần scale-out</div></div>
+    <div class="cheat-card"><div class="k">Gắn quyền</div><div class="v">Instance Profile + Role</div><div class="note">Không hardcode Access Key — audit SOC2/ISO27001 luôn check</div></div>
+    <div class="cheat-card"><div class="k">Placement Group</div><div class="v">Cluster/Spread/Partition</div><div class="note">Chỉ cần khi latency giữa node là yếu tố sống còn</div></div>
+    <div class="cheat-card"><div class="k">Failover mạng</div><div class="v">Detach/attach ENI</div><div class="note">Nhanh hơn đổi EIP/DNS</div></div>
+    <div class="cheat-card"><div class="k">Loại IP</div><div class="v">Private/Public/Elastic</div><div class="note">App server hiện đại hiếm khi gắn EIP trực tiếp</div></div>
+    <div class="cheat-card"><div class="k">Vào SSH (private)</div><div class="v">Bastion / SSM Session Manager</div><div class="note">SSM là hướng hiện đại hơn</div></div>
+    <div class="cheat-card"><div class="k">Ra Internet (private)</div><div class="v">NAT Gateway</div><div class="note">Thêm VPC Endpoint cho S3/DynamoDB để giảm phí</div></div>
+    <div class="cheat-card"><div class="k">Domain thi</div><div class="v">High-Performing 24% + Resilient 26%</div><div class="note">Networking là nền tảng của cả 2 domain này</div></div>
+  </div>
+  <p class="pattern-line">Public Subnet (Bastion/SSM + NAT Gateway) ↔ Private Subnet (App Server, IAM Role, VPC Endpoint cho S3) — đây chính là kiến trúc khởi điểm của phần lớn hệ thống production thật, không chỉ để thi.</p>
+</div>`;
+</script>
+</body>
+</html>
