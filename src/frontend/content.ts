@@ -147,7 +147,13 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
   }
 }
 
+let lessonCatalogCache: Record<string, LessonEntry[]> | null = null
+
 export const getLessonCatalog = () => {
+  if (lessonCatalogCache) {
+    return lessonCatalogCache
+  }
+
   const catalog: Record<string, LessonEntry[]> = {}
 
   for (const [filePath, rawFile] of Object.entries(rawContentModules)) {
@@ -168,7 +174,8 @@ export const getLessonCatalog = () => {
     catalog[topic].sort((a, b) => a.order - b.order)
   })
 
-  return catalog
+  lessonCatalogCache = catalog
+  return lessonCatalogCache
 }
 
 const formatTopicLabel = (topic: string) => {
