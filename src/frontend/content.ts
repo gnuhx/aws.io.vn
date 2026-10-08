@@ -1,3 +1,5 @@
+export type LessonKind = 'lesson' | 'section' | 'overview' | 'visual'
+
 export type LessonEntry = {
   topic: string
   slug: string
@@ -9,37 +11,102 @@ export type LessonEntry = {
     title: string
     order: number
   }
-  kind?: 'lesson' | 'section'
+  kind: LessonKind
   interactiveHtmlUrl?: string
+  markdownUrl?: string
   filePath: string
   source: 'markdown' | 'html'
-  bodyHtml: string
+  bodyMarkdown: string
 }
 
 const rawContentModules = import.meta.glob([
   '../../content/**/*.md',
   '!../../content/aws-saa-c03/roadmap.md',
-  '!../../content/aws-saa-c03/Module 2/prompt_template.md',
-  '!../../content/aws-saa-c03/Module [3-7]/**',
+  '!../../content/aws-saa-c03/Module */**',
 ], {
   eager: true,
   query: '?raw',
 }) as Record<string, unknown>
 
-const module2HtmlAssets = import.meta.glob('../../content/aws-saa-c03/Module 2/*.html', {
+const roadmapRawModule = import.meta.glob('../../content/aws-saa-c03/roadmap.md', {
+  eager: true,
+  query: '?raw',
+}) as Record<string, unknown>
+
+const courseHtmlAssets = import.meta.glob([
+  '../../content/aws-saa-c03/Module */*.html',
+  '!../../content/aws-saa-c03/Module 3/**',
+], {
   eager: true,
   query: '?url',
   import: 'default',
 }) as Record<string, string>
+
+const courseMarkdownAssets = import.meta.glob([
+  '../../content/aws-saa-c03/Module */*.md',
+  '!../../content/aws-saa-c03/Module 2/prompt_template.md',
+  '!../../content/aws-saa-c03/Module 3/**',
+  '!../../content/aws-saa-c03/Module 5/SAA-C03_m5_danh-sach-bai.md',
+], {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
+
+const moduleTitles: Record<number, string> = {
+  1: 'Identity and Access Management',
+  2: 'Compute & Identity Foundations',
+  3: 'Networking',
+  4: 'Storage & Database',
+  5: 'Modern Architecture',
+  6: 'Operations, Security & Management',
+  7: 'Scale & Final Review',
+}
+
+const rootModuleNumbers: Record<string, number> = {
+  '02-vpc-networking.md': 3,
+  '03-compute-and-ecs.md': 2,
+  '04-storage-and-database.md': 4,
+  '05-security-and-operations.md': 6,
+  '06-migration-and-transfer.md': 7,
+  '07-cost-optimization.md': 7,
+  '08-disaster-recovery-and-high-availability.md': 6,
+  '09-load-balancing-and-auto-scaling.md': 2,
+  '10-serverless-architectures.md': 5,
+  '11-monitoring-and-observability.md': 6,
+  '12-final-architecture-review.md': 7,
+}
+
+const standaloneHtmlMaterials = [
+  { path: '../../content/aws-saa-c03/Module 4/luong-request.html', title: 'Request Flow: Mobile App to EC2, ElastiCache, and RDS', summary: 'Interactive architecture walkthrough for the request path.', order: 53, module: 4 },
+  { path: '../../content/aws-saa-c03/Module 4/scaling-elasticache.html', title: 'Scaling ElastiCache', summary: 'Interactive comparison of ElastiCache scaling patterns.', order: 54, module: 4 },
+  { path: '../../content/aws-saa-c03/Module 4/dynamodb-suite.html', title: 'DynamoDB Interactive Suite', summary: 'Interactive diagrams for DynamoDB, Streams, DAX, and Global Tables.', order: 55, module: 4 },
+  { path: '../../content/aws-saa-c03/Module 4/data-analytics-suite.html', title: 'Data and Analytics Suite', summary: 'Interactive map of analytics services and data flows.', order: 61, module: 4 },
+  { path: '../../content/aws-saa-c03/Module 5/SAA-C03_nha-may-nen_module5.html', title: 'Module 5 Architecture Map', summary: 'Interactive architecture map that carries the course system model forward.', order: 90, module: 5 },
+  { path: '../../content/aws-saa-c03/Module 7/SAA-C03_nha-may-nen-tong-ket.html', title: 'Final Architecture Map', summary: 'Interactive cumulative architecture map for the completed course.', order: 100, module: 7 },
+] as const
+
+const courseSections = [
+  { path: '../../content/aws-saa-c03/Module 2/SAA-C03_m2_ec2_p1_lpic.md', title: 'EC2 Core & Networking', summary: 'EC2 fundamentals, networking, addressing, and private subnet patterns.', slug: 'ec2-core-networking', order: 17, module: 2 },
+  { path: '../../content/aws-saa-c03/Module 2/SAA-C03_m2_ec2_p2_lpic.md', title: 'EC2 Lifecycle & Pricing', summary: 'Instance lifecycle, Nitro, and EC2 purchasing options.', slug: 'ec2-lifecycle-pricing', order: 36, module: 2 },
+  { path: '../../content/aws-saa-c03/Module 2/SAA-C03_m2_elb_asg_lpic.md', title: 'Elastic Load Balancing and Auto Scaling', summary: 'Load balancing, scaling policies, availability, and secure listeners.', slug: 'elastic-load-balancing-auto-scaling', order: 44, module: 2 },
+  { path: '../../content/aws-saa-c03/Module 4/SAA-C03_m4_tai-lieu-hoc-day-du.md', title: 'Database and Analytics', summary: 'Course notes covering ElastiCache, DynamoDB, analytics, and related services.', slug: 'database-and-analytics', order: 53, module: 4 },
+  { path: '../../content/aws-saa-c03/Module 5/SAA-C03_m5_docker-ecs.md', title: 'Docker Containers and ECS', summary: 'Containers, ECS, EKS, ECR, and container architecture patterns.', slug: 'docker-containers-ecs', order: 1, module: 5 },
+  { path: '../../content/aws-saa-c03/Module 5/SAA-C03_m5_serverless.md', title: 'Serverless Applications', summary: 'Lambda, application integration, Step Functions, EventBridge, and API Gateway.', slug: 'serverless-applications', order: 15, module: 5 },
+  { path: '../../content/aws-saa-c03/Module 6/SAA-C03_m6_deployment-management.md', title: 'Deployment and Management', summary: 'Infrastructure as code, deployment platforms, configuration, secrets, and recovery.', slug: 'deployment-management', order: 1, module: 6 },
+  { path: '../../content/aws-saa-c03/Module 6/SAA-C03_m6_monitoring-logging-auditing.md', title: 'Monitoring, Logging, and Auditing', summary: 'CloudWatch, CloudTrail, EventBridge, metrics, logs, and tracing.', slug: 'monitoring-logging-auditing', order: 18, module: 6 },
+  { path: '../../content/aws-saa-c03/Module 6/SAA-C03_m6_security.md', title: 'Security', summary: 'Identity, federation, encryption, certificates, threat detection, and defense in depth.', slug: 'security', order: 32, module: 6 },
+  { path: '../../content/aws-saa-c03/Module 7/SAA-C03_m7_migration-transfer.md', title: 'Migration and Transfer', summary: 'Migration services, data transfer, Snow Family, and the 7 Rs.', slug: 'migration-transfer', order: 1, module: 7 },
+  { path: '../../content/aws-saa-c03/Module 7/SAA-C03_m7_web-mobile-ml-cost.md', title: 'Web, Mobile, ML, and Cost Management', summary: 'Application services, AI tools, budgets, and cost optimization.', slug: 'web-mobile-ml-cost', order: 13, module: 7 },
+  { path: '../../content/aws-saa-c03/Module 7/SAA-C03_m7_practice-exam-final-prep.md', title: 'Practice Exam and Final Preparation', summary: 'Practice-exam strategy and final review guidance.', slug: 'practice-exam-final-preparation', order: 25, module: 7 },
+] as const
 
 const readRawContent = (value: unknown) => {
   if (typeof value === 'string') return value
 
   if (value && typeof value === 'object') {
     const candidate = value as { default?: unknown }
-    if (typeof candidate.default === 'string') {
-      return candidate.default
-    }
+    if (typeof candidate.default === 'string') return candidate.default
   }
 
   return ''
@@ -56,22 +123,22 @@ const normalizeSlug = (value: string) =>
 const normalizeTopic = (value: string) => value.trim().replace(/\s+/g, '-')
 
 const getFrontMatterValue = (raw: string, key: string) => {
-  const match = raw.match(new RegExp(`^---\\n([\\s\\S]*?)\\n---\\n?`, 'm'))
+  const match = raw.match(/^---\n([\s\S]*?)\n---\n?/)
   if (!match) return undefined
 
-  const frontMatter = match[1]
-  const keyMatch = frontMatter.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))
-  if (!keyMatch) return undefined
-
-  return keyMatch[1].trim().replace(/^['"]|['"]$/g, '')
+  const keyMatch = match[1].match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))
+  return keyMatch?.[1].trim().replace(/^['"]|['"]$/g, '')
 }
 
 const parseOrder = (filePath: string, raw: string) => {
   const frontMatterOrder = getFrontMatterValue(raw, 'order')
-  if (frontMatterOrder) {
+  if (frontMatterOrder !== undefined) {
     const parsed = Number(frontMatterOrder)
     if (!Number.isNaN(parsed)) return parsed
   }
+
+  const lecture = raw.match(/\b[2-7]\.(\d+)\b/)
+  if (lecture) return Number(lecture[1])
 
   const filename = filePath.split('/').pop() ?? ''
   const match = filename.match(/^(\d+)/)
@@ -97,62 +164,6 @@ const parseSummary = (raw: string) => {
   return stripHtml(firstMeaningful).slice(0, 160)
 }
 
-const inlineMarkdown = (value: string) => value
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/`([^`]+)`/g, '<code>$1</code>')
-  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-  .replace(/\*(.*?)\*/g, '<em>$1</em>')
-
-const markdownToHtml = (markdown: string) => {
-  const blocks = markdown.split(/\n\s*\n/).filter(Boolean)
-  const htmlParts: string[] = []
-
-  for (const block of blocks) {
-    const trimmed = block.trim()
-    if (!trimmed) continue
-
-    if (/^```/.test(trimmed)) {
-      const fence = trimmed.match(/^```([^\n]*)\n?([\s\S]*?)\n?```$/)
-      const language = fence?.[1].trim().split(/\s+/)[0] ?? ''
-      const code = fence?.[2] ?? trimmed.replace(/^```[^\n]*\n?|```$/g, '')
-      const escapedCode = code
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-      htmlParts.push(`<pre><code${language ? ` class="language-${language}"` : ''}>${escapedCode}</code></pre>`)
-      continue
-    }
-
-    if (/^>\s/.test(trimmed)) {
-      htmlParts.push(`<blockquote>${inlineMarkdown(trimmed.replace(/^>\s?/gm, ''))}</blockquote>`)
-      continue
-    }
-
-    if (/^[-*]\s/.test(trimmed)) {
-      const listItems = trimmed
-        .split(/\n/)
-        .filter((line) => /^[-*]\s/.test(line.trim()))
-        .map((line) => `<li>${inlineMarkdown(line.replace(/^[-*]\s?/, ''))}</li>`)
-        .join('')
-      htmlParts.push(`<ul>${listItems}</ul>`)
-      continue
-    }
-
-    if (/^#{1,3}\s/.test(trimmed)) {
-      const heading = trimmed.replace(/^#{1,3}\s/, '')
-      const level = trimmed.match(/^#+/)?.[0].length ?? 1
-      htmlParts.push(`<h${level}>${inlineMarkdown(heading)}</h${level}>`)
-      continue
-    }
-
-    htmlParts.push(`<p>${inlineMarkdown(trimmed)}</p>`)
-  }
-
-  return htmlParts.join('')
-}
-
 const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => {
   const relativePath = filePath.split('/content/')[1]
   const topic = relativePath?.split('/')[0]
@@ -161,7 +172,10 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
   const filename = filePath.split('/').pop() ?? ''
   const directoryModule = relativePath.match(/(?:^|\/)module[\s_-]*(\d+)(?:\/|$)/i)
   const frontMatterModule = getFrontMatterValue(raw, 'module')
-  const moduleOrder = frontMatterModule ? Number(frontMatterModule) : Number(directoryModule?.[1])
+  const rootModule = rootModuleNumbers[filename]
+  const moduleOrder = frontMatterModule
+    ? Number(frontMatterModule)
+    : Number(directoryModule?.[1] ?? rootModuleNumbers[filename])
   const moduleTitle = getFrontMatterValue(raw, 'moduleTitle')
   const baseSlug = normalizeSlug(filename)
   const slug = getFrontMatterValue(raw, 'slug') ?? (Number.isFinite(moduleOrder) && moduleOrder > 0
@@ -170,7 +184,7 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
   const module = Number.isFinite(moduleOrder) && moduleOrder > 0
     ? {
         slug: `module-${moduleOrder}`,
-        title: moduleTitle ?? `Module ${moduleOrder}`,
+        title: moduleTitle ?? moduleTitles[moduleOrder] ?? `Module ${moduleOrder}`,
         order: moduleOrder,
       }
     : undefined
@@ -178,13 +192,13 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
     raw.match(/<title>([^<]+)<\/title>/i)?.[1] ??
     filename.replace(/\.[^.]+$/, '').replace(/^[0-9]+[-_\s]*/, '')
   const title = rawTitle.trim() || 'Untitled lesson'
-  const source = filePath.endsWith('.html') ? 'html' : 'markdown'
-  const interactiveHtmlUrl = moduleOrder === 2 ? module2HtmlAssets[filePath.replace(/\.md$/, '.html')] : undefined
-  const kind = getFrontMatterValue(raw, 'kind') === 'section' || interactiveHtmlUrl ? 'section' : 'lesson'
-  const body = source === 'html'
-    ? raw
-    : raw.replace(/^---[\s\S]*?---\n?/, '').replace(/^#\s+[^\n]+\n+/, '').trim()
-  const bodyHtml = source === 'html' ? raw : markdownToHtml(body)
+  const bodyMarkdown = raw
+    .replace(/^---[\s\S]*?---\n?/, '')
+    .replace(/^#\s+[^\n]+\n+/, '')
+    .trim()
+  const kind: LessonKind = getFrontMatterValue(raw, 'kind') === 'overview' || rootModule
+    ? 'overview'
+    : 'lesson'
 
   return {
     topic: normalizeTopic(topic),
@@ -194,44 +208,83 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
     order: parseOrder(filePath, raw),
     module,
     kind,
-    interactiveHtmlUrl,
     filePath,
-    source,
-    bodyHtml,
+    source: 'markdown',
+    bodyMarkdown,
   }
 }
 
 let lessonCatalogCache: Record<string, LessonEntry[]> | null = null
 
 export const getLessonCatalog = () => {
-  if (lessonCatalogCache) {
-    return lessonCatalogCache
-  }
+  if (lessonCatalogCache) return lessonCatalogCache
 
   const catalog: Record<string, LessonEntry[]> = {}
-
   for (const [filePath, rawFile] of Object.entries(rawContentModules)) {
     const relativePath = filePath.split('/content/')[1] ?? ''
-    const moduleFolder = relativePath.match(/^aws-saa-c03\/Module (\d+)\//)
-    if (relativePath === 'aws-saa-c03/roadmap.md' || relativePath === 'aws-saa-c03/Module 2/prompt_template.md') continue
-    if (moduleFolder && Number(moduleFolder[1]) > 2) continue
+    if (relativePath === 'aws-saa-c03/Module 5/SAA-C03_m5_danh-sach-bai.md') continue
+
     const rawContent = readRawContent(rawFile)
     if (!rawContent) continue
 
     const lesson = parseLessonEntry(filePath, rawContent)
     if (!lesson) continue
-
-    if (!catalog[lesson.topic]) {
-      catalog[lesson.topic] = []
-    }
-
+    catalog[lesson.topic] ??= []
     catalog[lesson.topic].push(lesson)
   }
 
-  Object.keys(catalog).forEach((topic) => {
-    catalog[topic].sort((a, b) => a.order - b.order)
-  })
+  for (const section of courseSections) {
+    const markdownUrl = courseMarkdownAssets[section.path]
+    if (!markdownUrl) continue
 
+    const lesson: LessonEntry = {
+      topic: 'aws-saa-c03',
+      slug: `module-${section.module}-${section.slug}`,
+      title: section.title,
+      summary: section.summary,
+      order: section.order,
+      module: {
+        slug: `module-${section.module}`,
+        title: moduleTitles[section.module],
+        order: section.module,
+      },
+      kind: 'section',
+      interactiveHtmlUrl: courseHtmlAssets[section.path.replace(/\.md$/, '.html')],
+      markdownUrl,
+      filePath: section.path,
+      source: 'markdown',
+      bodyMarkdown: '',
+    }
+    catalog['aws-saa-c03'] ??= []
+    catalog['aws-saa-c03'].push(lesson)
+  }
+
+  for (const material of standaloneHtmlMaterials) {
+    const url = courseHtmlAssets[material.path]
+    if (!url) continue
+
+    const lesson: LessonEntry = {
+      topic: 'aws-saa-c03',
+      slug: `module-${material.module}-${normalizeSlug(material.title)}`,
+      title: material.title,
+      summary: material.summary,
+      order: material.order,
+      module: {
+        slug: `module-${material.module}`,
+        title: moduleTitles[material.module],
+        order: material.module,
+      },
+      kind: 'visual',
+      interactiveHtmlUrl: url,
+      filePath: material.path,
+      source: 'html',
+      bodyMarkdown: '',
+    }
+    catalog['aws-saa-c03'] ??= []
+    catalog['aws-saa-c03'].push(lesson)
+  }
+
+  Object.values(catalog).forEach((lessons) => lessons.sort((a, b) => a.order - b.order))
   lessonCatalogCache = catalog
   return lessonCatalogCache
 }
@@ -260,3 +313,5 @@ export const findLesson = (topic: string, slug: string) => {
   const lesson = getLessonCatalog()[topic]?.find((entry) => entry.slug === slug)
   return lesson ?? null
 }
+
+export const getCourseRoadmap = () => readRawContent(Object.values(roadmapRawModule)[0])

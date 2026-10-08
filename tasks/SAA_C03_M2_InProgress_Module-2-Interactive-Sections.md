@@ -6,34 +6,39 @@ module: 2
 created: 2026-10-08
 ---
 
-# SAA-C03 Module 2: Interactive sections
+# SAA-C03 course reader: Modules 2–7
 
 ## Goal
-Publish the available Module 2 section materials in the course reader while preserving the existing HTML lessons' visual design and interactions.
+Apply the Module 2 reader experience across the available SAA-C03 course materials, preserving the supplied HTML interactions and grouping content by module.
 
 ## Context
-The roadmap lists Module 2 as Compute and Identity Foundations. Three section documents are available for EC2 Core and Networking, EC2 Lifecycle and Pricing, and Elastic Load Balancing and Auto Scaling. Each has a Markdown companion and a standalone HTML version with inline tab, quiz, lab, and navigation logic.
+The roadmap defines seven course modules. Modules 2–7 contain mixed Markdown and standalone HTML sources; some HTML files are paired exports, some are unique diagrams, and Module 3 currently contains byte-identical Module 7 copies. The Module 2 implementation is the first integrated set and establishes the reader pattern for the remaining content.
 
 ## Scope
-- In: group the three available sections under Module 2; keep their Markdown metadata in the catalog; serve the paired HTML as separate interactive assets; exclude the authoring prompt and roadmap from learner lessons; keep uncurated Modules 3–7 out of the published course list for now.
-- Out: author missing IAM or Organizations sections; reorganize Modules 3–7; alter the existing Module 2 HTML content or interactions; rewrite the standalone HTML design.
+- In: show all seven modules using the roadmap and existing overview notes; group available section files by module and lesson order; use full Markdown rendering; serve paired and supplemental HTML as isolated interactive assets; expose the roadmap as a separate page; exclude prompts, outlines, and duplicate Module 7 copies from Module 3.
+- Out: author missing IAM, Organizations, or detailed Networking sections; alter the supplied HTML lesson content or interactions; rewrite the standalone HTML design.
 
 ## Acceptance criteria
-- [ ] The SAA-C03 course page shows Module 2 with the three available sections in roadmap order.
-- [ ] Each section opens its original HTML experience with its styling, tabs, quizzes, lab content, and in-page navigation intact.
-- [ ] The Markdown/HTML pairs produce one catalog entry per section.
-- [ ] `prompt_template.md` and `roadmap.md` do not appear as learner lessons.
-- [ ] Module 1 and other topics remain available; uncurated Module 3–7 materials do not appear as course modules yet.
-- [ ] Production output contains the three HTML files as separate assets instead of embedding their source in the main JavaScript bundle.
+- [ ] The course page groups available materials under Modules 1–7 and preserves section order.
+- [ ] Each supplied HTML experience opens with its styles, tabs, quizzes, labs, diagrams, and in-page logic intact.
+- [ ] Markdown documents render tables, nested lists, headings, code, and links correctly.
+- [ ] The roadmap is reachable as a separate course page; prompts and outlines are not shown as lessons.
+- [ ] Module 3 does not show the duplicated Module 7 documents and clearly reflects the limited VPC overview available.
+- [ ] Other topics remain available and course documents load as separate assets when opened.
 
 ## Test cases
 | # | Input / action | Expected result | Type |
 |---|---|---|---|
-| 1 | Open `/aws-saa-c03` | Module 2 shows three sections in order | manual |
-| 2 | Open each Module 2 section | Original standalone HTML UI and interactions render | manual |
-| 3 | Build for production | Three HTML assets are emitted and referenced by the app | build |
-| 4 | Open Module 1 and a non-SAA topic | Existing content remains available | manual |
+| 1 | Open `/aws-saa-c03` | Modules 1–7 show their available material in order | manual |
+| 2 | Open paired HTML sections from Modules 2, 5, 6, and 7 | Original standalone UI and interactions render | manual |
+| 3 | Open a Module 4 or 5 standalone visual | Its own interactive diagram renders | manual |
+| 4 | Open a Markdown-only course section | Tables, code blocks, lists, and headings render correctly | manual |
+| 5 | Open `/aws-saa-c03/roadmap` | The full numbered roadmap renders as a separate page | manual |
+| 6 | Build for production | Markdown and HTML documents are emitted as separate assets | build |
+| 7 | Open Module 1 and a non-SAA topic | Existing content remains available | manual |
 
 ## Notes
-- The roadmap also includes IAM and AWS Organizations sections, but full section materials for them are not present in the current Module 2 folder. Do not invent lessons to fill those gaps.
-- The HTML pages load Google Fonts from the network and use no external JavaScript dependencies.
+- The roadmap includes IAM and AWS Organizations sections without full source files, and Module 3 has only the short VPC overview. Do not invent lessons to fill these gaps.
+- The roadmap identifies Module 1 as Foundation, while the current Module 1 page is labeled Identity and Access Management; flag this for a later content decision.
+- Supplied HTML pages load Google Fonts from the network and use no external JavaScript dependencies.
+- Scope was expanded from Module 2 to all available modules on 2026-10-08 at the user's request.

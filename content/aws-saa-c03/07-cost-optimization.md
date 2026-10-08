@@ -1,7 +1,10 @@
 ---
 title: Cost optimization and architecture fit
 topic: aws-saa-c03
-order: 7
+order: 0
+module: 7
+moduleTitle: Scale & Final Review
+kind: overview
 ---
 
 # Cost optimization and architecture fit

@@ -63,6 +63,16 @@
   background: #fff;
 }
 
+.roadmapLink {
+  display: inline-block;
+  margin-top: 1rem;
+  color: #0969da;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.roadmapLink:hover { text-decoration: underline; }
+
 .curriculum {
   display: grid;
   gap: 1.1rem;

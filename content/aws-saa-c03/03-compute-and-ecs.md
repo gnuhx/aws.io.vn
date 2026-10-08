@@ -1,7 +1,10 @@
 ---
 title: Compute options and ECS
-ntopic: aws-saa-c03
-order: 3
+topic: aws-saa-c03
+order: 0
+module: 2
+moduleTitle: Compute & Identity Foundations
+kind: overview
 ---
 
 # Compute options and ECS

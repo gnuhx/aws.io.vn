@@ -1,7 +1,10 @@
 ---
 title: Migration and transfer patterns
 topic: aws-saa-c03
-order: 6
+order: 0
+module: 7
+moduleTitle: Scale & Final Review
+kind: overview
 ---
 
 # Migration and transfer patterns

@@ -1,7 +1,10 @@
 ---
 title: Security and operational guardrails
 topic: aws-saa-c03
-order: 5
+order: 0
+module: 6
+moduleTitle: Operations, Security & Management
+kind: overview
 ---
 
 # Security and operational guardrails

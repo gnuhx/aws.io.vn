@@ -33,6 +33,9 @@ export function TopicPage() {
           <span>{lessons.length} content pages</span>
           {sortedModules.length > 0 && <span>{sortedModules.length} {sortedModules.length === 1 ? 'module' : 'modules'}</span>}
         </div>
+        {topic === 'aws-saa-c03' && (
+          <Link className={styles.roadmapLink} to="/aws-saa-c03/roadmap">View full course roadmap ↗</Link>
+        )}
       </header>
 
       <div className={styles.curriculum}>
@@ -44,9 +47,7 @@ export function TopicPage() {
                 <p className={styles.moduleKicker}>Module {order}</p>
                 <h2>{group.title}</h2>
               </div>
-              <span className={styles.lessonCount}>
-                {group.lessons.length} {group.lessons.some((lesson) => lesson.kind === 'section') ? 'sections' : 'lessons'}
-              </span>
+              <span className={styles.lessonCount}>{group.lessons.length} materials</span>
             </div>
             <ol className={styles.lessonList}>
               {group.lessons.sort((a, b) => a.order - b.order).map((lesson, index) => (
@@ -55,7 +56,7 @@ export function TopicPage() {
                     <span className={styles.lessonIndex}>{String(index + 1).padStart(2, '0')}</span>
                     <span className={styles.lessonCopy}>
                       <strong>{lesson.title}</strong>
-                      <span>{lesson.summary}</span>
+                      <span>{lesson.kind === 'overview' ? 'Overview · ' : lesson.kind === 'visual' ? 'Interactive visual · ' : lesson.kind === 'section' ? 'Section · ' : 'Lesson · '}{lesson.summary}</span>
                     </span>
                     <span className={styles.arrow} aria-hidden="true">↗</span>
                   </Link>
@@ -82,7 +83,7 @@ export function TopicPage() {
                     <span className={styles.lessonIndex}>{String(index + 1).padStart(2, '0')}</span>
                     <span className={styles.lessonCopy}>
                       <strong>{lesson.title}</strong>
-                      <span>{lesson.summary}</span>
+                      <span>Lesson · {lesson.summary}</span>
                     </span>
                     <span className={styles.arrow} aria-hidden="true">↗</span>
                   </Link>

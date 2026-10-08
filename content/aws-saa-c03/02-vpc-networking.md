@@ -1,7 +1,10 @@
 ---
 title: VPC and networking foundations
 topic: aws-saa-c03
-order: 2
+order: 0
+module: 3
+moduleTitle: Networking
+kind: overview
 ---
 
 # VPC and networking foundations

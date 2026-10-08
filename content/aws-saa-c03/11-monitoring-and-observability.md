@@ -1,7 +1,10 @@
 ---
 title: Monitoring and observability
 topic: aws-saa-c03
-order: 11
+order: 0
+module: 6
+moduleTitle: Operations, Security & Management
+kind: overview
 ---
 
 # Monitoring and observability

@@ -1,7 +1,10 @@
 ---
 title: Serverless and event-driven patterns
 topic: aws-saa-c03
-order: 10
+order: 0
+module: 5
+moduleTitle: Modern Architecture
+kind: overview
 ---
 
 # Serverless and event-driven patterns

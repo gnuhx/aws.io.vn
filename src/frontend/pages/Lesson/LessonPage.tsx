@@ -1,7 +1,51 @@
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { findLesson, getLessonCatalog } from '../../content.ts'
+import { findLesson, getLessonCatalog, type LessonEntry } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import styles from './LessonPage.module.css'
+
+const MarkdownView = lazy(() => import('../../components/Markdown/MarkdownView.tsx').then((module) => ({ default: module.MarkdownView })))
+
+function LessonContent({ lesson }: { lesson: LessonEntry }) {
+  const [markdown, setMarkdown] = useState(lesson.bodyMarkdown)
+  const [markdownError, setMarkdownError] = useState(false)
+
+  useEffect(() => {
+    if (!lesson.markdownUrl) return
+
+    let active = true
+    fetch(lesson.markdownUrl)
+      .then((response) => {
+        if (!response.ok) throw new Error('Could not load lesson content')
+        return response.text()
+      })
+      .then((raw) => {
+        if (!active) return
+        const body = raw
+          .replace(/^---[\s\S]*?---\n?/, '')
+          .replace(/^#\s+[^\n]+\n+/, '')
+          .trim()
+        setMarkdown(body)
+      })
+      .catch(() => {
+        if (active) setMarkdownError(true)
+      })
+
+    return () => { active = false }
+  }, [lesson.markdownUrl])
+
+  if (markdownError) {
+    return <article className={styles.article}><p>We couldn’t load this lesson right now. Please refresh and try again.</p></article>
+  }
+
+  return (
+    <article className={styles.article}>
+      <Suspense fallback={<p>Loading lesson renderer…</p>}>
+        <MarkdownView markdown={markdown} />
+      </Suspense>
+    </article>
+  )
+}
 
 export function LessonPage() {
   const { topic = '', slug = '' } = useParams()
@@ -17,7 +61,13 @@ export function LessonPage() {
   const previous = moduleLessons[currentIndex - 1]
   const next = moduleLessons[currentIndex + 1]
   const pageTitle = topic === 'aws-saa-c03' ? 'AWS SAA-C03' : topic.replace(/-/g, ' ')
-  const itemLabel = lesson.kind === 'section' ? 'Section' : 'Lesson'
+  const itemLabel = lesson.kind === 'section'
+    ? 'Section'
+    : lesson.kind === 'overview'
+      ? 'Overview'
+      : lesson.kind === 'visual'
+        ? 'Interactive visual'
+        : 'Lesson'
 
   return (
     <div className={styles.page}>
@@ -77,7 +127,7 @@ export function LessonPage() {
               <h1 className={styles.title}>{lesson.title}</h1>
               <p className={styles.summary}>{lesson.summary}</p>
               <div className={styles.rule} />
-              <article className={styles.article} dangerouslySetInnerHTML={{ __html: lesson.bodyHtml }} />
+              <LessonContent key={lesson.slug} lesson={lesson} />
             </>
           )}
 

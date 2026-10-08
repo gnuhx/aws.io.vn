@@ -1,7 +1,10 @@
 ---
 title: Final architecture review
 topic: aws-saa-c03
-order: 12
+order: 999
+module: 7
+moduleTitle: Scale & Final Review
+kind: overview
 ---
 
 # Final architecture review

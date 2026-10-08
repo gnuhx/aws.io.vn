@@ -1,7 +1,10 @@
 ---
 title: Storage and database patterns
 topic: aws-saa-c03
-order: 4
+order: 0
+module: 4
+moduleTitle: Storage & Database
+kind: overview
 ---
 
 # Storage and database patterns

@@ -1,7 +1,10 @@
 ---
 title: Load balancing and auto scaling
 topic: aws-saa-c03
-order: 9
+order: 0
+module: 2
+moduleTitle: Compute & Identity Foundations
+kind: overview
 ---
 
 # Load balancing and auto scaling
