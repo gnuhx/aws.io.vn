@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAA-C03 // HARDMODE-EXAM-03</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0c2340; --grid:rgba(150,190,220,.09);
+    --paper:#dfe8f2; --paper-dim:#8fa7bf;
+    --cyan:#4FB3C9; --cyan-dim:rgba(79,179,201,.14); --cyan-border:#1E4E5C;
+    --amber:#E8A33D; --amber-dim:rgba(232,163,61,.14); --amber-border:#7A5218;
+    --green:#59c98e; --green-dim:rgba(89,201,142,.14); --green-border:#1f5c3f;
+    --violet:#9B7FD4; --violet-dim:rgba(155,127,212,.14); --violet-border:#4c3c72;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/28px 28px, var(--navy);
+    color:var(--paper); font-family:'IBM Plex Sans',sans-serif; min-height:100vh; padding:5vw 4vw 8vw;
+  }
+  .sheet{max-width:900px; margin:0 auto;}
+  .title-block{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid var(--cyan-border); padding-bottom:14px; margin-bottom:6px; flex-wrap:wrap; gap:10px;}
+  .title-block .stamp{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.04em; color:var(--amber); border:1px solid var(--amber-border); background:var(--amber-dim); padding:3px 8px; border-radius:3px; white-space:nowrap;}
+  .title-block h1{font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:clamp(20px,3.4vw,30px); margin:0; color:var(--paper); letter-spacing:-.01em;}
+  .subtitle{color:var(--paper-dim); font-size:14px; margin:10px 0 22px; line-height:1.6; max-width:660px;}
+  .subtitle b{color:var(--amber); font-weight:600;}
+  .intro-card{border:1px dashed var(--cyan-border); border-radius:8px; padding:22px 24px; margin-bottom:20px; background:rgba(79,179,201,.05);}
+  .intro-card h2{font-family:'IBM Plex Mono',monospace; font-size:15px; margin:0 0 10px; color:var(--cyan);}
+  .intro-card p{font-size:13.5px; line-height:1.7; color:var(--paper-dim); margin:0 0 8px;}
+  .intro-card p b{color:var(--paper);}
+  .diff-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;}
+  .dchip{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 10px; border-radius:20px; border:1px solid var(--paper-dim); color:var(--paper-dim);}
+  .dchip.e{border-color:var(--green-border); color:var(--green);}
+  .dchip.m{border-color:var(--cyan-border); color:var(--cyan);}
+  .dchip.h{border-color:var(--amber-border); color:var(--amber);}
+  .dchip.b{border-color:var(--violet-border); color:var(--violet);}
+  .domain-legend{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+  .dtag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid;}
+  .dtag.secure{color:var(--cyan); border-color:var(--cyan-border); background:var(--cyan-dim);}
+  .dtag.resilient{color:var(--green); border-color:var(--green-border); background:var(--green-dim);}
+  .dtag.performing{color:var(--violet); border-color:var(--violet-border); background:var(--violet-dim);}
+  .dtag.cost{color:var(--amber); border-color:var(--amber-border); background:var(--amber-dim);}
+  .start-btn,.nav-btn,.restart-btn{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; background:transparent; color:var(--cyan); border:1px solid var(--cyan-border); padding:10px 20px; border-radius:5px; cursor:pointer; letter-spacing:.02em; transition:background .15s;}
+  .start-btn:hover,.nav-btn:not(:disabled):hover,.restart-btn:hover{background:var(--cyan-dim);}
+  .nav-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .progress-row{display:flex; align-items:center; gap:14px; margin:22px 0 18px; flex-wrap:wrap; justify-content:space-between;}
+  .dots{display:flex; gap:5px; flex-wrap:wrap;}
+  .dot{width:9px; height:9px; border-radius:50%; background:#2a4260; cursor:pointer; border:1px solid #2a4260;}
+  .dot.answered{background:var(--paper-dim); border-color:var(--paper-dim);}
+  .dot.correct{background:var(--green); border-color:var(--green);}
+  .dot.wrong{background:var(--amber); border-color:var(--amber);}
+  .dot.current{outline:2px solid var(--cyan); outline-offset:2px;}
+  .qcount{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--paper-dim); white-space:nowrap;}
+  .diff-badge{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:2px 9px; border-radius:20px; border:1px solid; white-space:nowrap;}
+  .diff-badge.e{color:var(--green); border-color:var(--green-border); background:var(--green-dim);}
+  .diff-badge.m{color:var(--cyan); border-color:var(--cyan-border); background:var(--cyan-dim);}
+  .diff-badge.h{color:var(--amber); border-color:var(--amber-border); background:var(--amber-dim);}
+  .diff-badge.b{color:var(--violet); border-color:var(--violet-border); background:var(--violet-dim);}
+  .qframe{border:1px solid var(--cyan-border); border-radius:8px; overflow:hidden; background:rgba(10,29,56,.5); margin-bottom:20px; position:relative;}
+  .qframe .qtag-corner{position:absolute; top:10px; right:12px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--paper-dim); letter-spacing:.03em;}
+  .qhead{padding:18px 22px 14px; border-bottom:1px dashed rgba(150,190,220,.2);}
+  .qnum-row{display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;}
+  .qnum{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--cyan);}
+  .qstem{font-size:15.5px; line-height:1.65; color:var(--paper);}
+  .multi-note{display:inline-block; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber); border:1px solid var(--amber-border); background:var(--amber-dim); padding:2px 8px; border-radius:4px;}
+  .options{padding:16px 22px;}
+  .opt{display:flex; gap:12px; align-items:flex-start; padding:11px 12px; margin-bottom:8px; border:1px solid rgba(150,190,220,.18); border-radius:6px; cursor:pointer; font-size:14px; line-height:1.55; transition:border-color .12s, background .12s;}
+  .opt:hover{border-color:var(--cyan-border);}
+  .opt.selected{border-color:var(--cyan); background:var(--cyan-dim);}
+  .opt .mark{width:16px; height:16px; flex:0 0 16px; margin-top:2px; border:1.5px solid var(--paper-dim); border-radius:50%; position:relative;}
+  .opt.selected .mark{border-color:var(--cyan);}
+  .opt.selected .mark::after{content:''; position:absolute; inset:3px; background:var(--cyan); border-radius:50%;}
+  .opt.multi .mark{border-radius:3px;}
+  .opt.multi.selected .mark::after{border-radius:2px;}
+  .opt.locked{cursor:default;}
+  .opt.reveal-correct{border-color:var(--green); background:var(--green-dim);}
+  .opt.reveal-correct .mark{border-color:var(--green);}
+  .opt.reveal-correct .mark::after{background:var(--green); border-radius:inherit;}
+  .opt.reveal-wrong{border-color:var(--amber); background:var(--amber-dim);}
+  .opt.reveal-wrong .mark{border-color:var(--amber);}
+  .opt.reveal-wrong .mark::after{background:var(--amber); border-radius:inherit;}
+  .qactions{padding:0 22px 18px; display:flex; gap:10px;}
+  .check-btn{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; background:var(--amber-dim); color:var(--amber); border:1px solid var(--amber-border); padding:9px 18px; border-radius:5px; cursor:pointer;}
+  .check-btn:disabled{opacity:.35; cursor:not-allowed;}
+  .info-panel{border-top:1px solid rgba(150,190,220,.15); padding:16px 22px 20px; display:none;}
+  .info-panel.show{display:block;}
+  .info-panel .verdict{font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:700; letter-spacing:.03em; margin-bottom:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .verdict.ok{color:var(--green);}
+  .verdict.no{color:var(--amber);}
+  .domain-pill{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:2px 8px; border-radius:20px; border:1px solid; margin-left:auto;}
+  .info-panel p{font-size:13.5px; line-height:1.7; color:var(--paper-dim); margin:0 0 10px;}
+  .why-wrong{font-size:13px; line-height:1.7; color:var(--paper-dim); margin:0 0 10px; border-left:3px solid var(--amber-border); padding:6px 12px; background:rgba(232,163,61,.06);}
+  .why-wrong b{color:var(--amber);}
+  .tip-line{font-size:13px; line-height:1.6; color:var(--paper); border-left:3px solid var(--cyan); padding:8px 12px; background:var(--cyan-dim); border-radius:0 5px 5px 0;}
+  .tip-line b{color:var(--cyan);}
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:4px;}
+  .summary{display:none;}
+  .summary.show{display:block;}
+  .score-hero{border:1px solid var(--cyan-border); border-radius:8px; padding:28px 24px; text-align:center; margin-bottom:22px; background:rgba(79,179,201,.05);}
+  .score-big{font-family:'IBM Plex Mono',monospace; font-size:clamp(38px,7vw,58px); font-weight:700; color:var(--cyan); line-height:1;}
+  .score-sub{color:var(--paper-dim); font-size:13.5px; margin-top:8px;}
+  .verdict-line{font-size:14px; margin-top:14px; color:var(--paper);}
+  .breakdown{margin-bottom:22px;}
+  .breakdown h3{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--paper-dim); margin:0 0 12px; font-weight:500;}
+  .bd-row{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+  .bd-label{width:150px; font-family:'IBM Plex Mono',monospace; font-size:12px; flex:0 0 150px;}
+  .bd-bar-track{flex:1; height:10px; background:rgba(150,190,220,.12); border-radius:5px; overflow:hidden;}
+  .bd-bar-fill{height:100%; border-radius:5px;}
+  .bd-pct{width:42px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--paper-dim); flex:0 0 42px;}
+  .miss-list{margin-bottom:24px;}
+  .miss-list h3{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--amber); margin:0 0 12px; font-weight:500;}
+  .miss-item{display:flex; justify-content:space-between; gap:10px; padding:9px 12px; border:1px solid var(--amber-border); background:var(--amber-dim); border-radius:5px; margin-bottom:6px; cursor:pointer; font-size:13px;}
+  .miss-item:hover{background:rgba(232,163,61,.24);}
+  .miss-item span.go{font-family:'IBM Plex Mono',monospace; color:var(--amber); flex:0 0 auto;}
+  .rivet{position:fixed; width:5px; height:5px; border-radius:50%; background:var(--paper); opacity:.25;}
+  .r1{top:14px; left:14px;} .r2{top:14px; right:14px;} .r3{bottom:14px; left:14px;} .r4{bottom:14px; right:14px;}
+  @media (max-width:640px){ .qstem{font-size:14.5px;} .bd-label{width:110px; flex:0 0 110px; font-size:11px;} }
+
+  /* Plain white reading surface; preserve the exam's existing questions and behavior. */
+  :root {
+    color-scheme: light;
+    --navy: #ffffff; --grid: transparent;
+    --paper: #24292f; --paper-dim: #57606a;
+    --cyan: #0969da; --cyan-dim: #ffffff; --cyan-border: #d0d7de;
+    --amber: #805500; --amber-dim: #ffffff; --amber-border: #d0d7de;
+    --green: #1a7f37; --green-dim: #ffffff; --green-border: #d0d7de;
+    --violet: #6639ba; --violet-dim: #ffffff; --violet-border: #d0d7de;
+    --bg: #ffffff; --ink: #24292f; --ink-dim: #57606a; --line: #d0d7de;
+    --orange: #805500; --orange-dim: #ffffff; --orange-line: #d0d7de;
+    --squid: #ffffff; --squid-2: #ffffff;
+    --green-line: #d0d7de; --wrong: #a40e26; --wrong-dim: #ffffff; --wrong-line: #d0d7de;
+    --violet-line: #d0d7de; --cyan-line: #d0d7de;
+  }
+  html, body { background: #fff !important; color: #24292f !important; }
+  body { padding: 24px max(18px, 4vw) 56px !important; }
+  .topbar, .intro-card, .qframe, .score-hero, .opt, .info-panel,
+  .why-wrong, .tip-line, .miss-item, .title-block .stamp,
+  .dchip, .dtag, .diff-badge, .multi-note { background: #fff !important; }
+  .topbar { border: 0 !important; padding: 0 0 20px !important; color: #24292f !important; }
+  .topbar h1, .title-block h1, .qstem, .intro-card p, .info-panel p,
+  .verdict-line, .score-sub, .subtitle, .opt { color: #24292f !important; }
+  .sheet { max-width: 900px; margin: 0 auto; padding: 0 !important; background: #fff !important; box-shadow: none !important; }
+  .intro-card, .score-hero { border: 0 !important; border-radius: 0 !important; padding: 18px 0 !important; }
+  .qframe { border: 0 !important; border-radius: 0 !important; overflow: visible !important; }
+  .qhead { border: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+  .options { padding-left: 0 !important; padding-right: 0 !important; }
+  .opt { border-color: #d0d7de !important; border-radius: 5px !important; }
+  .opt.selected, .opt.reveal-correct, .opt.reveal-wrong { background: #fff !important; }
+  .info-panel { border-top: 1px solid #d0d7de !important; }
+  .bd-bar-track { background: #f6f8fa !important; }
+  .rivet { display: none !important; }
+</style>
+</head>
+<body>
+<div class="rivet r1"></div><div class="rivet r2"></div><div class="rivet r3"></div><div class="rivet r4"></div>
+
+<div class="sheet">
+  <div class="title-block">
+    <h1>SAA-C03 // HARDMODE-EXAM-03</h1>
+    <span class="stamp">30 CÂU MỚI · KHÁC CHỦ ĐỀ 2 ĐỀ TRƯỚC</span>
+  </div>
+  <p class="subtitle">Đề này né hẳn nhóm câu đã ra ở 2 đề trước (KMS cross-account, GuardDuty/Inspector/Macie, Multi-AZ RDS, DAX, Placement Group...). Lần này xoáy vào nhóm dịch vụ hay bị học lướt: Cognito, VPC Flow Logs, Object Lock, Access Analyzer, Transit Gateway, EC2 Auto Recovery, Lambda concurrency, EFS performance mode, Graviton, Fargate Spot.</p>
+
+  <div class="intro-card" id="introCard">
+    <h2>▸ TRƯỚC KHI VÀO CA</h2>
+    <p>Vẫn giữ nguyên 2 nguyên tắc bạn yêu cầu: <b>4 đáp án cân bằng độ dài/độ chi tiết</b> (sai cũng phải nghe có lý) và <b>vị trí đáp án xáo ngẫu nhiên</b> mỗi lần vào câu. Độ khó tăng dần từ câu 1 tới câu 30.</p>
+    <p>Domain vẫn chỉ hiện ra sau khi chốt đáp án.</p>
+    <div class="diff-legend">
+      <span class="dchip e">● Dễ — câu 1-7</span>
+      <span class="dchip m">● Trung bình — câu 8-17</span>
+      <span class="dchip h">● Khó — câu 18-26</span>
+      <span class="dchip b">● Não tàn — câu 27-30 (chọn 2)</span>
+    </div>
+    <div class="domain-legend">
+      <span class="dtag secure">Design Secure</span>
+      <span class="dtag resilient">Design Resilient</span>
+      <span class="dtag performing">Design High-Performing</span>
+      <span class="dtag cost">Design Cost-Optimized</span>
+    </div>
+    <div style="margin-top:20px;">
+      <button class="start-btn" onclick="startExam()">Bắt đầu →</button>
+    </div>
+  </div>
+
+  <div id="examArea" style="display:none;">
+    <div class="progress-row">
+      <div class="qcount" id="qcount">Câu 1/30</div>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div id="qContainer"></div>
+    <div class="nav-row">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">← Trước</button>
+      <button class="nav-btn" id="nextBtn" onclick="nextQ()">Tiếp →</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="score-hero">
+      <div class="score-big" id="scoreBig">0/30</div>
+      <div class="score-sub" id="scorePct">0%</div>
+      <div class="verdict-line" id="verdictLine"></div>
+    </div>
+    <div class="breakdown">
+      <h3>▸ BREAKDOWN THEO DOMAIN</h3>
+      <div id="bdRows"></div>
+    </div>
+    <div class="miss-list" id="missWrap">
+      <h3>▸ CÁC CÂU SAI — bấm để nhảy lại xem giải thích</h3>
+      <div id="missRows"></div>
+    </div>
+    <button class="restart-btn" onclick="restartExam()">↺ Làm lại từ đầu (xáo lại đáp án)</button>
+  </div>
+</div>
+
+<script>
+const DOMAIN_META = {
+  secure:{label:'Design Secure Architectures', cls:'secure'},
+  resilient:{label:'Design Resilient Architectures', cls:'resilient'},
+  performing:{label:'Design High-Performing Architectures', cls:'performing'},
+  cost:{label:'Design Cost-Optimized Architectures', cls:'cost'}
+};
+const DOMAIN_COLOR = {secure:'var(--cyan)', resilient:'var(--green)', performing:'var(--violet)', cost:'var(--amber)'};
+const DIFF_LABEL = {e:'DỄ', m:'TRUNG BÌNH', h:'KHÓ', b:'NÃO TÀN'};
+
+const QUESTIONS = [
+{domain:'secure', diff:'e', multi:false,
+ stem:'Ứng dụng mobile cần: (1) cho user đăng ký/đăng nhập bằng email hoặc social login, và (2) sau khi đăng nhập, cấp temporary credentials để user truy cập trực tiếp 1 bucket S3 riêng của họ.',
+ options:[
+   {id:'a', text:'Chỉ cần Cognito User Pool — quản lý toàn bộ vòng đời đăng ký/đăng nhập và cấp luôn temporary AWS credentials sau khi login.'},
+   {id:'b', text:'Cognito User Pool để xử lý đăng ký/đăng nhập, kết hợp Cognito Identity Pool để đổi identity đó sang temporary AWS credentials.'},
+   {id:'c', text:'Chỉ cần Cognito Identity Pool — vừa xử lý đăng ký/đăng nhập vừa cấp temporary credentials trong cùng 1 bước.'},
+   {id:'d', text:'Tạo IAM user riêng cho mỗi user mobile app và cấp access key dài hạn ngay sau khi đăng ký thành công.'}
+ ],
+ correct:['b'],
+ explain:'User Pool là dịch vụ quản lý danh tính (đăng ký/đăng nhập). Identity Pool là dịch vụ riêng để đổi identity (từ User Pool hoặc social login) sang temporary AWS credentials. Cần cả 2 phối hợp cho đúng use case.',
+ whyWrong:'User Pool tự nó không cấp AWS credentials, chỉ quản lý identity. Identity Pool không tự xử lý đăng ký/đăng nhập, nó cần 1 identity provider đầu vào (như User Pool) để đổi sang credentials. IAM user riêng cho từng mobile user là anti-pattern không scale được.',
+ tip:'User Pool = "ai đang đăng nhập". Identity Pool = "đổi identity đó thành quyền AWS tạm thời". Hai dịch vụ tách biệt, thường đi cùng nhau.'
+},
+{domain:'secure', diff:'e', multi:false,
+ stem:'Team hạ tầng cần biết chi tiết source IP, destination IP, port, và số byte của traffic mạng ra/vào 1 ENI cụ thể trong VPC để điều tra sự cố network, không cần biết ai gọi API nào.',
+ options:[
+   {id:'a', text:'AWS CloudTrail — ghi lại lịch sử mọi API call gọi tới tài khoản AWS, kèm thông tin người gọi và thời điểm gọi.'},
+   {id:'b', text:'VPC Flow Logs — ghi lại metadata traffic IP đi qua ENI/subnet/VPC, gồm source/destination IP, port, protocol, số byte.'},
+   {id:'c', text:'Amazon CloudWatch Logs Insights — truy vấn và phân tích log ứng dụng đã được đẩy vào CloudWatch Logs.'},
+   {id:'d', text:'AWS Config — theo dõi và ghi lại lịch sử thay đổi cấu hình của các resource AWS theo thời gian.'}
+ ],
+ correct:['b'],
+ explain:'VPC Flow Logs chuyên ghi metadata traffic mạng (IP, port, byte) ở tầng ENI/subnet/VPC — đúng chính xác nhu cầu điều tra network trong đề bài.',
+ whyWrong:'CloudTrail ghi API call (ai gọi hành động gì trên AWS), không phải traffic mạng ở tầng gói tin. CloudWatch Logs Insights chỉ phân tích log đã có sẵn trong CloudWatch, không tự sinh ra dữ liệu traffic network. Config theo dõi thay đổi cấu hình resource, không liên quan traffic.',
+ tip:'CloudTrail = "ai gọi API gì". VPC Flow Logs = "gói tin nào đi qua đâu". Hai loại log trả lời 2 câu hỏi hoàn toàn khác nhau.'
+},
+{domain:'resilient', diff:'e', multi:false,
+ stem:'Team vận hành cần phân biệt: RDS automated backup và RDS manual snapshot khác nhau ở điểm nào về vòng đời lưu trữ.',
+ options:[
+   {id:'a', text:'Automated backup tự động xoá theo retention period đã cấu hình (tối đa 35 ngày) và mất luôn khi xoá instance; manual snapshot được giữ vô thời hạn tới khi tự xoá.'},
+   {id:'b', text:'Automated backup và manual snapshot có cùng cơ chế lưu trữ và thời hạn, chỉ khác cách kích hoạt là tự động hay thủ công.'},
+   {id:'c', text:'Manual snapshot tự động xoá sau 35 ngày giống automated backup, không có cách nào giữ snapshot lâu hơn khoảng thời gian đó.'},
+   {id:'d', text:'Automated backup được giữ vô thời hạn ngay cả sau khi xoá RDS instance, còn manual snapshot bị xoá theo retention period.'}
+ ],
+ correct:['a'],
+ explain:'Automated backup hỗ trợ point-in-time recovery trong retention window (tối đa 35 ngày) và bị xoá theo mặc định khi xoá instance (trừ khi giữ final snapshot). Manual snapshot tồn tại độc lập, không tự xoá, tồn tại cho tới khi người dùng chủ động xoá.',
+ whyWrong:'Nói 2 loại giống nhau hoàn toàn là sai vì khác nhau rõ về thời hạn lưu trữ và hành vi khi xoá instance. Đảo ngược vai trò (automated giữ vô thời hạn, manual tự xoá) cũng sai — đúng ngược lại với thực tế.',
+ tip:'Automated backup = tạm thời, gắn với retention window và với instance. Manual snapshot = vĩnh viễn cho tới khi tự xoá, độc lập với instance.'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Team FinOps cần 1 công cụ tự động đề xuất rightsizing (giảm/tăng instance type) dựa trên dữ liệu utilization CPU/memory/network thực tế trong quá khứ, không cần tự phân tích CloudWatch metrics thủ công.',
+ options:[
+   {id:'a', text:'AWS Trusted Advisor — kiểm tra nhanh best practice theo 5 nhóm (cost, performance, security, fault tolerance, service limit), gồm cả gợi ý idle resource.'},
+   {id:'b', text:'AWS Compute Optimizer — phân tích lịch sử utilization CPU/memory/network rồi tự sinh khuyến nghị rightsizing cụ thể cho từng resource.'},
+   {id:'c', text:'AWS Cost Explorer — trực quan hoá chi phí lịch sử và dự báo chi tiêu tương lai theo service/tag/account.'},
+   {id:'d', text:'AWS Budgets — thiết lập ngưỡng chi tiêu và gửi cảnh báo khi chi phí thực tế hoặc dự kiến vượt ngưỡng đã đặt.'}
+ ],
+ correct:['b'],
+ explain:'Compute Optimizer chuyên phân tích utilization thực tế để sinh khuyến nghị rightsizing cụ thể (đổi sang instance type nào, tiết kiệm bao nhiêu) — đúng chính xác đề bài.',
+ whyWrong:'Trusted Advisor có gợi ý cost chung nhưng không chuyên sâu rightsizing dựa trên utilization như Compute Optimizer. Cost Explorer chỉ trực quan hoá chi phí, không đưa ra khuyến nghị đổi resource. Budgets chỉ cảnh báo ngưỡng chi tiêu, không phân tích utilization.',
+ tip:'Cần khuyến nghị "đổi sang loại instance nào để tiết kiệm" dựa trên utilization thật → luôn là Compute Optimizer, không phải Trusted Advisor hay Cost Explorer.'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Dữ liệu trong 1 bucket S3 có pattern truy cập không đoán trước được — có tháng đọc nhiều, có tháng gần như không đọc — và team không muốn tự quản lý lifecycle rule thủ công để chuyển tier.',
+ options:[
+   {id:'a', text:'S3 Standard — giữ nguyên 1 storage class duy nhất, tối ưu cho truy cập thường xuyên, không cần cấu hình gì thêm.'},
+   {id:'b', text:'S3 Intelligent-Tiering — tự động di chuyển object giữa các tier truy cập dựa trên pattern sử dụng thực tế, không cần lifecycle rule thủ công.'},
+   {id:'c', text:'S3 One Zone-IA — lưu trữ chỉ trong 1 AZ với chi phí thấp hơn Standard-IA, phù hợp dữ liệu có thể tái tạo lại được.'},
+   {id:'d', text:'S3 Glacier Instant Retrieval — chi phí lưu trữ rất thấp, phù hợp dữ liệu hiếm khi truy cập nhưng vẫn cần đọc lại tức thời.'}
+ ],
+ correct:['b'],
+ explain:'Intelligent-Tiering tự động phân loại và di chuyển object giữa tier dựa trên pattern truy cập thực tế theo thời gian thực — đúng nhu cầu "không đoán trước được, không muốn quản lý lifecycle thủ công".',
+ whyWrong:'Standard tối ưu cho truy cập thường xuyên nhưng không tự điều chỉnh khi pattern thay đổi, gây lãng phí ở tháng ít đọc. One Zone-IA và Glacier Instant Retrieval đều là storage class tĩnh, cần lifecycle rule thủ công để chuyển qua — đúng loại công việc team không muốn tự quản lý.',
+ tip:'Pattern truy cập không đoán trước được + không muốn quản lý lifecycle thủ công → luôn là Intelligent-Tiering.'
+},
+{domain:'performing', diff:'e', multi:false,
+ stem:'Website dùng CloudFront với hàng trăm edge location toàn cầu, nhưng origin server chịu tải cao vì mỗi edge location cache miss đều gọi thẳng về origin riêng lẻ.',
+ options:[
+   {id:'a', text:'Origin Shield — thêm 1 lớp cache trung tâm giữa edge location và origin, gộp các request cache-miss lại trước khi tới origin, giảm tải origin.'},
+   {id:'b', text:'Lambda@Edge — chạy code tuỳ chỉnh tại edge location để xử lý logic request/response trước khi trả về người dùng.'},
+   {id:'c', text:'CloudFront Signed URL — giới hạn thời gian và quyền truy cập nội dung bằng URL có chữ ký kèm policy hết hạn.'},
+   {id:'d', text:'AWS Global Accelerator đặt trước CloudFront — định tuyến traffic TCP/UDP qua mạng lõi AWS trước khi vào CloudFront.'}
+ ],
+ correct:['a'],
+ explain:'Origin Shield thêm 1 lớp cache trung tâm, gộp request cache-miss từ nhiều edge location lại thành ít request hơn tới origin — giải quyết đúng vấn đề origin bị quá tải vì nhiều edge gọi riêng lẻ.',
+ whyWrong:'Lambda@Edge xử lý logic tuỳ biến, không giải quyết vấn đề số lượng request tới origin. Signed URL kiểm soát quyền truy cập, không liên quan tải origin. Global Accelerator định tuyến traffic TCP/UDP, không phải cơ chế cache giảm tải origin cho CloudFront.',
+ tip:'"Origin quá tải vì nhiều edge location cache miss riêng lẻ" luôn trỏ tới Origin Shield — đây là lớp cache trung tâm gộp request lại.'
+},
+{domain:'resilient', diff:'e', multi:false,
+ stem:'Team cần 1 hệ thống file storage dùng chung cho nhiều EC2 trong cùng region, tự động khả dụng cao qua nhiều AZ mà không cần tự cấu hình replication thủ công.',
+ options:[
+   {id:'a', text:'Amazon EFS — hệ thống file NFS được thiết kế sẵn tính khả dụng cao Multi-AZ trong 1 region, không cần tự cấu hình replication.'},
+   {id:'b', text:'Amazon EBS — volume block storage gắn vào 1 EC2 instance cụ thể, chỉ tồn tại trong 1 AZ trừ khi tự snapshot và copy.'},
+   {id:'c', text:'EC2 Instance Store — ổ đĩa tạm gắn trực tiếp vào phần cứng vật lý của instance, mất dữ liệu khi instance dừng hoặc terminate.'},
+   {id:'d', text:'Amazon S3 gắn qua FUSE — mount bucket S3 như 1 filesystem cục bộ cho ứng dụng đọc/ghi file trực tiếp.'}
+ ],
+ correct:['a'],
+ explain:'EFS là dịch vụ file storage NFS được AWS thiết kế sẵn Multi-AZ trong phạm vi region, nhiều EC2 mount cùng lúc mà không cần tự lo replication.',
+ whyWrong:'EBS gắn vào 1 instance trong 1 AZ, muốn multi-AZ phải tự snapshot/copy thủ công. Instance Store mất dữ liệu ngay khi instance dừng, không phải shared storage bền vững. Mount S3 qua FUSE không phải cách dùng được khuyến nghị cho ứng dụng cần file storage thật với đầy đủ file system semantics.',
+ tip:'Cần shared file storage nhiều EC2 dùng chung, tự Multi-AZ sẵn trong region → EFS. EBS chỉ gắn 1 instance, không phải shared storage.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'1 IAM user có 1 policy Allow s3:GetObject trên toàn bộ bucket, nhưng đồng thời có 1 policy khác (từ 1 IAM Group user đó thuộc về) Deny rõ ràng s3:GetObject trên đúng bucket cụ thể đó. Kết quả cuối cùng khi user thử gọi GetObject trên bucket đó?',
+ options:[
+   {id:'a', text:'Request được Allow vì policy Allow gắn trực tiếp vào user có độ ưu tiên cao hơn policy Deny gắn qua Group.'},
+   {id:'b', text:'Request bị Deny — trong IAM, một explicit Deny ở bất kỳ policy áp dụng nào luôn thắng, bất kể có bao nhiêu Allow khác.'},
+   {id:'c', text:'Request được Allow vì AWS tính tổng số policy Allow và Deny, bên nào nhiều hơn thì thắng.'},
+   {id:'d', text:'AWS trả lỗi cấu hình và yêu cầu admin xoá 1 trong 2 policy trước khi user có thể thực hiện request.'}
+ ],
+ correct:['b'],
+ explain:'Nguyên tắc đánh giá policy của IAM: mặc định Deny toàn bộ, sau đó cộng tất cả Allow áp dụng, nhưng NẾU có bất kỳ explicit Deny nào áp dụng thì Deny đó luôn thắng tuyệt đối, không quan tâm nguồn gốc (user, group, hay resource-based policy).',
+ whyWrong:'Không có khái niệm "policy gắn trực tiếp vào user ưu tiên hơn policy qua Group" trong IAM evaluation logic. Không có việc AWS đếm số lượng Allow/Deny để so sánh. AWS cũng không trả lỗi cấu hình khi có Allow và Deny xung đột — nó đánh giá theo logic Deny-wins bình thường.',
+ tip:'Luật vàng của IAM: explicit Deny luôn thắng, dù có bao nhiêu Allow khác. Không quan trọng Deny đến từ đâu (user/group/resource policy).'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Công ty cần bảo vệ 1 bucket S3 chứa dữ liệu tài chính khỏi việc bị xoá vĩnh viễn do nhầm lẫn hoặc do 1 tài khoản bị compromise, ngay cả khi kẻ tấn công có quyền xoá object.',
+ options:[
+   {id:'a', text:'S3 Versioning — giữ lại các version cũ của object khi bị ghi đè hoặc xoá, cho phép khôi phục lại version trước đó.'},
+   {id:'b', text:'S3 Versioning kết hợp MFA Delete — yêu cầu mã xác thực MFA hợp lệ mới cho phép xoá vĩnh viễn version hoặc thay đổi trạng thái versioning của bucket.'},
+   {id:'c', text:'S3 Server Access Logging — ghi lại toàn bộ request truy cập vào bucket để phục vụ điều tra sau khi sự cố xảy ra.'},
+   {id:'d', text:'S3 Cross-Region Replication — tự động sao chép object sang bucket ở region khác ngay khi có thay đổi.'}
+ ],
+ correct:['b'],
+ explain:'MFA Delete yêu cầu thêm 1 mã MFA hợp lệ trước khi cho phép xoá permanently version hoặc đổi trạng thái versioning — đây là lớp bảo vệ chống lại chính tài khoản có quyền xoá bị lạm dụng hoặc compromise.',
+ whyWrong:'Chỉ Versioning đơn thuần vẫn cho phép xoá vĩnh viễn version nếu có đủ quyền IAM (dùng DeleteObjectVersion), không chặn được kẻ tấn công có quyền. Access Logging chỉ ghi lại để điều tra SAU sự cố, không ngăn chặn được hành vi xoá. CRR sao chép dữ liệu nhưng không ngăn hành vi xoá ở bucket gốc, và có thể replicate luôn cả hành vi xoá nếu không cấu hình cẩn thận.',
+ tip:'Versioning đơn thuần chỉ giữ lịch sử, không chống được xoá vĩnh viễn có chủ đích. Muốn chống cả trường hợp tài khoản bị compromise → phải thêm MFA Delete.'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Công ty có hơn 30 VPC cần kết nối many-to-many với nhau (mọi VPC đều cần giao tiếp với mọi VPC khác), quản trị dễ dàng và không muốn số lượng kết nối tăng theo cấp bình phương.',
+ options:[
+   {id:'a', text:'VPC Peering đầy đủ (full-mesh) giữa từng cặp VPC — mỗi VPC peer trực tiếp với tất cả VPC còn lại trong hệ thống.'},
+   {id:'b', text:'AWS Transit Gateway — 1 hub trung tâm mà mọi VPC chỉ cần kết nối 1 lần vào hub, hub tự định tuyến traffic giữa các VPC.'},
+   {id:'c', text:'AWS Site-to-Site VPN riêng cho từng cặp VPC cần giao tiếp trực tiếp với nhau qua public internet.'},
+   {id:'d', text:'AWS PrivateLink cho từng dịch vụ cụ thể cần expose qua các VPC, tạo endpoint riêng ở từng VPC nhận.'}
+ ],
+ correct:['b'],
+ explain:'Transit Gateway đóng vai trò hub trung tâm — mỗi VPC chỉ cần 1 kết nối duy nhất tới hub, số lượng kết nối tăng tuyến tính theo số VPC (không phải cấp bình phương như full-mesh peering).',
+ whyWrong:'Full-mesh Peering đúng là giải quyết được nhu cầu many-to-many nhưng số lượng kết nối tăng theo cấp bình phương (30 VPC cần tới 435 kết nối peering), rất khó quản trị — đúng cái đề bài muốn tránh. VPN qua internet không tối ưu cho traffic nội bộ giữa VPC trong cùng AWS. PrivateLink dùng để expose 1 dịch vụ cụ thể, không phải giải pháp kết nối toàn bộ network giữa nhiều VPC.',
+ tip:'Nhiều VPC cần many-to-many + không muốn số kết nối tăng theo cấp bình phương → luôn là Transit Gateway, không phải full-mesh Peering.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Tập đoàn có 50 account trong AWS Organizations, cần định kỳ tự động kiểm tra TẤT CẢ account có tuân thủ 1 bộ rule bảo mật chuẩn (ví dụ: mọi bucket S3 phải bật encryption, mọi security group không được mở 0.0.0.0/0 vào port 22) hay không.',
+ options:[
+   {id:'a', text:'AWS Config Conformance Pack triển khai qua Organizations — gói nhiều Config Rule lại thành 1 bộ chuẩn, áp dụng và theo dõi compliance đồng loạt trên nhiều account.'},
+   {id:'b', text:'AWS CloudTrail Organization Trail — ghi lại toàn bộ API call của mọi account về 1 nơi tập trung để rà soát định kỳ.'},
+   {id:'c', text:'Amazon Inspector triển khai trên từng account — quét lỗ hổng phần mềm trên EC2 và container image ở mỗi account riêng lẻ.'},
+   {id:'d', text:'Service Control Policy chặn hành động tạo bucket không encryption hoặc security group mở port 22 ngay từ đầu.'}
+ ],
+ correct:['a'],
+ explain:'Conformance Pack đóng gói nhiều Config Rule thành 1 bộ chuẩn, triển khai qua Organizations để áp dụng và theo dõi compliance đồng loạt trên nhiều account — đúng chính xác nhu cầu kiểm tra compliance định kỳ diện rộng.',
+ whyWrong:'CloudTrail chỉ ghi log API call, không tự đánh giá compliance theo rule. Inspector quét lỗ hổng phần mềm, không kiểm tra cấu hình compliance như encryption/security group rule. SCP có thể NGĂN hành động sai ngay từ đầu (preventive) nhưng không phải cơ chế kiểm tra/báo cáo compliance liên tục (detective) như Conformance Pack.',
+ tip:'Cần kiểm tra compliance liên tục, diện rộng nhiều account, theo bộ rule chuẩn → Config Conformance Pack. SCP chỉ ngăn chặn trước, không báo cáo trạng thái hiện tại.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'Team hạ tầng muốn giảm chi phí compute cho các workload tương thích ARM (đã test kỹ, không có vấn đề tương thích) mà vẫn giữ hoặc cải thiện performance.',
+ options:[
+   {id:'a', text:'Chuyển sang instance dùng chip AWS Graviton — kiến trúc ARM do AWS tự thiết kế, thường cho price-performance tốt hơn instance x86 tương đương.'},
+   {id:'b', text:'Chuyển toàn bộ sang Spot Instance loại x86 hiện tại để tận dụng mức giá thấp hơn On-Demand.'},
+   {id:'c', text:'Giảm số lượng instance đang chạy xuống mức tối thiểu và chấp nhận giảm performance để tiết kiệm chi phí.'},
+   {id:'d', text:'Mua Reserved Instance dài hạn hơn cho đúng loại instance x86 hiện tại để tăng mức discount.'}
+ ],
+ correct:['a'],
+ explain:'Graviton là lựa chọn duy nhất trong 4 đáp án vừa giảm chi phí vừa GIỮ HOẶC CẢI THIỆN performance cho workload tương thích ARM — đúng cả 2 tiêu chí đề bài.',
+ whyWrong:'Spot giảm giá nhưng đánh đổi bằng rủi ro bị thu hồi, không phải "giữ hoặc cải thiện performance" mà đề bài yêu cầu ổn định. Giảm số instance trực tiếp làm giảm performance, ngược yêu cầu. Reserved Instance giảm giá nhưng vẫn dùng x86, không tối ưu performance như Graviton.',
+ tip:'Workload đã tương thích ARM + muốn giảm giá mà không giảm performance → luôn nghĩ tới Graviton trước các lựa chọn giá khác.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'1 batch job xử lý dữ liệu chạy trên container, có thể chịu được gián đoạn và tự retry, hiện đang chạy trên Fargate với giá On-Demand khá cao.',
+ options:[
+   {id:'a', text:'Fargate Spot — tận dụng capacity dư thừa của Fargate với giá thấp hơn nhiều so với Fargate on-demand, đánh đổi bằng khả năng bị gián đoạn.'},
+   {id:'b', text:'Chuyển sang EC2 On-Demand tự quản lý cluster ECS thay vì dùng Fargate để giảm phí quản lý serverless.'},
+   {id:'c', text:'Mua Savings Plan cam kết 3 năm cho Fargate để giảm giá dài hạn dù traffic job không ổn định.'},
+   {id:'d', text:'Tăng CPU/memory allocation cho task để job chạy nhanh hơn, giảm tổng thời gian tính phí theo giờ.'}
+ ],
+ correct:['a'],
+ explain:'Fargate Spot đúng use case "chịu được gián đoạn, tự retry" — giá thấp hơn đáng kể so với Fargate on-demand, giữ nguyên lợi ích serverless của Fargate.',
+ whyWrong:'Chuyển sang EC2 tự quản lý làm mất lợi ích serverless và tăng chi phí vận hành/quản lý cluster. Savings Plan 3 năm không hợp với job có traffic không ổn định — rủi ro cam kết dư capacity. Tăng CPU/memory làm tăng chi phí mỗi giờ, không chắc giảm được tổng chi phí.',
+ tip:'Container/batch job chịu được gián đoạn trên Fargate → luôn nghĩ tới Fargate Spot trước, giữ được lợi ích serverless mà vẫn giảm giá.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'Ứng dụng dùng RDS Read Replica để scale traffic đọc. Sau khi ghi 1 record mới vào primary, ứng dụng đọc ngay lập tức từ Read Replica và đôi khi KHÔNG thấy record đó.',
+ options:[
+   {id:'a', text:'Đây là lỗi cấu hình Read Replica, cần kiểm tra lại network giữa primary và replica vì bình thường phải đồng bộ tức thời.'},
+   {id:'b', text:'Đây là hành vi bình thường — Read Replica dùng replication bất đồng bộ, có lag nhất định; ứng dụng cần chấp nhận eventual consistency hoặc đọc từ primary khi cần dữ liệu mới nhất ngay.'},
+   {id:'c', text:'Read Replica chỉ đồng bộ mỗi 24 giờ 1 lần theo lịch cố định, cần đợi tới chu kỳ đồng bộ tiếp theo.'},
+   {id:'d', text:'Cần chuyển sang Multi-AZ deployment để giải quyết triệt để vấn đề đồng bộ dữ liệu giữa primary và replica.'}
+ ],
+ correct:['b'],
+ explain:'Read Replica dùng replication bất đồng bộ, luôn có 1 khoảng lag (thường vài trăm ms tới vài giây) — đây là đặc điểm thiết kế, không phải lỗi. Ứng dụng cần thiết kế chấp nhận eventual consistency cho đọc từ replica, hoặc đọc từ primary khi cần dữ liệu ngay lập tức mới nhất.',
+ whyWrong:'Không có lỗi cấu hình network gì cả — đây là hành vi thiết kế mặc định của replication bất đồng bộ. Read Replica không đồng bộ theo lịch cố định 24 giờ, mà liên tục theo thời gian thực nhưng có lag. Multi-AZ standby cũng không đọc được (không phải Read Replica), và không giải quyết được bài toán lag của Read Replica vì đây là 2 cơ chế khác nhau.',
+ tip:'Read Replica luôn có lag (bất đồng bộ) — đọc ngay sau khi ghi có thể miss data mới nhất, đây là trade-off thiết kế, không phải bug.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'Ứng dụng cache dùng ElastiCache for Redis với 1 Replication Group không bật Cluster Mode, dataset đang phình to vượt quá dung lượng memory của 1 node duy nhất.',
+ options:[
+   {id:'a', text:'Thêm nhiều Read Replica vào Replication Group hiện tại — mỗi replica có bản sao đầy đủ toàn bộ dataset, giúp scale khả năng đọc.'},
+   {id:'b', text:'Bật Cluster Mode (sharding) — chia dataset ra nhiều shard nằm trên nhiều node khác nhau, tổng dung lượng memory tăng theo số shard.'},
+   {id:'c', text:'Chuyển sang Memcached vì Memcached có dung lượng memory mỗi node lớn hơn Redis theo mặc định.'},
+   {id:'d', text:'Tăng số lượng Read Replica lên mức tối đa cho phép để phân tán tải ghi dữ liệu ra nhiều node.'}
+ ],
+ correct:['b'],
+ explain:'Cluster Mode (sharding) chia dataset ra nhiều shard trên nhiều node — đây là cách duy nhất tăng TỔNG dung lượng memory khả dụng cho toàn dataset, giải quyết đúng vấn đề "dataset vượt quá dung lượng 1 node".',
+ whyWrong:'Thêm Read Replica không bật Cluster Mode chỉ tạo thêm bản sao ĐẦY ĐỦ của dataset hiện tại trên node khác — giúp scale đọc, không giúp chứa dataset lớn hơn dung lượng 1 node. Memcached cũng bị giới hạn dung lượng theo node tương tự, không phải giải pháp cho vấn đề sharding dữ liệu. Read Replica dùng cho scale đọc, không phải scale ghi hay scale dung lượng lưu trữ.',
+ tip:'Dataset vượt dung lượng 1 node → cần sharding (Cluster Mode), không phải thêm Read Replica. Read Replica chỉ giúp scale số lượng REQUEST đọc, không tăng dung lượng lưu trữ.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'Đội tài chính công ty muốn được cảnh báo tự động ngay khi có chi phí AWS tăng bất thường so với pattern chi tiêu thông thường, không muốn phải tự đặt ngưỡng cố định hay tự soi Cost Explorer hàng ngày.',
+ options:[
+   {id:'a', text:'AWS Budgets với ngưỡng cố định — thiết lập 1 mức chi tiêu tối đa, nhận cảnh báo khi vượt qua đúng mức đó.'},
+   {id:'b', text:'AWS Cost Anomaly Detection — dùng machine learning học pattern chi tiêu bình thường, tự động phát hiện và cảnh báo khi có chi phí bất thường lệch khỏi pattern.'},
+   {id:'c', text:'AWS Cost Explorer với báo cáo được lên lịch gửi email hàng tuần cho đội tài chính xem thủ công.'},
+   {id:'d', text:'AWS Trusted Advisor mục Cost Optimization — liệt kê các resource đang idle hoặc underutilized để cân nhắc cắt giảm.'}
+ ],
+ correct:['b'],
+ explain:'Cost Anomaly Detection dùng machine learning để tự học pattern chi tiêu bình thường và phát hiện bất thường tự động — đúng yêu cầu "không cần tự đặt ngưỡng cố định".',
+ whyWrong:'Budgets cần tự đặt ngưỡng cố định trước, không tự thích ứng theo pattern chi tiêu thực tế thay đổi theo thời gian. Cost Explorer với báo cáo định kỳ vẫn cần con người tự soi số liệu, không tự động phát hiện bất thường. Trusted Advisor chỉ gợi ý resource idle, không phải cơ chế phát hiện chi phí tăng bất thường theo pattern.',
+ tip:'"Tự động phát hiện bất thường mà không cần tự đặt ngưỡng" luôn trỏ tới Cost Anomaly Detection — đặc trưng bởi machine learning học pattern, khác hẳn Budgets (ngưỡng tĩnh do người dùng đặt).'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'GuardDuty đã bật Malware Protection và phát hiện 1 finding cảnh báo có khả năng malware trên 1 EBS volume gắn với EC2 instance đang chạy production. Hành động nào đúng thứ tự xử lý theo khuyến nghị AWS?',
+ options:[
+   {id:'a', text:'Terminate ngay instance đó để loại bỏ hoàn toàn nguy cơ, chấp nhận mất toàn bộ dữ liệu chưa kịp xử lý.'},
+   {id:'b', text:'Cách ly instance (đổi security group thành không cho traffic ra/vào, hoặc tách khỏi ASG/target group), sau đó điều tra snapshot volume trước khi quyết định xử lý tiếp.'},
+   {id:'c', text:'Bỏ qua finding này vì GuardDuty Malware Protection có tỷ lệ false positive cao, không cần hành động ngay.'},
+   {id:'d', text:'Xoá trực tiếp file bị nghi malware trên volume ngay lập tức mà không cần snapshot hoặc điều tra thêm.'}
+ ],
+ correct:['b'],
+ explain:'Quy trình đúng khi nghi ngờ compromise là cách ly (containment) trước để ngăn lan rộng và bảo toàn bằng chứng, sau đó điều tra kỹ (thường qua snapshot) trước khi quyết định remediation cụ thể — không hành động vội vàng theo hướng phá huỷ dữ liệu ngay.',
+ whyWrong:'Terminate ngay hoặc xoá file ngay đều phá huỷ bằng chứng cần thiết cho điều tra và có thể mất dữ liệu quan trọng không cần thiết. Bỏ qua finding vì nghĩ false positive là rủi ro rất lớn — GuardDuty Malware Protection dùng cơ chế quét thật (không phải chỉ heuristic), cần điều tra nghiêm túc mọi finding malware.',
+ tip:'Thứ tự chuẩn khi nghi compromise: Cách ly → Điều tra (snapshot/log) → Remediation. Đừng bỏ qua bước cách ly và điều tra chỉ để "xử lý nhanh cho gọn".'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'Team bảo mật muốn rà soát chủ động TRƯỚC KHI cấp quyền: phát hiện các resource (S3 bucket, IAM role, KMS key...) đang có policy cho phép truy cập từ bên ngoài account hoặc từ public, để review lại có phải cố ý hay không.',
+ options:[
+   {id:'a', text:'AWS Config Rules — đánh giá compliance của resource theo rule đã định nghĩa trước, cảnh báo khi resource không tuân thủ.'},
+   {id:'b', text:'IAM Access Analyzer — phân tích resource-based policy và phát hiện quyền truy cập từ ngoài account/public, giúp review trước khi việc cấp quyền gây rủi ro thật.'},
+   {id:'c', text:'AWS CloudTrail — ghi lại lịch sử API call để biết ai đã từng gọi hành động cấp quyền cho resource nào.'},
+   {id:'d', text:'Amazon GuardDuty — phát hiện hành vi truy cập bất thường dựa trên phân tích log sau khi hành vi đó đã xảy ra.'}
+ ],
+ correct:['b'],
+ explain:'Access Analyzer chuyên phân tích resource-based policy để tìm ra quyền truy cập từ ngoài account/public — đúng nhu cầu "rà soát chủ động trước khi rủi ro xảy ra", không cần chờ có hành vi bất thường thật diễn ra.',
+ whyWrong:'Config Rules cần rule được định nghĩa cụ thể trước cho từng loại resource, không chuyên biệt cho việc phát hiện external access như Access Analyzer. CloudTrail chỉ cho biết lịch sử ai đã cấp quyền, không tự phân tích xem policy hiện tại có rủi ro không. GuardDuty phát hiện hành vi SAU KHI đã xảy ra (detective), không phải rà soát policy TRƯỚC khi rủi ro xảy ra (preventive review).',
+ tip:'"Rà soát TRƯỚC khi rủi ro xảy ra, tìm quyền truy cập ngoài account/public trong policy hiện tại" → Access Analyzer. GuardDuty chỉ phát hiện SAU khi có hành vi bất thường thật.'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'Công ty B cần AssumeRole vào 1 role ở Account A để thực hiện công việc định kỳ. Đội bảo mật Account A lo ngại về rủi ro "confused deputy" nếu Account B vô tình để lộ ARN role cho 1 bên thứ ba không mong muốn dùng lại.',
+ options:[
+   {id:'a', text:'Yêu cầu Account B chỉ dùng access key dài hạn thay vì AssumeRole để tránh rủi ro liên quan tới role ARN.'},
+   {id:'b', text:'Thêm điều kiện sts:ExternalId trong trust policy của role ở Account A, yêu cầu Account B phải cung cấp đúng external ID bí mật khi AssumeRole.'},
+   {id:'c', text:'Giới hạn session duration của role xuống mức tối thiểu 15 phút để giảm thời gian rủi ro nếu bị lạm dụng.'},
+   {id:'d', text:'Xoá hoàn toàn trust policy của role và chỉ cho phép truy cập role đó qua VPN riêng giữa 2 account.'}
+ ],
+ correct:['b'],
+ explain:'External ID trong trust policy là cơ chế chính thức của AWS để chống confused deputy problem — chỉ bên biết đúng external ID bí mật (do Account A cấp riêng cho Account B) mới AssumeRole thành công, ngăn bên thứ ba dùng lại ARN role trơ trọi.',
+ whyWrong:'Access key dài hạn là anti-pattern bảo mật, không giải quyết vấn đề confused deputy và còn tạo rủi ro mới (key có thể bị leak, không tự expire). Giảm session duration chỉ giảm THỜI GIAN rủi ro nếu bị lạm dụng, không NGĂN được việc bị lạm dụng từ đầu. Xoá trust policy làm role không dùng được, VPN không phải cơ chế IAM để giải quyết bài toán này.',
+ tip:'"Confused deputy" + "AssumeRole cross-account" luôn trỏ tới giải pháp sts:ExternalId trong trust policy — đây là cơ chế AWS thiết kế riêng cho đúng vấn đề này.'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Ứng dụng dùng Route 53 với nhiều health check con theo dõi các thành phần khác nhau (database, cache, API backend), muốn 1 record DNS chỉ được coi là healthy khi ÍT NHẤT 2 trong 3 thành phần con đó đang khỏe, không phải khi có 1 thành phần bất kỳ lỗi là toàn bộ unhealthy.',
+ options:[
+   {id:'a', text:'Tạo 3 health check riêng biệt và chỉ gắn health check của thành phần quan trọng nhất vào record DNS chính.'},
+   {id:'b', text:'Calculated Health Check — gộp nhiều health check con lại, cấu hình ngưỡng số lượng con phải healthy (ví dụ tối thiểu 2/3) để tổng thể được coi là healthy.'},
+   {id:'c', text:'Route 53 Weighted Routing Policy — chia traffic theo tỷ lệ trọng số giữa các endpoint mà không cần quan tâm trạng thái health check.'},
+   {id:'d', text:'Tạo 1 health check duy nhất theo dõi toàn bộ endpoint tổng hợp, không tách riêng theo từng thành phần con.'}
+ ],
+ correct:['b'],
+ explain:'Calculated Health Check cho phép gộp nhiều health check con và đặt ngưỡng (ví dụ "healthy khi ít nhất N trong M con khỏe") — đúng chính xác nhu cầu logic phức tạp hơn kiểu "tất cả hoặc không gì cả".',
+ whyWrong:'Chỉ gắn 1 health check của thành phần quan trọng nhất bỏ sót logic ngưỡng 2/3, sai yêu cầu đề bài. Weighted Routing không liên quan gì tới logic health check ngưỡng, nó chỉ chia traffic theo tỷ lệ cấu hình sẵn. 1 health check duy nhất theo dõi tổng hợp không cho phép cấu hình ngưỡng chi tiết theo từng thành phần con như Calculated Health Check.',
+ tip:'Cần logic "N trong M thành phần con phải khỏe" cho health check → Calculated Health Check, không phải cấu hình nhiều record riêng lẻ hay chọn 1 health check đại diện.'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'1 EC2 instance chạy ứng dụng stateful quan trọng gặp lỗi phần cứng vật lý (status check "system" fail), instance KHÔNG nằm trong Auto Scaling Group vì có state cục bộ không thể mất khi thay instance mới.',
+ options:[
+   {id:'a', text:'Cấu hình CloudWatch Alarm theo dõi StatusCheckFailed_System, gắn action EC2 Auto Recovery để tự động di chuyển instance sang phần cứng khác, giữ nguyên toàn bộ config và data trên EBS.'},
+   {id:'b', text:'Đưa instance vào 1 Auto Scaling Group với minimum/maximum/desired đều bằng 1 để ASG tự thay instance mới khi phát hiện lỗi.'},
+   {id:'c', text:'Cấu hình EventBridge rule bắt sự kiện EC2 state change rồi gọi Lambda function để launch lại instance mới hoàn toàn từ đầu.'},
+   {id:'d', text:'Không có cách nào tự động phục hồi instance ngoài Auto Scaling Group — bắt buộc phải chấp nhận đưa vào ASG dù có state cục bộ.'}
+ ],
+ correct:['a'],
+ explain:'EC2 Auto Recovery (qua CloudWatch Alarm theo dõi status check system) di chuyển instance sang phần cứng vật lý khác mà GIỮ NGUYÊN instance ID, private/public IP, EBS data và metadata — đúng giải pháp cho lỗi phần cứng mà không cần tạo instance mới, phù hợp app stateful không thể vào ASG.',
+ whyWrong:'ASG với min/max/desired = 1 khi thay instance sẽ tạo INSTANCE MỚI hoàn toàn (IP mới, mất data trên instance store nếu có), không giữ được state như yêu cầu. EventBridge + Lambda tự launch lại từ đầu cũng tạo instance mới, không phải "di chuyển" instance hiện tại. Nói không có cách nào tự động khác ASG là sai vì EC2 Auto Recovery chính là giải pháp cho đúng bài toán này.',
+ tip:'App stateful, không thể vào ASG, lỗi PHẦN CỨNG (status check system) → EC2 Auto Recovery, giữ nguyên instance/data. ASG chỉ hợp khi instance có thể thay thế hoàn toàn (stateless).'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Bảng DynamoDB lưu dữ liệu giao dịch quan trọng, team cần khả năng khôi phục dữ liệu về BẤT KỲ thời điểm nào trong 35 ngày gần nhất (ví dụ đúng 14:32:07 ngày hôm qua) để phục hồi sau lỗi logic ứng dụng ghi sai dữ liệu.',
+ options:[
+   {id:'a', text:'On-Demand Backup thủ công — chủ động tạo backup tại các thời điểm cụ thể, backup được giữ tới khi tự xoá.'},
+   {id:'b', text:'Point-in-Time Recovery (PITR) — tự động cho phép khôi phục dữ liệu về bất kỳ thời điểm cụ thể (tới từng giây) trong vòng 35 ngày gần nhất mà không cần tạo backup thủ công trước.'},
+   {id:'c', text:'DynamoDB Streams — bắt các thay đổi item theo thời gian thực để xử lý bởi Lambda, không phải cơ chế backup/restore.'},
+   {id:'d', text:'Global Tables — replicate dữ liệu sang nhiều region để tăng tính khả dụng, không liên quan tới khôi phục theo thời điểm.'}
+ ],
+ correct:['b'],
+ explain:'PITR cho phép khôi phục về BẤT KỲ thời điểm cụ thể (tới giây) trong 35 ngày gần nhất mà không cần đã tạo backup thủ công từ trước tại đúng thời điểm đó — đúng chính xác yêu cầu "đúng 14:32:07 ngày hôm qua".',
+ whyWrong:'On-Demand Backup chỉ khôi phục được về đúng THỜI ĐIỂM đã backup thủ công trước đó, không thể khôi phục về 1 giây bất kỳ chưa từng backup. DynamoDB Streams là cơ chế capture thay đổi cho xử lý real-time, không phải backup/restore. Global Tables giải quyết multi-region availability, không liên quan khôi phục theo thời điểm lịch sử.',
+ tip:'Cần khôi phục về "bất kỳ thời điểm cụ thể trong quá khứ" mà không cần đã backup sẵn đúng lúc đó → luôn là PITR, không phải On-Demand Backup.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Function Lambda phục vụ API latency-sensitive, traffic có spike đột ngột theo giờ cao điểm cố định hàng ngày (dự đoán được), và cold start đang gây timeout cho user trong vài giây đầu mỗi lần scale lên.',
+ options:[
+   {id:'a', text:'Reserved Concurrency — đặt giới hạn số lượng execution environment tối đa cho function, đảm bảo function luôn có capacity riêng không bị function khác chiếm.'},
+   {id:'b', text:'Provisioned Concurrency — giữ sẵn 1 số lượng execution environment đã khởi động (warm) trước, sẵn sàng phục vụ ngay không qua cold start; có thể lên lịch scale theo giờ cao điểm dự đoán được.'},
+   {id:'c', text:'Tăng memory allocation cho function lên mức tối đa để giảm thời gian khởi động cold start xuống gần 0.'},
+   {id:'d', text:'Chuyển Lambda sang chạy trong VPC để giảm latency mạng, gián tiếp giảm tổng thời gian phản hồi của mỗi lần gọi.'}
+ ],
+ correct:['b'],
+ explain:'Provisioned Concurrency giữ sẵn execution environment đã "warm" trước, loại bỏ cold start cho các lời gọi đầu tiên; hỗ trợ lên lịch scale theo giờ cao điểm dự đoán được (Application Auto Scaling) — đúng chính xác nhu cầu đề bài.',
+ whyWrong:'Reserved Concurrency chỉ đặt GIỚI HẠN/đảm bảo capacity, không giữ warm execution environment — không giải quyết được cold start, dễ bị nhầm với Provisioned Concurrency vì tên gần giống. Tăng memory có thể giảm 1 phần thời gian init nhưng không loại bỏ cold start hoàn toàn như Provisioned Concurrency. Chạy trong VPC thường làm TĂNG thêm độ trễ (cần ENI) chứ không giảm, và không liên quan gì tới cold start.',
+ tip:'Reserved Concurrency = giới hạn/đảm bảo SỐ LƯỢNG capacity. Provisioned Concurrency = giữ WARM execution environment để loại cold start. Hai khái niệm tên giống nhau nhưng chức năng khác hẳn — đây là bẫy hay gặp nhất của Lambda trong đề thi.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Ứng dụng HPC chạy trên EFS cần throughput cực cao với hàng trăm EC2 instance đọc/ghi đồng thời vào cùng file system, chấp nhận latency mỗi request cao hơn 1 chút để đổi lấy tổng throughput lớn hơn khi scale ra nhiều client.',
+ options:[
+   {id:'a', text:'EFS General Purpose Performance Mode — tối ưu latency thấp nhất cho mỗi operation, phù hợp phần lớn use case thông thường với ít client truy cập đồng thời.'},
+   {id:'b', text:'EFS Max I/O Performance Mode — tối ưu tổng throughput và IOPS khi có rất nhiều client truy cập đồng thời, đánh đổi bằng latency mỗi operation cao hơn 1 chút.'},
+   {id:'c', text:'EFS Bursting Throughput Mode — throughput tự động scale theo dung lượng file system đã lưu trữ, phù hợp workload với pattern burst không liên tục.'},
+   {id:'d', text:'EFS One Zone Storage Class — lưu trữ chỉ trong 1 AZ để giảm chi phí, không liên quan tới việc tối ưu throughput cho nhiều client.'}
+ ],
+ correct:['b'],
+ explain:'Max I/O Performance Mode được thiết kế đúng cho use case "rất nhiều client truy cập đồng thời, cần tổng throughput/IOPS lớn hơn, chấp nhận latency mỗi operation cao hơn 1 chút" — khớp chính xác mô tả đề bài.',
+ whyWrong:'General Purpose tối ưu latency thấp cho từng operation nhưng KHÔNG tối ưu tổng throughput khi có hàng trăm client đồng thời — đây là trade-off ngược với đề bài cần. Bursting Throughput Mode là throughput mode (liên quan băng thông theo dung lượng lưu trữ), khác trục với Performance Mode (liên quan latency vs IOPS tổng thể) — 2 khái niệm riêng biệt hay bị nhầm. One Zone Storage Class chỉ là lựa chọn storage class cho chi phí/độ bền, không liên quan performance mode.',
+ tip:'Performance Mode (General Purpose vs Max I/O) quyết định latency vs IOPS tổng thể. Throughput Mode (Bursting vs Provisioned vs Elastic) quyết định băng thông. Đây là 2 trục cấu hình HOÀN TOÀN KHÁC NHAU của EFS, đề thi hay gài nhầm giữa 2 khái niệm này.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Database OLTP chạy trên EC2 với EBS cần cả IOPS cực cao (trên 64,000 IOPS) VÀ throughput cao ổn định cho workload transaction-heavy, sẵn sàng trả thêm chi phí để đạt hiệu năng đó.',
+ options:[
+   {id:'a', text:'EBS gp3 — cho phép cấu hình độc lập IOPS và throughput không phụ thuộc dung lượng volume, chi phí thấp hơn gp2, nhưng có giới hạn IOPS tối đa thấp hơn io2 Block Express.'},
+   {id:'b', text:'EBS io2 Block Express — hỗ trợ IOPS tối đa cực cao (hàng trăm nghìn IOPS) và throughput cao nhất trong các loại volume, dành cho workload database cực khắt khe về hiệu năng.'},
+   {id:'c', text:'EBS st1 (throughput optimized HDD) — tối ưu cho throughput cao với workload truy cập tuần tự lớn như big data, không tối ưu IOPS ngẫu nhiên cho OLTP.'},
+   {id:'d', text:'EC2 Instance Store NVMe SSD — throughput và IOPS rất cao vì gắn trực tiếp vào phần cứng vật lý, nhưng dữ liệu mất khi instance dừng hoặc terminate.'}
+ ],
+ correct:['b'],
+ explain:'io2 Block Express là loại volume duy nhất trong 4 lựa chọn đáp ứng được mức IOPS trên 64,000 (gp3 có giới hạn IOPS tối đa thấp hơn nhiều) đồng thời vẫn giữ được tính bền vững dữ liệu cần cho database OLTP.',
+ whyWrong:'gp3 rẻ hơn nhưng giới hạn IOPS tối đa thấp hơn nhiều so với io2 Block Express, không đáp ứng được "trên 64,000 IOPS". st1 tối ưu cho throughput tuần tự lớn, không phải IOPS ngẫu nhiên của OLTP database. Instance Store có hiệu năng cao nhưng mất dữ liệu khi instance dừng — không chấp nhận được cho database cần bền vững dữ liệu.',
+ tip:'Cần IOPS cực cao (chục nghìn tới hàng trăm nghìn) cho database khắt khe → io2 Block Express. gp3 đủ dùng cho phần lớn workload thông thường nhưng có trần IOPS thấp hơn.'
+},
+{domain:'cost', diff:'h', multi:false,
+ stem:'Ứng dụng DynamoDB có traffic cực kỳ khó đoán — có ngày gần như không có request, có ngày traffic tăng vọt gấp 50 lần bình thường mà không báo trước, team không muốn tốn công dự đoán capacity hay cấu hình Auto Scaling threshold.',
+ options:[
+   {id:'a', text:'Provisioned Capacity với Application Auto Scaling — tự đặt target utilization và để Auto Scaling tự điều chỉnh capacity trong khoảng min/max đã định.'},
+   {id:'b', text:'On-Demand Capacity Mode — tự động scale theo traffic thực tế theo thời gian thực, tính phí theo request thực dùng, không cần dự đoán hoặc cấu hình ngưỡng scaling trước.'},
+   {id:'c', text:'Provisioned Capacity với giá trị cố định đặt ở mức cao nhất dự kiến để luôn đảm bảo đủ capacity cho spike bất ngờ.'},
+   {id:'d', text:'DynamoDB Accelerator (DAX) đặt trước bảng để giảm tải trực tiếp lên DynamoDB khi có spike truy cập đột ngột.'}
+ ],
+ correct:['b'],
+ explain:'On-Demand Capacity Mode tự động scale theo traffic thực tế mà không cần dự đoán hay cấu hình threshold — đúng chính xác nhu cầu "traffic khó đoán, không muốn tốn công cấu hình" trong đề bài.',
+ whyWrong:'Provisioned với Auto Scaling vẫn cần cấu hình target utilization/min/max và có độ trễ phản ứng khi traffic tăng đột ngột gấp 50 lần, có thể không kịp scale. Đặt Provisioned cố định ở mức cao nhất gây lãng phí lớn ở những ngày traffic thấp — ngược hoàn toàn với mục tiêu tối ưu chi phí. DAX là cache, giúp giảm READ load nhưng không giải quyết được bài toán capacity mode phù hợp cho traffic pattern khó đoán.',
+ tip:'Traffic "khó đoán, spike bất ngờ không báo trước, không muốn tốn công cấu hình" → luôn là On-Demand Capacity Mode, không phải Provisioned dù có Auto Scaling.'
+},
+{domain:'secure', diff:'b', multi:true,
+ stem:'Công ty tài chính cần bật S3 Object Lock ở chế độ Compliance trên 1 bucket để đảm bảo dữ liệu không thể bị xoá hoặc sửa trong 7 năm theo yêu cầu tuân thủ, kể cả bởi root user. Chọn 2 điều kiện/bước bắt buộc.',
+ options:[
+   {id:'a', text:'Bucket phải bật Versioning trước khi có thể bật Object Lock — Object Lock chỉ hoạt động trên bucket đã có versioning.'},
+   {id:'b', text:'Object Lock phải được bật ngay tại thời điểm TẠO bucket (hoặc yêu cầu AWS Support hỗ trợ bật cho bucket đã tồn tại), không thể tự bật tuỳ ý sau này qua console như 1 setting thông thường.'},
+   {id:'c', text:'Chỉ cần thêm 1 bucket policy Deny hành động DeleteObject cho mọi principal, không cần bật Versioning hay Object Lock gì thêm.'},
+   {id:'d', text:'Bật S3 Server Access Logging trên bucket đó để mọi hành động xoá đều được ghi log lại làm bằng chứng tuân thủ.'}
+ ],
+ correct:['a','b'],
+ explain:'Object Lock yêu cầu bucket phải có Versioning được bật (là điều kiện tiên quyết kỹ thuật), và Object Lock chỉ được bật tại thời điểm tạo bucket mới hoặc qua yêu cầu đặc biệt với AWS Support cho bucket cũ — không phải tính năng tự bật tuỳ ý sau này như 1 setting bình thường.',
+ whyWrong:'Chỉ thêm bucket policy Deny DeleteObject vẫn có thể bị root user hoặc người có quyền sửa/xoá chính bucket policy đó vượt qua — không đạt được mức bảo vệ "compliance mode, kể cả root cũng không xoá được" như Object Lock thật sự cung cấp. Access Logging chỉ ghi lại bằng chứng SAU KHI hành động xảy ra, không NGĂN được hành động xoá/sửa như yêu cầu đề bài.',
+ tip:'Object Lock Compliance Mode là mức bảo vệ WORM thật (kể cả root không xoá được), khác hẳn việc tự viết Deny policy (vẫn có thể bị gỡ bởi ai đó có quyền sửa policy).'
+},
+{domain:'resilient', diff:'b', multi:true,
+ stem:'Team hạ tầng muốn tối ưu quy trình backup cho các EBS volume chứa dữ liệu quan trọng: giảm thao tác thủ công khi tạo snapshot định kỳ, VÀ đảm bảo khi cần restore gấp từ 1 snapshot cụ thể trong tình huống khẩn cấp thì volume mới phải sẵn sàng đạt full performance ngay, không bị lag lúc mới tạo. Chọn 2 việc cần làm.',
+ options:[
+   {id:'a', text:'Cấu hình Amazon Data Lifecycle Manager (DLM) để tự động tạo, giữ, và xoá EBS snapshot theo policy định kỳ đã đặt sẵn.'},
+   {id:'b', text:'Bật Fast Snapshot Restore (FSR) trên các snapshot quan trọng cần restore gấp, để volume tạo từ snapshot đó đạt full performance ngay từ lần I/O đầu tiên, không cần "khởi động" (warm up) dần.'},
+   {id:'c', text:'Tăng dung lượng của EBS volume gốc lên mức lớn hơn nhiều so với dữ liệu thực tế đang dùng để dự phòng cho tương lai.'},
+   {id:'d', text:'Chuyển toàn bộ EBS volume sang loại st1 (throughput optimized HDD) vì st1 có chi phí lưu trữ thấp hơn các loại khác.'}
+ ],
+ correct:['a','b'],
+ explain:'DLM tự động hoá việc tạo/giữ/xoá snapshot theo policy, loại bỏ thao tác thủ công định kỳ. FSR đảm bảo volume tạo từ snapshot đạt full performance ngay lập tức khi cần restore khẩn cấp, không bị lag "warm up" ban đầu như hành vi mặc định của volume tạo từ snapshot.',
+ whyWrong:'Tăng dung lượng volume gốc không liên quan gì tới tự động hoá backup hay tốc độ restore snapshot. Chuyển sang st1 không phù hợp cho hầu hết workload cần random IOPS, và hoàn toàn không liên quan tới mục tiêu tự động hoá backup hay tốc độ restore khẩn cấp mà đề bài yêu cầu.',
+ tip:'DLM = tự động hoá lifecycle snapshot (tạo/giữ/xoá theo lịch). FSR = volume mới từ snapshot đạt full performance ngay, không bị lag warm-up. Hai tính năng bổ trợ nhau cho đúng bài toán "tự động + restore nhanh khi khẩn cấp".'
+}
+];
+
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function startExam(){
+  document.getElementById('introCard').style.display='none';
+  document.getElementById('examArea').style.display='block';
+  renderDots();
+  renderQuestion();
+}
+
+function renderDots(){
+  const wrap = document.getElementById('dots');
+  wrap.innerHTML='';
+  QUESTIONS.forEach((q,i)=>{
+    const d = document.createElement('div');
+    d.className='dot'+(i===current?' current':'')+(answers[i]&&answers[i].submitted?(answers[i].correct?' answered correct':' answered wrong'):'');
+    d.title='Câu '+(i+1);
+    d.onclick=()=>{ current=i; renderQuestion(); };
+    wrap.appendChild(d);
+  });
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById('qcount').textContent = 'Câu '+(current+1)+'/'+QUESTIONS.length;
+  let state = answers[current];
+  if(!state){
+    state = {selected:[], submitted:false, correct:false, order:shuffleArr(q.options.map(o=>o.id))};
+    answers[current] = state;
+  }
+
+  const isMulti = q.multi;
+  const orderedOpts = state.order.map(id => q.options.find(o=>o.id===id));
+
+  let optsHtml = '';
+  orderedOpts.forEach(opt=>{
+    let cls = 'opt'+(isMulti?' multi':'');
+    if(!state.submitted){
+      if(state.selected.includes(opt.id)) cls += ' selected';
+    } else {
+      const isCorrect = q.correct.includes(opt.id);
+      const wasSelected = state.selected.includes(opt.id);
+      if(isCorrect) cls += ' reveal-correct';
+      else if(wasSelected) cls += ' reveal-wrong';
+      cls += ' locked';
+    }
+    optsHtml += '<div class="'+cls+'" onclick="toggleOpt(\''+opt.id+'\')"><div class="mark"></div><div>'+opt.text+'</div></div>';
+  });
+
+  let infoHtml = '';
+  if(state.submitted){
+    const domain = DOMAIN_META[q.domain];
+    infoHtml = '<div class="info-panel show">'
+      + '<div class="verdict '+(state.correct?'ok':'no')+'">'+(state.correct?'✓ CHÍNH XÁC':'✕ CHƯA ĐÚNG')
+      + '<span class="domain-pill dtag '+domain.cls+'">'+domain.label+'</span></div>'
+      + '<p>'+q.explain+'</p>'
+      + '<div class="why-wrong"><b>Vì sao đáp án khác nghe có lý nhưng sai:</b> '+q.whyWrong+'</div>'
+      + '<div class="tip-line"><b>Chốt hạ:</b> '+q.tip+'</div>'
+      + '</div>';
+  }
+
+  const diffCls = q.diff;
+  document.getElementById('qContainer').innerHTML =
+    '<div class="qframe">'
+    + '<div class="qtag-corner">Q'+String(current+1).padStart(2,'0')+'</div>'
+    + '<div class="qhead"><div class="qnum-row"><span class="qnum">CÂU '+(current+1)+' / '+QUESTIONS.length+'</span>'
+    + '<span class="diff-badge '+diffCls+'">'+DIFF_LABEL[diffCls]+'</span></div>'
+    + '<div class="qstem">'+q.stem+'</div>'
+    + (isMulti?'<div class="multi-note">⚠ Chọn đúng 2 đáp án</div>':'')
+    + '</div>'
+    + '<div class="options">'+optsHtml+'</div>'
+    + (!state.submitted?'<div class="qactions"><button class="check-btn" id="checkBtn" onclick="submitAnswer()" '+(state.selected.length===0?'disabled':'')+'>Kiểm tra đáp án</button></div>':'')
+    + infoHtml
+    + '</div>';
+
+  document.getElementById('prevBtn').disabled = current===0;
+  document.getElementById('nextBtn').textContent = current===QUESTIONS.length-1 ? 'Xem kết quả →' : 'Tiếp →';
+  renderDots();
+}
+
+function toggleOpt(id){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  if(state.submitted) return;
+  if(q.multi){
+    const idx = state.selected.indexOf(id);
+    if(idx>=0) state.selected.splice(idx,1);
+    else {
+      if(state.selected.length < q.correct.length) state.selected.push(id);
+      else { state.selected.shift(); state.selected.push(id); }
+    }
+  } else {
+    state.selected = [id];
+  }
+  renderQuestion();
+}
+
+function submitAnswer(){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  const sel = [...state.selected].sort();
+  const cor = [...q.correct].sort();
+  state.correct = sel.length===cor.length && sel.every((v,i)=>v===cor[i]);
+  state.submitted = true;
+  renderQuestion();
+}
+
+function nextQ(){
+  if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+  else { showSummary(); }
+}
+function prevQ(){
+  if(current>0){ current--; renderQuestion(); }
+}
+
+function showSummary(){
+  document.getElementById('examArea').style.display='none';
+  const summary = document.getElementById('summary');
+  summary.classList.add('show');
+
+  let correctCount = 0;
+  const domainStats = {secure:{c:0,t:0}, resilient:{c:0,t:0}, performing:{c:0,t:0}, cost:{c:0,t:0}};
+  QUESTIONS.forEach((q,i)=>{
+    domainStats[q.domain].t++;
+    if(answers[i] && answers[i].submitted && answers[i].correct){ correctCount++; domainStats[q.domain].c++; }
+  });
+  const pct = Math.round(correctCount/QUESTIONS.length*100);
+  document.getElementById('scoreBig').textContent = correctCount+'/'+QUESTIONS.length;
+  document.getElementById('scorePct').textContent = pct+'%';
+
+  let verdict = '';
+  if(pct>=85) verdict='Mức này thi thật khả năng cao pass thoải mái — nhưng đề này cố tình khó hơn thi thật, đừng chủ quan tuyệt đối.';
+  else if(pct>=70) verdict='Ổn nhưng chưa chắc chắn — soi kỹ domain yếu nhất bên dưới trước khi đăng ký thi thật.';
+  else if(pct>=50) verdict='Còn lỗ hổng lý thuyết rõ rệt, không phải vấn đề trí nhớ — cần đọc lại đúng phần domain đang tụt, không học tủ lại đề này.';
+  else verdict='Cần ôn lại có hệ thống trước khi nghĩ tới lịch thi — đọc kỹ phần "vì sao đáp án khác sai" + "chốt hạ" của từng câu sai bên dưới.';
+  document.getElementById('verdictLine').textContent = verdict;
+
+  const order = ['secure','resilient','performing','cost'];
+  let bdHtml = '';
+  order.forEach(d=>{
+    const s = domainStats[d];
+    const dpct = s.t? Math.round(s.c/s.t*100):0;
+    bdHtml += '<div class="bd-row"><div class="bd-label" style="color:'+DOMAIN_COLOR[d]+'">'+DOMAIN_META[d].label+'</div>'
+      + '<div class="bd-bar-track"><div class="bd-bar-fill" style="width:'+dpct+'%; background:'+DOMAIN_COLOR[d]+';"></div></div>'
+      + '<div class="bd-pct">'+s.c+'/'+s.t+'</div></div>';
+  });
+  document.getElementById('bdRows').innerHTML = bdHtml;
+
+  let missHtml = '';
+  let missCount = 0;
+  QUESTIONS.forEach((q,i)=>{
+    if(!(answers[i] && answers[i].submitted && answers[i].correct)){
+      missCount++;
+      const short = q.stem.length>90 ? q.stem.slice(0,90)+'…' : q.stem;
+      missHtml += '<div class="miss-item" onclick="jumpTo('+i+')"><span>Câu '+(i+1)+' · '+DOMAIN_META[q.domain].label+' — '+short+'</span><span class="go">Xem lại →</span></div>';
+    }
+  });
+  document.getElementById('missWrap').style.display = missCount>0 ? 'block' : 'none';
+  document.getElementById('missRows').innerHTML = missHtml;
+}
+
+function jumpTo(i){
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('examArea').style.display='block';
+  current = i;
+  renderQuestion();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function restartExam(){
+  answers = new Array(QUESTIONS.length).fill(null);
+  current = 0;
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('introCard').style.display='block';
+  document.getElementById('examArea').style.display='none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>

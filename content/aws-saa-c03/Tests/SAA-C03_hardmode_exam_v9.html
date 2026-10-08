@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAA-C03 // hardmode-exam-09</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF7; --paper:#FFFFFF; --ink:#1a1a18; --ink-dim:#75756c;
+    --line:#e6e2d8;
+    --orange:#FF9900; --orange-dim:#FFF4E0; --orange-line:#e6890a;
+    --squid:#232F3E; --squid-2:#2f3f52;
+    --green:#1a7f4e; --green-dim:#eaf7f0; --green-line:#bfe3d0;
+    --wrong:#b1490f; --wrong-dim:#fdece1; --wrong-line:#f0c39e;
+    --violet:#5b4b8a; --violet-dim:#f1eef8; --violet-line:#d8cfec;
+    --cyan:#0a6e8c; --cyan-dim:#e7f4f8; --cyan-line:#bfe0ea;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; min-height:100vh;
+  }
+  .topbar{
+    background:var(--squid); color:#fff; padding:22px 4vw 20px;
+    border-bottom:3px solid var(--orange);
+  }
+  .topbar-inner{width:100%; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;}
+  .topbar h1{font-family:'Source Serif 4',serif; font-weight:700; font-size:clamp(20px,3vw,28px); margin:0; letter-spacing:-.01em;}
+  .topbar .stamp{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.03em; color:var(--squid); background:var(--orange); padding:4px 10px; border-radius:3px; white-space:nowrap; font-weight:600;}
+  .cmdline{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb3c8; width:100%; margin:10px 0 0; padding:0 4vw; box-sizing:border-box;}
+  .cmdline .prompt{color:var(--orange);}
+
+  .sheet{width:100%; margin:0; padding:0 4vw 6vw; box-sizing:border-box;}
+  .subtitle{color:var(--ink-dim); font-size:15px; line-height:1.75; margin:24px 0 22px; font-family:'Inter',sans-serif;}
+  .subtitle b{color:var(--ink); font-weight:600; background:var(--orange-dim); padding:1px 4px; border-radius:3px;}
+
+  .intro-card{border:1px solid var(--line); border-radius:4px; padding:26px 28px; margin-bottom:24px; background:var(--paper);}
+  .intro-card h2{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.06em; margin:0 0 14px; color:var(--ink-dim); text-transform:uppercase; border-bottom:1px solid var(--line); padding-bottom:10px;}
+  .intro-card p{font-size:14.5px; line-height:1.75; color:var(--ink-dim); margin:0 0 10px;}
+  .intro-card p b{color:var(--ink);}
+  .diff-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;}
+  .dchip{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 11px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim);}
+  .dchip.e{border-color:var(--green-line); color:var(--green); background:var(--green-dim);}
+  .dchip.m{border-color:var(--cyan-line); color:var(--cyan); background:var(--cyan-dim);}
+  .dchip.h{border-color:var(--orange-line); color:#a15c00; background:var(--orange-dim);}
+  .dchip.b{border-color:var(--violet-line); color:var(--violet); background:var(--violet-dim);}
+  .domain-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .dtag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 11px; border-radius:20px; border:1px solid;}
+  .dtag.secure{color:var(--cyan); border-color:var(--cyan-line); background:var(--cyan-dim);}
+  .dtag.resilient{color:var(--green); border-color:var(--green-line); background:var(--green-dim);}
+  .dtag.performing{color:var(--violet); border-color:var(--violet-line); background:var(--violet-dim);}
+  .dtag.cost{color:#a15c00; border-color:var(--orange-line); background:var(--orange-dim);}
+
+  .start-btn,.nav-btn,.restart-btn{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:.03em;
+    background:var(--squid); color:#fff; border:1px solid var(--squid); padding:11px 22px; border-radius:3px; cursor:pointer;
+    text-transform:uppercase; transition:background .15s;
+  }
+  .start-btn:hover,.nav-btn:not(:disabled):hover,.restart-btn:hover{background:var(--orange); border-color:var(--orange); color:var(--squid);}
+  .nav-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .nav-btn{background:transparent; color:var(--squid); border:1px solid var(--line);}
+  .nav-btn:not(:disabled):hover{background:var(--squid); color:#fff; border-color:var(--squid);}
+
+  .progress-row{display:flex; align-items:center; gap:14px; margin:26px 0 20px; flex-wrap:wrap; justify-content:space-between;}
+  .dots{display:flex; gap:5px; flex-wrap:wrap;}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--line); cursor:pointer; border:1px solid var(--line);}
+  .dot.answered{background:#c9c4b4; border-color:#c9c4b4;}
+  .dot.correct{background:var(--green); border-color:var(--green);}
+  .dot.wrong{background:var(--wrong); border-color:var(--wrong);}
+  .dot.current{outline:2px solid var(--orange); outline-offset:2px;}
+  .qcount{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); white-space:nowrap;}
+  .diff-badge{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 10px; border-radius:20px; border:1px solid; white-space:nowrap; text-transform:uppercase; letter-spacing:.03em;}
+  .diff-badge.e{color:var(--green); border-color:var(--green-line); background:var(--green-dim);}
+  .diff-badge.m{color:var(--cyan); border-color:var(--cyan-line); background:var(--cyan-dim);}
+  .diff-badge.h{color:#a15c00; border-color:var(--orange-line); background:var(--orange-dim);}
+  .diff-badge.b{color:var(--violet); border-color:var(--violet-line); background:var(--violet-dim);}
+
+  .qframe{border:1px solid var(--line); border-radius:4px; overflow:hidden; background:var(--paper); margin-bottom:22px; position:relative;}
+  .qframe .qtag-corner{position:absolute; top:14px; right:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#c9c4b4; letter-spacing:.03em;}
+  .qhead{padding:24px 26px 16px; border-bottom:1px solid var(--line);}
+  .qnum-row{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .qnum{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em;}
+  .qstem{font-family:'Source Serif 4',serif; font-size:19px; line-height:1.55; color:var(--ink); font-weight:400;}
+  .multi-note{display:inline-block; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#a15c00; border:1px solid var(--orange-line); background:var(--orange-dim); padding:3px 9px; border-radius:3px;}
+
+  .options{padding:18px 26px;}
+  .opt{display:flex; gap:13px; align-items:flex-start; padding:13px 14px; margin-bottom:9px; border:1px solid var(--line); border-radius:4px; cursor:pointer; font-size:14.5px; line-height:1.6; transition:border-color .12s, background .12s; background:var(--bg);}
+  .opt:hover{border-color:var(--squid);}
+  .opt.selected{border-color:var(--squid); background:#eef1f4;}
+  .opt .mark{width:15px; height:15px; flex:0 0 15px; margin-top:3px; border:1.5px solid #b8b4a6; border-radius:50%; position:relative;}
+  .opt.selected .mark{border-color:var(--squid);}
+  .opt.selected .mark::after{content:''; position:absolute; inset:3px; background:var(--squid); border-radius:50%;}
+  .opt.multi .mark{border-radius:3px;}
+  .opt.multi.selected .mark::after{border-radius:2px;}
+  .opt.locked{cursor:default;}
+  .opt.reveal-correct{border-color:var(--green); background:var(--green-dim);}
+  .opt.reveal-correct .mark{border-color:var(--green);}
+  .opt.reveal-correct .mark::after{background:var(--green); border-radius:inherit;}
+  .opt.reveal-wrong{border-color:var(--wrong); background:var(--wrong-dim);}
+  .opt.reveal-wrong .mark{border-color:var(--wrong);}
+  .opt.reveal-wrong .mark::after{background:var(--wrong); border-radius:inherit;}
+
+  .qactions{padding:0 26px 22px; display:flex; gap:10px;}
+  .check-btn{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.03em; background:var(--orange); color:var(--squid); border:1px solid var(--orange); padding:10px 20px; border-radius:3px; cursor:pointer;}
+  .check-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .check-btn:not(:disabled):hover{background:var(--squid); color:#fff; border-color:var(--squid);}
+
+  .info-panel{border-top:1px solid var(--line); padding:20px 26px 24px; display:none; background:#fbfaf6;}
+  .info-panel.show{display:block;}
+  .info-panel .verdict{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.04em; margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; text-transform:uppercase;}
+  .verdict.ok{color:var(--green);}
+  .verdict.no{color:var(--wrong);}
+  .domain-pill{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:20px; border:1px solid; margin-left:auto; text-transform:none; font-weight:600;}
+  .info-panel p{font-size:14.5px; line-height:1.75; color:var(--ink); margin:0 0 14px; font-family:'Inter',sans-serif;}
+  .why-wrong{font-size:13.5px; line-height:1.75; color:var(--ink-dim); margin:0 0 14px; border-left:3px solid var(--wrong); padding:8px 14px; background:#fff;}
+  .why-wrong b{color:var(--wrong);}
+  .tip-line{font-size:13.5px; line-height:1.65; color:var(--ink); border-left:3px solid var(--orange); padding:10px 14px; background:var(--orange-dim); border-radius:0 4px 4px 0;}
+  .tip-line b{color:#a15c00; font-family:'IBM Plex Mono',monospace; text-transform:uppercase; font-size:11px; letter-spacing:.03em; display:block; margin-bottom:4px;}
+
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:6px;}
+
+  .summary{display:none;}
+  .summary.show{display:block;}
+  .score-hero{border:1px solid var(--line); border-radius:4px; padding:34px 28px; text-align:center; margin-bottom:24px; background:var(--paper);}
+  .score-big{font-family:'IBM Plex Mono',monospace; font-size:clamp(38px,7vw,58px); font-weight:700; color:var(--squid); line-height:1;}
+  .score-sub{color:var(--ink-dim); font-size:13.5px; margin-top:10px; font-family:'IBM Plex Mono',monospace;}
+  .verdict-line{font-size:15px; margin-top:16px; color:var(--ink); font-family:'Source Serif 4',serif; line-height:1.6;}
+
+  .breakdown{margin-bottom:24px;}
+  .breakdown h3{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); margin:0 0 14px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .bd-row{display:flex; align-items:center; gap:12px; margin-bottom:11px;}
+  .bd-label{width:150px; font-family:'IBM Plex Mono',monospace; font-size:12px; flex:0 0 150px;}
+  .bd-bar-track{flex:1; height:9px; background:var(--line); border-radius:5px; overflow:hidden;}
+  .bd-bar-fill{height:100%; border-radius:5px;}
+  .bd-pct{width:42px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); flex:0 0 42px;}
+
+  .miss-list{margin-bottom:26px;}
+  .miss-list h3{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--wrong); margin:0 0 14px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .miss-item{display:flex; justify-content:space-between; gap:10px; padding:10px 14px; border:1px solid var(--wrong-line); background:var(--wrong-dim); border-radius:4px; margin-bottom:7px; cursor:pointer; font-size:13.5px;}
+  .miss-item:hover{background:#fbe0d0;}
+  .miss-item span.go{font-family:'IBM Plex Mono',monospace; color:var(--wrong); flex:0 0 auto; font-size:12px;}
+
+  @media (max-width:640px){ .qstem{font-size:17px;} .bd-label{width:110px; flex:0 0 110px; font-size:11px;} }
+
+  /* Plain white reading surface; preserve the exam's existing questions and behavior. */
+  :root {
+    color-scheme: light;
+    --navy: #ffffff; --grid: transparent;
+    --paper: #24292f; --paper-dim: #57606a;
+    --cyan: #0969da; --cyan-dim: #ffffff; --cyan-border: #d0d7de;
+    --amber: #805500; --amber-dim: #ffffff; --amber-border: #d0d7de;
+    --green: #1a7f37; --green-dim: #ffffff; --green-border: #d0d7de;
+    --violet: #6639ba; --violet-dim: #ffffff; --violet-border: #d0d7de;
+    --bg: #ffffff; --ink: #24292f; --ink-dim: #57606a; --line: #d0d7de;
+    --orange: #805500; --orange-dim: #ffffff; --orange-line: #d0d7de;
+    --squid: #ffffff; --squid-2: #ffffff;
+    --green-line: #d0d7de; --wrong: #a40e26; --wrong-dim: #ffffff; --wrong-line: #d0d7de;
+    --violet-line: #d0d7de; --cyan-line: #d0d7de;
+  }
+  html, body { background: #fff !important; color: #24292f !important; }
+  body { padding: 24px max(18px, 4vw) 56px !important; }
+  .topbar, .intro-card, .qframe, .score-hero, .opt, .info-panel,
+  .why-wrong, .tip-line, .miss-item, .title-block .stamp,
+  .dchip, .dtag, .diff-badge, .multi-note { background: #fff !important; }
+  .topbar { border: 0 !important; padding: 0 0 20px !important; color: #24292f !important; }
+  .topbar h1, .title-block h1, .qstem, .intro-card p, .info-panel p,
+  .verdict-line, .score-sub, .subtitle, .opt { color: #24292f !important; }
+  .sheet { max-width: 900px; margin: 0 auto; padding: 0 !important; background: #fff !important; box-shadow: none !important; }
+  .intro-card, .score-hero { border: 0 !important; border-radius: 0 !important; padding: 18px 0 !important; }
+  .qframe { border: 0 !important; border-radius: 0 !important; overflow: visible !important; }
+  .qhead { border: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+  .options { padding-left: 0 !important; padding-right: 0 !important; }
+  .opt { border-color: #d0d7de !important; border-radius: 5px !important; }
+  .opt.selected, .opt.reveal-correct, .opt.reveal-wrong { background: #fff !important; }
+  .info-panel { border-top: 1px solid #d0d7de !important; }
+  .bd-bar-track { background: #f6f8fa !important; }
+  .rivet { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <h1>SAA-C03 // hardmode-exam-09</h1>
+    <span class="stamp">ĐỀ 09 · ORG GOVERNANCE/ECS/DỮ LIỆU PHÂN TÁN</span>
+  </div>
+</div>
+<div class="cmdline"><span class="prompt">$</span> ./run-exam --set=09 --shuffle=answers --reveal-domain=on-submit</div>
+
+<div class="sheet">
+  <p class="subtitle">Đề né sạch 8 đề trước. Lần này xoáy vào quản trị tổ chức (Control Tower, Organizations OU/SCP, RAM VPC Sharing, Firewall Manager, Shield Advanced, WAF Bot Control), ECS Capacity Provider, dữ liệu phân tán đa Region (DynamoDB Global Tables, ElastiCache Global Datastore, Aurora Serverless v2), migration (SCT + DMS CDC), mạng hiệu năng cao (Global Accelerator, CloudFront Cache/Origin Request Policy, Direct Connect Gateway đa Region), vận hành (EventBridge Scheduler, Parameter Store vs Secrets Manager, AWS Backup cross-Region, Contributor Insights, Trusted Advisor, EC2 Hibernate), và kiến trúc active-active chống split-brain (Route 53 ARC). <b>4 đáp án cân bằng độ dài, xáo vị trí ngẫu nhiên</b> mỗi lần vào câu.</p>
+
+  <div class="intro-card" id="introCard">
+    <h2>▸ Trước khi vào ca</h2>
+    <p>Domain chỉ hiện ra sau khi bạn chốt đáp án — đề thi thật cũng không báo trước câu này thuộc domain nào.</p>
+    <div class="diff-legend">
+      <span class="dchip e">● Dễ — câu 1-7</span>
+      <span class="dchip m">● Trung bình — câu 8-16</span>
+      <span class="dchip h">● Khó — câu 17-22</span>
+      <span class="dchip b">● Não tàn — câu 23-24 (chọn 2)</span>
+    </div>
+    <div class="domain-legend">
+      <span class="dtag secure">Design Secure</span>
+      <span class="dtag resilient">Design Resilient</span>
+      <span class="dtag performing">Design High-Performing</span>
+      <span class="dtag cost">Design Cost-Optimized</span>
+    </div>
+    <div style="margin-top:22px;">
+      <button class="start-btn" onclick="startExam()">Bắt đầu →</button>
+    </div>
+  </div>
+
+  <div id="examArea" style="display:none;">
+    <div class="progress-row">
+      <div class="qcount" id="qcount">Câu 1/24</div>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div id="qContainer"></div>
+    <div class="nav-row">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">← Trước</button>
+      <button class="nav-btn" id="nextBtn" onclick="nextQ()">Tiếp →</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="score-hero">
+      <div class="score-big" id="scoreBig">0/24</div>
+      <div class="score-sub" id="scorePct">0%</div>
+      <div class="verdict-line" id="verdictLine"></div>
+    </div>
+    <div class="breakdown">
+      <h3>▸ Breakdown theo domain</h3>
+      <div id="bdRows"></div>
+    </div>
+    <div class="miss-list" id="missWrap">
+      <h3>▸ Các câu sai — bấm để nhảy lại xem giải thích</h3>
+      <div id="missRows"></div>
+    </div>
+    <button class="restart-btn" onclick="restartExam()">↺ Làm lại từ đầu (xáo lại đáp án)</button>
+  </div>
+</div>
+
+<script>
+const DOMAIN_META = {
+  secure:{label:'Design Secure Architectures', cls:'secure'},
+  resilient:{label:'Design Resilient Architectures', cls:'resilient'},
+  performing:{label:'Design High-Performing Architectures', cls:'performing'},
+  cost:{label:'Design Cost-Optimized Architectures', cls:'cost'}
+};
+const DOMAIN_COLOR = {secure:'var(--cyan)', resilient:'var(--green)', performing:'var(--violet)', cost:'#a15c00'};
+const DIFF_LABEL = {e:'DỄ', m:'TRUNG BÌNH', h:'KHÓ', b:'NÃO TÀN'};
+
+const QUESTIONS = [
+{domain:'cost', diff:'e', multi:false,
+ stem:'Team vận hành một cụm ECS muốn chạy phần lớn task bằng Fargate để không quản lý EC2, nhưng vẫn muốn tự động chuyển một phần task sang EC2 Reserved Instance có sẵn trong cluster khi EC2 còn chỗ trống, nhằm tiết kiệm chi phí mà không phải tự viết logic đặt task thủ công.',
+ options:[
+   {id:'a', text:'Cấu hình nhiều Capacity Provider (FARGATE và một Auto Scaling Group EC2) gắn vào cùng cluster, rồi đặt Capacity Provider Strategy với base/weight để ECS tự quyết định đặt task vào EC2 trước, phần dư tràn sang Fargate.'},
+   {id:'b', text:'Tạo hai cluster riêng, một cluster Fargate và một cluster EC2, rồi dùng CloudWatch Event định kỳ di chuyển task giữa hai cluster dựa trên mức sử dụng EC2 hiện tại.'},
+   {id:'c', text:'Chạy toàn bộ task trên EC2 Auto Scaling Group và chỉ dùng Fargate làm phương án dự phòng thủ công khi đội vận hành thấy cluster quá tải, bật bằng tay mỗi lần cần.'},
+   {id:'d', text:'Dùng Service Auto Scaling target tracking theo CPU của task Fargate, vì Service Auto Scaling tự biết khi nào nên đặt task sang EC2 Reserved Instance mà không cần cấu hình thêm.'}
+ ],
+ correct:['a'],
+ explain:'Capacity Provider Strategy cho phép một service tham chiếu nhiều Capacity Provider cùng lúc (EC2 Auto Scaling Group + FARGATE/FARGATE_SPOT); tham số base quyết định số task tối thiểu đặt vào provider ưu tiên trước (EC2 đã trả tiền RI), còn weight chia tỉ lệ phần còn lại, nên ECS tự tràn task sang Fargate khi EC2 hết chỗ mà không cần logic thủ công.',
+ whyWrong:'Hai cluster riêng cộng CloudWatch Event tự di chuyển task là cách build lại thứ Capacity Provider đã làm sẵn, phức tạp và dễ lỗi hơn nhiều. Bật Fargate thủ công khi quá tải đi ngược yêu cầu tự động hoá. Service Auto Scaling chỉ chỉnh số lượng task theo metric, không quyết định task chạy trên hạ tầng Fargate hay EC2 — đó là việc của Capacity Provider.',
+ tip:'Muốn 1 service tự rải task ưu tiên EC2 rồi tràn sang Fargate → nhiều Capacity Provider + base/weight trong Capacity Provider Strategy.'
+},
+{domain:'secure', diff:'e', multi:false,
+ stem:'Công ty có 15 tài khoản AWS cho các phòng ban khác nhau, muốn gom nhóm theo môi trường (Production, Dev/Test, Sandbox) để áp dụng chính sách bảo mật khác nhau cho từng nhóm — ví dụ Sandbox bị chặn mọi dịch vụ tốn tiền, còn Production thì không. Cần một cách tổ chức tài khoản để áp SCP theo nhóm thay vì áp từng tài khoản một.',
+ options:[
+   {id:'a', text:'Dùng AWS Organizations tạo các Organizational Unit (OU) tương ứng Production/Dev-Test/Sandbox, đưa tài khoản vào đúng OU, rồi gắn SCP vào từng OU — mọi tài khoản trong OU tự động thừa hưởng SCP mà không cần cấu hình riêng lẻ.'},
+   {id:'b', text:'Gắn IAM Permissions Boundary giống nhau cho mọi user và role trong 15 tài khoản, vì Permissions Boundary là policy cấp tổ chức áp dụng xuyên suốt toàn bộ Organization.'},
+   {id:'c', text:'Tạo 15 IAM policy riêng, một cho mỗi tài khoản, rồi nhờ admin từng tài khoản tự gắn đúng policy tương ứng với môi trường của tài khoản đó.'},
+   {id:'d', text:'Bật AWS Config Conformance Pack giống nhau cho cả 15 tài khoản để Config tự động chặn các dịch vụ tốn tiền trong tài khoản Sandbox ngay khi được tạo ra.'}
+ ],
+ correct:['a'],
+ explain:'AWS Organizations cho phép nhóm tài khoản vào Organizational Unit theo tiêu chí (môi trường, phòng ban...) rồi gắn Service Control Policy (SCP) ở cấp OU; mọi tài khoản thuộc OU đó tự động bị giới hạn theo SCP, nên chỉ cần quản lý chính sách ở vài OU thay vì từng tài khoản.',
+ whyWrong:'Permissions Boundary là giới hạn quyền áp cho một IAM entity cụ thể trong một tài khoản, không phải cơ chế cấp Organization và không tự động lan toả theo nhóm tài khoản. Tạo 15 policy riêng và nhờ admin tự gắn là cách làm thủ công, dễ sai sót và không đảm bảo tuân thủ. Config Conformance Pack phát hiện và báo cáo vi phạm cấu hình (và có thể remediate), nhưng không phải cơ chế chặn API call theo kiểu SCP ngay từ đầu.',
+ tip:'Nhóm nhiều tài khoản để áp policy chung một lần → Organizational Unit + SCP, không phải Permissions Boundary (đó là chuyện trong 1 tài khoản).'
+},
+{domain:'performing', diff:'e', multi:false,
+ stem:'Bảng DynamoDB lưu đơn hàng có khoá chính là OrderId. Ứng dụng cần một truy vấn phổ biến: lấy tất cả đơn hàng của một CustomerId, sắp xếp theo OrderDate, mà không muốn Scan toàn bảng. CustomerId và OrderDate không nằm trong khoá chính hiện tại.',
+ options:[
+   {id:'a', text:'Tạo Global Secondary Index (GSI) với partition key là CustomerId và sort key là OrderDate — GSI có khoá riêng độc lập với bảng gốc nên truy vấn theo CustomerId chạy Query hiệu quả thay vì Scan.'},
+   {id:'b', text:'Tạo Local Secondary Index (LSI) với partition key là CustomerId và sort key là OrderDate, vì LSI cho phép đổi cả partition key lẫn sort key so với bảng gốc.'},
+   {id:'c', text:'Giữ nguyên bảng và dùng Scan kèm FilterExpression theo CustomerId, vì DynamoDB tự tối ưu Scan có filter để chỉ đọc đúng các item khớp điều kiện.'},
+   {id:'d', text:'Bật DynamoDB Streams trên bảng để mỗi lần có đơn hàng mới, Streams tự tạo chỉ mục phụ theo CustomerId cho các truy vấn sau này.'}
+ ],
+ correct:['a'],
+ explain:'GSI cho phép định nghĩa partition key và sort key hoàn toàn khác với bảng gốc, nên thêm GSI (CustomerId làm partition key, OrderDate làm sort key) biến truy vấn "đơn hàng theo khách, sắp theo ngày" thành một Query hiệu quả trên index.',
+ whyWrong:'LSI bắt buộc giữ nguyên partition key của bảng gốc và chỉ được đổi sort key, nên không thể đặt CustomerId làm partition key cho LSI ở đây — phương án b mô tả sai khả năng của LSI. Scan kèm FilterExpression vẫn phải đọc (và tính phí) toàn bộ item trong bảng rồi mới lọc, không tiết kiệm I/O như Query trên index. DynamoDB Streams chỉ phát sinh sự kiện thay đổi dữ liệu để hệ thống khác xử lý (ví dụ Lambda), bản thân Streams không tự tạo chỉ mục truy vấn.',
+ tip:'Cần đổi cả partition key lẫn sort key so với bảng gốc → GSI. Chỉ đổi sort key, giữ nguyên partition key → LSI.'
+},
+{domain:'resilient', diff:'e', multi:false,
+ stem:'Trang web tĩnh phục vụ qua CloudFront với origin chính là một S3 bucket. Thỉnh thoảng origin bị lỗi tạm thời (5xx) do sự cố hiếm gặp, khiến người dùng thấy trang lỗi dù dữ liệu vẫn còn nguyên trong một bucket sao lưu ở Region khác. Cần CloudFront tự động chuyển sang origin dự phòng khi origin chính trả lỗi, không cần người can thiệp.',
+ options:[
+   {id:'a', text:'Cấu hình Origin Group trong CloudFront gồm origin chính (bucket chính) và origin phụ (bucket sao lưu), cùng danh sách mã lỗi kích hoạt failover (ví dụ 500, 502, 503, 504) — CloudFront tự chuyển sang origin phụ khi origin chính trả về các mã lỗi đó.'},
+   {id:'b', text:'Tạo hai CloudFront distribution riêng biệt, một trỏ origin chính, một trỏ origin phụ, rồi dùng Route 53 Failover Routing trỏ domain người dùng sang distribution còn lại khi origin chính lỗi.'},
+   {id:'c', text:'Bật S3 Cross-Region Replication (CRR) từ bucket chính sang bucket phụ, vì CRR tự động khiến CloudFront chuyển hướng request sang bucket phụ mỗi khi bucket chính gặp lỗi.'},
+   {id:'d', text:'Tăng số lượng Edge Location phục vụ cho distribution, vì càng nhiều edge location thì khả năng origin chính bị lỗi 5xx càng giảm.'}
+ ],
+ correct:['a'],
+ explain:'Origin Group trong CloudFront cho phép định nghĩa origin chính và origin phụ cùng tập mã lỗi kích hoạt failover; khi origin chính trả về một trong các mã đó, CloudFront tự động thử lại request ở origin phụ mà không cần đổi DNS hay can thiệp thủ công.',
+ whyWrong:'Hai distribution cộng Route 53 Failover Routing có thể dùng được nhưng tạo thêm một tầng DNS failover chậm hơn (phụ thuộc health check + TTL) so với failover ngay trong CloudFront, và phức tạp không cần thiết cho bài toán này. CRR chỉ đồng bộ dữ liệu giữa hai bucket, không có khả năng điều hướng request của CloudFront. Số lượng Edge Location ảnh hưởng tới độ trễ phân phối nội dung đã cache, không liên quan gì tới việc origin gốc bị lỗi 5xx.',
+ tip:'CloudFront tự chuyển origin khi gặp mã lỗi cụ thể, không cần đổi DNS → Origin Group + failover criteria, không phải CRR.'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Công ty có một VPC trung tâm chứa các subnet dùng chung (shared services) muốn cho 8 tài khoản khác trong cùng Organization triển khai tài nguyên (EC2, Lambda trong VPC) trực tiếp vào các subnet đó, mà không phải tạo VPC Peering hay Transit Gateway giữa 8 tài khoản, và không muốn mỗi tài khoản tự dựng VPC riêng rồi tốn thêm NAT Gateway.',
+ options:[
+   {id:'a', text:'Dùng AWS Resource Access Manager (RAM) để chia sẻ (share) các subnet của VPC trung tâm sang 8 tài khoản — các tài khoản được chia sẻ có thể triển khai tài nguyên trực tiếp vào subnet dùng chung như thể đó là subnet của chính họ.'},
+   {id:'b', text:'Tạo VPC Peering riêng giữa VPC trung tâm và từng VPC của 8 tài khoản, rồi cấu hình route table hai chiều cho từng kết nối để tài nguyên trong các tài khoản liên lạc được với subnet dùng chung.'},
+   {id:'c', text:'Dựng Transit Gateway ở tài khoản trung tâm rồi attach VPC của cả 8 tài khoản vào, vì đây là cách duy nhất để nhiều tài khoản cùng dùng chung một subnet vật lý.'},
+   {id:'d', text:'Cấp IAM role cross-account cho 8 tài khoản để họ gọi API EC2 RunInstances chỉ định subnet ID của VPC trung tâm, vì chỉ cần quyền IAM là đủ để triển khai vào subnet của tài khoản khác.'}
+ ],
+ correct:['a'],
+ explain:'VPC Sharing qua AWS RAM cho phép tài khoản chủ (owner) chia sẻ subnet cho các tài khoản khác trong cùng Organization; các tài khoản được chia sẻ (participant) triển khai tài nguyên trực tiếp vào subnet đó như dùng VPC của chính mình, tận dụng chung NAT Gateway/route table, không cần Peering hay Transit Gateway và không phát sinh VPC/NAT riêng cho từng tài khoản.',
+ whyWrong:'VPC Peering và Transit Gateway kết nối các VPC riêng biệt với nhau, không tạo ra việc "dùng chung một subnet" — mỗi tài khoản vẫn phải có VPC và subnet của riêng mình, tốn thêm NAT Gateway đúng như điều muốn tránh. Chỉ cấp IAM role không đủ: subnet thuộc VPC của tài khoản khác, theo mặc định tài khoản khác không thể chỉ định subnet đó trong RunInstances nếu chưa được chia sẻ qua RAM, dù có quyền IAM.',
+ tip:'Nhiều tài khoản cùng triển khai vào một subnet vật lý duy nhất, không phải kết nối hai VPC riêng → VPC Sharing qua AWS RAM.'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Đội FinOps mới thành lập muốn nhanh chóng có một danh sách khuyến nghị tối ưu chi phí và bảo mật cho toàn bộ tài khoản AWS — ví dụ EC2 idle, EBS chưa gắn, Security Group mở quá rộng, bucket S3 public — mà không phải tự viết script quét từng dịch vụ.',
+ options:[
+   {id:'a', text:'Mở AWS Trusted Advisor — dịch vụ tự động quét tài khoản theo các nhóm checklist (chi phí, hiệu năng, bảo mật, khả năng chịu lỗi, giới hạn dịch vụ) và đưa ra khuyến nghị cụ thể như EC2 idle hay Security Group mở cổng rủi ro.'},
+   {id:'b', text:'Bật AWS Config và tự viết toàn bộ rule đánh giá idle resource, Security Group mở rộng, bucket public, vì Config không có sẵn rule nào cho các trường hợp phổ biến này.'},
+   {id:'c', text:'Dùng Cost Explorer để xem biểu đồ chi tiêu theo dịch vụ, vì biểu đồ chi tiêu sẽ tự chỉ ra chính xác tài nguyên nào đang idle hoặc cấu hình sai.'},
+   {id:'d', text:'Bật CloudTrail và đọc log API call thủ công để suy luận tài nguyên nào không được dùng tới và Security Group nào cấu hình rủi ro.'}
+ ],
+ correct:['a'],
+ explain:'Trusted Advisor cung cấp sẵn các nhóm check (Cost Optimization, Performance, Security, Fault Tolerance, Service Limits) và tự động quét tài khoản để đưa ra khuyến nghị cụ thể như EC2 idle, EBS chưa gắn, Security Group mở cổng rủi ro, bucket S3 cấu hình public — đúng nhu cầu "nhanh chóng, không tự viết" của đề bài.',
+ whyWrong:'AWS Config có sẵn một số Managed Rule tương tự nhưng vẫn cần chọn và bật từng rule, không phải "khuyến nghị tổng hợp ngay lập tức" như Trusted Advisor, và câu mô tả Config "không có rule nào sẵn" là sai. Cost Explorer chỉ hiển thị biểu đồ chi tiêu theo dịch vụ/tag, không tự xác định cụ thể tài nguyên nào idle hay cấu hình sai. Đọc log CloudTrail thủ công là cách làm chậm, tốn công, đi ngược yêu cầu "nhanh chóng, không tự viết script".',
+ tip:'Cần checklist khuyến nghị có sẵn, đa dạng (cost + security + fault tolerance) mà không phải tự xây — Trusted Advisor, không phải tự viết Config Rule.'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Một fleet EC2 chạy workstation ảo cho nhân viên thiết kế cần giữ nguyên trạng thái RAM (các ứng dụng đang mở, session làm việc) khi dừng instance ngoài giờ để tiết kiệm chi phí, và khôi phục lại đúng trạng thái đó khi khởi động lại vào sáng hôm sau, thay vì phải mở lại toàn bộ ứng dụng từ đầu.',
+ options:[
+   {id:'a', text:'Dùng EC2 Hibernate — khi dừng instance, nội dung RAM được lưu vào volume gốc EBS; khi khởi động lại, instance khôi phục lại đúng trạng thái RAM đã lưu, ứng dụng tiếp tục ở trạng thái cũ mà không cần mở lại.'},
+   {id:'b', text:'Dừng instance (Stop) bình thường rồi tạo AMI từ volume gốc trước khi dừng, vì AMI tự động lưu lại trạng thái RAM giống hệt Hibernate.'},
+   {id:'c', text:'Dùng EBS snapshot định kỳ của volume gốc, vì snapshot ghi lại cả nội dung RAM đang chạy tại thời điểm chụp, không chỉ dữ liệu trên đĩa.'},
+   {id:'d', text:'Chuyển sang Spot Instance và bật chính sách Stop khi bị thu hồi, vì Spot Instance mặc định giữ nguyên trạng thái RAM giữa các lần Stop/Start giống Hibernate.'}
+ ],
+ correct:['a'],
+ explain:'EC2 Hibernate lưu toàn bộ nội dung RAM vào volume gốc EBS khi instance dừng, rồi khôi phục lại chính xác trạng thái đó khi khởi động — ứng dụng và session tiếp tục đúng như trước khi dừng, khác với Stop thông thường chỉ giữ dữ liệu trên đĩa chứ không giữ RAM.',
+ whyWrong:'Tạo AMI chỉ chụp lại nội dung ổ đĩa (dùng để launch instance mới giống hệt), không lưu trạng thái RAM đang chạy nên không khôi phục được session đang mở. EBS snapshot cũng chỉ sao lưu dữ liệu trên volume, không chụp RAM. Spot Instance không có cơ chế giữ RAM mặc định giữa các lần dừng/khởi động — việc "giữ nguyên RAM" chính là tính năng riêng của Hibernate, phải được bật tường minh và có một số điều kiện hỗ trợ (loại instance, kích thước RAM, hệ điều hành).',
+ tip:'Giữ nguyên RAM/session khi Stop rồi Start lại → EC2 Hibernate. Stop thường hay AMI/snapshot chỉ giữ dữ liệu đĩa, không giữ RAM.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Công ty mới mở rộng, sắp tạo thêm nhiều tài khoản AWS cho các dự án mới. Ban bảo mật muốn mọi tài khoản mới được tạo ra đã có sẵn một baseline chuẩn ngay từ đầu: CloudTrail bật sẵn, một số SCP cấm hành vi rủi ro, và một dashboard tổng quan về tình trạng tuân thủ của tất cả tài khoản — thay vì phải tự thiết lập thủ công cho từng tài khoản mới như hiện tại.',
+ options:[
+   {id:'a', text:'Thiết lập AWS Control Tower để tạo landing zone chuẩn — mọi tài khoản mới tạo qua Account Factory của Control Tower tự động có CloudTrail, SCP baseline (gọi là guardrail) và được đưa vào dashboard tuân thủ chung.'},
+   {id:'b', text:'Viết một CloudFormation template chứa CloudTrail và SCP, rồi dặn đội vận hành tự deploy template đó ngay sau khi tạo mỗi tài khoản mới theo quy trình thủ công.'},
+   {id:'c', text:'Bật AWS Config ở tài khoản quản lý (management account) và kỳ vọng Config tự áp cấu hình xuống mọi tài khoản thành viên khác trong Organization.'},
+   {id:'d', text:'Dùng IAM Identity Center để cấp quyền truy cập Single Sign-On cho nhân viên vào các tài khoản mới, vì Identity Center cũng tự động thiết lập CloudTrail và SCP baseline cho tài khoản được cấp quyền.'}
+ ],
+ correct:['a'],
+ explain:'Control Tower cung cấp landing zone: tự động hoá việc tạo tài khoản mới qua Account Factory kèm theo guardrail (SCP + Config rule) và CloudTrail tổ chức bật sẵn, cùng một dashboard tổng hợp tình trạng tuân thủ (compliance) của toàn bộ tài khoản trong Organization — đúng yêu cầu "baseline chuẩn ngay từ đầu, không làm thủ công".',
+ whyWrong:'Tự viết CloudFormation rồi deploy thủ công cho từng tài khoản mới vẫn là quy trình thủ công, đúng thứ công ty muốn loại bỏ, và không có dashboard tuân thủ tổng hợp. Config ở management account không tự lan xuống cấu hình các tài khoản thành viên — Config phải được bật và cấu hình riêng ở từng tài khoản (hoặc qua Conformance Pack/StackSets), tự nó không tạo guardrail baseline. IAM Identity Center chỉ quản lý truy cập SSO, không có chức năng tự động dựng CloudTrail hay SCP cho tài khoản mới.',
+ tip:'Baseline tự động cho tài khoản mới + dashboard tuân thủ toàn Organization → AWS Control Tower (landing zone), không phải tự chạy CloudFormation thủ công.'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Ứng dụng game dùng ElastiCache for Redis ở Region chính để lưu trạng thái phiên người chơi theo thời gian thực. Công ty mở rộng sang Region thứ hai để giảm độ trễ cho người chơi khu vực khác, và muốn Region thứ hai có dữ liệu cache gần như đồng bộ với Region chính, đồng thời có thể promote Region thứ hai làm primary nếu Region chính gặp sự cố, mà không phải tự viết logic đồng bộ hai cụm Redis riêng biệt.',
+ options:[
+   {id:'a', text:'Bật ElastiCache Global Datastore — tạo một cụm Redis phụ (secondary) ở Region thứ hai, dữ liệu được nhân bản gần như thời gian thực từ cụm chính, và có thể promote cụm phụ thành primary khi cần failover, không cần tự viết cơ chế đồng bộ.'},
+   {id:'b', text:'Tạo hai cụm ElastiCache Redis độc lập ở hai Region rồi dùng một Lambda chạy định kỳ đọc dữ liệu từ Region chính và ghi lại vào Region phụ để giữ hai cụm gần giống nhau.'},
+   {id:'c', text:'Dùng ElastiCache Redis Cluster Mode (sharding) trong một Region duy nhất với nhiều node group, vì Cluster Mode cũng phân tán dữ liệu ra nhiều Region giống như multi-Region.'},
+   {id:'d', text:'Chuyển sang ElastiCache for Memcached vì Memcached hỗ trợ sẵn tính năng replication đa Region, trong khi Redis chỉ replicate được trong một Region.'}
+ ],
+ correct:['a'],
+ explain:'Global Datastore là tính năng replication đa Region có sẵn của ElastiCache for Redis: dữ liệu từ cụm primary được nhân bản gần thời gian thực sang cụm secondary ở Region khác, và khi cần, cụm secondary có thể được promote thành primary để failover — đúng nhu cầu đồng bộ tự động và chuyển đổi khi sự cố.',
+ whyWrong:'Tự viết Lambda đọc-ghi định kỳ là giải pháp thủ công, độ trễ cao và dễ lỗi, không phải "gần như thời gian thực" như yêu cầu. Cluster Mode (sharding) chỉ phân tán dữ liệu ra nhiều shard/node group trong cùng một Region để tăng throughput, không liên quan tới replication xuyên Region. Memcached không hỗ trợ replication nói chung (kể cả trong hay ngoài Region) — đây là khả năng riêng của Redis, nên phương án d sai hoàn toàn về đặc tính hai engine.',
+ tip:'Đồng bộ cache Redis xuyên Region + khả năng promote khi failover → ElastiCache Global Datastore, không phải Cluster Mode (đó là sharding trong 1 Region).'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Ứng dụng thương mại điện tử dùng DynamoDB ở Region chính. Công ty muốn mở rộng sang Region thứ hai để phục vụ khách hàng gần hơn, với yêu cầu: cả hai Region đều đọc/ghi được trực tiếp (không chỉ đọc), thay đổi ở Region này tự động xuất hiện ở Region kia trong vài giây, và nếu một Region bị sự cố thì Region còn lại vẫn tiếp tục nhận ghi bình thường mà không cần thao tác promote thủ công.',
+ options:[
+   {id:'a', text:'Bật DynamoDB Global Tables — bảng được nhân rộng sang nhiều Region với cơ chế multi-active, mỗi Region đều nhận ghi trực tiếp, thay đổi lan sang Region khác trong thời gian gần thực, và một Region sự cố không chặn ghi ở Region còn lại.'},
+   {id:'b', text:'Bật DynamoDB Streams ở Region chính rồi viết Lambda đọc Stream và ghi lại dữ liệu sang bảng DynamoDB ở Region thứ hai, coi đây là cách đồng bộ hai chiều giữa hai Region.'},
+   {id:'c', text:'Dùng DynamoDB Point-in-Time Recovery (PITR) để khôi phục dữ liệu từ Region chính sang Region thứ hai mỗi khi cần, đảm bảo hai Region luôn có cùng dữ liệu theo thời gian thực.'},
+   {id:'d', text:'Tạo Read Replica DynamoDB ở Region thứ hai, cho phép Region đó đọc dữ liệu độ trễ thấp, và khi Region chính sự cố thì Replica tự động chuyển thành bảng ghi được mà không cần thao tác gì thêm.'}
+ ],
+ correct:['a'],
+ explain:'Global Tables cung cấp replication multi-active đa Region có sẵn: mọi Region tham gia đều nhận ghi trực tiếp (không có khái niệm primary/replica một chiều), thay đổi lan sang các Region khác trong vài giây, và vì không Region nào "là primary duy nhất" nên một Region gặp sự cố không cản trở ghi ở các Region còn lại — không cần bước promote thủ công như kiến trúc primary/standby.',
+ whyWrong:'Tự ghép Streams + Lambda chỉ tạo đồng bộ một chiều, độ trễ không đảm bảo, và không xử lý xung đột ghi hai chiều — không phải giải pháp sẵn có, đáng tin cậy cho multi-active. PITR là tính năng khôi phục dữ liệu về một thời điểm trong quá khứ (backup/restore), không phải cơ chế replication liên tục giữa hai Region. DynamoDB không có khái niệm "Read Replica" kiểu RDS — đáp án d mô tả một tính năng không tồn tại của DynamoDB.',
+ tip:'DynamoDB multi-Region, ghi được cả hai chiều, không cần promote khi sự cố → Global Tables (multi-active), không phải Streams+Lambda tự chế.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'Ứng dụng game thời gian thực có người chơi trên toàn cầu kết nối tới một fleet server đặt tại một Region duy nhất qua giao thức UDP (không phải HTTP). Công ty muốn giảm độ trễ mạng cho người chơi ở xa bằng cách đưa traffic vào mạng backbone của AWS sớm nhất có thể, đồng thời có static IP cố định để cấu hình ở client game.',
+ options:[
+   {id:'a', text:'Dùng AWS Global Accelerator — cung cấp static Anycast IP, định tuyến traffic (kể cả UDP) vào mạng backbone AWS ngay tại edge location gần người dùng nhất, giảm số chặng đi qua Internet công cộng trước khi tới origin.'},
+   {id:'b', text:'Dùng Amazon CloudFront làm CDN phía trước fleet server, vì CloudFront cũng giảm độ trễ toàn cầu tương tự Global Accelerator và hỗ trợ đầy đủ giao thức UDP cho game server.'},
+   {id:'c', text:'Triển khai Application Load Balancer ở nhiều Region rồi dùng Route 53 Latency Routing để điều hướng người chơi, vì ALB hỗ trợ UDP tương tự TCP/HTTP.'},
+   {id:'d', text:'Bật S3 Transfer Acceleration cho fleet server, vì tính năng này tăng tốc mọi loại traffic mạng đi qua AWS Edge Location, không riêng gì việc tải lên S3.'}
+ ],
+ correct:['a'],
+ explain:'Global Accelerator hoạt động ở tầng mạng (Layer 3/4), hỗ trợ cả TCP và UDP, cấp static Anycast IP và đưa traffic vào mạng backbone riêng của AWS ngay tại edge location gần người dùng, rất phù hợp cho game server UDP cần độ trễ thấp và IP cố định — đây là điểm khác biệt chính so với CloudFront vốn là CDN tầng HTTP/HTTPS.',
+ whyWrong:'CloudFront hoạt động ở tầng HTTP(S), không hỗ trợ UDP, nên không dùng được cho giao thức game server trong đề bài. ALB chỉ hỗ trợ HTTP/HTTPS và một phần TCP/TLS qua Network Load Balancer, bản thân ALB không xử lý UDP — mô tả "ALB hỗ trợ UDP" trong đáp án là sai. S3 Transfer Acceleration là tính năng riêng cho việc tải file lên/xuống S3 qua CloudFront edge, không áp dụng cho traffic server-to-client của một ứng dụng khác.',
+ tip:'Cần tăng tốc traffic UDP/TCP tầng mạng + static IP → Global Accelerator. CloudFront chỉ là CDN cho HTTP/HTTPS.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'Công ty muốn di chuyển một database Oracle on-premises (đang chạy production, không được downtime dài) sang Amazon Aurora PostgreSQL. Hai engine khác nhau nên schema và một số kiểu dữ liệu không tương thích trực tiếp, và dữ liệu vẫn tiếp tục thay đổi trong lúc di chuyển.',
+ options:[
+   {id:'a', text:'Dùng AWS Schema Conversion Tool (SCT) để chuyển đổi schema Oracle sang schema tương thích PostgreSQL, sau đó dùng AWS Database Migration Service (DMS) ở chế độ full load + CDC (Change Data Capture) để chuyển dữ liệu ban đầu và tiếp tục đồng bộ thay đổi tới khi cắt sang hệ mới.'},
+   {id:'b', text:'Dùng AWS DMS một mình để vừa chuyển đổi schema khác engine vừa đồng bộ dữ liệu, vì DMS tự xử lý được mọi khác biệt schema giữa các engine khác nhau mà không cần công cụ nào khác.'},
+   {id:'c', text:'Export dữ liệu Oracle ra file CSV, import thủ công vào Aurora PostgreSQL bằng script, lặp lại định kỳ cho tới khi sẵn sàng cắt chuyển, chấp nhận một khoảng downtime ngắn mỗi lần đồng bộ.'},
+   {id:'d', text:'Dùng AWS Snowball để sao chép toàn bộ file dữ liệu Oracle vật lý sang Aurora PostgreSQL, vì Snowball hỗ trợ chuyển đổi định dạng dữ liệu giữa hai engine khác nhau trong quá trình vận chuyển.'}
+ ],
+ correct:['a'],
+ explain:'SCT chuyên trách việc chuyển đổi schema và object (stored procedure, kiểu dữ liệu...) giữa các engine khác nhau (migration khác engine, gọi là heterogeneous migration); DMS sau đó lo phần chuyển dữ liệu với full load cho dữ liệu hiện có và CDC để tiếp tục bắt các thay đổi phát sinh trong lúc migrate, giảm tối đa downtime khi cắt chuyển.',
+ whyWrong:'DMS tập trung vào di chuyển dữ liệu (data migration), không tự chuyển đổi schema/object giữa các engine khác nhau — với migration khác engine, DMS thường cần SCT xử lý schema trước. Export/import CSV thủ công lặp lại vừa tốn công vừa không đảm bảo đồng bộ liên tục dữ liệu đang đổi, gây downtime dài hơn cần thiết. Snowball là dịch vụ vận chuyển dữ liệu vật lý khối lượng lớn, không có khả năng chuyển đổi schema hay định dạng giữa hai engine khác nhau.',
+ tip:'Đổi schema khác engine (Oracle → PostgreSQL) = SCT. Đổi/đồng bộ dữ liệu liên tục trong lúc migrate = DMS full load + CDC. Hai công cụ đi cùng nhau.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Công ty vận hành hàng chục tài khoản AWS trong một Organization, mỗi đội tự quản lý Security Group, NACL và WAF rule riêng của mình. Ban bảo mật trung tâm muốn áp một chính sách chung — ví dụ mọi ALB public đều phải gắn một WAF Web ACL baseline — và tự động phát hiện, thậm chí tự sửa tài nguyên mới tạo ra mà không tuân thủ, trên toàn bộ tài khoản trong Organization.',
+ options:[
+   {id:'a', text:'Dùng AWS Firewall Manager với tư cách admin ở cấp Organization — định nghĩa policy bắt buộc (ví dụ WAF Web ACL baseline) áp dụng tự động cho tài nguyên hiện có lẫn tài nguyên mới tạo trên toàn bộ tài khoản thành viên, kèm khả năng tự khắc phục không tuân thủ.'},
+   {id:'b', text:'Viết SCP cấm các tài khoản thành viên tạo ALB nếu chưa gắn đúng Web ACL, vì SCP có thể kiểm tra được cấu hình chi tiết bên trong từng request tạo tài nguyên.'},
+   {id:'c', text:'Bật AWS WAF riêng lẻ ở từng tài khoản rồi yêu cầu từng đội tự copy đúng rule baseline vào Web ACL của mình theo tài liệu hướng dẫn chung.'},
+   {id:'d', text:'Dùng Amazon Inspector quét toàn bộ tài khoản trong Organization để tự động gắn Web ACL baseline vào các ALB chưa có WAF.'}
+ ],
+ correct:['a'],
+ explain:'Firewall Manager là dịch vụ quản lý tập trung ở cấp Organization cho WAF, Shield Advanced, Security Group và Network Firewall: định nghĩa policy một lần, tự động áp dụng (và tự sửa non-compliant) cho tài nguyên hiện có lẫn tài nguyên mới phát sinh trên toàn bộ tài khoản thành viên, đúng nhu cầu baseline tập trung + tự động remediate.',
+ whyWrong:'SCP chỉ cho phép allow/deny theo API action và một số điều kiện (ví dụ Region, tag), không có khả năng kiểm tra sâu cấu hình như "ALB đã gắn đúng Web ACL hay chưa" — đáp án b mô tả sai năng lực của SCP. Bật WAF riêng lẻ từng tài khoản và yêu cầu các đội tự copy rule là cách làm thủ công, không đảm bảo nhất quán và không tự động cho tài nguyên mới. Amazon Inspector là dịch vụ quét lỗ hổng (vulnerability) trên EC2/ECR/Lambda, không có chức năng quản lý hay tự gắn WAF Web ACL.',
+ tip:'Chính sách WAF/Shield/Security Group bắt buộc trên toàn Organization + tự remediate → AWS Firewall Manager, không phải SCP (SCP không kiểm tra cấu hình chi tiết).'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Một công ty tài chính thường xuyên là mục tiêu của các cuộc tấn công DDoS lớn, phức tạp (volumetric lẫn tầng ứng dụng) nhắm vào ứng dụng public trên ALB và CloudFront. Họ cần đội phản ứng khẩn cấp (DDoS Response Team) của AWS hỗ trợ trực tiếp khi bị tấn công, và được hoàn phí scale-up phát sinh do DDoS gây ra, ngoài mức bảo vệ DDoS cơ bản đã có sẵn miễn phí.',
+ options:[
+   {id:'a', text:'Đăng ký AWS Shield Advanced — cung cấp bảo vệ nâng cao tầng mạng/ứng dụng, quyền truy cập đội DDoS Response Team (DRT) 24/7, và cơ chế hoàn phí (cost protection) cho chi phí scale-up phát sinh do tấn công DDoS được xác nhận.'},
+   {id:'b', text:'Giữ nguyên AWS Shield Standard, vì Shield Standard đã bao gồm đầy đủ DRT hỗ trợ trực tiếp và cơ chế hoàn phí scale-up giống hệt Shield Advanced nhưng miễn phí.'},
+   {id:'c', text:'Bật AWS WAF với rate-based rule chặt hơn, vì WAF rate-based rule thay thế hoàn toàn nhu cầu về đội phản ứng khẩn cấp và cơ chế hoàn phí khi bị DDoS.'},
+   {id:'d', text:'Dùng Amazon GuardDuty để phát hiện tấn công DDoS sớm hơn, vì GuardDuty cung cấp đội phản ứng khẩn cấp và chính sách hoàn phí tương tự Shield Advanced.'}
+ ],
+ correct:['a'],
+ explain:'Shield Standard bảo vệ DDoS cơ bản miễn phí cho mọi khách hàng ở tầng mạng/transport. Shield Advanced là gói trả phí bổ sung: bảo vệ nâng cao hơn (kể cả tầng ứng dụng khi dùng cùng WAF), quyền truy cập DRT 24/7 để hỗ trợ trực tiếp trong lúc bị tấn công, và cost protection hoàn lại phí scale-up (ví dụ phí Auto Scaling, CloudFront, Route 53) phát sinh do cuộc tấn công DDoS được xác nhận.',
+ whyWrong:'Shield Standard không bao gồm DRT hỗ trợ trực tiếp hay cơ chế hoàn phí — đây là các tính năng chỉ có ở Shield Advanced, nên phương án b mô tả sai. WAF rate-based rule giúp giảm thiểu một số kiểu tấn công tầng ứng dụng nhưng không thay thế được đội phản ứng khẩn cấp của con người hay chính sách hoàn phí. GuardDuty là dịch vụ phát hiện mối đe doạ dựa trên log (không chuyên biệt cho DDoS) và không cung cấp DRT hay cost protection.',
+ tip:'Cần đội DRT hỗ trợ trực tiếp khi bị DDoS + hoàn phí scale-up → Shield Advanced (trả phí), Shield Standard không có hai thứ này.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Trang web thương mại điện tử dùng AWS WAF trước ALB, thường xuyên bị bot tự động quét giá sản phẩm và tạo tài khoản giả hàng loạt. Đội bảo mật muốn phân biệt bot hợp lệ (ví dụ bot của công cụ tìm kiếm) với bot xấu (bot cào dữ liệu, bot tạo tài khoản giả) mà không phải tự viết rule nhận diện user-agent hay hành vi bot từ đầu.',
+ options:[
+   {id:'a', text:'Bật AWS WAF Bot Control (một trong các AWS Managed Rule Group) — tự động phân loại traffic là bot hay người dùng thật, phân biệt bot đã được xác minh (ví dụ search engine) với bot không xác định, cho phép chặn hoặc CAPTCHA bot xấu mà không cần tự viết rule nhận diện.'},
+   {id:'b', text:'Tự viết rule WAF dựa trên chuỗi User-Agent cố định để chặn các bot cụ thể, vì đây là cách chính xác và bền vững nhất để phân biệt bot hợp lệ và bot xấu.'},
+   {id:'c', text:'Bật rate-based rule của WAF với ngưỡng request rất thấp cho toàn bộ traffic, vì rate limit sẽ tự động phân biệt được bot hợp lệ và bot xấu dựa trên tốc độ request.'},
+   {id:'d', text:'Dùng Amazon GuardDuty để phát hiện và tự động chặn các bot truy cập trang web, vì GuardDuty có khả năng phân tích hành vi truy cập HTTP ở tầng ứng dụng.'}
+ ],
+ correct:['a'],
+ explain:'WAF Bot Control là AWS Managed Rule Group chuyên biệt để phát hiện và phân loại traffic bot, bao gồm nhận diện các bot đã xác minh (categorized, như search engine) và cho phép xử lý khác nhau (allow/block/CAPTCHA/Challenge) cho bot không xác định hoặc bot xấu, mà không cần đội bảo mật tự xây rule nhận diện từ đầu.',
+ whyWrong:'Tự viết rule theo User-Agent dễ bị bot xấu giả mạo User-Agent để vượt qua, không bền vững và tốn công bảo trì liên tục. Rate-based rule chỉ giới hạn theo tốc độ request, không phân biệt được bản chất bot hợp lệ hay xấu — một bot hợp lệ request chậm vẫn lọt qua, người dùng thật request nhanh vẫn có thể bị chặn nhầm. GuardDuty phân tích log VPC Flow Logs, CloudTrail, DNS log để phát hiện mối đe doạ hạ tầng, không phân tích traffic HTTP tầng ứng dụng như WAF.',
+ tip:'Phân loại bot tốt/xấu ở tầng WAF mà không tự viết rule → AWS Managed Rule Group "Bot Control", không phải rate-based rule hay GuardDuty.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'API chạy trên EC2 phía sau ALB thỉnh thoảng bị chậm bất thường vào một số khung giờ. Đội vận hành nghi ngờ một nhóm nhỏ IP đang gửi lượng lớn request bất thường gây nghẽn, nhưng CloudWatch metric tổng (request count, latency trung bình) không đủ chi tiết để xác định chính xác IP hay pattern nào là nguyên nhân.',
+ options:[
+   {id:'a', text:'Dùng CloudWatch Contributor Insights — tạo rule phân tích log (ví dụ log ALB) để xếp hạng theo thời gian thực các "contributor" (IP, user...) đóng góp nhiều nhất vào một metric, giúp nhanh chóng xác định top IP gây request bất thường.'},
+   {id:'b', text:'Tạo thêm CloudWatch Alarm với ngưỡng latency thấp hơn, vì Alarm sẽ tự động chỉ ra chính xác IP nào gây ra latency cao trong mỗi lần cảnh báo.'},
+   {id:'c', text:'Bật CloudWatch Anomaly Detection trên metric latency trung bình, vì Anomaly Detection cho biết chi tiết IP hoặc request nào gây ra latency bất thường.'},
+   {id:'d', text:'Tăng tần suất thu thập CloudWatch metric (detailed monitoring) xuống 1 phút, vì tần suất cao hơn sẽ tự phân tách được request theo từng IP nguồn.'}
+ ],
+ correct:['a'],
+ explain:'Contributor Insights phân tích log (CloudWatch Logs, bao gồm log ALB) theo thời gian thực, xếp hạng top-N "contributor" (ví dụ theo IP, theo URI) đóng góp nhiều nhất vào một tiêu chí, giúp nhanh chóng khoanh vùng chính xác IP hay pattern nào đang gây ra lượng request/latency bất thường — điều mà metric tổng hợp không làm được.',
+ whyWrong:'CloudWatch Alarm chỉ cảnh báo khi một metric vượt ngưỡng, không có khả năng phân tách hay chỉ ra IP cụ thể nào gây ra giá trị đó. Anomaly Detection học baseline và phát hiện khi metric đi chệch khỏi dải dự kiến, nhưng vẫn làm việc trên metric tổng hợp, không có chi tiết theo từng IP hay request. Tăng tần suất thu thập metric (detailed monitoring) chỉ làm dữ liệu mịn hơn theo thời gian, không tự thêm chiều phân tách theo IP nguồn.',
+ tip:'Cần "top N thủ phạm" (IP, user...) đóng góp vào một metric từ log, theo thời gian thực → CloudWatch Contributor Insights, không phải Alarm hay Anomaly Detection.'
+},
+{domain:'cost', diff:'h', multi:false,
+ stem:'Hệ thống cần chạy một tác vụ dọn dẹp dữ liệu lúc 2 giờ sáng mỗi ngày, và một tác vụ gửi báo cáo định kỳ mỗi 15 phút trong giờ hành chính. Cả hai đều gọi một Lambda function khác nhau. Đội vận hành muốn quản lý tập trung các lịch chạy này, dễ dàng tạm dừng/sửa lịch từng tác vụ, dễ mở rộng thêm hàng trăm lịch chạy sau này, và không muốn phải tự quản lý một EC2 chạy cron.',
+ options:[
+   {id:'a', text:'Dùng Amazon EventBridge Scheduler — tạo schedule riêng cho từng tác vụ (cron hoặc rate expression), mỗi schedule gọi đúng Lambda tương ứng; Scheduler hỗ trợ hàng triệu schedule độc lập, dễ bật/tắt/sửa từng cái mà không ảnh hưởng các schedule khác.'},
+   {id:'b', text:'Tạo một EventBridge rule duy nhất chạy mỗi phút, bên trong Lambda tự kiểm tra giờ hiện tại rồi quyết định có nên dọn dẹp dữ liệu hay gửi báo cáo hay không trong lần chạy đó.'},
+   {id:'c', text:'Dựng một EC2 nhỏ chạy crontab với hai dòng lệnh gọi hai Lambda qua AWS CLI, vì đây là cách duy nhất quản lý được nhiều loại lịch chạy phức tạp khác nhau.'},
+   {id:'d', text:'Dùng AWS Step Functions Standard Workflow chạy liên tục 24/7, bên trong có logic chờ (Wait state) tới đúng thời điểm rồi gọi Lambda tương ứng cho từng tác vụ.'}
+ ],
+ correct:['a'],
+ explain:'EventBridge Scheduler là dịch vụ lập lịch chuyên biệt, hỗ trợ tạo số lượng lớn (tới hàng triệu) schedule độc lập với biểu thức cron/rate riêng cho từng cái, mỗi schedule có thể bật/tắt/sửa/xoá riêng lẻ mà không ảnh hưởng các schedule khác — rất phù hợp khi cần quản lý tập trung nhiều lịch chạy khác nhau và dễ mở rộng, không cần hạ tầng tự quản lý.',
+ whyWrong:'Một rule chạy mỗi phút rồi để Lambda tự suy luận giờ giấc là cách làm phức tạp hoá logic nghiệp vụ, khó bật/tắt riêng từng tác vụ và tốn invocation không cần thiết so với lập lịch đúng thời điểm. Tự dựng EC2 chạy crontab lại là hạ tầng phải tự quản lý (patch, uptime), đúng thứ đề bài muốn tránh, và không phải "cách duy nhất" như đáp án khẳng định. Step Functions Standard chạy liên tục 24/7 với Wait state tốn chi phí duy trì state transition không cần thiết so với EventBridge Scheduler vốn sinh ra cho đúng bài toán lập lịch.',
+ tip:'Nhiều lịch chạy định kỳ, cần quản lý tập trung và dễ scale → EventBridge Scheduler, không phải tự chế logic trong 1 rule hay dùng EC2 cron.'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'Ứng dụng cần lưu trữ hai loại giá trị cấu hình: (1) một API key của bên thứ ba cần được tự động xoay vòng (rotate) định kỳ và có thể tích hợp rotation Lambda có sẵn, và (2) vài chục tham số cấu hình không nhạy cảm (ví dụ tên bucket, feature flag) được đọc rất thường xuyên bởi nhiều service, muốn tối ưu chi phí vì số lượng tham số loại này sẽ còn tăng nhiều.',
+ options:[
+   {id:'a', text:'Lưu API key cần rotation trong AWS Secrets Manager (có sẵn tích hợp rotation Lambda theo lịch), còn các tham số cấu hình không nhạy cảm, số lượng lớn thì lưu trong SSM Parameter Store Standard tier (miễn phí, không tính theo API call cơ bản) để tối ưu chi phí.'},
+   {id:'b', text:'Lưu toàn bộ, cả API key lẫn tham số cấu hình, trong Secrets Manager vì Secrets Manager luôn là lựa chọn rẻ hơn Parameter Store khi số lượng giá trị lưu trữ lớn.'},
+   {id:'c', text:'Lưu toàn bộ trong SSM Parameter Store Standard tier, kể cả API key cần rotation, vì Parameter Store Standard cũng hỗ trợ sẵn rotation Lambda tự động giống Secrets Manager.'},
+   {id:'d', text:'Lưu API key trong biến môi trường Lambda được mã hoá bằng KMS, còn tham số cấu hình thì lưu trong DynamoDB, vì DynamoDB rẻ hơn cả hai dịch vụ kia khi đọc thường xuyên.'}
+ ],
+ correct:['a'],
+ explain:'Secrets Manager có cơ chế rotation tích hợp sẵn (gọi Lambda rotation theo lịch) phù hợp cho secret cần xoay vòng như API key, nhưng tính phí theo số lượng secret lưu trữ. Parameter Store Standard tier miễn phí (không tính phí lưu trữ hay API call cơ bản) và phù hợp để lưu số lượng lớn tham số cấu hình không nhạy cảm, đọc thường xuyên — kết hợp hai dịch vụ theo đúng đặc tính là cách tối ưu cả chức năng lẫn chi phí.',
+ whyWrong:'Secrets Manager tính phí theo số lượng secret, nên dồn toàn bộ hàng chục tham số không nhạy cảm vào đó sẽ tốn chi phí không cần thiết so với Parameter Store Standard miễn phí — phương án b nói ngược lại về chi phí. Parameter Store Standard tier không có cơ chế rotation Lambda tích hợp sẵn như Secrets Manager (muốn rotation tự động trong SSM phải tự xây thêm), nên phương án c mô tả sai tính năng. Biến môi trường Lambda không phải nơi lưu trữ tập trung để nhiều service khác cùng đọc, và DynamoDB tuy linh hoạt nhưng không phải dịch vụ chuyên dụng cho cấu hình/secret, phải tự xây toàn bộ lớp quản lý.',
+ tip:'Secret cần rotation tự động → Secrets Manager. Tham số cấu hình số lượng lớn, không nhạy cảm, tối ưu chi phí → SSM Parameter Store Standard (miễn phí).'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Công ty dùng AWS Backup để sao lưu RDS và EBS hàng ngày, lưu trong vault ở Region chính. Theo quy định tuân thủ mới, bản sao lưu phải tồn tại ở một Region khác để chống rủi ro mất toàn bộ dữ liệu nếu Region chính gặp sự cố thảm hoạ (disaster ở cấp Region), và quá trình này phải tự động, không cần script riêng chạy bên ngoài AWS Backup.',
+ options:[
+   {id:'a', text:'Thêm một Copy Destination sang Backup Vault ở Region thứ hai trong Backup Plan hiện có — AWS Backup tự động copy bản backup vừa tạo sang vault ở Region đó theo đúng lịch của plan, không cần script ngoài.'},
+   {id:'b', text:'Bật S3 Cross-Region Replication (CRR) cho bucket chứa file backup, vì AWS Backup lưu toàn bộ bản sao lưu dưới dạng object trong một bucket S3 mà người dùng tự quản lý.'},
+   {id:'c', text:'Tạo RDS Read Replica ở Region thứ hai, vì Read Replica cũng được AWS Backup tính là một bản sao lưu hợp lệ ở Region khác.'},
+   {id:'d', text:'Viết Lambda chạy định kỳ, dùng AWS CLI để copy snapshot RDS và EBS thủ công sang Region thứ hai sau mỗi lần AWS Backup hoàn tất.'}
+ ],
+ correct:['a'],
+ explain:'AWS Backup hỗ trợ cấu hình Copy Destination ngay trong Backup Plan: mỗi khi job backup hoàn tất ở vault nguồn, AWS Backup tự động copy bản sao lưu đó sang vault ở Region (hoặc tài khoản) đích theo lịch đã định, hoàn toàn không cần script ngoài — đáp ứng đúng yêu cầu tuân thủ về bản sao đa Region tự động.',
+ whyWrong:'AWS Backup không lưu dữ liệu sao lưu trong một bucket S3 do người dùng quản lý được — backup được lưu trong Backup Vault, cơ chế lưu trữ nội bộ của dịch vụ, nên CRR không áp dụng được ở đây. RDS Read Replica là bản sao phục vụ đọc/giảm tải, không phải bản backup điểm-khôi-phục (point-in-time) và không được AWS Backup coi là một bản backup. Viết Lambda tự copy snapshot thủ công đi ngược đúng yêu cầu "tự động, không cần script riêng" mà đề bài đặt ra, trong khi AWS Backup đã có sẵn tính năng này.',
+ tip:'Bản sao lưu AWS Backup cần tự động nhân sang Region khác → cấu hình Copy Destination ngay trong Backup Plan, không cần script ngoài.'
+},
+{domain:'cost', diff:'h', multi:false,
+ stem:'Ứng dụng nội bộ dùng Aurora PostgreSQL có lưu lượng truy cập rất thất thường: gần như không ai dùng ban đêm và cuối tuần, nhưng tăng vọt đột ngột vào giờ cao điểm các ngày trong tuần. Đội phát triển không muốn tự theo dõi và chỉnh tay kích thước instance, muốn chi phí tỉ lệ sát với mức dùng thực tế mà vẫn giữ được tính năng đầy đủ của Aurora (Multi-AZ, Global Database nếu cần sau này).',
+ options:[
+   {id:'a', text:'Dùng Aurora Serverless v2 — tự động scale dung lượng tính toán (ACU) lên xuống gần như theo thời gian thực bám sát tải thực tế, tính phí theo ACU đang dùng, và vẫn tương thích đầy đủ tính năng Aurora như Multi-AZ, Read Replica, Global Database.'},
+   {id:'b', text:'Dùng Aurora provisioned với instance class cố định ở mức đủ lớn cho giờ cao điểm, chạy 24/7 cả lúc không ai dùng, vì đây là cách duy nhất đảm bảo đầy đủ tính năng Multi-AZ và Global Database.'},
+   {id:'c', text:'Dùng Amazon RDS for PostgreSQL (không phải Aurora) với Auto Scaling Storage, vì RDS tiêu chuẩn tự động scale compute theo tải giống Aurora Serverless v2.'},
+   {id:'d', text:'Lên lịch dừng (Stop) instance Aurora vào ban đêm và cuối tuần bằng EventBridge Scheduler, vì Stop/Start là cách chính thức để Aurora tiết kiệm chi phí theo tải thất thường trong ngày.'}
+ ],
+ correct:['a'],
+ explain:'Aurora Serverless v2 scale dung lượng tính toán (đo bằng ACU) lên xuống gần như tức thời theo tải thực tế mà không cần chỉnh tay, tính phí theo ACU tiêu thụ, đồng thời vẫn giữ tương thích đầy đủ các tính năng Aurora khác như Multi-AZ và Global Database — phù hợp với tải thất thường mà vẫn cần đầy đủ tính năng cao cấp.',
+ whyWrong:'Instance provisioned cố định ở mức đỉnh chạy 24/7 lãng phí hoàn toàn vào những lúc tải thấp (ban đêm, cuối tuần), đi ngược yêu cầu chi phí sát mức dùng thực. RDS PostgreSQL tiêu chuẩn (không phải Aurora) có Storage Auto Scaling cho dung lượng lưu trữ, nhưng không tự động scale compute theo tải thời gian thực như Serverless v2 — đáp án mô tả sai khả năng của RDS thường. Dừng/khởi động Aurora theo lịch có thể áp dụng cho môi trường dev/test chấp nhận downtime, nhưng Aurora Stop tự khởi động lại sau khoảng thời gian giới hạn và không phải cơ chế scale theo tải trong ngày — không phù hợp ứng dụng vẫn cần phục vụ, chỉ là tải thấp hơn.',
+ tip:'Tải DB thất thường trong ngày, cần tự scale compute sát tải mà vẫn giữ tính năng Aurora đầy đủ → Aurora Serverless v2, không phải Stop/Start theo lịch.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Trang tin tức dùng CloudFront phục vụ cả nội dung tĩnh (ảnh, CSS) và trang HTML được cá nhân hoá nhẹ theo cookie đăng nhập (ví dụ tên hiển thị). Đội vận hành muốn cache ảnh/CSS cực lâu để giảm tải origin, nhưng với trang HTML thì phải forward đúng cookie đăng nhập tới origin để cá nhân hoá hoạt động, mà không muốn cookie đó làm phân mảnh cache của ảnh/CSS (vốn không liên quan tới cookie).',
+ options:[
+   {id:'a', text:'Tạo hai Cache Behavior: một cho ảnh/CSS dùng Cache Policy TTL dài và không forward cookie; một cho đường dẫn HTML dùng Cache Policy TTL ngắn hơn kèm Origin Request Policy forward đúng cookie đăng nhập tới origin mà không đưa cookie đó vào cache key của ảnh/CSS.'},
+   {id:'b', text:'Dùng chung một Cache Behavior duy nhất cho toàn bộ distribution, bật forward tất cả cookie trong Cache Policy, vì CloudFront tự động biết loại request nào cần cookie và loại nào không.'},
+   {id:'c', text:'Tắt cache hoàn toàn cho toàn bộ distribution (TTL = 0) để đảm bảo cookie đăng nhập luôn được forward chính xác tới origin cho mọi loại nội dung, kể cả ảnh và CSS.'},
+   {id:'d', text:'Chuyển cookie đăng nhập thành query string parameter trên mọi request, vì CloudFront chỉ hỗ trợ cá nhân hoá qua query string, không hỗ trợ forward cookie theo từng Cache Behavior.'}
+ ],
+ correct:['a'],
+ explain:'Cache Policy quyết định phần nào của request (header, cookie, query string) đi vào cache key, còn Origin Request Policy quyết định phần nào được forward tới origin dù có nằm trong cache key hay không. Tách hai Cache Behavior theo path pattern (ảnh/CSS riêng, HTML riêng) cho phép ảnh/CSS cache dài mà không bị cookie làm phân mảnh, trong khi HTML vẫn forward đúng cookie đăng nhập tới origin để cá nhân hoá, mỗi loại nội dung dùng đúng chính sách phù hợp.',
+ whyWrong:'Dùng chung một Cache Behavior và forward toàn bộ cookie sẽ khiến mỗi giá trị cookie khác nhau tạo một bản cache riêng cho cả ảnh/CSS vốn không cần cá nhân hoá, làm giảm tỉ lệ cache hit nghiêm trọng — ngược với mục tiêu giảm tải origin. Tắt cache hoàn toàn (TTL=0) cho toàn bộ distribution làm mọi request, kể cả ảnh/CSS tĩnh không đổi, đều phải tới origin, gây tốn tải và độ trễ không cần thiết. CloudFront hỗ trợ forward cookie trực tiếp qua Cache Policy/Origin Request Policy, không bắt buộc phải chuyển cookie thành query string — đáp án d mô tả sai khả năng CloudFront.',
+ tip:'Nội dung tĩnh cache dài, không cookie; nội dung cá nhân hoá forward đúng cookie tới origin mà không vỡ cache tĩnh → tách Cache Behavior + Cache Policy/Origin Request Policy riêng theo path.'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Trụ sở công ty kết nối on-premises tới AWS qua một kết nối Direct Connect duy nhất tới một Region. Công ty sắp mở rộng sang một Region thứ hai và muốn cả hai Region đều truy cập được qua Direct Connect hiện có (không kéo thêm đường cáp vật lý mới tới Region kia), đồng thời muốn có một đường VPN dự phòng sẵn sàng dùng ngay nếu Direct Connect gặp sự cố, mà không cần thiết lập lại thủ công khi sự cố xảy ra.',
+ options:[
+   {id:'a', text:'Tạo Direct Connect Gateway gắn với kết nối Direct Connect hiện có, rồi liên kết Virtual Private Gateway của cả hai Region vào Direct Connect Gateway đó để một kết nối vật lý phục vụ nhiều Region; song song, cấu hình một Site-to-Site VPN qua Internet làm đường dự phòng, luôn bật sẵn (VPN backup cho Direct Connect) để tự động gánh traffic khi Direct Connect gặp sự cố theo cơ chế định tuyến BGP ưu tiên.'},
+   {id:'b', text:'Kéo thêm một kết nối Direct Connect vật lý thứ hai riêng cho Region mới, vì Direct Connect Gateway không hỗ trợ việc một kết nối vật lý phục vụ nhiều hơn một Region.'},
+   {id:'c', text:'Dùng VPC Peering giữa VPC ở hai Region để Region mới mượn đường Direct Connect của Region hiện có, vì VPC Peering cho phép chia sẻ kết nối Direct Connect giữa các Region.'},
+   {id:'d', text:'Chỉ dùng Site-to-Site VPN cho cả hai Region và bỏ hẳn Direct Connect, vì VPN dễ triển khai nhanh hơn và không cần Direct Connect Gateway.'}
+ ],
+ correct:['a'],
+ explain:'Direct Connect Gateway cho phép một kết nối Direct Connect liên kết với Virtual Private Gateway của nhiều VPC ở nhiều Region khác nhau (trong cùng một khu vực địa lý được hỗ trợ), nên không cần kéo thêm cáp vật lý. Cấu hình Site-to-Site VPN song song làm đường dự phòng, với BGP ưu tiên định tuyến qua Direct Connect khi còn hoạt động và tự chuyển sang VPN khi Direct Connect gặp sự cố, cho một kiến trúc dự phòng tự động không cần can thiệp thủ công.',
+ whyWrong:'Kéo thêm kết nối Direct Connect vật lý thứ hai tốn kém và không cần thiết vì Direct Connect Gateway vốn đã hỗ trợ một kết nối phục vụ nhiều Region — đáp án b mô tả sai giới hạn của dịch vụ. VPC Peering chỉ định tuyến traffic giữa các VPC đã kết nối, không có khả năng "chia sẻ" một kết nối Direct Connect vật lý sang Region khác theo cách đó. Bỏ hẳn Direct Connect và chỉ dùng VPN từ bỏ băng thông ổn định, độ trễ thấp mà Direct Connect cung cấp, không phù hợp nếu công ty vẫn cần hiệu năng kết nối ổn định cho cả hai Region.',
+ tip:'Một Direct Connect phục vụ nhiều Region → Direct Connect Gateway. Dự phòng tự động khi Direct Connect lỗi → Site-to-Site VPN song song, BGP tự chuyển route.'
+},
+{domain:'resilient', diff:'b', multi:true,
+ stem:'Ứng dụng tài chính cần kiến trúc active-active thật sự trên hai Region: cả hai Region cùng nhận traffic ghi thật, và khi một Region gặp sự cố, traffic phải được điều hướng sang Region còn lại trong vài giây với một thao tác (hoặc tự động) duy nhất, tránh tình trạng "split-brain" (cả hai Region cùng tưởng mình đang là nơi duy nhất xử lý ghi mà không biết Region kia cũng đang ghi). Chọn 2 phương án nên có trong kiến trúc này.',
+ options:[
+   {id:'a', text:'Amazon Route 53 Application Recovery Controller (ARC) — cung cấp cơ chế kiểm soát routing control an toàn (safety rule chống bật đồng thời hai nơi, tránh split-brain) để chuyển traffic giữa các Region một cách có kiểm soát trong vài giây, dùng được cho failover ứng dụng ngoài DNS health check thông thường.'},
+   {id:'b', text:'DynamoDB Global Tables ở chế độ multi-active cho tầng dữ liệu cần ghi ở cả hai Region, vì đây là ví dụ dữ liệu được thiết kế sẵn cho ghi đa Region mà không cần tự xây cơ chế giải quyết xung đột từ đầu.'},
+   {id:'c', text:'Một Route 53 Simple Routing Policy trỏ cố định domain vào Region chính, vì Simple Routing tự động chuyển sang Region phụ khi Region chính gặp sự cố mà không cần cấu hình gì thêm.'},
+   {id:'d', text:'Tắt Multi-AZ ở cả hai Region để giảm độ phức tạp, vì active-active giữa hai Region đã đủ chịu lỗi, không cần thêm Multi-AZ trong từng Region nữa.'}
+ ],
+ correct:['a','b'],
+ explain:'ARC bổ sung lớp kiểm soát routing an toàn (routing control, safety rule, cluster phân tán 5 Region kiểm soát) chuyên cho failover ứng dụng đa Region, giúp chuyển traffic nhanh và có kiểm soát để tránh split-brain — đúng phần "điều hướng có kiểm soát, tránh cả hai Region cùng tưởng mình chủ động". DynamoDB Global Tables multi-active là ví dụ tầng dữ liệu được AWS thiết kế sẵn để ghi được ở nhiều Region đồng thời, phù hợp làm nền tảng dữ liệu cho active-active thật sự.',
+ whyWrong:'Simple Routing Policy không có khái niệm health check hay failover — nó luôn trả về record cố định, hoàn toàn không tự chuyển Region khi sự cố, nên mô tả trong đáp án c sai bản chất của Simple Routing (đó là đặc điểm của Failover Routing Policy, không phải Simple). Tắt Multi-AZ trong từng Region làm giảm khả năng chịu lỗi ở quy mô nhỏ hơn (một AZ trong Region bị sự cố), kiến trúc active-active đa Region không thay thế được vai trò của Multi-AZ trong từng Region — hai tầng chịu lỗi này bổ sung cho nhau chứ không loại trừ nhau.',
+ tip:'Active-active đa Region, tránh split-brain, chuyển traffic có kiểm soát → Route 53 ARC (routing control) + tầng dữ liệu multi-active như DynamoDB Global Tables. Simple Routing không failover, Multi-AZ vẫn cần giữ trong từng Region.'
+},
+{domain:'secure', diff:'b', multi:true,
+ stem:'Sau một đợt audit, ban bảo mật yêu cầu dựng lại baseline bảo mật cấp Organization cho toàn bộ tài khoản: chặn tập trung các dịch vụ ngoài vùng cho phép, bắt buộc mọi ALB/CloudFront public đều có WAF, phát hiện và tự sửa cấu hình lệch chuẩn, và đảm bảo ngay cả tài khoản root/quản trị cấp cao cũng không thể tắt các biện pháp bảo vệ này. Chọn 2 thành phần phù hợp nhất cho baseline này.',
+ options:[
+   {id:'a', text:'Service Control Policy ở cấp Organization Root/OU, viết điều kiện chặn theo Region được phép và dùng NotAction/explicit Deny để giới hạn hành động kể cả với root user của tài khoản thành viên — SCP không giới hạn được chính tài khoản quản lý (management account) nhưng chặn hiệu quả toàn bộ tài khoản thành viên.'},
+   {id:'b', text:'AWS Firewall Manager ở cấp Organization để bắt buộc mọi ALB/CloudFront mới và hiện có đều gắn đúng WAF Web ACL baseline, kèm AWS Config với Conformance Pack để phát hiện và tự động remediate cấu hình lệch chuẩn trên các tài khoản thành viên.'},
+   {id:'c', text:'Chỉ cần IAM Permissions Boundary gắn cho từng admin ở từng tài khoản, vì Permissions Boundary áp dụng được xuyên suốt toàn bộ Organization và ngăn được cả root user tắt bảo vệ.'},
+   {id:'d', text:'Chỉ cần bật CloudTrail Organization trail, vì CloudTrail tự động chặn hành động vi phạm baseline ngay khi phát hiện trong log, không cần SCP hay Firewall Manager.'}
+ ],
+ correct:['a','b'],
+ explain:'SCP ở cấp Organization là cơ chế duy nhất chặn được hành động kể cả với root user của tài khoản thành viên (trừ tài khoản quản lý), phù hợp để giới hạn Region/dịch vụ được phép ở baseline cấp cao nhất. Firewall Manager lo phần áp WAF bắt buộc tự động cho tài nguyên public, còn Config Conformance Pack phát hiện và tự remediate cấu hình lệch chuẩn — hai thành phần này cộng với SCP tạo thành baseline toàn diện: chặn cứng (SCP), bắt buộc cấu hình đúng (Firewall Manager) và tự sửa khi lệch (Config).',
+ whyWrong:'Permissions Boundary chỉ giới hạn quyền của một IAM entity cụ thể trong một tài khoản, không phải cơ chế cấp Organization và hoàn toàn không ngăn được root user — một admin có thể vẫn chỉnh sửa hoặc gỡ Permissions Boundary nếu có đủ quyền IAM, nên phương án c mô tả sai cả phạm vi lẫn khả năng chặn root. CloudTrail chỉ ghi lại nhật ký các API call đã xảy ra để phục vụ điều tra/giám sát, bản thân nó không có khả năng chặn (block) hành động vi phạm tại thời điểm xảy ra — đó là vai trò của SCP hoặc Config remediation, không phải CloudTrail.',
+ tip:'Baseline Organization chặn cứng kể cả root → SCP. Bắt buộc + tự sửa cấu hình (WAF, conformance) → Firewall Manager + Config Conformance Pack. CloudTrail chỉ ghi log, không chặn; Permissions Boundary không phải cơ chế cấp Organization.'
+}
+];
+
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function startExam(){
+  document.getElementById('introCard').style.display='none';
+  document.getElementById('examArea').style.display='block';
+  renderDots();
+  renderQuestion();
+}
+
+function renderDots(){
+  const wrap = document.getElementById('dots');
+  wrap.innerHTML='';
+  QUESTIONS.forEach((q,i)=>{
+    const d = document.createElement('div');
+    d.className='dot'+(i===current?' current':'')+(answers[i]&&answers[i].submitted?(answers[i].correct?' answered correct':' answered wrong'):'');
+    d.title='Câu '+(i+1);
+    d.onclick=()=>{ current=i; renderQuestion(); };
+    wrap.appendChild(d);
+  });
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById('qcount').textContent = 'Câu '+(current+1)+'/'+QUESTIONS.length;
+  let state = answers[current];
+  if(!state){
+    state = {selected:[], submitted:false, correct:false, order:shuffleArr(q.options.map(o=>o.id))};
+    answers[current] = state;
+  }
+
+  const isMulti = q.multi;
+  const orderedOpts = state.order.map(id => q.options.find(o=>o.id===id));
+
+  let optsHtml = '';
+  orderedOpts.forEach(opt=>{
+    let cls = 'opt'+(isMulti?' multi':'');
+    if(!state.submitted){
+      if(state.selected.includes(opt.id)) cls += ' selected';
+    } else {
+      const isCorrect = q.correct.includes(opt.id);
+      const wasSelected = state.selected.includes(opt.id);
+      if(isCorrect) cls += ' reveal-correct';
+      else if(wasSelected) cls += ' reveal-wrong';
+      cls += ' locked';
+    }
+    optsHtml += '<div class="'+cls+'" onclick="toggleOpt(\''+opt.id+'\')"><div class="mark"></div><div>'+opt.text+'</div></div>';
+  });
+
+  let infoHtml = '';
+  if(state.submitted){
+    const domain = DOMAIN_META[q.domain];
+    infoHtml = '<div class="info-panel show">'
+      + '<div class="verdict '+(state.correct?'ok':'no')+'">'+(state.correct?'✓ CHÍNH XÁC':'✕ CHƯA ĐÚNG')
+      + '<span class="domain-pill dtag '+domain.cls+'">'+domain.label+'</span></div>'
+      + '<p>'+q.explain+'</p>'
+      + '<div class="why-wrong"><b>Vì sao đáp án khác nghe có lý nhưng sai:</b> '+q.whyWrong+'</div>'
+      + '<div class="tip-line"><b>Chốt hạ:</b> '+q.tip+'</div>'
+      + '</div>';
+  }
+
+  const diffCls = q.diff;
+  document.getElementById('qContainer').innerHTML =
+    '<div class="qframe">'
+    + '<div class="qtag-corner">Q'+String(current+1).padStart(2,'0')+'</div>'
+    + '<div class="qhead"><div class="qnum-row"><span class="qnum">CÂU '+(current+1)+' / '+QUESTIONS.length+'</span>'
+    + '<span class="diff-badge '+diffCls+'">'+DIFF_LABEL[diffCls]+'</span></div>'
+    + '<div class="qstem">'+q.stem+'</div>'
+    + (isMulti?'<div class="multi-note">⚠ Chọn đúng 2 đáp án</div>':'')
+    + '</div>'
+    + '<div class="options">'+optsHtml+'</div>'
+    + (!state.submitted?'<div class="qactions"><button class="check-btn" id="checkBtn" onclick="submitAnswer()" '+(state.selected.length===0?'disabled':'')+'>Kiểm tra đáp án</button></div>':'')
+    + infoHtml
+    + '</div>';
+
+  document.getElementById('prevBtn').disabled = current===0;
+  document.getElementById('nextBtn').textContent = current===QUESTIONS.length-1 ? 'Xem kết quả →' : 'Tiếp →';
+  renderDots();
+}
+
+function toggleOpt(id){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  if(state.submitted) return;
+  if(q.multi){
+    const idx = state.selected.indexOf(id);
+    if(idx>=0) state.selected.splice(idx,1);
+    else {
+      if(state.selected.length < q.correct.length) state.selected.push(id);
+      else { state.selected.shift(); state.selected.push(id); }
+    }
+  } else {
+    state.selected = [id];
+  }
+  renderQuestion();
+}
+
+function submitAnswer(){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  const sel = [...state.selected].sort();
+  const cor = [...q.correct].sort();
+  state.correct = sel.length===cor.length && sel.every((v,i)=>v===cor[i]);
+  state.submitted = true;
+  renderQuestion();
+}
+
+function nextQ(){
+  if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+  else { showSummary(); }
+}
+function prevQ(){
+  if(current>0){ current--; renderQuestion(); }
+}
+
+function showSummary(){
+  document.getElementById('examArea').style.display='none';
+  const summary = document.getElementById('summary');
+  summary.classList.add('show');
+
+  let correctCount = 0;
+  const domainStats = {secure:{c:0,t:0}, resilient:{c:0,t:0}, performing:{c:0,t:0}, cost:{c:0,t:0}};
+  QUESTIONS.forEach((q,i)=>{
+    domainStats[q.domain].t++;
+    if(answers[i] && answers[i].submitted && answers[i].correct){ correctCount++; domainStats[q.domain].c++; }
+  });
+  const pct = Math.round(correctCount/QUESTIONS.length*100);
+  document.getElementById('scoreBig').textContent = correctCount+'/'+QUESTIONS.length;
+  document.getElementById('scorePct').textContent = pct+'%';
+
+  let verdict = '';
+  if(pct>=85) verdict='Mức này thi thật khả năng cao pass thoải mái — nhưng đề này cố tình khó hơn thi thật, đừng chủ quan tuyệt đối.';
+  else if(pct>=70) verdict='Ổn nhưng chưa chắc chắn — soi kỹ domain yếu nhất bên dưới trước khi đăng ký thi thật.';
+  else if(pct>=50) verdict='Còn lỗ hổng lý thuyết rõ rệt, không phải vấn đề trí nhớ — cần đọc lại đúng phần domain đang tụt, không học tủ lại đề này.';
+  else verdict='Cần ôn lại có hệ thống trước khi nghĩ tới lịch thi — đọc kỹ phần "vì sao đáp án khác sai" + "chốt hạ" của từng câu sai bên dưới.';
+  document.getElementById('verdictLine').textContent = verdict;
+
+  const order = ['secure','resilient','performing','cost'];
+  let bdHtml = '';
+  order.forEach(d=>{
+    const s = domainStats[d];
+    const dpct = s.t? Math.round(s.c/s.t*100):0;
+    bdHtml += '<div class="bd-row"><div class="bd-label" style="color:'+DOMAIN_COLOR[d]+'">'+DOMAIN_META[d].label+'</div>'
+      + '<div class="bd-bar-track"><div class="bd-bar-fill" style="width:'+dpct+'%; background:'+DOMAIN_COLOR[d]+';"></div></div>'
+      + '<div class="bd-pct">'+s.c+'/'+s.t+'</div></div>';
+  });
+  document.getElementById('bdRows').innerHTML = bdHtml;
+
+  let missHtml = '';
+  let missCount = 0;
+  QUESTIONS.forEach((q,i)=>{
+    if(!(answers[i] && answers[i].submitted && answers[i].correct)){
+      missCount++;
+      const short = q.stem.length>90 ? q.stem.slice(0,90)+'…' : q.stem;
+      missHtml += '<div class="miss-item" onclick="jumpTo('+i+')"><span>Câu '+(i+1)+' · '+DOMAIN_META[q.domain].label+' — '+short+'</span><span class="go">Xem lại →</span></div>';
+    }
+  });
+  document.getElementById('missWrap').style.display = missCount>0 ? 'block' : 'none';
+  document.getElementById('missRows').innerHTML = missHtml;
+}
+
+function jumpTo(i){
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('examArea').style.display='block';
+  current = i;
+  renderQuestion();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function restartExam(){
+  answers = new Array(QUESTIONS.length).fill(null);
+  current = 0;
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('introCard').style.display='block';
+  document.getElementById('examArea').style.display='none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>

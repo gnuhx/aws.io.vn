@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAA-C03 // hardmode-exam-08</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF7; --paper:#FFFFFF; --ink:#1a1a18; --ink-dim:#75756c;
+    --line:#e6e2d8;
+    --orange:#FF9900; --orange-dim:#FFF4E0; --orange-line:#e6890a;
+    --squid:#232F3E; --squid-2:#2f3f52;
+    --green:#1a7f4e; --green-dim:#eaf7f0; --green-line:#bfe3d0;
+    --wrong:#b1490f; --wrong-dim:#fdece1; --wrong-line:#f0c39e;
+    --violet:#5b4b8a; --violet-dim:#f1eef8; --violet-line:#d8cfec;
+    --cyan:#0a6e8c; --cyan-dim:#e7f4f8; --cyan-line:#bfe0ea;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; min-height:100vh;
+  }
+  .topbar{
+    background:var(--squid); color:#fff; padding:22px 4vw 20px;
+    border-bottom:3px solid var(--orange);
+  }
+  .topbar-inner{width:100%; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;}
+  .topbar h1{font-family:'Source Serif 4',serif; font-weight:700; font-size:clamp(20px,3vw,28px); margin:0; letter-spacing:-.01em;}
+  .topbar .stamp{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.03em; color:var(--squid); background:var(--orange); padding:4px 10px; border-radius:3px; white-space:nowrap; font-weight:600;}
+  .cmdline{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb3c8; width:100%; margin:10px 0 0; padding:0 4vw; box-sizing:border-box;}
+  .cmdline .prompt{color:var(--orange);}
+
+  .sheet{width:100%; margin:0; padding:0 4vw 6vw; box-sizing:border-box;}
+  .subtitle{color:var(--ink-dim); font-size:15px; line-height:1.75; margin:24px 0 22px; font-family:'Inter',sans-serif;}
+  .subtitle b{color:var(--ink); font-weight:600; background:var(--orange-dim); padding:1px 4px; border-radius:3px;}
+
+  .intro-card{border:1px solid var(--line); border-radius:4px; padding:26px 28px; margin-bottom:24px; background:var(--paper);}
+  .intro-card h2{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.06em; margin:0 0 14px; color:var(--ink-dim); text-transform:uppercase; border-bottom:1px solid var(--line); padding-bottom:10px;}
+  .intro-card p{font-size:14.5px; line-height:1.75; color:var(--ink-dim); margin:0 0 10px;}
+  .intro-card p b{color:var(--ink);}
+  .diff-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;}
+  .dchip{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 11px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim);}
+  .dchip.e{border-color:var(--green-line); color:var(--green); background:var(--green-dim);}
+  .dchip.m{border-color:var(--cyan-line); color:var(--cyan); background:var(--cyan-dim);}
+  .dchip.h{border-color:var(--orange-line); color:#a15c00; background:var(--orange-dim);}
+  .dchip.b{border-color:var(--violet-line); color:var(--violet); background:var(--violet-dim);}
+  .domain-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .dtag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 11px; border-radius:20px; border:1px solid;}
+  .dtag.secure{color:var(--cyan); border-color:var(--cyan-line); background:var(--cyan-dim);}
+  .dtag.resilient{color:var(--green); border-color:var(--green-line); background:var(--green-dim);}
+  .dtag.performing{color:var(--violet); border-color:var(--violet-line); background:var(--violet-dim);}
+  .dtag.cost{color:#a15c00; border-color:var(--orange-line); background:var(--orange-dim);}
+
+  .start-btn,.nav-btn,.restart-btn{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:.03em;
+    background:var(--squid); color:#fff; border:1px solid var(--squid); padding:11px 22px; border-radius:3px; cursor:pointer;
+    text-transform:uppercase; transition:background .15s;
+  }
+  .start-btn:hover,.nav-btn:not(:disabled):hover,.restart-btn:hover{background:var(--orange); border-color:var(--orange); color:var(--squid);}
+  .nav-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .nav-btn{background:transparent; color:var(--squid); border:1px solid var(--line);}
+  .nav-btn:not(:disabled):hover{background:var(--squid); color:#fff; border-color:var(--squid);}
+
+  .progress-row{display:flex; align-items:center; gap:14px; margin:26px 0 20px; flex-wrap:wrap; justify-content:space-between;}
+  .dots{display:flex; gap:5px; flex-wrap:wrap;}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--line); cursor:pointer; border:1px solid var(--line);}
+  .dot.answered{background:#c9c4b4; border-color:#c9c4b4;}
+  .dot.correct{background:var(--green); border-color:var(--green);}
+  .dot.wrong{background:var(--wrong); border-color:var(--wrong);}
+  .dot.current{outline:2px solid var(--orange); outline-offset:2px;}
+  .qcount{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); white-space:nowrap;}
+  .diff-badge{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 10px; border-radius:20px; border:1px solid; white-space:nowrap; text-transform:uppercase; letter-spacing:.03em;}
+  .diff-badge.e{color:var(--green); border-color:var(--green-line); background:var(--green-dim);}
+  .diff-badge.m{color:var(--cyan); border-color:var(--cyan-line); background:var(--cyan-dim);}
+  .diff-badge.h{color:#a15c00; border-color:var(--orange-line); background:var(--orange-dim);}
+  .diff-badge.b{color:var(--violet); border-color:var(--violet-line); background:var(--violet-dim);}
+
+  .qframe{border:1px solid var(--line); border-radius:4px; overflow:hidden; background:var(--paper); margin-bottom:22px; position:relative;}
+  .qframe .qtag-corner{position:absolute; top:14px; right:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#c9c4b4; letter-spacing:.03em;}
+  .qhead{padding:24px 26px 16px; border-bottom:1px solid var(--line);}
+  .qnum-row{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .qnum{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em;}
+  .qstem{font-family:'Source Serif 4',serif; font-size:19px; line-height:1.55; color:var(--ink); font-weight:400;}
+  .multi-note{display:inline-block; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#a15c00; border:1px solid var(--orange-line); background:var(--orange-dim); padding:3px 9px; border-radius:3px;}
+
+  .options{padding:18px 26px;}
+  .opt{display:flex; gap:13px; align-items:flex-start; padding:13px 14px; margin-bottom:9px; border:1px solid var(--line); border-radius:4px; cursor:pointer; font-size:14.5px; line-height:1.6; transition:border-color .12s, background .12s; background:var(--bg);}
+  .opt:hover{border-color:var(--squid);}
+  .opt.selected{border-color:var(--squid); background:#eef1f4;}
+  .opt .mark{width:15px; height:15px; flex:0 0 15px; margin-top:3px; border:1.5px solid #b8b4a6; border-radius:50%; position:relative;}
+  .opt.selected .mark{border-color:var(--squid);}
+  .opt.selected .mark::after{content:''; position:absolute; inset:3px; background:var(--squid); border-radius:50%;}
+  .opt.multi .mark{border-radius:3px;}
+  .opt.multi.selected .mark::after{border-radius:2px;}
+  .opt.locked{cursor:default;}
+  .opt.reveal-correct{border-color:var(--green); background:var(--green-dim);}
+  .opt.reveal-correct .mark{border-color:var(--green);}
+  .opt.reveal-correct .mark::after{background:var(--green); border-radius:inherit;}
+  .opt.reveal-wrong{border-color:var(--wrong); background:var(--wrong-dim);}
+  .opt.reveal-wrong .mark{border-color:var(--wrong);}
+  .opt.reveal-wrong .mark::after{background:var(--wrong); border-radius:inherit;}
+
+  .qactions{padding:0 26px 22px; display:flex; gap:10px;}
+  .check-btn{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.03em; background:var(--orange); color:var(--squid); border:1px solid var(--orange); padding:10px 20px; border-radius:3px; cursor:pointer;}
+  .check-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .check-btn:not(:disabled):hover{background:var(--squid); color:#fff; border-color:var(--squid);}
+
+  .info-panel{border-top:1px solid var(--line); padding:20px 26px 24px; display:none; background:#fbfaf6;}
+  .info-panel.show{display:block;}
+  .info-panel .verdict{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.04em; margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; text-transform:uppercase;}
+  .verdict.ok{color:var(--green);}
+  .verdict.no{color:var(--wrong);}
+  .domain-pill{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:20px; border:1px solid; margin-left:auto; text-transform:none; font-weight:600;}
+  .info-panel p{font-size:14.5px; line-height:1.75; color:var(--ink); margin:0 0 14px; font-family:'Inter',sans-serif;}
+  .why-wrong{font-size:13.5px; line-height:1.75; color:var(--ink-dim); margin:0 0 14px; border-left:3px solid var(--wrong); padding:8px 14px; background:#fff;}
+  .why-wrong b{color:var(--wrong);}
+  .tip-line{font-size:13.5px; line-height:1.65; color:var(--ink); border-left:3px solid var(--orange); padding:10px 14px; background:var(--orange-dim); border-radius:0 4px 4px 0;}
+  .tip-line b{color:#a15c00; font-family:'IBM Plex Mono',monospace; text-transform:uppercase; font-size:11px; letter-spacing:.03em; display:block; margin-bottom:4px;}
+
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:6px;}
+
+  .summary{display:none;}
+  .summary.show{display:block;}
+  .score-hero{border:1px solid var(--line); border-radius:4px; padding:34px 28px; text-align:center; margin-bottom:24px; background:var(--paper);}
+  .score-big{font-family:'IBM Plex Mono',monospace; font-size:clamp(38px,7vw,58px); font-weight:700; color:var(--squid); line-height:1;}
+  .score-sub{color:var(--ink-dim); font-size:13.5px; margin-top:10px; font-family:'IBM Plex Mono',monospace;}
+  .verdict-line{font-size:15px; margin-top:16px; color:var(--ink); font-family:'Source Serif 4',serif; line-height:1.6;}
+
+  .breakdown{margin-bottom:24px;}
+  .breakdown h3{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); margin:0 0 14px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .bd-row{display:flex; align-items:center; gap:12px; margin-bottom:11px;}
+  .bd-label{width:150px; font-family:'IBM Plex Mono',monospace; font-size:12px; flex:0 0 150px;}
+  .bd-bar-track{flex:1; height:9px; background:var(--line); border-radius:5px; overflow:hidden;}
+  .bd-bar-fill{height:100%; border-radius:5px;}
+  .bd-pct{width:42px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); flex:0 0 42px;}
+
+  .miss-list{margin-bottom:26px;}
+  .miss-list h3{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--wrong); margin:0 0 14px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .miss-item{display:flex; justify-content:space-between; gap:10px; padding:10px 14px; border:1px solid var(--wrong-line); background:var(--wrong-dim); border-radius:4px; margin-bottom:7px; cursor:pointer; font-size:13.5px;}
+  .miss-item:hover{background:#fbe0d0;}
+  .miss-item span.go{font-family:'IBM Plex Mono',monospace; color:var(--wrong); flex:0 0 auto; font-size:12px;}
+
+  @media (max-width:640px){ .qstem{font-size:17px;} .bd-label{width:110px; flex:0 0 110px; font-size:11px;} }
+
+  /* Plain white reading surface; preserve the exam's existing questions and behavior. */
+  :root {
+    color-scheme: light;
+    --navy: #ffffff; --grid: transparent;
+    --paper: #24292f; --paper-dim: #57606a;
+    --cyan: #0969da; --cyan-dim: #ffffff; --cyan-border: #d0d7de;
+    --amber: #805500; --amber-dim: #ffffff; --amber-border: #d0d7de;
+    --green: #1a7f37; --green-dim: #ffffff; --green-border: #d0d7de;
+    --violet: #6639ba; --violet-dim: #ffffff; --violet-border: #d0d7de;
+    --bg: #ffffff; --ink: #24292f; --ink-dim: #57606a; --line: #d0d7de;
+    --orange: #805500; --orange-dim: #ffffff; --orange-line: #d0d7de;
+    --squid: #ffffff; --squid-2: #ffffff;
+    --green-line: #d0d7de; --wrong: #a40e26; --wrong-dim: #ffffff; --wrong-line: #d0d7de;
+    --violet-line: #d0d7de; --cyan-line: #d0d7de;
+  }
+  html, body { background: #fff !important; color: #24292f !important; }
+  body { padding: 24px max(18px, 4vw) 56px !important; }
+  .topbar, .intro-card, .qframe, .score-hero, .opt, .info-panel,
+  .why-wrong, .tip-line, .miss-item, .title-block .stamp,
+  .dchip, .dtag, .diff-badge, .multi-note { background: #fff !important; }
+  .topbar { border: 0 !important; padding: 0 0 20px !important; color: #24292f !important; }
+  .topbar h1, .title-block h1, .qstem, .intro-card p, .info-panel p,
+  .verdict-line, .score-sub, .subtitle, .opt { color: #24292f !important; }
+  .sheet { max-width: 900px; margin: 0 auto; padding: 0 !important; background: #fff !important; box-shadow: none !important; }
+  .intro-card, .score-hero { border: 0 !important; border-radius: 0 !important; padding: 18px 0 !important; }
+  .qframe { border: 0 !important; border-radius: 0 !important; overflow: visible !important; }
+  .qhead { border: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+  .options { padding-left: 0 !important; padding-right: 0 !important; }
+  .opt { border-color: #d0d7de !important; border-radius: 5px !important; }
+  .opt.selected, .opt.reveal-correct, .opt.reveal-wrong { background: #fff !important; }
+  .info-panel { border-top: 1px solid #d0d7de !important; }
+  .bd-bar-track { background: #f6f8fa !important; }
+  .rivet { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <h1>SAA-C03 // hardmode-exam-08</h1>
+    <span class="stamp">ĐỀ 08 · MESSAGING/HYBRID STORAGE/AURORA NÂNG CAO</span>
+  </div>
+</div>
+<div class="cmdline"><span class="prompt">$</span> ./run-exam --set=08 --shuffle=answers --reveal-domain=on-submit</div>
+
+<div class="sheet">
+  <p class="subtitle">Đề né sạch 7 đề trước. Lần này xoáy vào messaging nâng cao (SQS FIFO group, Kinesis Enhanced Fan-Out, SNS→SQS cross-account KMS), hybrid storage (Storage Gateway 3 loại), Aurora nâng cao (Backtrack, custom endpoint, I/O-Optimized), IMDSv2/SSRF, SCP đa Region, Local Zone/Wavelength/Outposts, Dedicated Host BYOL, CloudFormation replacement policy, Network Firewall egress, Transfer Family SFTP, tối ưu chi phí Athena. <b>4 đáp án cân bằng độ dài, xáo vị trí ngẫu nhiên</b> mỗi lần vào câu.</p>
+
+  <div class="intro-card" id="introCard">
+    <h2>▸ Trước khi vào ca</h2>
+    <p>Domain chỉ hiện ra sau khi bạn chốt đáp án — đề thi thật cũng không báo trước câu này thuộc domain nào.</p>
+    <div class="diff-legend">
+      <span class="dchip e">● Dễ — câu 1-7</span>
+      <span class="dchip m">● Trung bình — câu 8-16</span>
+      <span class="dchip h">● Khó — câu 18-22</span>
+      <span class="dchip b">● Não tàn — câu 23-24 (chọn 2)</span>
+    </div>
+    <div class="domain-legend">
+      <span class="dtag secure">Design Secure</span>
+      <span class="dtag resilient">Design Resilient</span>
+      <span class="dtag performing">Design High-Performing</span>
+      <span class="dtag cost">Design Cost-Optimized</span>
+    </div>
+    <div style="margin-top:22px;">
+      <button class="start-btn" onclick="startExam()">Bắt đầu →</button>
+    </div>
+  </div>
+
+  <div id="examArea" style="display:none;">
+    <div class="progress-row">
+      <div class="qcount" id="qcount">Câu 1/28</div>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div id="qContainer"></div>
+    <div class="nav-row">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">← Trước</button>
+      <button class="nav-btn" id="nextBtn" onclick="nextQ()">Tiếp →</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="score-hero">
+      <div class="score-big" id="scoreBig">0/28</div>
+      <div class="score-sub" id="scorePct">0%</div>
+      <div class="verdict-line" id="verdictLine"></div>
+    </div>
+    <div class="breakdown">
+      <h3>▸ Breakdown theo domain</h3>
+      <div id="bdRows"></div>
+    </div>
+    <div class="miss-list" id="missWrap">
+      <h3>▸ Các câu sai — bấm để nhảy lại xem giải thích</h3>
+      <div id="missRows"></div>
+    </div>
+    <button class="restart-btn" onclick="restartExam()">↺ Làm lại từ đầu (xáo lại đáp án)</button>
+  </div>
+</div>
+
+<script>
+const DOMAIN_META = {
+  secure:{label:'Design Secure Architectures', cls:'secure'},
+  resilient:{label:'Design Resilient Architectures', cls:'resilient'},
+  performing:{label:'Design High-Performing Architectures', cls:'performing'},
+  cost:{label:'Design Cost-Optimized Architectures', cls:'cost'}
+};
+const DOMAIN_COLOR = {secure:'var(--cyan)', resilient:'var(--green)', performing:'var(--violet)', cost:'#a15c00'};
+const DIFF_LABEL = {e:'DỄ', m:'TRUNG BÌNH', h:'KHÓ', b:'NÃO TÀN'};
+
+const QUESTIONS = [
+{domain:'secure', diff:'e', multi:false,
+ stem:'Ứng dụng web chạy trên EC2 có lỗ hổng SSRF: kẻ tấn công lừa server gửi request GET tới địa chỉ 169.254.169.254 để lấy temporary credentials của IAM role gắn với instance. Team muốn chặn kiểu tấn công này ở tầng cấu hình instance mà không phải sửa code ứng dụng ngay.',
+ options:[
+   {id:'a', text:'Bắt buộc dùng IMDSv2 (HttpTokens = required) — mọi truy cập metadata phải kèm session token lấy bằng request PUT trước, request GET đơn giản do SSRF gây ra không lấy được token nên không đọc được credentials.'},
+   {id:'b', text:'Thêm outbound rule vào Security Group của instance để chặn traffic tới 169.254.169.254, vì Security Group lọc được mọi traffic đi ra kể cả tới dịch vụ metadata của instance.'},
+   {id:'c', text:'Gỡ IAM role khỏi instance và lưu access key dài hạn trong biến môi trường của ứng dụng, để không còn credentials tạm thời nào có thể bị lấy qua dịch vụ metadata.'},
+   {id:'d', text:'Giữ nguyên IMDSv1 nhưng thu hẹp IAM policy của role xuống quyền tối thiểu, để nếu credentials bị lấy thì phạm vi thiệt hại nhỏ hơn so với hiện tại.'}
+ ],
+ correct:['a'],
+ explain:'IMDSv2 dùng cơ chế phiên: phải gửi request PUT (kèm header) để lấy token rồi mới dùng token đó đọc metadata. Lỗ hổng SSRF thường chỉ điều khiển được request GET đơn giản nên không thể lấy token; hop limit mặc định bằng 1 còn chặn được request đi qua proxy hoặc container.',
+ whyWrong:'Security Group không lọc được traffic tới dịch vụ metadata vì đây là địa chỉ link-local do hypervisor xử lý, nên phương án b vô tác dụng. Phương án c tệ hơn ban đầu vì thay credentials tạm thời bằng access key dài hạn. Phương án d chỉ giảm thiệt hại (least privilege) chứ vẫn để lộ credentials, không chặn được tấn công như đề bài yêu cầu.',
+ tip:'SSRF + lấy credentials qua 169.254.169.254 → bắt buộc IMDSv2. Security Group không lọc được traffic tới metadata service.'
+},
+{domain:'performing', diff:'e', multi:false,
+ stem:'Văn phòng chi nhánh có các ứng dụng cũ chỉ biết đọc/ghi file qua giao thức NFS và SMB. Công ty muốn dữ liệu cuối cùng nằm dưới dạng object trong S3 (để chạy Athena, áp lifecycle rule), nhưng các file dùng nhiều gần đây vẫn phải truy cập nhanh từ mạng nội bộ.',
+ options:[
+   {id:'a', text:'AWS Storage Gateway loại S3 File Gateway — expose share NFS/SMB cho ứng dụng nội bộ, mỗi file được lưu thành 1 object trong S3, có bộ nhớ đệm cục bộ giữ file dùng gần đây để truy cập nhanh.'},
+   {id:'b', text:'AWS Storage Gateway loại Volume Gateway — expose volume block qua iSCSI cho máy chủ, dữ liệu được lưu dưới dạng EBS snapshot chứ không phải object file dùng trực tiếp được với Athena.'},
+   {id:'c', text:'AWS DataSync chạy theo lịch — sao chép file từ NFS/SMB lên S3 định kỳ, nhưng không cung cấp giao thức share để ứng dụng đọc/ghi trực tiếp và liên tục trong ngày.'},
+   {id:'d', text:'Amazon EFS mount qua Direct Connect — ứng dụng dùng NFS trực tiếp được, nhưng dữ liệu nằm trong EFS chứ không phải object S3 và EFS không hỗ trợ giao thức SMB.'}
+ ],
+ correct:['a'],
+ explain:'S3 File Gateway là cầu nối giữa giao thức file (NFS/SMB) và object S3: mỗi file ghi vào share trở thành 1 object, còn cache cục bộ giữ dữ liệu hay dùng để độc lập với độ trễ WAN.',
+ whyWrong:'Volume Gateway phục vụ workload block (iSCSI) và lưu dưới dạng EBS snapshot, không cho ra object file. DataSync là công cụ di chuyển dữ liệu theo lịch chứ không phải share để ứng dụng truy cập liên tục. EFS có NFS nhưng dữ liệu nằm trong EFS, không phải S3, và không hỗ trợ SMB.',
+ tip:'Ứng dụng cũ nói NFS/SMB nhưng dữ liệu phải thành object S3, có cache cục bộ → S3 File Gateway. Cần block iSCSI → Volume Gateway.'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Đội xử lý đơn hàng có 20 consumer gọi ReceiveMessage liên tục trên 1 SQS queue theo vòng lặp không nghỉ. Queue phần lớn thời gian trống nên hoá đơn có số lượng request rỗng rất lớn, nhưng khi có message thì vẫn phải nhận được gần như ngay lập tức.',
+ options:[
+   {id:'a', text:'Bật long polling (ReceiveMessageWaitTimeSeconds tối đa 20 giây) — request được giữ chờ tới khi có message hoặc hết thời gian chờ, giảm mạnh request rỗng mà message vẫn được trả về ngay khi tới.'},
+   {id:'b', text:'Giữ short polling nhưng cho consumer ngủ 60 giây giữa các lần gọi — số request giảm đi nhưng message vừa tới có thể phải chờ tới 1 phút mới được nhận.'},
+   {id:'c', text:'Tăng Visibility Timeout của queue lên mức tối đa — kéo dài thời gian message bị ẩn sau khi được nhận, nhưng không ảnh hưởng gì tới số lượng request rỗng bị tính phí.'},
+   {id:'d', text:'Chuyển queue sang SQS FIFO — đảm bảo thứ tự xử lý message, nhưng đơn giá request cao hơn và không liên quan tới việc giảm số lượng request rỗng.'}
+ ],
+ correct:['a'],
+ explain:'Long polling cho phép SQS giữ request chờ tới 20 giây cho tới khi có message, nên số lần gọi rỗng giảm mạnh (giảm phí) mà độ trễ nhận message vẫn thấp vì message được trả về ngay khi tới.',
+ whyWrong:'Ngủ 60 giây giữa các lần gọi đánh đổi độ trễ để lấy chi phí, vi phạm yêu cầu nhận message gần như ngay lập tức. Visibility Timeout điều khiển thời gian message bị ẩn sau khi nhận, không liên quan tới request rỗng. FIFO tính phí request cao hơn và không thay đổi cơ chế polling.',
+ tip:'Nhiều request ReceiveMessage rỗng làm tốn tiền → long polling. Cost và độ trễ đều tốt hơn short polling kèm sleep.'
+},
+{domain:'resilient', diff:'e', multi:false,
+ stem:'Khi có đơn hàng mới, 3 hệ thống độc lập (kho, thanh toán, email) đều phải nhận cùng sự kiện đó. Mỗi hệ thống xử lý với tốc độ khác nhau, và nếu 1 hệ thống ngừng hoạt động vài giờ thì tuyệt đối không được mất sự kiện dành cho nó.',
+ options:[
+   {id:'a', text:'Publish sự kiện lên 1 SNS topic, mỗi hệ thống có 1 SQS queue riêng subscribe vào topic — mỗi queue nhận 1 bản sao và giữ message bền vững cho tới khi consumer xử lý xong.'},
+   {id:'b', text:'Cho cả 3 hệ thống cùng đọc chung 1 SQS queue — mỗi message chỉ được 1 consumer nhận nên 2 hệ thống còn lại sẽ không bao giờ thấy sự kiện đó.'},
+   {id:'c', text:'Để service đặt hàng ghi tuần tự vào 3 SQS queue riêng — mỗi queue bền vững nhưng nếu lỗi giữa chừng thì chỉ một phần queue nhận được sự kiện, gây bất nhất dữ liệu.'},
+   {id:'d', text:'Subscribe trực tiếp 3 endpoint HTTP của các hệ thống vào SNS topic mà không có queue — với retry policy mặc định chỉ retry trong thời gian ngắn, endpoint down vài giờ sẽ mất sự kiện.'}
+ ],
+ correct:['a'],
+ explain:'Mô hình SNS + SQS fan-out cho mỗi consumer 1 bản sao sự kiện và 1 queue riêng đóng vai trò bộ đệm bền vững, nên consumer chậm hoặc ngừng vài giờ vẫn nhận đủ khi hoạt động lại. Publisher chỉ cần gửi 1 lần lên topic.',
+ whyWrong:'Dùng chung 1 queue là mô hình competing consumers nên mỗi message chỉ tới 1 hệ thống. Ghi tuần tự vào 3 queue khiến publisher phải tự xử lý lỗi từng phần và có nguy cơ bất nhất. Subscribe endpoint trực tiếp không có bộ đệm nên phụ thuộc vào retry policy ngắn của SNS.',
+ tip:'1 sự kiện cần nhiều consumer độc lập, không được mất → SNS + 1 SQS queue cho mỗi consumer (fan-out).'
+},
+{domain:'secure', diff:'e', multi:false,
+ stem:'Kiểm toán viên bên ngoài yêu cầu công ty cung cấp bằng chứng rằng chính AWS (không phải tài khoản của công ty) đạt các chứng nhận SOC 2 và ISO 27001. Team cần tải các báo cáo này về ngay khi cần mà không phải liên hệ bán hàng.',
+ options:[
+   {id:'a', text:'AWS Artifact — cổng self-service để tải báo cáo compliance do kiểm toán viên độc lập cấp cho AWS (SOC, PCI, ISO...) và chấp nhận các thỏa thuận như BAA.'},
+   {id:'b', text:'AWS Audit Manager — tự động thu thập bằng chứng từ các resource trong tài khoản công ty để đánh giá compliance của workload của công ty, không phải báo cáo chứng nhận của AWS.'},
+   {id:'c', text:'AWS Security Hub — tổng hợp finding bảo mật và điểm compliance theo chuẩn cho tài khoản của công ty, không cung cấp báo cáo chứng nhận do kiểm toán viên độc lập cấp cho AWS.'},
+   {id:'d', text:'AWS Trusted Advisor — đưa khuyến nghị best practice về chi phí, hiệu năng và bảo mật cho tài khoản, không phải nơi lưu trữ báo cáo chứng nhận của chính AWS.'}
+ ],
+ correct:['a'],
+ explain:'AWS Artifact là nơi tải báo cáo compliance của chính AWS (SOC, PCI DSS, ISO...) theo kiểu self-service, đúng nhu cầu chứng minh hạ tầng AWS đạt chuẩn khi kiểm toán.',
+ whyWrong:'Audit Manager, Security Hub và Trusted Advisor đều đánh giá TÀI KHOẢN và workload của công ty, không cung cấp báo cáo chứng nhận của AWS với tư cách nhà cung cấp hạ tầng. Ba dịch vụ này hay bị nhầm với Artifact vì đều dính tới chữ compliance.',
+ tip:'Cần báo cáo compliance của CHÍNH AWS → Artifact. Cần đánh giá compliance của workload CỦA MÌNH → Audit Manager/Config/Security Hub.'
+},
+{domain:'secure', diff:'e', multi:false,
+ stem:'EC2 instance dùng địa chỉ IPv6 trong private subnet cần cập nhật package từ internet, nhưng chính sách yêu cầu subnet phải vẫn private: không được có đường nào cho traffic do bên ngoài khởi tạo đi vào instance.',
+ options:[
+   {id:'a', text:'Egress-only Internet Gateway và route ::/0 trỏ tới nó — cho phép instance chủ động đi ra internet qua IPv6, còn kết nối do bên ngoài khởi tạo bị chặn.'},
+   {id:'b', text:'NAT Gateway đặt ở public subnet và route ::/0 trỏ tới nó — NAT Gateway dùng để đưa traffic IPv4 ra internet, không phải cách đưa IPv6 ra internet.'},
+   {id:'c', text:'Internet Gateway thông thường và route ::/0 trỏ tới nó — instance ra được internet nhưng subnet trở thành public, cho phép kết nối từ ngoài vào nếu Security Group mở.'},
+   {id:'d', text:'Gateway VPC Endpoint cho S3 — cho phép truy cập S3 riêng tư từ subnet nhưng không đưa được traffic tới mirror package nằm trên internet.'}
+ ],
+ correct:['a'],
+ explain:'Địa chỉ IPv6 là địa chỉ công khai nên không có NAT như IPv4. Egress-only Internet Gateway là thành phần dành riêng cho IPv6: cho phép kết nối đi ra, chặn kết nối khởi tạo từ ngoài vào, đúng yêu cầu subnet vẫn private.',
+ whyWrong:'NAT Gateway phục vụ IPv4 nên route ::/0 tới NAT Gateway không phải cấu hình đúng. Internet Gateway thường biến subnet thành public. Gateway Endpoint chỉ mở đường riêng tới S3/DynamoDB, không giúp truy cập internet.',
+ tip:'IPv6 + private subnet + chỉ cho đi ra → Egress-only IGW (bản IPv6 của NAT Gateway về mặt mục đích).'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Bảng DynamoDB lưu lịch sử kiểm toán dung lượng hơn 40 TB, phải giữ 7 năm theo quy định và rất hiếm khi được đọc. Hoá đơn cho thấy phần lớn chi phí là phí lưu trữ chứ không phải phí đọc/ghi.',
+ options:[
+   {id:'a', text:'Đổi table class sang DynamoDB Standard-IA — giá lưu trữ mỗi GB thấp hơn, đổi lại phí đọc/ghi cao hơn, phù hợp bảng mà storage chiếm phần lớn chi phí và ít truy cập.'},
+   {id:'b', text:'Chuyển bảng sang On-Demand Capacity Mode — tính phí theo request thực tế, nhưng không thay đổi đơn giá lưu trữ nên không giảm được phần chi phí chủ yếu của bảng này.'},
+   {id:'c', text:'Đặt DAX đứng trước bảng — giảm số lần đọc thẳng vào DynamoDB nhưng không làm giảm dung lượng lưu trữ, và bảng này vốn ít được đọc.'},
+   {id:'d', text:'Bật TTL để tự xoá item cũ — giảm dung lượng lưu trữ nhưng vi phạm yêu cầu phải giữ dữ liệu 7 năm theo quy định.'}
+ ],
+ correct:['a'],
+ explain:'Table class Standard-IA giảm đáng kể đơn giá lưu trữ và tăng đơn giá đọc/ghi, nên có lợi khi lưu trữ chiếm phần lớn chi phí của bảng và tần suất truy cập thấp — đúng mô tả bảng lịch sử kiểm toán này.',
+ whyWrong:'Capacity mode (On-Demand hay Provisioned) chỉ tác động phí throughput, không đổi đơn giá lưu trữ. DAX là cache cho đọc, không giảm dung lượng lưu trữ. TTL xoá dữ liệu nên đi ngược yêu cầu phải giữ 7 năm.',
+ tip:'DynamoDB mà phí storage chiếm phần lớn + ít truy cập → table class Standard-IA. Đổi capacity mode không giảm được phí lưu trữ.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Công ty có 80 account trong Organizations, chính sách yêu cầu chỉ được dùng Region eu-west-1 và eu-central-1 để đảm bảo dữ liệu ở châu Âu, ngoại trừ các dịch vụ global như IAM hay Route 53. Yêu cầu phải áp dụng cho cả account tạo mới sau này và cho root user của từng account con.',
+ options:[
+   {id:'a', text:'SCP gắn ở root hoặc OU với statement Deny kết hợp NotAction (liệt kê dịch vụ global) và điều kiện StringNotEquals aws:RequestedRegion cho 2 Region được phép — chặn mọi action ngoài Region với mọi principal trong account, kể cả root user của account con.'},
+   {id:'b', text:'Permissions Boundary gắn cho mọi IAM role/user với cùng điều kiện về Region — chỉ có tác dụng với entity được gắn boundary, không áp được cho root user và dễ sót entity mới tạo.'},
+   {id:'c', text:'AWS Config Rule kèm auto-remediation tự xoá resource nằm ở Region không được phép — phát hiện sau khi resource đã được tạo (detective), không ngăn được hành động từ đầu.'},
+   {id:'d', text:'IAM policy Deny theo Region gắn vào từng IAM Group ở từng account — phải cấu hình lặp lại ở 80 account, không áp dụng cho root user và bỏ sót account mới.'}
+ ],
+ correct:['a'],
+ explain:'SCP là guardrail cấp Organizations: áp dụng tự động cho account thuộc OU (kể cả account mới) và giới hạn mọi principal trong account con, kể cả root user. Mẫu chuẩn là Deny + NotAction cho dịch vụ global + điều kiện aws:RequestedRegion.',
+ whyWrong:'Permissions Boundary chỉ giới hạn entity được gắn nó, không chạm tới root user. Config Rule + remediation là detective, resource đã bị tạo ra trước khi bị xoá. IAM policy theo từng account phải nhân bản thủ công, bỏ sót account mới và không áp dụng cho root user.',
+ tip:'Cấm Region/dịch vụ trên toàn Organizations, cả root user → SCP Deny + aws:RequestedRegion, nhớ dùng NotAction để chừa dịch vụ global.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'Startup game streaming có người chơi tập trung ở 1 thành phố cách Region gần nhất khoảng 800 km, cần độ trễ đơn vị mili giây tới máy chủ render. Team muốn tiếp tục dùng EC2, EBS và ALB trong cùng VPC hiện có, không mua và lắp đặt phần cứng riêng.',
+ options:[
+   {id:'a', text:'AWS Local Zone — mở rộng VPC sang subnet đặt gần khu vực đô thị, chạy được EC2, EBS và ALB với độ trễ rất thấp tới người dùng ở đó, không cần mua hay lắp phần cứng.'},
+   {id:'b', text:'AWS Wavelength Zone — đặt compute bên trong mạng 5G của nhà mạng để phục vụ thiết bị di động, phù hợp khi client kết nối qua mạng của carrier chứ không phải mọi người dùng.'},
+   {id:'c', text:'AWS Outposts — rack phần cứng AWS lắp trong cơ sở của khách hàng, đáp ứng độ trễ thấp nhưng phải đặt mua, lắp đặt và có mặt bằng riêng.'},
+   {id:'d', text:'Amazon CloudFront — cache nội dung tại edge location, giảm độ trễ cho nội dung tĩnh nhưng không chạy được máy chủ render EC2 cho từng phiên chơi.'}
+ ],
+ correct:['a'],
+ explain:'Local Zone là phần mở rộng của Region đặt gần các trung tâm dân cư: subnet nằm trong VPC hiện có, chạy được EC2/EBS/ALB nên phù hợp workload cần độ trễ thấp cho 1 khu vực mà không cần hạ tầng riêng.',
+ whyWrong:'Wavelength dành cho ứng dụng nhắm vào thiết bị trên mạng 5G của nhà mạng. Outposts đòi hỏi mua rack và đặt trong cơ sở của công ty. CloudFront chỉ cache nội dung, không thay thế được compute render.',
+ tip:'Cần compute độ trễ thấp cho 1 vùng đô thị mà vẫn dùng VPC/dịch vụ AWS quen thuộc → Local Zone. 5G/mobile carrier → Wavelength. Phần cứng tại chỗ → Outposts.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'Kinesis Data Stream có 4 shard đang có 5 ứng dụng consumer cùng đọc (phân tích, gian lận, lưu trữ, dashboard, ML). Các consumer bị chậm và throttle vì phải chia sẻ băng thông đọc 2 MB/s của mỗi shard, dù mỗi ứng dụng đều cần đọc toàn bộ dữ liệu với độ trễ thấp.',
+ options:[
+   {id:'a', text:'Đăng ký các consumer với Enhanced Fan-Out — mỗi consumer nhận đường ống riêng với 2 MB/s trên mỗi shard, dữ liệu được đẩy về consumer nên độ trễ giảm đáng kể so với chia sẻ băng thông.'},
+   {id:'b', text:'Tăng số shard của stream lên gấp đôi — tăng tổng băng thông của stream nhưng mỗi shard vẫn chia sẻ 2 MB/s cho toàn bộ 5 consumer, lại tốn thêm chi phí shard.'},
+   {id:'c', text:'Thay Kinesis Data Streams bằng Kinesis Data Firehose — Firehose chỉ giao dữ liệu tới đích như S3 hoặc Redshift, không phục vụ được 5 ứng dụng tự đọc với logic riêng.'},
+   {id:'d', text:'Tăng thời gian lưu giữ dữ liệu (retention) của stream lên tối đa — cho phép đọc lại dữ liệu cũ lâu hơn nhưng không thay đổi băng thông đọc của mỗi shard.'}
+ ],
+ correct:['a'],
+ explain:'Với consumer dùng shared throughput, cả stream chia nhau 2 MB/s cho mỗi shard. Enhanced Fan-Out cấp cho mỗi consumer đã đăng ký 2 MB/s riêng trên mỗi shard, đẩy dữ liệu qua HTTP/2 với độ trễ thấp — giải quyết đúng vấn đề nhiều consumer tranh nhau băng thông.',
+ whyWrong:'Thêm shard làm tăng dung lượng ghi và tổng đọc nhưng các consumer vẫn chia chung băng thông từng shard. Firehose là dịch vụ giao dữ liệu tới đích, không phải nơi nhiều ứng dụng tự đọc. Retention không liên quan tới băng thông đọc.',
+ tip:'Nhiều consumer đọc cùng 1 Kinesis stream bị throttle/chậm → Enhanced Fan-Out (băng thông riêng cho mỗi consumer).'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Hệ thống giao dịch phải xử lý các lệnh của cùng 1 khách hàng đúng thứ tự gửi lên và không xử lý trùng lệnh, nhưng lệnh của các khách hàng khác nhau vẫn phải xử lý song song để đạt thông lượng cao. Team chọn SQS FIFO.',
+ options:[
+   {id:'a', text:'Dùng SQS FIFO và đặt MessageGroupId là ID khách hàng, kèm MessageDeduplicationId — thứ tự được đảm bảo trong từng group còn các group khác nhau vẫn được xử lý song song.'},
+   {id:'b', text:'Dùng SQS FIFO và đặt cùng 1 MessageGroupId cho mọi message — đảm bảo thứ tự toàn cục nhưng toàn bộ message bị xếp thành 1 dòng, mất khả năng xử lý song song giữa các khách hàng.'},
+   {id:'c', text:'Dùng SQS Standard và tự sắp xếp lại theo số thứ tự ở consumer — Standard không đảm bảo thứ tự và chỉ đảm bảo at-least-once nên phải tự viết logic sắp xếp và chống trùng.'},
+   {id:'d', text:'Dùng SQS Standard với Visibility Timeout đặt thật dài — Visibility Timeout không ảnh hưởng tới thứ tự nhận message cũng như việc trùng lặp message.'}
+ ],
+ correct:['a'],
+ explain:'FIFO đảm bảo thứ tự trong phạm vi từng MessageGroupId và loại trùng qua deduplication. Chọn group theo khách hàng nghĩa là lệnh cùng khách hàng đi tuần tự còn các khách hàng khác nhau được nhiều consumer xử lý song song.',
+ whyWrong:'Dùng 1 group duy nhất khiến cả hệ thống xử lý nối tiếp, mất thông lượng. Standard queue không đảm bảo thứ tự và chỉ đảm bảo giao ít nhất 1 lần nên phải tự gánh logic phức tạp. Visibility Timeout không liên quan tới thứ tự hay trùng lặp.',
+ tip:'Cần thứ tự theo từng thực thể (khách hàng, đơn hàng) nhưng vẫn song song giữa các thực thể → FIFO với MessageGroupId = ID của thực thể đó.'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Cluster Aurora MySQL đã bật Backtrack với cửa sổ 24 giờ. 10 phút trước, 1 lập trình viên chạy nhầm câu UPDATE không có WHERE làm hỏng dữ liệu bảng khách hàng. Team muốn đưa dữ liệu về thời điểm ngay trước lỗi nhanh nhất có thể, giữ nguyên cluster và endpoint hiện tại.',
+ options:[
+   {id:'a', text:'Backtrack cluster về thời điểm ngay trước câu UPDATE lỗi — tua ngược dữ liệu tại chỗ trong vài phút mà không tạo cluster mới và không đổi endpoint.'},
+   {id:'b', text:'Restore point-in-time thành 1 cluster mới — tạo cluster riêng có endpoint mới, mất nhiều thời gian hơn và ứng dụng phải trỏ lại sang endpoint mới.'},
+   {id:'c', text:'Failover sang Aurora Replica trong cluster — replica đã sao chép luôn câu UPDATE lỗi nên dữ liệu ở replica cũng bị hỏng như primary.'},
+   {id:'d', text:'Restore từ automated snapshot gần nhất — tạo cluster mới từ snapshot và mất toàn bộ thay đổi hợp lệ được ghi sau thời điểm chụp snapshot đó.'}
+ ],
+ correct:['a'],
+ explain:'Aurora Backtrack (chỉ có ở Aurora MySQL) cho phép tua cluster về 1 thời điểm trong cửa sổ đã cấu hình mà không phải restore: nhanh, không tạo cluster mới, endpoint giữ nguyên — đúng yêu cầu của đề.',
+ whyWrong:'PITR và restore từ snapshot đều tạo cluster mới với endpoint khác nên chậm hơn và cần đổi cấu hình ứng dụng. Failover sang replica vô ích vì replication đã mang thay đổi lỗi sang replica. Phương án d còn mất luôn dữ liệu hợp lệ sau thời điểm snapshot.',
+ tip:'Lỗi người dùng trên Aurora MySQL, cần rewind nhanh tại chỗ không tạo cluster mới → Backtrack. Backtrack không có ở Aurora PostgreSQL.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Hợp đồng với khách hàng châu Âu quy định traffic của người dùng tại EU chỉ được xử lý bởi hệ thống đặt ở Frankfurt, kể cả khi 1 Region khác có độ trễ thấp hơn cho họ. Team cần cấu hình Route 53 để tuân thủ quy định này.',
+ options:[
+   {id:'a', text:'Geolocation routing policy — định tuyến theo vị trí địa lý của người dùng, map châu Âu sang endpoint Frankfurt kèm 1 default record cho các vị trí chưa được map.'},
+   {id:'b', text:'Latency-based routing policy — trả về endpoint có độ trễ thấp nhất, nên người dùng EU có thể bị đưa sang Region khác nếu Region đó nhanh hơn, vi phạm hợp đồng.'},
+   {id:'c', text:'Geoproximity routing policy — định tuyến theo khoảng cách địa lý có thể điều chỉnh bằng bias, không cam kết ranh giới cứng theo vùng pháp lý nên không đảm bảo tuân thủ.'},
+   {id:'d', text:'Weighted routing policy — chia traffic theo tỷ trọng giữa các endpoint, không dựa vào vị trí người dùng nên không thể đảm bảo người dùng EU luôn tới Frankfurt.'}
+ ],
+ correct:['a'],
+ explain:'Geolocation routing dựa trên vị trí thực của người dùng (châu lục, quốc gia) để chọn endpoint, nên áp được ràng buộc pháp lý "người dùng EU luôn tới Frankfurt". Nên có default record để người dùng ở vị trí chưa map không bị lỗi NXDOMAIN.',
+ whyWrong:'Latency-based tối ưu tốc độ chứ không ràng buộc vùng pháp lý. Geoproximity tính theo khoảng cách và bias, biên giới không cứng. Weighted chia theo tỷ trọng, hoàn toàn không xét vị trí người dùng.',
+ tip:'Ràng buộc pháp lý theo vị trí người dùng → Geolocation. Tối ưu tốc độ → Latency. Điều chỉnh tải giữa Region theo khoảng cách → Geoproximity.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'Công ty đã mua sẵn license Windows Server và SQL Server theo mô hình per-socket/per-core và muốn mang lên AWS (BYOL) thay vì trả phí license-included. Theo điều khoản license, họ phải chứng minh được số socket và core vật lý đang dùng, đồng thời giữ workload trên 1 máy vật lý cố định.',
+ options:[
+   {id:'a', text:'EC2 Dedicated Host — cấp nguyên 1 server vật lý riêng, hiển thị số socket/core và host ID, hỗ trợ host affinity để đáp ứng ràng buộc license theo socket/core.'},
+   {id:'b', text:'EC2 Dedicated Instances — instance chạy trên phần cứng dành riêng cho tài khoản nhưng không cho biết số socket/core và không kiểm soát host cụ thể nên không đáp ứng yêu cầu chứng minh license.'},
+   {id:'c', text:'EC2 On-Demand tenancy mặc định dùng AMI license-included — phí license nằm trong giá theo giờ của instance, không tận dụng được license đã mua sẵn của công ty.'},
+   {id:'d', text:'On-Demand Capacity Reservation trong 1 AZ — đảm bảo có capacity khi cần nhưng instance vẫn chạy trên phần cứng chia sẻ, không cho thấy số socket/core vật lý.'}
+ ],
+ correct:['a'],
+ explain:'Dedicated Host cho khách hàng thấy và kiểm soát server vật lý (số socket, core, host ID, affinity), là lựa chọn thực tế để dùng lại license per-socket/per-core và tiết kiệm phí license-included.',
+ whyWrong:'Dedicated Instances chỉ cô lập phần cứng, không lộ socket/core hay cho ghim vào 1 host cụ thể. AMI license-included khiến công ty trả phí license 2 lần. Capacity Reservation chỉ giữ chỗ capacity, không đổi mô hình tenancy.',
+ tip:'BYOL theo socket/core và phải chứng minh phần cứng vật lý → Dedicated Host, không phải Dedicated Instances.'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Sự kiện ra mắt sản phẩm kéo dài 3 ngày cần đảm bảo có sẵn 200 instance c5.4xlarge trong 1 AZ cụ thể, không được phép báo lỗi thiếu capacity. Công ty không muốn cam kết 1 hoặc 3 năm chỉ cho nhu cầu ngắn hạn này.',
+ options:[
+   {id:'a', text:'On-Demand Capacity Reservation — giữ chỗ 200 instance trong AZ đã chọn, tạo hoặc huỷ bất kỳ lúc nào không ràng buộc thời hạn, tính phí theo giá On-Demand kể cả khi chưa dùng hết.'},
+   {id:'b', text:'Regional Reserved Instance 1 năm — giảm giá theo cam kết nhưng phạm vi Regional không giữ chỗ capacity, và bắt buộc cam kết 1 năm dài hơn nhiều so với nhu cầu.'},
+   {id:'c', text:'Zonal Reserved Instance 1 năm — có giữ chỗ capacity trong AZ nhưng phải cam kết 1 năm, không phù hợp với sự kiện chỉ kéo dài 3 ngày.'},
+   {id:'d', text:'Compute Savings Plan — giảm giá theo cam kết chi tiêu nhưng không giữ chỗ capacity trong bất kỳ AZ nào nên vẫn có thể gặp lỗi thiếu capacity.'}
+ ],
+ correct:['a'],
+ explain:'Capacity Reservation tách việc giữ chỗ capacity khỏi việc cam kết giá: có thể tạo trước sự kiện, huỷ sau sự kiện, không ràng buộc thời hạn. Đổi lại phải trả phí On-Demand cho phần đã giữ dù chưa dùng.',
+ whyWrong:'Regional RI và Savings Plan là công cụ giảm giá, không đảm bảo capacity. Zonal RI có giữ capacity nhưng đòi hỏi cam kết 1-3 năm, quá dài cho sự kiện 3 ngày.',
+ tip:'Cần ĐẢM BẢO capacity trong thời gian ngắn, không cam kết dài hạn → On-Demand Capacity Reservation. Muốn GIẢM GIÁ → RI/Savings Plan, chúng không phải công cụ giữ chỗ.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Các microservice nội bộ gọi 1 REST API trên API Gateway và API này chỉ được truy cập từ bên trong 3 VPC của công ty. Yêu cầu bảo mật: endpoint không được phép truy cập được từ internet công cộng dưới bất kỳ hình thức nào.',
+ options:[
+   {id:'a', text:'Private REST API gọi qua Interface VPC Endpoint (execute-api) kèm resource policy chỉ cho phép request đến từ các VPC endpoint đã chọn — API không có endpoint công khai.'},
+   {id:'b', text:'Regional API với AWS WAF chỉ cho phép dải IP của công ty — endpoint vẫn có địa chỉ công khai trên internet, chỉ bị lọc bằng rule.'},
+   {id:'c', text:'Edge-optimized API đứng sau CloudFront với geo restriction — API vẫn truy cập được từ internet qua CloudFront, geo restriction chỉ lọc theo quốc gia.'},
+   {id:'d', text:'Regional API yêu cầu API key trong header — API key là cơ chế giới hạn/tính quota, endpoint vẫn công khai và không phải phương tiện xác thực bảo mật chính.'}
+ ],
+ correct:['a'],
+ explain:'Private API chỉ truy cập được qua Interface VPC Endpoint của execute-api, không có endpoint công khai. Resource policy giới hạn thêm chỉ cho phép request đi qua VPC endpoint được chỉ định — đáp ứng yêu cầu không truy cập được từ internet.',
+ whyWrong:'Regional và Edge-optimized đều là endpoint công khai; WAF, geo restriction hay API key chỉ lọc hoặc kiểm soát request chứ không loại bỏ khả năng truy cập từ internet.',
+ tip:'API chỉ dùng nội bộ trong VPC, tuyệt đối không public → Private API Gateway + Interface VPC Endpoint + resource policy.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Chi nhánh có bộ dữ liệu 3 TB phục vụ ứng dụng cần đọc/ghi qua iSCSI với độ trễ thấp trên TOÀN BỘ dữ liệu (không chỉ phần nóng), đồng thời muốn có bản sao lưu bất đồng bộ dạng point-in-time lên AWS. Đường truyền WAN chậm và đôi lúc gián đoạn.',
+ options:[
+   {id:'a', text:'Volume Gateway chế độ stored volumes — dữ liệu chính nằm cục bộ nên đọc/ghi toàn bộ dữ liệu ở tốc độ mạng nội bộ, đồng thời sao lưu bất đồng bộ thành EBS snapshot lên AWS.'},
+   {id:'b', text:'Volume Gateway chế độ cached volumes — dữ liệu chính nằm trong S3, chỉ dữ liệu hay dùng được cache cục bộ nên đọc dữ liệu nguội phải đi qua WAN chậm và gián đoạn.'},
+   {id:'c', text:'S3 File Gateway — expose NFS/SMB cho file chứ không phải block iSCSI, và cũng chỉ giữ cache cục bộ cho dữ liệu dùng gần đây.'},
+   {id:'d', text:'Tape Gateway — mô phỏng thư viện băng từ ảo cho phần mềm backup, không phải volume iSCSI để ứng dụng đọc/ghi trực tiếp với độ trễ thấp.'}
+ ],
+ correct:['a'],
+ explain:'Stored volumes giữ TOÀN BỘ dữ liệu chính tại chỗ nên mọi truy cập đều ở tốc độ mạng nội bộ, độc lập với WAN; AWS chỉ nhận bản sao lưu bất đồng bộ dưới dạng EBS snapshot. Cached volumes làm ngược lại: dữ liệu chính ở S3, chỉ cache phần nóng.',
+ whyWrong:'Cached volumes làm dữ liệu nguội phải tải qua WAN yếu. File Gateway dùng giao thức file và cũng chỉ cache. Tape Gateway phục vụ phần mềm backup, không phải block storage cho ứng dụng.',
+ tip:'Cần TOÀN BỘ dataset ở local + backup lên cloud → Volume Gateway stored. Chỉ cần cache phần nóng, dữ liệu chính ở S3 → cached volumes.'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'SNS topic ở Account A cần gửi message vào SQS queue ở Account B. Queue ở Account B được mã hoá bằng 1 customer managed key (CMK) của chính Account B. Sau khi tạo subscription, message không tới queue và publish bị lỗi liên quan tới quyền.',
+ options:[
+   {id:'a', text:'Chỉ cần thêm statement vào SQS queue policy cho phép topic ARN gửi message — đủ cho queue không mã hoá, nhưng queue mã hoá CMK còn cần cấp thêm quyền ở phía key.'},
+   {id:'b', text:'Queue policy cho phép sns.amazonaws.com SendMessage với điều kiện aws:SourceArn là topic, và key policy của CMK cho phép sns.amazonaws.com dùng kms:GenerateDataKey* và kms:Decrypt.'},
+   {id:'c', text:'Đổi queue sang AWS managed key aws/sqs để mọi service đều dùng được — key policy của AWS managed key không chỉnh sửa được nên không cấp quyền cho SNS ở tài khoản khác.'},
+   {id:'d', text:'Cho IAM role của Account A quyền sqs:SendMessage lên queue — SNS gửi message bằng service principal của chính nó chứ không dùng IAM role của người tạo topic.'}
+ ],
+ correct:['b'],
+ explain:'Với SNS gửi vào SQS khác account, queue policy phải cho service principal sns.amazonaws.com gửi message (nên giới hạn bằng aws:SourceArn). Nếu queue mã hoá bằng CMK, key policy cũng phải cho sns.amazonaws.com dùng kms:GenerateDataKey* và kms:Decrypt; thiếu 1 trong 2 lớp là publish thất bại.',
+ whyWrong:'Phương án a thiếu lớp KMS nên vẫn lỗi. AWS managed key không cho sửa key policy nên không cấp thêm quyền được cho SNS. IAM role ở Account A vô tác dụng vì SNS không assume role đó khi giao message.',
+ tip:'SNS → SQS mã hoá CMK, khác account: cần CẢ queue policy (SNS + SourceArn) LẪN key policy (SNS được GenerateDataKey/Decrypt). AWS managed key không đủ linh hoạt cho trường hợp này.'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Template CloudFormation quản lý 1 RDS instance production. Lần cập nhật sắp tới thay đổi thuộc tính khiến RDS instance phải bị thay thế (replacement). Team vẫn muốn cho phép cập nhật stack nhưng tuyệt đối không được mất dữ liệu nếu resource bị thay thế.',
+ options:[
+   {id:'a', text:'Xem trước bằng Change Set để thấy Replacement: True, đồng thời đặt UpdateReplacePolicy: Snapshot (kèm DeletionPolicy: Snapshot) trên resource để có snapshot trước khi bản cũ bị thay thế.'},
+   {id:'b', text:'Chỉ đặt DeletionPolicy: Snapshot — thuộc tính này chỉ có tác dụng khi resource bị xoá hoặc stack bị xoá, không áp dụng khi resource bị thay thế trong lúc update.'},
+   {id:'c', text:'Gắn Stack Policy Deny mọi hành động Update lên RDS instance — bảo vệ được dữ liệu nhưng chặn luôn cả các cập nhật hợp lệ mà đề bài vẫn muốn cho phép.'},
+   {id:'d', text:'Bật Termination Protection cho stack — chỉ chặn việc xoá cả stack, không có tác dụng khi 1 resource bên trong bị thay thế trong lúc cập nhật.'}
+ ],
+ correct:['a'],
+ explain:'UpdateReplacePolicy quyết định điều gì xảy ra với resource CŨ khi nó bị thay thế lúc update (Snapshot/Retain/Delete), còn DeletionPolicy chỉ áp dụng khi xoá. Kết hợp Change Set để xem trước resource nào bị thay thế giúp cập nhật an toàn mà vẫn được phép diễn ra.',
+ whyWrong:'DeletionPolicy đơn lẻ không bao phủ trường hợp replacement. Stack Policy Deny chặn hẳn việc update thay vì làm cho update an toàn. Termination Protection chỉ ngăn xoá stack.',
+ tip:'Resource stateful (RDS, EBS...) có thể bị thay thế khi update → UpdateReplacePolicy + xem Change Set. DeletionPolicy chỉ lo phần xoá, không lo phần replacement.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Cluster Aurora có 3 replica nhỏ phục vụ đọc cho ứng dụng và 2 replica lớn (r6g.4xlarge) mua để chạy báo cáo phân tích nặng. Hiện các query báo cáo thỉnh thoảng rơi vào replica nhỏ làm chậm ứng dụng. Team muốn báo cáo chỉ chạy trên 2 replica lớn, vẫn có cân bằng tải và failover giữa 2 replica đó.',
+ options:[
+   {id:'a', text:'Tạo custom endpoint loại reader chỉ chứa 2 replica lớn, cho công cụ báo cáo kết nối tới đó — traffic được cân bằng giữa 2 replica và tự loại bỏ replica lỗi.'},
+   {id:'b', text:'Dùng reader endpoint mặc định của cluster — endpoint này cân bằng tải qua TẤT CẢ replica nên query báo cáo vẫn có thể rơi vào replica nhỏ.'},
+   {id:'c', text:'Cho công cụ báo cáo kết nối vào cluster endpoint — endpoint này luôn trỏ tới instance writer nên báo cáo nặng sẽ tranh tài nguyên với ghi của ứng dụng.'},
+   {id:'d', text:'Hard-code instance endpoint của từng replica lớn trong công cụ báo cáo — chỉ định được instance nhưng mất cân bằng tải và failover tự động khi 1 replica lỗi.'}
+ ],
+ correct:['a'],
+ explain:'Aurora custom endpoint cho phép gom 1 nhóm instance (ở đây là 2 replica lớn) thành 1 endpoint riêng: kết nối được cân bằng trong nhóm và tự loại instance lỗi, đồng thời tách biệt hẳn workload phân tích khỏi replica phục vụ ứng dụng.',
+ whyWrong:'Reader endpoint mặc định phân phối qua toàn bộ replica. Cluster endpoint trỏ tới writer nên báo cáo nặng đè lên workload ghi. Instance endpoint hard-code làm mất cân bằng tải và failover.',
+ tip:'Muốn tách 1 nhóm replica riêng cho workload đặc thù (analytics) mà vẫn có load balancing/failover → Aurora custom endpoint.'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'Công ty tài chính có nhiều VPC dùng chung 1 inspection VPC qua Transit Gateway. Yêu cầu: chỉ cho phép traffic HTTPS đi ra tới danh sách domain được duyệt (lọc theo SNI/tên miền), đồng thời áp dụng signature phát hiện và ngăn chặn xâm nhập (IPS) cho traffic đi ra, kể cả khi malware kết nối thẳng bằng IP.',
+ options:[
+   {id:'a', text:'AWS Network Firewall đặt trong inspection VPC — stateful rule group hỗ trợ domain list (lọc theo SNI/host) và rule IPS tương thích Suricata, kiểm tra được traffic dù kết nối bằng IP hay tên miền.'},
+   {id:'b', text:'Network ACL ở từng subnet — chỉ lọc theo IP, port, protocol theo kiểu stateless, không lọc được theo tên miền và không có khả năng phát hiện xâm nhập bằng signature.'},
+   {id:'c', text:'Route 53 Resolver DNS Firewall — chặn được các truy vấn DNS tới tên miền không được phép nhưng malware kết nối thẳng bằng địa chỉ IP sẽ đi vòng qua và không thực hiện truy vấn DNS.'},
+   {id:'d', text:'AWS WAF gắn vào ALB — bảo vệ traffic HTTP vào ứng dụng phía sau ALB, không phải công cụ kiểm tra traffic đi ra từ các VPC.'}
+ ],
+ correct:['a'],
+ explain:'Network Firewall là dịch vụ firewall managed cho VPC: có stateful rule group lọc theo domain (SNI/host header), engine IPS tương thích Suricata, và triển khai tập trung ở inspection VPC kết hợp Transit Gateway — bao phủ cả traffic đi ra bằng IP lẫn tên miền.',
+ whyWrong:'NACL là stateless, chỉ lọc IP/port. DNS Firewall chỉ chặn ở tầng truy vấn DNS nên bị bỏ qua khi kết nối thẳng bằng IP. WAF bảo vệ ứng dụng web ở ALB/CloudFront/API Gateway, không kiểm tra traffic egress của VPC.',
+ tip:'Lọc egress theo domain + IPS, kiểm tra tập trung nhiều VPC → AWS Network Firewall. DNS Firewall chỉ lọc tầng DNS, dễ bị vượt qua bằng IP.'
+},
+{domain:'cost', diff:'h', multi:false,
+ stem:'Cluster Aurora PostgreSQL chạy workload I/O cực nặng, khó dự đoán theo ngày. Phân tích hoá đơn cho thấy phí I/O (theo số request) chiếm khoảng 40% tổng chi phí Aurora hàng tháng. Team muốn giảm chi phí và có hoá đơn dễ dự đoán hơn, không sửa code ứng dụng.',
+ options:[
+   {id:'a', text:'Chuyển cấu hình cluster sang Aurora I/O-Optimized — không tính phí theo số request I/O, đổi lại giá instance và storage cao hơn; thường có lợi khi phí I/O vượt khoảng 25% tổng chi phí Aurora.'},
+   {id:'b', text:'Chuyển sang Aurora Serverless v2 — tự co giãn capacity theo tải nhưng mô hình tính phí I/O theo request vẫn giữ nguyên nên không xử lý được phần chiếm 40% chi phí.'},
+   {id:'c', text:'Thêm nhiều Aurora Replica để chia tải đọc — làm tăng số instance phải trả tiền và không xoá được phí I/O, thậm chí tăng tổng chi phí.'},
+   {id:'d', text:'Mua Reserved Instance cho các instance Aurora — chỉ giảm phần chi phí instance, phần phí I/O chiếm 40% vẫn tính như cũ.'}
+ ],
+ correct:['a'],
+ explain:'Aurora I/O-Optimized loại bỏ phí theo request I/O và thay bằng giá instance/storage cao hơn. Khi I/O chiếm tỷ trọng lớn (thường trên khoảng 25% chi phí Aurora), cấu hình này giúp giảm chi phí và làm hoá đơn ổn định, dễ dự đoán, không cần đổi code.',
+ whyWrong:'Serverless v2 và thêm replica không thay đổi cách tính phí I/O. Reserved Instance chỉ giảm giá phần instance. Cả 3 phương án đều không nhắm vào khoản phí I/O chiếm 40%.',
+ tip:'Aurora có phí I/O trên khoảng 25% tổng hoá đơn, workload I/O nặng → cân nhắc Aurora I/O-Optimized (hết phí theo request I/O).'
+},
+{domain:'secure', diff:'b', multi:true,
+ stem:'Công ty cần cho các đối tác gửi file lên S3 bằng SFTP (công cụ cũ của đối tác chỉ biết SFTP). Yêu cầu: mỗi đối tác chỉ thấy đúng thư mục của mình, chỉ kết nối được từ dải IP đã đăng ký, và công ty không muốn tự chạy hay vá máy chủ SFTP. Chọn 2 việc cần làm.',
+ options:[
+   {id:'a', text:'Dùng AWS Transfer Family với user quản lý bởi dịch vụ, mỗi user có logical home directory ánh xạ vào prefix S3 riêng và IAM role giới hạn đúng prefix đó — đối tác chỉ nhìn thấy phần của mình.'},
+   {id:'b', text:'Đặt endpoint của Transfer Family trong VPC và gắn Security Group chỉ cho phép cổng 22 từ các dải IP của đối tác — kiểm soát nguồn kết nối ở tầng mạng.'},
+   {id:'c', text:'Dùng endpoint công khai với 1 user dùng chung và quy ước đặt tên thư mục cho từng đối tác — mọi đối tác đăng nhập chung nên có thể xem file của nhau nếu biết đường dẫn.'},
+   {id:'d', text:'Đặt ACL riêng cho từng đối tác trên bucket và cho đối tác dùng trực tiếp S3 API — S3 không nói SFTP nên công cụ chỉ biết SFTP của đối tác không dùng được cách này.'}
+ ],
+ correct:['a','b'],
+ explain:'Cần cả 2 lớp: (1) Transfer Family với logical directory và IAM role theo prefix để mỗi đối tác chỉ thấy dữ liệu của mình mà không phải tự vận hành máy chủ SFTP; (2) endpoint trong VPC kèm Security Group để chỉ chấp nhận kết nối từ IP của đối tác.',
+ whyWrong:'User dùng chung cùng quy ước tên thư mục không tạo ra cách ly thật giữa các đối tác. ACL kèm S3 API không đáp ứng yêu cầu bắt buộc phải dùng SFTP vì S3 không cung cấp giao thức này.',
+ tip:'SFTP vào S3, mỗi đối tác thấy phần riêng, giới hạn IP, không tự quản lý server → Transfer Family (logical directory + IAM role) và endpoint VPC với Security Group.'
+},
+{domain:'cost', diff:'b', multi:true,
+ stem:'Bảng log 12 TB dạng CSV thô nằm trong S3. Phân tích viên chạy Athena mỗi ngày, mỗi query đều quét gần hết dữ liệu dù chỉ cần 3 cột và dữ liệu của 1 ngày, khiến phí Athena (tính theo dung lượng dữ liệu được quét) rất cao. Chọn 2 hành động giảm chi phí hiệu quả nhất.',
+ options:[
+   {id:'a', text:'Chuyển dữ liệu sang định dạng cột như Parquet hoặc ORC (có nén) — Athena chỉ đọc đúng các cột được truy vấn thay vì quét cả dòng, giảm mạnh dung lượng bị quét.'},
+   {id:'b', text:'Phân vùng (partition) dữ liệu theo ngày và lọc theo cột partition trong mệnh đề WHERE — Athena bỏ qua các partition không liên quan thay vì quét toàn bộ 12 TB.'},
+   {id:'c', text:'Thêm LIMIT vào mọi query vì Athena chỉ tính phí theo số dòng trả về — thực tế Athena tính theo dung lượng dữ liệu quét, LIMIT thường không giảm được lượng dữ liệu phải quét.'},
+   {id:'d', text:'Chuyển dữ liệu cũ sang Glacier Flexible Retrieval để giảm phí lưu trữ — Athena không truy vấn được object đã archive nếu chưa restore, nên cách này làm hỏng chính việc phân tích.'}
+ ],
+ correct:['a','b'],
+ explain:'Athena tính tiền theo dung lượng dữ liệu quét. Định dạng cột (Parquet/ORC) giúp chỉ đọc các cột cần thiết, còn partition theo ngày giúp bỏ qua phần lớn dữ liệu — hai kỹ thuật bổ sung nhau và là cách tiết kiệm chuẩn nhất.',
+ whyWrong:'LIMIT không đổi cơ sở tính phí (dung lượng quét), nhiều query vẫn phải quét đủ dữ liệu trước khi giới hạn kết quả. Glacier không giúp vì Athena không đọc được object đã archive trừ khi restore, và cũng không giảm dung lượng phải quét của dữ liệu còn lại.',
+ tip:'Giảm phí Athena = giảm dữ liệu bị quét: định dạng cột (Parquet/ORC) + partition + lọc theo partition. LIMIT không giúp giảm phí.'
+}
+];
+
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function startExam(){
+  document.getElementById('introCard').style.display='none';
+  document.getElementById('examArea').style.display='block';
+  renderDots();
+  renderQuestion();
+}
+
+function renderDots(){
+  const wrap = document.getElementById('dots');
+  wrap.innerHTML='';
+  QUESTIONS.forEach((q,i)=>{
+    const d = document.createElement('div');
+    d.className='dot'+(i===current?' current':'')+(answers[i]&&answers[i].submitted?(answers[i].correct?' answered correct':' answered wrong'):'');
+    d.title='Câu '+(i+1);
+    d.onclick=()=>{ current=i; renderQuestion(); };
+    wrap.appendChild(d);
+  });
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById('qcount').textContent = 'Câu '+(current+1)+'/'+QUESTIONS.length;
+  let state = answers[current];
+  if(!state){
+    state = {selected:[], submitted:false, correct:false, order:shuffleArr(q.options.map(o=>o.id))};
+    answers[current] = state;
+  }
+
+  const isMulti = q.multi;
+  const orderedOpts = state.order.map(id => q.options.find(o=>o.id===id));
+
+  let optsHtml = '';
+  orderedOpts.forEach(opt=>{
+    let cls = 'opt'+(isMulti?' multi':'');
+    if(!state.submitted){
+      if(state.selected.includes(opt.id)) cls += ' selected';
+    } else {
+      const isCorrect = q.correct.includes(opt.id);
+      const wasSelected = state.selected.includes(opt.id);
+      if(isCorrect) cls += ' reveal-correct';
+      else if(wasSelected) cls += ' reveal-wrong';
+      cls += ' locked';
+    }
+    optsHtml += '<div class="'+cls+'" onclick="toggleOpt(\''+opt.id+'\')"><div class="mark"></div><div>'+opt.text+'</div></div>';
+  });
+
+  let infoHtml = '';
+  if(state.submitted){
+    const domain = DOMAIN_META[q.domain];
+    infoHtml = '<div class="info-panel show">'
+      + '<div class="verdict '+(state.correct?'ok':'no')+'">'+(state.correct?'✓ CHÍNH XÁC':'✕ CHƯA ĐÚNG')
+      + '<span class="domain-pill dtag '+domain.cls+'">'+domain.label+'</span></div>'
+      + '<p>'+q.explain+'</p>'
+      + '<div class="why-wrong"><b>Vì sao đáp án khác nghe có lý nhưng sai:</b> '+q.whyWrong+'</div>'
+      + '<div class="tip-line"><b>Chốt hạ:</b> '+q.tip+'</div>'
+      + '</div>';
+  }
+
+  const diffCls = q.diff;
+  document.getElementById('qContainer').innerHTML =
+    '<div class="qframe">'
+    + '<div class="qtag-corner">Q'+String(current+1).padStart(2,'0')+'</div>'
+    + '<div class="qhead"><div class="qnum-row"><span class="qnum">CÂU '+(current+1)+' / '+QUESTIONS.length+'</span>'
+    + '<span class="diff-badge '+diffCls+'">'+DIFF_LABEL[diffCls]+'</span></div>'
+    + '<div class="qstem">'+q.stem+'</div>'
+    + (isMulti?'<div class="multi-note">⚠ Chọn đúng 2 đáp án</div>':'')
+    + '</div>'
+    + '<div class="options">'+optsHtml+'</div>'
+    + (!state.submitted?'<div class="qactions"><button class="check-btn" id="checkBtn" onclick="submitAnswer()" '+(state.selected.length===0?'disabled':'')+'>Kiểm tra đáp án</button></div>':'')
+    + infoHtml
+    + '</div>';
+
+  document.getElementById('prevBtn').disabled = current===0;
+  document.getElementById('nextBtn').textContent = current===QUESTIONS.length-1 ? 'Xem kết quả →' : 'Tiếp →';
+  renderDots();
+}
+
+function toggleOpt(id){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  if(state.submitted) return;
+  if(q.multi){
+    const idx = state.selected.indexOf(id);
+    if(idx>=0) state.selected.splice(idx,1);
+    else {
+      if(state.selected.length < q.correct.length) state.selected.push(id);
+      else { state.selected.shift(); state.selected.push(id); }
+    }
+  } else {
+    state.selected = [id];
+  }
+  renderQuestion();
+}
+
+function submitAnswer(){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  const sel = [...state.selected].sort();
+  const cor = [...q.correct].sort();
+  state.correct = sel.length===cor.length && sel.every((v,i)=>v===cor[i]);
+  state.submitted = true;
+  renderQuestion();
+}
+
+function nextQ(){
+  if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+  else { showSummary(); }
+}
+function prevQ(){
+  if(current>0){ current--; renderQuestion(); }
+}
+
+function showSummary(){
+  document.getElementById('examArea').style.display='none';
+  const summary = document.getElementById('summary');
+  summary.classList.add('show');
+
+  let correctCount = 0;
+  const domainStats = {secure:{c:0,t:0}, resilient:{c:0,t:0}, performing:{c:0,t:0}, cost:{c:0,t:0}};
+  QUESTIONS.forEach((q,i)=>{
+    domainStats[q.domain].t++;
+    if(answers[i] && answers[i].submitted && answers[i].correct){ correctCount++; domainStats[q.domain].c++; }
+  });
+  const pct = Math.round(correctCount/QUESTIONS.length*100);
+  document.getElementById('scoreBig').textContent = correctCount+'/'+QUESTIONS.length;
+  document.getElementById('scorePct').textContent = pct+'%';
+
+  let verdict = '';
+  if(pct>=85) verdict='Mức này thi thật khả năng cao pass thoải mái — nhưng đề này cố tình khó hơn thi thật, đừng chủ quan tuyệt đối.';
+  else if(pct>=70) verdict='Ổn nhưng chưa chắc chắn — soi kỹ domain yếu nhất bên dưới trước khi đăng ký thi thật.';
+  else if(pct>=50) verdict='Còn lỗ hổng lý thuyết rõ rệt, không phải vấn đề trí nhớ — cần đọc lại đúng phần domain đang tụt, không học tủ lại đề này.';
+  else verdict='Cần ôn lại có hệ thống trước khi nghĩ tới lịch thi — đọc kỹ phần "vì sao đáp án khác sai" + "chốt hạ" của từng câu sai bên dưới.';
+  document.getElementById('verdictLine').textContent = verdict;
+
+  const order = ['secure','resilient','performing','cost'];
+  let bdHtml = '';
+  order.forEach(d=>{
+    const s = domainStats[d];
+    const dpct = s.t? Math.round(s.c/s.t*100):0;
+    bdHtml += '<div class="bd-row"><div class="bd-label" style="color:'+DOMAIN_COLOR[d]+'">'+DOMAIN_META[d].label+'</div>'
+      + '<div class="bd-bar-track"><div class="bd-bar-fill" style="width:'+dpct+'%; background:'+DOMAIN_COLOR[d]+';"></div></div>'
+      + '<div class="bd-pct">'+s.c+'/'+s.t+'</div></div>';
+  });
+  document.getElementById('bdRows').innerHTML = bdHtml;
+
+  let missHtml = '';
+  let missCount = 0;
+  QUESTIONS.forEach((q,i)=>{
+    if(!(answers[i] && answers[i].submitted && answers[i].correct)){
+      missCount++;
+      const short = q.stem.length>90 ? q.stem.slice(0,90)+'…' : q.stem;
+      missHtml += '<div class="miss-item" onclick="jumpTo('+i+')"><span>Câu '+(i+1)+' · '+DOMAIN_META[q.domain].label+' — '+short+'</span><span class="go">Xem lại →</span></div>';
+    }
+  });
+  document.getElementById('missWrap').style.display = missCount>0 ? 'block' : 'none';
+  document.getElementById('missRows').innerHTML = missHtml;
+}
+
+function jumpTo(i){
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('examArea').style.display='block';
+  current = i;
+  renderQuestion();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function restartExam(){
+  answers = new Array(QUESTIONS.length).fill(null);
+  current = 0;
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('introCard').style.display='block';
+  document.getElementById('examArea').style.display='none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
+</body>
+</html>

@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAA-C03 // hardmode-exam-05</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF7; --paper:#FFFFFF; --ink:#1a1a18; --ink-dim:#75756c;
+    --line:#e6e2d8;
+    --orange:#FF9900; --orange-dim:#FFF4E0; --orange-line:#e6890a;
+    --squid:#232F3E; --squid-2:#2f3f52;
+    --green:#1a7f4e; --green-dim:#eaf7f0; --green-line:#bfe3d0;
+    --wrong:#b1490f; --wrong-dim:#fdece1; --wrong-line:#f0c39e;
+    --violet:#5b4b8a; --violet-dim:#f1eef8; --violet-line:#d8cfec;
+    --cyan:#0a6e8c; --cyan-dim:#e7f4f8; --cyan-line:#bfe0ea;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; min-height:100vh;
+  }
+  .topbar{
+    background:var(--squid); color:#fff; padding:22px 4vw 20px;
+    border-bottom:3px solid var(--orange);
+  }
+  .topbar-inner{width:100%; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;}
+  .topbar h1{font-family:'Source Serif 4',serif; font-weight:700; font-size:clamp(20px,3vw,28px); margin:0; letter-spacing:-.01em;}
+  .topbar .stamp{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.03em; color:var(--squid); background:var(--orange); padding:4px 10px; border-radius:3px; white-space:nowrap; font-weight:600;}
+  .cmdline{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb3c8; width:100%; margin:10px 0 0; padding:0 4vw; box-sizing:border-box;}
+  .cmdline .prompt{color:var(--orange);}
+
+  .sheet{width:100%; margin:0; padding:0 4vw 6vw; box-sizing:border-box;}
+  .subtitle{color:var(--ink-dim); font-size:15px; line-height:1.75; margin:24px 0 22px; font-family:'Inter',sans-serif;}
+  .subtitle b{color:var(--ink); font-weight:600; background:var(--orange-dim); padding:1px 4px; border-radius:3px;}
+
+  .intro-card{border:1px solid var(--line); border-radius:4px; padding:26px 28px; margin-bottom:24px; background:var(--paper);}
+  .intro-card h2{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.06em; margin:0 0 14px; color:var(--ink-dim); text-transform:uppercase; border-bottom:1px solid var(--line); padding-bottom:10px;}
+  .intro-card p{font-size:14.5px; line-height:1.75; color:var(--ink-dim); margin:0 0 10px;}
+  .intro-card p b{color:var(--ink);}
+  .diff-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;}
+  .dchip{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 11px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim);}
+  .dchip.e{border-color:var(--green-line); color:var(--green); background:var(--green-dim);}
+  .dchip.m{border-color:var(--cyan-line); color:var(--cyan); background:var(--cyan-dim);}
+  .dchip.h{border-color:var(--orange-line); color:#a15c00; background:var(--orange-dim);}
+  .dchip.b{border-color:var(--violet-line); color:var(--violet); background:var(--violet-dim);}
+  .domain-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .dtag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 11px; border-radius:20px; border:1px solid;}
+  .dtag.secure{color:var(--cyan); border-color:var(--cyan-line); background:var(--cyan-dim);}
+  .dtag.resilient{color:var(--green); border-color:var(--green-line); background:var(--green-dim);}
+  .dtag.performing{color:var(--violet); border-color:var(--violet-line); background:var(--violet-dim);}
+  .dtag.cost{color:#a15c00; border-color:var(--orange-line); background:var(--orange-dim);}
+
+  .start-btn,.nav-btn,.restart-btn{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:.03em;
+    background:var(--squid); color:#fff; border:1px solid var(--squid); padding:11px 22px; border-radius:3px; cursor:pointer;
+    text-transform:uppercase; transition:background .15s;
+  }
+  .start-btn:hover,.nav-btn:not(:disabled):hover,.restart-btn:hover{background:var(--orange); border-color:var(--orange); color:var(--squid);}
+  .nav-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .nav-btn{background:transparent; color:var(--squid); border:1px solid var(--line);}
+  .nav-btn:not(:disabled):hover{background:var(--squid); color:#fff; border-color:var(--squid);}
+
+  .progress-row{display:flex; align-items:center; gap:14px; margin:26px 0 20px; flex-wrap:wrap; justify-content:space-between;}
+  .dots{display:flex; gap:5px; flex-wrap:wrap;}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--line); cursor:pointer; border:1px solid var(--line);}
+  .dot.answered{background:#c9c4b4; border-color:#c9c4b4;}
+  .dot.correct{background:var(--green); border-color:var(--green);}
+  .dot.wrong{background:var(--wrong); border-color:var(--wrong);}
+  .dot.current{outline:2px solid var(--orange); outline-offset:2px;}
+  .qcount{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); white-space:nowrap;}
+  .diff-badge{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 10px; border-radius:20px; border:1px solid; white-space:nowrap; text-transform:uppercase; letter-spacing:.03em;}
+  .diff-badge.e{color:var(--green); border-color:var(--green-line); background:var(--green-dim);}
+  .diff-badge.m{color:var(--cyan); border-color:var(--cyan-line); background:var(--cyan-dim);}
+  .diff-badge.h{color:#a15c00; border-color:var(--orange-line); background:var(--orange-dim);}
+  .diff-badge.b{color:var(--violet); border-color:var(--violet-line); background:var(--violet-dim);}
+
+  .qframe{border:1px solid var(--line); border-radius:4px; overflow:hidden; background:var(--paper); margin-bottom:22px; position:relative;}
+  .qframe .qtag-corner{position:absolute; top:14px; right:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#c9c4b4; letter-spacing:.03em;}
+  .qhead{padding:24px 26px 16px; border-bottom:1px solid var(--line);}
+  .qnum-row{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .qnum{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em;}
+  .qstem{font-family:'Source Serif 4',serif; font-size:19px; line-height:1.55; color:var(--ink); font-weight:400;}
+  .multi-note{display:inline-block; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#a15c00; border:1px solid var(--orange-line); background:var(--orange-dim); padding:3px 9px; border-radius:3px;}
+
+  .options{padding:18px 26px;}
+  .opt{display:flex; gap:13px; align-items:flex-start; padding:13px 14px; margin-bottom:9px; border:1px solid var(--line); border-radius:4px; cursor:pointer; font-size:14.5px; line-height:1.6; transition:border-color .12s, background .12s; background:var(--bg);}
+  .opt:hover{border-color:var(--squid);}
+  .opt.selected{border-color:var(--squid); background:#eef1f4;}
+  .opt .mark{width:15px; height:15px; flex:0 0 15px; margin-top:3px; border:1.5px solid #b8b4a6; border-radius:50%; position:relative;}
+  .opt.selected .mark{border-color:var(--squid);}
+  .opt.selected .mark::after{content:''; position:absolute; inset:3px; background:var(--squid); border-radius:50%;}
+  .opt.multi .mark{border-radius:3px;}
+  .opt.multi.selected .mark::after{border-radius:2px;}
+  .opt.locked{cursor:default;}
+  .opt.reveal-correct{border-color:var(--green); background:var(--green-dim);}
+  .opt.reveal-correct .mark{border-color:var(--green);}
+  .opt.reveal-correct .mark::after{background:var(--green); border-radius:inherit;}
+  .opt.reveal-wrong{border-color:var(--wrong); background:var(--wrong-dim);}
+  .opt.reveal-wrong .mark{border-color:var(--wrong);}
+  .opt.reveal-wrong .mark::after{background:var(--wrong); border-radius:inherit;}
+
+  .qactions{padding:0 26px 22px; display:flex; gap:10px;}
+  .check-btn{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.03em; background:var(--orange); color:var(--squid); border:1px solid var(--orange); padding:10px 20px; border-radius:3px; cursor:pointer;}
+  .check-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .check-btn:not(:disabled):hover{background:var(--squid); color:#fff; border-color:var(--squid);}
+
+  .info-panel{border-top:1px solid var(--line); padding:20px 26px 24px; display:none; background:#fbfaf6;}
+  .info-panel.show{display:block;}
+  .info-panel .verdict{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.04em; margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; text-transform:uppercase;}
+  .verdict.ok{color:var(--green);}
+  .verdict.no{color:var(--wrong);}
+  .domain-pill{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:20px; border:1px solid; margin-left:auto; text-transform:none; font-weight:600;}
+  .info-panel p{font-size:14.5px; line-height:1.75; color:var(--ink); margin:0 0 14px; font-family:'Inter',sans-serif;}
+  .why-wrong{font-size:13.5px; line-height:1.75; color:var(--ink-dim); margin:0 0 14px; border-left:3px solid var(--wrong); padding:8px 14px; background:#fff;}
+  .why-wrong b{color:var(--wrong);}
+  .tip-line{font-size:13.5px; line-height:1.65; color:var(--ink); border-left:3px solid var(--orange); padding:10px 14px; background:var(--orange-dim); border-radius:0 4px 4px 0;}
+  .tip-line b{color:#a15c00; font-family:'IBM Plex Mono',monospace; text-transform:uppercase; font-size:11px; letter-spacing:.03em; display:block; margin-bottom:4px;}
+
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:6px;}
+
+  .summary{display:none;}
+  .summary.show{display:block;}
+  .score-hero{border:1px solid var(--line); border-radius:4px; padding:34px 28px; text-align:center; margin-bottom:24px; background:var(--paper);}
+  .score-big{font-family:'IBM Plex Mono',monospace; font-size:clamp(38px,7vw,58px); font-weight:700; color:var(--squid); line-height:1;}
+  .score-sub{color:var(--ink-dim); font-size:13.5px; margin-top:10px; font-family:'IBM Plex Mono',monospace;}
+  .verdict-line{font-size:15px; margin-top:16px; color:var(--ink); font-family:'Source Serif 4',serif; line-height:1.6;}
+
+  .breakdown{margin-bottom:24px;}
+  .breakdown h3{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); margin:0 0 14px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .bd-row{display:flex; align-items:center; gap:12px; margin-bottom:11px;}
+  .bd-label{width:150px; font-family:'IBM Plex Mono',monospace; font-size:12px; flex:0 0 150px;}
+  .bd-bar-track{flex:1; height:9px; background:var(--line); border-radius:5px; overflow:hidden;}
+  .bd-bar-fill{height:100%; border-radius:5px;}
+  .bd-pct{width:42px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); flex:0 0 42px;}
+
+  .miss-list{margin-bottom:26px;}
+  .miss-list h3{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--wrong); margin:0 0 14px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .miss-item{display:flex; justify-content:space-between; gap:10px; padding:10px 14px; border:1px solid var(--wrong-line); background:var(--wrong-dim); border-radius:4px; margin-bottom:7px; cursor:pointer; font-size:13.5px;}
+  .miss-item:hover{background:#fbe0d0;}
+  .miss-item span.go{font-family:'IBM Plex Mono',monospace; color:var(--wrong); flex:0 0 auto; font-size:12px;}
+
+  @media (max-width:640px){ .qstem{font-size:17px;} .bd-label{width:110px; flex:0 0 110px; font-size:11px;} }
+
+  /* Plain white reading surface; preserve the exam's existing questions and behavior. */
+  :root {
+    color-scheme: light;
+    --navy: #ffffff; --grid: transparent;
+    --paper: #24292f; --paper-dim: #57606a;
+    --cyan: #0969da; --cyan-dim: #ffffff; --cyan-border: #d0d7de;
+    --amber: #805500; --amber-dim: #ffffff; --amber-border: #d0d7de;
+    --green: #1a7f37; --green-dim: #ffffff; --green-border: #d0d7de;
+    --violet: #6639ba; --violet-dim: #ffffff; --violet-border: #d0d7de;
+    --bg: #ffffff; --ink: #24292f; --ink-dim: #57606a; --line: #d0d7de;
+    --orange: #805500; --orange-dim: #ffffff; --orange-line: #d0d7de;
+    --squid: #ffffff; --squid-2: #ffffff;
+    --green-line: #d0d7de; --wrong: #a40e26; --wrong-dim: #ffffff; --wrong-line: #d0d7de;
+    --violet-line: #d0d7de; --cyan-line: #d0d7de;
+  }
+  html, body { background: #fff !important; color: #24292f !important; }
+  body { padding: 24px max(18px, 4vw) 56px !important; }
+  .topbar, .intro-card, .qframe, .score-hero, .opt, .info-panel,
+  .why-wrong, .tip-line, .miss-item, .title-block .stamp,
+  .dchip, .dtag, .diff-badge, .multi-note { background: #fff !important; }
+  .topbar { border: 0 !important; padding: 0 0 20px !important; color: #24292f !important; }
+  .topbar h1, .title-block h1, .qstem, .intro-card p, .info-panel p,
+  .verdict-line, .score-sub, .subtitle, .opt { color: #24292f !important; }
+  .sheet { max-width: 900px; margin: 0 auto; padding: 0 !important; background: #fff !important; box-shadow: none !important; }
+  .intro-card, .score-hero { border: 0 !important; border-radius: 0 !important; padding: 18px 0 !important; }
+  .qframe { border: 0 !important; border-radius: 0 !important; overflow: visible !important; }
+  .qhead { border: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+  .options { padding-left: 0 !important; padding-right: 0 !important; }
+  .opt { border-color: #d0d7de !important; border-radius: 5px !important; }
+  .opt.selected, .opt.reveal-correct, .opt.reveal-wrong { background: #fff !important; }
+  .info-panel { border-top: 1px solid #d0d7de !important; }
+  .bd-bar-track { background: #f6f8fa !important; }
+  .rivet { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <h1>SAA-C03 // hardmode-exam-05</h1>
+    <span class="stamp">ĐỀ 05 · TÌNH HUỐNG K8S/TERRAFORM</span>
+  </div>
+</div>
+<div class="cmdline"><span class="prompt">$</span> ./run-exam --set=05 --context=eks+terraform --shuffle=answers --reveal-domain=on-submit</div>
+
+<div class="sheet">
+  <p class="subtitle">Đề này đặt câu hỏi trong bối cảnh 1 team đang vận hành EKS + Terraform + CI/CD thật — có pod, node group, Helm, GitHub Actions, state file... Nhưng đừng nhầm: đây vẫn là đề SAA-C03, câu hỏi test kiến trúc AWS đứng sau các công cụ đó (IAM, KMS, VPC CNI, ALB...), không test cú pháp Terraform hay kubectl. <b>4 đáp án cân bằng độ dài, xáo vị trí ngẫu nhiên</b> mỗi lần vào câu.</p>
+
+  <div class="intro-card" id="introCard">
+    <h2>▸ Trước khi vào ca</h2>
+    <p>Domain chỉ hiện ra sau khi bạn chốt đáp án — đề thi thật cũng không báo trước câu này thuộc domain nào.</p>
+    <div class="diff-legend">
+      <span class="dchip e">● Dễ — câu 1-7</span>
+      <span class="dchip m">● Trung bình — câu 8-16</span>
+      <span class="dchip h">● Khó — câu 17-22</span>
+      <span class="dchip b">● Não tàn — câu 23-24 (chọn 2)</span>
+    </div>
+    <div class="domain-legend">
+      <span class="dtag secure">Design Secure</span>
+      <span class="dtag resilient">Design Resilient</span>
+      <span class="dtag performing">Design High-Performing</span>
+      <span class="dtag cost">Design Cost-Optimized</span>
+    </div>
+    <div style="margin-top:22px;">
+      <button class="start-btn" onclick="startExam()">Bắt đầu →</button>
+    </div>
+  </div>
+
+  <div id="examArea" style="display:none;">
+    <div class="progress-row">
+      <div class="qcount" id="qcount">Câu 1/28</div>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div id="qContainer"></div>
+    <div class="nav-row">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">← Trước</button>
+      <button class="nav-btn" id="nextBtn" onclick="nextQ()">Tiếp →</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="score-hero">
+      <div class="score-big" id="scoreBig">0/28</div>
+      <div class="score-sub" id="scorePct">0%</div>
+      <div class="verdict-line" id="verdictLine"></div>
+    </div>
+    <div class="breakdown">
+      <h3>▸ Breakdown theo domain</h3>
+      <div id="bdRows"></div>
+    </div>
+    <div class="miss-list" id="missWrap">
+      <h3>▸ Các câu sai — bấm để nhảy lại xem giải thích</h3>
+      <div id="missRows"></div>
+    </div>
+    <button class="restart-btn" onclick="restartExam()">↺ Làm lại từ đầu (xáo lại đáp án)</button>
+  </div>
+</div>
+
+<script>
+const DOMAIN_META = {
+  secure:{label:'Design Secure Architectures', cls:'secure'},
+  resilient:{label:'Design Resilient Architectures', cls:'resilient'},
+  performing:{label:'Design High-Performing Architectures', cls:'performing'},
+  cost:{label:'Design Cost-Optimized Architectures', cls:'cost'}
+};
+const DOMAIN_COLOR = {secure:'var(--cyan)', resilient:'var(--green)', performing:'var(--violet)', cost:'#a15c00'};
+const DIFF_LABEL = {e:'DỄ', m:'TRUNG BÌNH', h:'KHÓ', b:'NÃO TÀN'};
+
+const QUESTIONS = [
+{domain:'resilient', diff:'e', multi:false,
+ stem:'Team platform tạo Managed Node Group cho cụm EKS bằng Terraform, chỉ định 1 subnet duy nhất trong 1 AZ để "cho đơn giản". Vài tuần sau AZ đó gặp sự cố, toàn bộ pod trên node group đó down cùng lúc.',
+ options:[
+   {id:'a', text:'Đây là hành vi bình thường của EKS, không có cách nào tránh được việc mất toàn bộ node khi 1 AZ gặp sự cố.'},
+   {id:'b', text:'Sửa Terraform để Managed Node Group trải subnet trên nhiều AZ khác nhau — EKS sẽ tự phân bổ node qua nhiều AZ, giảm rủi ro mất toàn bộ node khi 1 AZ lỗi.'},
+   {id:'c', text:'Chuyển toàn bộ pod sang chạy trên Fargate sẽ tự động giải quyết vấn đề multi-AZ mà không cần chỉnh sửa gì về subnet.'},
+   {id:'d', text:'Tăng số lượng node trong node group hiện tại lên gấp đôi để giảm tác động khi AZ đó gặp sự cố.'}
+ ],
+ correct:['b'],
+ explain:'Managed Node Group nhận danh sách subnet làm input — nếu chỉ định subnet trải nhiều AZ, EKS/ASG đứng sau sẽ tự phân bổ node qua các AZ đó, đúng nguyên tắc high availability cơ bản nhất cho compute layer.',
+ whyWrong:'Nói "không có cách nào tránh" là sai — đây chính xác là vấn đề cấu hình subnet input, không phải giới hạn của EKS. Chuyển sang Fargate vẫn cần chỉ định subnet multi-AZ trong Fargate Profile, không tự động giải quyết nếu subnet đầu vào vẫn chỉ 1 AZ. Tăng số node trong cùng 1 AZ không giúp gì khi chính AZ đó gặp sự cố — toàn bộ node vẫn down cùng lúc.',
+ tip:'Node Group hay Fargate Profile đều chỉ tốt bằng danh sách subnet bạn đưa vào — luôn kiểm tra subnet input trải đủ nhiều AZ trước khi nghĩ tới các giải pháp phức tạp hơn.'
+},
+{domain:'secure', diff:'e', multi:false,
+ stem:'Pipeline CI/CD build image Docker rồi push lên Amazon ECR trước khi deploy lên EKS. Team bảo mật muốn tự động biết image có chứa lỗ hổng CVE đã biết hay không NGAY KHI push, không cần chờ tới lúc chạy production.',
+ options:[
+   {id:'a', text:'Bật ECR Image Scanning (basic hoặc enhanced tích hợp Amazon Inspector) — tự động quét CVE ngay khi image được push lên registry, trước khi pipeline tiếp tục bước deploy.'},
+   {id:'b', text:'Bật GuardDuty EKS Protection để phát hiện hành vi bất thường của pod đang chạy trong cluster production.'},
+   {id:'c', text:'Cấu hình CloudTrail ghi lại lịch sử ai đã push image nào lên ECR để điều tra sau khi có sự cố xảy ra.'},
+   {id:'d', text:'Dùng AWS Config Rule kiểm tra định kỳ xem EKS cluster có đang chạy image từ registry không xác định hay không.'}
+ ],
+ correct:['a'],
+ explain:'ECR Image Scanning (đặc biệt bản enhanced tích hợp Inspector) quét CVE ngay tại thời điểm push, cho phép pipeline chặn deploy nếu phát hiện lỗ hổng nghiêm trọng — đúng chính xác yêu cầu "biết ngay khi push, trước khi chạy production".',
+ whyWrong:'GuardDuty EKS Protection phát hiện hành vi bất thường của pod ĐANG CHẠY (runtime), không quét CVE của image tại thời điểm build/push. CloudTrail chỉ ghi log ai push, không phân tích nội dung image có lỗ hổng hay không. Config Rule kiểm tra định kỳ theo lịch, không phải "ngay khi push" như yêu cầu.',
+ tip:'Cần quét lỗ hổng NGAY KHI PUSH image (shift-left security) → ECR Image Scanning. GuardDuty chỉ phát hiện hành vi bất thường lúc RUNTIME, khác giai đoạn hoàn toàn.'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Team có 3 môi trường dev/staging/production, mỗi môi trường gần như giống hệt nhau về hạ tầng (VPC, EKS cluster, RDS) nhưng khác thông số (kích thước instance, số lượng node). Hiện tại mỗi môi trường có 1 bộ file Terraform copy-paste riêng, gây khó bảo trì và dễ lệch cấu hình giữa các môi trường.',
+ options:[
+   {id:'a', text:'Viết Terraform module dùng chung 1 lần, mỗi môi trường chỉ truyền vào file biến (variables) khác nhau — giảm trùng lặp code, giảm rủi ro lệch cấu hình giữa các môi trường.'},
+   {id:'b', text:'Giữ nguyên 3 bộ file riêng biệt nhưng thêm comment giải thích rõ hơn ở mỗi file để dễ đối chiếu khi cần so sánh.'},
+   {id:'c', text:'Gộp cả 3 môi trường vào chung 1 VPC và 1 EKS cluster duy nhất, dùng namespace Kubernetes để phân biệt dev/staging/production.'},
+   {id:'d', text:'Chuyển hoàn toàn từ Terraform sang thao tác thủ công qua AWS Console cho từng môi trường để dễ kiểm soát trực quan hơn.'}
+ ],
+ correct:['a'],
+ explain:'Terraform module tái sử dụng, tham số hoá qua biến, là cách chuẩn để giảm trùng lặp code hạ tầng giữa các môi trường tương tự nhau — giảm chi phí bảo trì và rủi ro lệch cấu hình (drift) giữa dev/staging/production.',
+ whyWrong:'Giữ nguyên 3 bộ file riêng và chỉ thêm comment không giải quyết được gốc rễ vấn đề trùng lặp/lệch cấu hình. Gộp chung 1 VPC/cluster cho cả 3 môi trường làm mất tính cách ly môi trường (1 lỗi ở dev có thể ảnh hưởng production) — rủi ro vận hành lớn. Chuyển sang thao tác thủ công qua Console đi ngược hoàn toàn lợi ích của Infrastructure as Code, tăng rủi ro sai sót con người.',
+ tip:'Hạ tầng giống nhau, chỉ khác thông số giữa các môi trường → luôn nghĩ tới Terraform module tái sử dụng + biến đầu vào, không phải copy-paste hay gộp chung môi trường.'
+},
+{domain:'secure', diff:'e', multi:false,
+ stem:'Sau 1 sự cố bảo mật nghi ngờ có người đã sửa RBAC permission trong EKS cluster để tự cấp quyền admin trái phép, team cần xem lại LỊCH SỬ ai đã gọi Kubernetes API nào, vào lúc nào, để điều tra.',
+ options:[
+   {id:'a', text:'Bật EKS Control Plane Logging loại "audit" gửi về CloudWatch Logs — ghi lại chi tiết mọi request tới Kubernetes API server, gồm ai gọi, gọi gì, vào lúc nào.'},
+   {id:'b', text:'Xem VPC Flow Logs của subnet chứa control plane để biết địa chỉ IP nào đã kết nối tới API server endpoint.'},
+   {id:'c', text:'Dùng kubectl get events để xem danh sách sự kiện gần đây nhất xảy ra trong cluster, thường chỉ lưu trong thời gian ngắn.'},
+   {id:'d', text:'Kiểm tra CloudTrail để tìm lệnh gọi API tương ứng, vì mọi thao tác kubectl đều tự động được CloudTrail ghi lại chi tiết.'}
+ ],
+ correct:['a'],
+ explain:'EKS Control Plane Logging loại "audit" ghi lại chi tiết mọi request tới Kubernetes API server (ai, làm gì, khi nào) — đúng chính xác loại log cần cho điều tra "ai đã sửa RBAC permission nào".',
+ whyWrong:'VPC Flow Logs chỉ ghi metadata traffic mạng (IP, port), không biết được nội dung request API là gì (sửa RBAC hay không). kubectl get events chỉ lưu event ngắn hạn trong cluster, không phải audit log đầy đủ và bền vững. CloudTrail ghi lại API call tới AWS control plane (EKS API như CreateCluster), KHÔNG ghi lại các lệnh gọi tới Kubernetes API bên trong cluster (như kubectl apply) — đây là 2 lớp API hoàn toàn khác nhau, nhầm lẫn phổ biến.',
+ tip:'CloudTrail ghi API call tới AWS (VD: eks:CreateCluster). EKS Audit Log ghi API call tới Kubernetes API SERVER bên trong cluster (VD: kubectl apply sửa RBAC). Hai lớp log khác nhau hoàn toàn, cần audit log cho câu hỏi này.'
+},
+{domain:'performing', diff:'e', multi:false,
+ stem:'Nhiều pod trong cùng cụm EKS (ở nhiều node/AZ khác nhau) cần đọc/ghi chung 1 file storage dùng chung, ví dụ thư mục upload file người dùng, đảm bảo pod nào cũng thấy dữ liệu mới nhất ngay lập tức.',
+ options:[
+   {id:'a', text:'EBS CSI Driver — mount volume EBS vào pod, nhưng 1 volume EBS chỉ gắn được vào 1 node tại 1 thời điểm (ReadWriteOnce), không chia sẻ được giữa pod ở nhiều node khác nhau.'},
+   {id:'b', text:'EFS CSI Driver — mount hệ thống file EFS vào nhiều pod cùng lúc dù chạy trên node/AZ khác nhau (ReadWriteMany), phù hợp nhu cầu chia sẻ file dùng chung.'},
+   {id:'c', text:'S3 CSI Driver mount bucket S3 trực tiếp làm volume block storage, đảm bảo tốc độ đọc/ghi ngang bằng EBS cho ứng dụng cần IOPS cao.'},
+   {id:'d', text:'EC2 Instance Store gắn trực tiếp vào từng node, dữ liệu đồng bộ tự động sang các node khác trong cùng cluster theo thời gian thực.'}
+ ],
+ correct:['b'],
+ explain:'EFS hỗ trợ ReadWriteMany — nhiều pod ở nhiều node/AZ khác nhau có thể cùng mount và đọc/ghi 1 file system dùng chung, đúng chính xác yêu cầu chia sẻ dữ liệu giữa nhiều pod.',
+ whyWrong:'EBS chỉ hỗ trợ ReadWriteOnce (1 node tại 1 thời điểm), không phù hợp chia sẻ giữa nhiều pod ở nhiều node. S3 không phải block storage, không mount được như file system với hiệu năng ngang EBS theo cách mô tả — S3 CSI driver dùng cho truy cập object khác cơ chế hoàn toàn. Instance Store là local storage của node, KHÔNG tự đồng bộ giữa các node và mất dữ liệu khi node bị thay thế.',
+ tip:'Cần nhiều pod ở nhiều node/AZ cùng đọc/ghi 1 storage dùng chung → EFS (ReadWriteMany). EBS chỉ gắn được 1 node tại 1 thời điểm (ReadWriteOnce).'
+},
+{domain:'resilient', diff:'e', multi:false,
+ stem:'2 kỹ sư cùng chạy "terraform apply" gần như đồng thời lên cùng 1 state file lưu trên S3 backend, không có cơ chế khoá nào khác ngoài S3. Rủi ro nào có thể xảy ra?',
+ options:[
+   {id:'a', text:'Terraform tự động phát hiện xung đột và huỷ bỏ apply thứ 2 một cách an toàn mà không cần cấu hình gì thêm ngoài S3 backend.'},
+   {id:'b', text:'2 lệnh apply đồng thời có thể ghi đè lẫn nhau lên state file, gây corrupt state hoặc mất đồng bộ giữa state và hạ tầng thực tế — cần thêm DynamoDB table để state locking.'},
+   {id:'c', text:'S3 tự động versioning mọi lần ghi nên không có rủi ro gì xảy ra kể cả khi nhiều người apply cùng lúc.'},
+   {id:'d', text:'Terraform chỉ cho phép 1 người dùng AWS credentials tại 1 thời điểm, nên tình huống 2 người apply đồng thời không thể xảy ra.'}
+ ],
+ correct:['b'],
+ explain:'S3 backend đơn thuần không có cơ chế locking — 2 lệnh apply đồng thời có thể ghi đè state file lẫn nhau, gây corrupt hoặc mất đồng bộ. Cách khắc phục chuẩn là thêm DynamoDB table làm state lock, Terraform sẽ tự chờ/từ chối nếu phát hiện state đang bị khoá bởi 1 lệnh apply khác.',
+ whyWrong:'S3 backend không tự có cơ chế phát hiện xung đột hay huỷ an toàn nếu thiếu DynamoDB lock table — đây chính là rủi ro thật, không phải hành vi mặc định an toàn. S3 Versioning giúp khôi phục lại version cũ SAU KHI sự cố xảy ra, không NGĂN được việc corrupt xảy ra ngay từ đầu. Terraform không giới hạn theo AWS credentials của người dùng — nhiều người dùng khác nhau (hoặc cùng 1 người mở 2 terminal) đều có thể vô tình chạy apply đồng thời.',
+ tip:'S3 backend cho Terraform LUÔN nên đi kèm DynamoDB table để state locking — thiếu nó là rủi ro corrupt state âm thầm, đặc biệt khi nhiều người/pipeline cùng chạy apply.'
+},
+{domain:'performing', diff:'e', multi:false,
+ stem:'Team cài AWS Load Balancer Controller trong EKS để tự động tạo ALB từ Kubernetes Ingress resource, thay vì phải tự tạo ALB thủ công qua Console mỗi khi có service mới cần expose ra internet.',
+ options:[
+   {id:'a', text:'AWS Load Balancer Controller theo dõi Ingress resource trong cluster, tự động tạo/cập nhật ALB tương ứng — loại bỏ việc phải thao tác thủ công trên Console mỗi lần có service mới.'},
+   {id:'b', text:'Cần tạo Network Load Balancer thủ công trước, sau đó Ingress Controller chỉ đóng vai trò định tuyến traffic nội bộ, không tự tạo load balancer nào.'},
+   {id:'c', text:'Kubernetes Service kiểu ClusterIP đã tự động expose ứng dụng ra internet mà không cần thêm Ingress Controller hay ALB nào.'},
+   {id:'d', text:'Chỉ Route 53 Alias Record là đủ để expose service ra internet, không cần bất kỳ load balancer nào đứng trước cụm EKS.'}
+ ],
+ correct:['a'],
+ explain:'AWS Load Balancer Controller là công cụ chính xác cho mục đích tự động hoá: theo dõi Ingress resource trong Kubernetes, tự động provision và cấu hình ALB tương ứng mà không cần thao tác thủ công qua Console.',
+ whyWrong:'Không cần tạo NLB thủ công trước — đó chính là việc AWS Load Balancer Controller tự động hoá thay bạn. ClusterIP là loại Service chỉ có IP nội bộ trong cluster, KHÔNG expose ra internet dưới bất kỳ hình thức nào. Route 53 chỉ quản lý DNS record trỏ tới 1 địa chỉ IP/endpoint có sẵn, bản thân nó không phải load balancer và không thể thay thế ALB/NLB đứng trước cluster.',
+ tip:'AWS Load Balancer Controller = cầu nối tự động giữa Kubernetes Ingress/Service và ALB/NLB thật của AWS — không cần tạo load balancer thủ công song song.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'1 pod trong EKS cần đọc file từ 1 bucket S3 cụ thể. Cách hiện tại là gắn IAM policy có quyền S3 rộng vào IAM role của toàn bộ EC2 node — nghĩa là MỌI pod chạy trên node đó, kể cả pod không liên quan, đều có thể truy cập bucket S3 này.',
+ options:[
+   {id:'a', text:'Giữ nguyên cách gắn quyền vào IAM role của node vì đây là cách EKS được thiết kế để hoạt động, không có lựa chọn nào chi tiết hơn.'},
+   {id:'b', text:'Dùng IAM Roles for Service Accounts (IRSA) — gắn 1 IAM role riêng cho đúng Kubernetes Service Account mà pod đó dùng, qua cơ chế OIDC, chỉ đúng pod đó nhận được quyền, các pod khác trên cùng node không bị ảnh hưởng.'},
+   {id:'c', text:'Tạo thêm 1 EC2 IAM Instance Profile thứ hai gắn vào node, luân phiên đổi qua lại giữa 2 profile tuỳ theo pod nào đang chạy.'},
+   {id:'d', text:'Lưu access key và secret key của IAM user có quyền S3 dưới dạng Kubernetes Secret, mount vào đúng pod cần dùng.'}
+ ],
+ correct:['b'],
+ explain:'IRSA cho phép gắn IAM role ở cấp Kubernetes Service Account (qua OIDC identity provider của cluster), đảm bảo chỉ đúng pod dùng service account đó mới nhận được quyền, giải quyết đúng vấn đề "quyền rộng ở cấp node ảnh hưởng mọi pod".',
+ whyWrong:'Giữ nguyên quyền ở cấp node vi phạm nguyên tắc least privilege, không phải "cách duy nhất" — IRSA chính là giải pháp chi tiết hơn cho đúng bài toán này. 1 EC2 instance chỉ có đúng 1 Instance Profile tại 1 thời điểm, không thể "luân phiên đổi qua lại" theo pod đang chạy. Lưu access key/secret key dạng static trong Kubernetes Secret là anti-pattern bảo mật, đi ngược xu hướng dùng temporary credentials mà IRSA cung cấp.',
+ tip:'Quyền gắn ở IAM role của NODE = mọi pod trên node đó đều có quyền (quá rộng). IRSA = quyền gắn đúng theo TỪNG SERVICE ACCOUNT, đúng pod nào dùng mới có — đây là best practice chuẩn cho EKS.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Terraform state file lưu trên S3 backend hiện đang chứa 1 số giá trị nhạy cảm dạng plaintext (do resource RDS trả về password trong attribute), team cần đảm bảo an toàn cho file này.',
+ options:[
+   {id:'a', text:'Bật SSE-KMS encryption cho bucket S3 chứa state file, và giới hạn bucket policy/IAM chỉ cho phép pipeline CI/CD và admin hạ tầng truy cập, không public.'},
+   {id:'b', text:'Không cần làm gì thêm vì Terraform tự động mã hoá toàn bộ nội dung state file trước khi ghi lên S3 theo mặc định.'},
+   {id:'c', text:'Đổi định dạng state file từ JSON sang XML để tăng độ khó đọc, giảm rủi ro lộ thông tin nhạy cảm nếu bị truy cập trái phép.'},
+   {id:'d', text:'Xoá state file khỏi S3 sau mỗi lần apply thành công để không lưu trữ dữ liệu nhạy cảm lâu dài trên cloud.'}
+ ],
+ correct:['a'],
+ explain:'State file trên S3 cần được bảo vệ như bất kỳ dữ liệu nhạy cảm nào khác: mã hoá bằng SSE-KMS và giới hạn quyền truy cập chặt chẽ qua bucket policy/IAM — đây là biện pháp thực tế và cần thiết vì Terraform không tự mã hoá nội dung state theo mặc định.',
+ whyWrong:'Terraform KHÔNG tự động mã hoá nội dung state file — nó ghi ra JSON plaintext, việc mã hoá là trách nhiệm của backend storage (S3 + KMS) mà người dùng phải tự bật. Đổi sang XML không giải quyết được vấn đề bảo mật, chỉ là "security through obscurity" không đáng tin cậy. Xoá state file sau mỗi lần apply sẽ phá vỡ hoàn toàn khả năng Terraform theo dõi hạ tầng hiện có cho lần apply tiếp theo — không khả thi.',
+ tip:'Terraform state file là JSON PLAINTEXT theo mặc định, có thể chứa dữ liệu nhạy cảm — luôn cần tự bật mã hoá (SSE-KMS) và giới hạn quyền truy cập ở tầng S3 backend, Terraform không tự lo việc này.'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Team đang dùng Fargate Profile cho toàn bộ pod trong 1 namespace của EKS, thay vì Managed Node Group. Lợi ích chính về mặt vận hành/khả dụng của lựa chọn này là gì so với việc tự quản lý EC2 node?',
+ options:[
+   {id:'a', text:'Fargate loại bỏ hoàn toàn việc phải patch OS, quản lý AMI, hay lo lắng về capacity của node bên dưới — AWS tự quản lý toàn bộ lifecycle của compute layer cho từng pod.'},
+   {id:'b', text:'Fargate cho phép chạy DaemonSet trên mọi node để thu thập log/metrics dễ dàng hơn nhiều so với Managed Node Group.'},
+   {id:'c', text:'Fargate luôn rẻ hơn Managed Node Group trong mọi trường hợp vì tính phí theo giây thay vì theo giờ.'},
+   {id:'d', text:'Fargate cho phép pod truy cập trực tiếp vào host network và chạy container privileged như trên EC2 node thông thường.'}
+ ],
+ correct:['a'],
+ explain:'Lợi ích cốt lõi của Fargate là loại bỏ gánh nặng vận hành ở tầng compute: không cần patch OS, chọn AMI, quản lý capacity/scale của node — AWS quản lý toàn bộ, giúp team tập trung vào ứng dụng thay vì hạ tầng bên dưới.',
+ whyWrong:'Fargate thực tế KHÔNG hỗ trợ chạy DaemonSet (vì không có khái niệm "node" cố định để DaemonSet bám vào theo cách truyền thống) — đây là hạn chế, không phải lợi ích. Fargate không phải lúc nào cũng rẻ hơn — với workload có mật độ đóng gói pod cao trên cùng 1 node (bin-packing tốt), Managed Node Group thường tiết kiệm hơn. Fargate KHÔNG hỗ trợ host networking hay privileged container — đây là hạn chế bảo mật/tính năng có chủ đích của Fargate.',
+ tip:'Fargate = đánh đổi 1 số tính năng/tối ưu chi phí bin-packing để lấy việc AWS quản lý hoàn toàn compute layer. Không phải lúc nào cũng rẻ hơn, và có giới hạn tính năng (không DaemonSet, không privileged, không host network).'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'AWS Load Balancer Controller hỗ trợ 2 chế độ target type cho ALB khi expose Kubernetes Service: "instance" và "ip". Team nhận thấy dùng "instance" khiến traffic phải nhảy qua kube-proxy thêm 1 lần trước khi tới đúng pod, tăng độ trễ không cần thiết.',
+ options:[
+   {id:'a', text:'Chuyển sang target type "ip" — ALB gửi traffic trực tiếp tới địa chỉ IP của pod (nhờ VPC CNI gán IP thật cho pod), bỏ qua lớp NodePort/kube-proxy, giảm 1 chặng định tuyến.'},
+   {id:'b', text:'Target type "instance" luôn nhanh hơn "ip" vì ALB có thể cache route tới từng EC2 instance hiệu quả hơn route tới từng pod riêng lẻ.'},
+   {id:'c', text:'Không có sự khác biệt về hiệu năng giữa 2 target type, cả 2 đều cùng đi qua kube-proxy như nhau vì đó là hành vi mặc định của Kubernetes networking.'},
+   {id:'d', text:'Cần chuyển hẳn sang Network Load Balancer thay vì ALB để loại bỏ hoàn toàn kube-proxy khỏi đường đi của traffic.'}
+ ],
+ correct:['a'],
+ explain:'Target type "ip" tận dụng việc Amazon VPC CNI gán địa chỉ IP thật (từ VPC) cho mỗi pod, cho phép ALB gửi traffic trực tiếp tới IP của pod, bỏ qua lớp NodePort và kube-proxy — giảm 1 chặng định tuyến so với target type "instance".',
+ whyWrong:'Target type "instance" đi qua NodePort rồi kube-proxy mới tới đúng pod — đây là chặng THÊM chứ không phải nhanh hơn. Nói không có khác biệt là sai vì đây chính xác là điểm khác biệt về đường đi traffic giữa 2 target type. Chuyển sang NLB không tự động loại bỏ kube-proxy nếu vẫn dùng target type "instance" — vấn đề nằm ở target type, không phải loại load balancer.',
+ tip:'Target type "instance" = traffic qua NodePort + kube-proxy (thêm 1 chặng). Target type "ip" = traffic thẳng tới IP pod nhờ VPC CNI (bỏ qua kube-proxy) — nhanh hơn, đây là khuyến nghị phổ biến khi dùng AWS Load Balancer Controller.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'1 nhóm pod trong EKS chạy batch job xử lý dữ liệu, có thể chịu được bị gián đoạn và tự retry, hiện đang chạy trên Managed Node Group toàn EC2 On-Demand khiến chi phí compute khá cao.',
+ options:[
+   {id:'a', text:'Tạo thêm 1 Managed Node Group riêng dùng Spot Instance cho nhóm pod này, kết hợp cài đặt Node Termination Handler để pod được drain an toàn trước khi node bị AWS thu hồi.'},
+   {id:'b', text:'Chuyển toàn bộ node group hiện tại (gồm cả pod không chịu được gián đoạn) sang Spot Instance để tối đa hoá mức tiết kiệm chi phí.'},
+   {id:'c', text:'Giữ nguyên On-Demand nhưng giảm số lượng node xuống mức tối thiểu, chấp nhận pod bị pending chờ tài nguyên trong giờ cao điểm.'},
+   {id:'d', text:'Mua Reserved Instance 3 năm cho đúng loại instance đang dùng trong node group, vì batch job vẫn chạy đều đặn hàng ngày.'}
+ ],
+ correct:['a'],
+ explain:'Tạo node group riêng bằng Spot cho đúng nhóm pod chịu được gián đoạn, kết hợp Node Termination Handler (lắng nghe cảnh báo thu hồi Spot 2 phút trước, chủ động drain/reschedule pod sang node khác) — tối ưu chi phí mà không ảnh hưởng workload khác.',
+ whyWrong:'Chuyển TOÀN BỘ node group (gồm cả pod không chịu được gián đoạn) sang Spot gây rủi ro downtime cho những pod cần độ ổn định cao — sai vì áp dụng Spot không phân biệt loại workload. Giảm node xuống mức tối thiểu gây pod bị pending, ảnh hưởng trải nghiệm mà không thực sự tối ưu (vẫn cần đủ compute để xử lý job). Reserved Instance phù hợp workload ổn định lâu dài, không phải batch job vốn đã "chịu được gián đoạn" — lãng phí tiềm năng tiết kiệm sâu hơn từ Spot.',
+ tip:'Batch job chịu được gián đoạn trên EKS → node group riêng bằng Spot + Node Termination Handler để drain an toàn. Tách riêng node group theo đặc tính workload, không áp 1 chiến lược pricing cho toàn cluster.'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Team hạ tầng chia Terraform thành nhiều state file riêng biệt theo layer (network, EKS cluster, application) để dễ quản lý. Layer "application" cần biết ID của VPC và subnet đã tạo ở layer "network" để cấu hình đúng, nhưng không muốn copy-paste thủ công giá trị này giữa các layer.',
+ options:[
+   {id:'a', text:'Copy thủ công giá trị VPC ID/subnet ID từ output của layer network vào file biến của layer application mỗi khi có thay đổi.'},
+   {id:'b', text:'Dùng Terraform remote state data source ở layer application, trỏ tới state file của layer network để tự động đọc lại output (VPC ID, subnet ID) mà không cần copy-paste thủ công.'},
+   {id:'c', text:'Gộp toàn bộ 3 layer trở lại thành 1 state file duy nhất để không còn vấn đề chia sẻ giá trị giữa các layer nữa.'},
+   {id:'d', text:'Dùng biến môi trường (environment variable) trên máy chạy Terraform để lưu VPC ID, subnet ID dùng chung cho mọi layer.'}
+ ],
+ correct:['b'],
+ explain:'Terraform remote state data source cho phép 1 state file (layer application) đọc output của state file khác (layer network) một cách tự động và luôn cập nhật — đúng chính xác giải pháp cho việc chia sẻ giá trị giữa các layer tách biệt mà không cần copy-paste thủ công.',
+ whyWrong:'Copy thủ công dễ bị quên cập nhật khi layer network thay đổi, gây lệch cấu hình (drift) khó phát hiện. Gộp lại thành 1 state file mất đi lợi ích tách layer (blast radius nhỏ hơn, team khác nhau quản lý layer khác nhau, đổi 1 layer không ảnh hưởng risk tới layer khác). Biến môi trường không đồng bộ tự động khi giá trị gốc thay đổi, dễ gây lệch giữa các máy/pipeline khác nhau chạy Terraform.',
+ tip:'Nhiều state file tách theo layer + cần tham chiếu giá trị qua lại → Terraform remote state data source, không phải copy-paste hay gộp state.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'Ứng dụng chạy trên EKS cần tự động scale số lượng pod dựa trên độ dài của 1 SQS queue (số message đang chờ xử lý), không phải dựa trên CPU/memory usage thông thường.',
+ options:[
+   {id:'a', text:'Horizontal Pod Autoscaler (HPA) mặc định chỉ hỗ trợ scale theo CPU/memory, không có cách nào mở rộng để scale theo metric tuỳ chỉnh như độ dài SQS queue.'},
+   {id:'b', text:'HPA kết hợp Custom Metrics Adapter (đọc CloudWatch metric độ dài SQS queue) — cho phép HPA scale số lượng pod dựa trên metric tuỳ chỉnh thay vì chỉ CPU/memory mặc định.'},
+   {id:'c', text:'Chỉ Cluster Autoscaler mới có khả năng scale theo metric tuỳ chỉnh như độ dài queue, HPA không liên quan tới việc này.'},
+   {id:'d', text:'Cần viết lại toàn bộ ứng dụng để tự gọi Kubernetes API tăng/giảm số replica thủ công dựa trên độ dài queue đọc được.'}
+ ],
+ correct:['b'],
+ explain:'HPA hỗ trợ mở rộng qua Custom Metrics API — kết hợp 1 metrics adapter (đọc CloudWatch metric như độ dài SQS queue) cho phép HPA scale pod dựa trên bất kỳ metric tuỳ chỉnh nào, không giới hạn ở CPU/memory mặc định.',
+ whyWrong:'Nói HPA "không có cách nào mở rộng" là sai — đây chính xác là tính năng Custom Metrics đã được thiết kế sẵn cho HPA. Cluster Autoscaler chỉ scale SỐ LƯỢNG NODE dựa trên pod pending, không scale SỐ LƯỢNG POD như HPA — 2 tầng scale khác nhau, không thể thay thế nhau cho bài toán này. Viết lại ứng dụng tự gọi API là giải pháp thủ công tốn công không cần thiết khi HPA đã hỗ trợ sẵn qua Custom Metrics.',
+ tip:'HPA scale SỐ LƯỢNG POD (theo CPU/memory mặc định, hoặc custom metric qua adapter). Cluster Autoscaler scale SỐ LƯỢNG NODE (theo pod pending). Hai tầng autoscaling khác nhau, thường dùng cùng lúc bổ trợ nhau.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Pipeline CI/CD chạy trên GitHub Actions cần quyền AssumeRole vào AWS để chạy "terraform apply". Cách cũ là lưu AWS access key/secret key dài hạn dưới dạng GitHub Secret, team muốn loại bỏ hoàn toàn static credentials này.',
+ options:[
+   {id:'a', text:'Cấu hình IAM OIDC Identity Provider trust GitHub Actions token issuer, cho phép GitHub Actions workflow AssumeRoleWithWebIdentity để lấy temporary credentials, không cần lưu access key/secret key nào trong GitHub Secret.'},
+   {id:'b', text:'Đổi access key/secret key mới mỗi tuần 1 lần và cập nhật lại GitHub Secret để giảm rủi ro nếu bị lộ.'},
+   {id:'c', text:'Chuyển access key/secret key từ GitHub Secret sang AWS Secrets Manager, GitHub Actions gọi API lấy ra ngay trước mỗi lần chạy pipeline.'},
+   {id:'d', text:'Giới hạn IAM user gắn với access key đó chỉ có đúng quyền cần thiết cho terraform apply, giảm thiểu rủi ro nếu access key bị lộ.'}
+ ],
+ correct:['a'],
+ explain:'IAM OIDC Identity Provider trust GitHub Actions cho phép workflow lấy temporary credentials qua AssumeRoleWithWebIdentity dựa trên token do GitHub cấp — loại bỏ hoàn toàn khái niệm "static access key/secret key" cần lưu trữ ở bất kỳ đâu, đúng chính xác mục tiêu đề bài.',
+ whyWrong:'Đổi key định kỳ vẫn còn khái niệm static key tồn tại trong khoảng thời gian giữa các lần đổi — không đáp ứng "loại bỏ hoàn toàn". Chuyển key sang Secrets Manager vẫn là static key được LƯU TRỮ AN TOÀN HƠN, nhưng bản chất vẫn là static credentials, khác với OIDC (không có key nào để lưu cả). Giới hạn quyền IAM user là biện pháp giảm thiểu RỦI RO nếu lộ key, không phải loại bỏ được sự tồn tại của static key.',
+ tip:'"Loại bỏ hoàn toàn static credentials cho CI/CD" → luôn là OIDC Federation (AssumeRoleWithWebIdentity), giống hệt nguyên lý IRSA nhưng áp dụng cho GitHub Actions/GitLab CI thay vì Kubernetes Service Account.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'Team đang chạy 1 số workload EKS trên Fargate Profile với traffic ổn định, ít biến động, và có thể chịu được gián đoạn ngắn nếu cần. Muốn giảm chi phí Fargate mà vẫn giữ nguyên lợi ích serverless (không quản lý node).',
+ options:[
+   {id:'a', text:'Fargate Spot — vẫn giữ mô hình serverless của Fargate (không quản lý node), nhưng tận dụng capacity dư thừa với giá thấp hơn đáng kể so với Fargate giá chuẩn.'},
+   {id:'b', text:'Chuyển toàn bộ workload này sang Managed Node Group dùng On-Demand để kiểm soát chi phí tốt hơn, chấp nhận quay lại quản lý node.'},
+   {id:'c', text:'Mua Savings Plan cam kết 3 năm cho Fargate dù traffic có thể thay đổi trong tương lai, để tối đa hoá discount dài hạn.'},
+   {id:'d', text:'Giảm CPU/memory request của pod xuống mức tối thiểu có thể mà không quan tâm ảnh hưởng tới hiệu năng ứng dụng.'}
+ ],
+ correct:['a'],
+ explain:'Fargate Spot đúng chính xác giữ được lợi ích serverless (không quản lý node) trong khi giảm chi phí đáng kể so với Fargate giá chuẩn — phù hợp cho workload chịu được gián đoạn ngắn như đề bài mô tả.',
+ whyWrong:'Chuyển sang Managed Node Group giải quyết được chi phí nhưng đánh đổi mất lợi ích serverless mà đề bài muốn giữ. Savings Plan 3 năm không tối ưu khi traffic "có thể thay đổi" — rủi ro cam kết dư thừa nếu nhu cầu giảm. Giảm CPU/memory tuỳ tiện không quan tâm hiệu năng là tối ưu sai hướng, có thể gây throttle/OOM ảnh hưởng ứng dụng.',
+ tip:'Cần giữ serverless (không quản lý node) NHƯNG giảm giá, chịu được gián đoạn ngắn → Fargate Spot, hoàn toàn tương tự tinh thần EC2 Spot nhưng ở tầng Fargate.'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'Team đang lưu dữ liệu nhạy cảm (API key của bên thứ ba) dưới dạng Kubernetes Secret thông thường trong EKS. Sau khi tìm hiểu, team phát hiện Kubernetes Secret mặc định chỉ encode base64 (không thực sự mã hoá) khi lưu trong etcd — cần 1 lớp bảo vệ mạnh hơn ở tầng lưu trữ.',
+ options:[
+   {id:'a', text:'Bật EKS Secrets Encryption với Customer Managed Key trong KMS — áp dụng envelope encryption cho toàn bộ Kubernetes Secret trước khi ghi xuống etcd, thêm 1 lớp mã hoá thật sự ở tầng lưu trữ.'},
+   {id:'b', text:'Đổi tên các Secret sang tên khó đoán hơn để giảm khả năng bị truy cập trái phép nếu ai đó có quyền đọc etcd.'},
+   {id:'c', text:'Chuyển toàn bộ Secret sang lưu dưới dạng ConfigMap thay vì Secret, vì ConfigMap có cơ chế bảo mật tốt hơn Secret theo mặc định.'},
+   {id:'d', text:'Base64 encode 2 lần liên tiếp giá trị trước khi lưu vào Secret để tăng thêm 1 lớp khó đọc cho dữ liệu.'}
+ ],
+ correct:['a'],
+ explain:'EKS Secrets Encryption dùng envelope encryption với KMS CMK là cơ chế chính thức của AWS để thêm 1 lớp mã hoá THẬT SỰ (không chỉ base64 encode) cho Kubernetes Secret trước khi lưu vào etcd — giải quyết đúng vấn đề đề bài nêu ra.',
+ whyWrong:'Đổi tên Secret không thay đổi bản chất dữ liệu vẫn chỉ base64 encode bên trong, không phải mã hoá thật. ConfigMap thực tế KHÔNG có cơ chế bảo mật tốt hơn Secret — ngược lại, ConfigMap không được thiết kế cho dữ liệu nhạy cảm và hiển thị dễ dàng hơn cả Secret mặc định. Base64 encode nhiều lần vẫn chỉ là ENCODING (có thể decode ngược dễ dàng), hoàn toàn không phải mã hoá (encryption) thật sự — hiểu nhầm phổ biến giữa encode và encrypt.',
+ tip:'Kubernetes Secret mặc định chỉ base64 ENCODE (không phải ENCRYPT) khi lưu etcd — cần bật EKS Secrets Encryption với KMS để có mã hoá thật. Base64 không phải bảo mật, chỉ là định dạng.'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Cluster EKS đột nhiên không thể schedule thêm pod mới dù node vẫn còn dư CPU/memory đáng kể. Kiểm tra kỹ thấy lỗi liên quan tới việc không còn địa chỉ IP nào khả dụng trong subnet cho pod mới.',
+ options:[
+   {id:'a', text:'Đây là giới hạn cứng của EKS, cách duy nhất là tạo cluster mới với subnet lớn hơn ngay từ đầu, không có cách khắc phục cho cluster hiện tại.'},
+   {id:'b', text:'Amazon VPC CNI (plugin mặc định) gán trực tiếp 1 IP thật từ subnet cho mỗi pod — subnet quá nhỏ so với số lượng pod cần chạy sẽ hết IP; có thể khắc phục bằng cách mở rộng CIDR, dùng custom networking, hoặc bật chế độ prefix delegation để tăng số IP khả dụng trên mỗi ENI.'},
+   {id:'c', text:'Chỉ cần tăng số lượng node trong node group, vấn đề IP address sẽ tự động được giải quyết vì mỗi node có dải IP riêng độc lập với subnet.'},
+   {id:'d', text:'Chuyển sang dùng Fargate cho toàn bộ pod sẽ giải quyết vấn đề IP address vì Fargate không cần IP từ VPC subnet.'}
+ ],
+ correct:['b'],
+ explain:'VPC CNI mặc định gán IP thật (từ subnet, qua ENI secondary IP) cho từng pod — nếu subnet nhỏ, số IP khả dụng hết trước khi hết capacity CPU/memory. Khắc phục: mở rộng CIDR subnet, dùng custom networking (ENI riêng từ CIDR khác), hoặc bật prefix delegation (gán /28 prefix cho mỗi ENI, tăng mạnh số IP khả dụng mà không cần thêm ENI).',
+ whyWrong:'Không phải giới hạn cứng không khắc phục được — có nhiều cách xử lý ngay trên cluster hiện tại như liệt kê ở đáp án đúng. Tăng số node KHÔNG giải quyết được vì mỗi node vẫn lấy IP từ CÙNG 1 subnet đang cạn kiệt — thêm node có thể làm cạn kiệt IP nhanh hơn. Fargate vẫn cần IP từ VPC subnet cho mỗi pod (Fargate pod cũng có ENI riêng), không phải ngoại lệ miễn nhiễm với vấn đề IP exhaustion.',
+ tip:'VPC CNI = mỗi pod tốn 1 IP thật từ subnet (khác hẳn overlay network của nhiều CNI khác). Subnet nhỏ + nhiều pod = hết IP dù dư CPU/memory. Prefix delegation là cách khắc phục hiệu quả không cần đổi kiến trúc subnet.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Ứng dụng latency-sensitive chạy trên EKS cần scale rất nhanh (thêm pod mới trong vài giây) khi traffic tăng đột biến giờ cao điểm. Team đang cân nhắc giữa chạy hoàn toàn trên Fargate và chạy trên Managed Node Group có sẵn capacity dư (over-provisioned).',
+ options:[
+   {id:'a', text:'Fargate luôn scale nhanh hơn Managed Node Group trong mọi tình huống vì không cần khởi động EC2 instance mới.'},
+   {id:'b', text:'Fargate có độ trễ khởi động task (pull image, provision) khi scale ra pod hoàn toàn mới, thường CHẬM hơn việc schedule pod vào capacity EC2 đã sẵn sàng (warm) trong Managed Node Group.'},
+   {id:'c', text:'Cả 2 phương án có tốc độ scale hoàn toàn giống nhau vì Kubernetes Scheduler xử lý việc đặt pod theo cùng 1 cơ chế bất kể loại compute bên dưới.'},
+   {id:'d', text:'Managed Node Group luôn chậm hơn Fargate vì phải chờ Cluster Autoscaler phát hiện pod pending trước khi làm bất cứ điều gì.'}
+ ],
+ correct:['b'],
+ explain:'Khi pod mới cần chạy, nếu Managed Node Group đã có sẵn capacity dư (node đã chạy, chỉ cần schedule pod vào), tốc độ nhanh hơn nhiều so với Fargate phải khởi tạo task mới hoàn toàn (pull image, provision compute) — đây là lý do nhiều ứng dụng latency-sensitive chọn over-provision Node Group thay vì Fargate cho phần cần phản ứng cực nhanh.',
+ whyWrong:'Nói Fargate "luôn" nhanh hơn là sai vì bỏ qua tình huống Node Group đã có sẵn capacity dư warm sẵn. Nói tốc độ "hoàn toàn giống nhau" bỏ qua sự khác biệt về cơ chế launch compute bên dưới giữa 2 mô hình. Managed Node Group không nhất thiết luôn chậm hơn — nếu ĐÃ có capacity dư sẵn (không cần Cluster Autoscaler thêm node mới), việc schedule pod vào node có sẵn diễn ra gần như tức thời.',
+ tip:'Tốc độ scale phụ thuộc vào việc CÓ SẴN capacity dư hay không, không chỉ phụ thuộc loại compute (Fargate hay EC2). Node Group over-provisioned sẵn thường phản ứng nhanh hơn Fargate phải khởi tạo task mới từ đầu — đánh đổi giữa chi phí giữ dư capacity và tốc độ phản ứng.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Mỗi khi deploy 1 service mới lên EKS với Ingress resource mới, team phải vào Route 53 Console thủ công tạo bản ghi DNS trỏ tới ALB tương ứng — công đoạn này chậm và dễ quên/sai sót khi có nhiều service.',
+ options:[
+   {id:'a', text:'Cài đặt ExternalDNS controller trong cluster — tự động theo dõi Ingress/Service resource, tự tạo/cập nhật bản ghi Route 53 tương ứng mà không cần thao tác Console thủ công.'},
+   {id:'b', text:'Dùng Route 53 Alias Record trỏ trực tiếp tới tên miền của ALB, không cần bất kỳ automation nào vì Alias Record tự động nhận diện Ingress mới.'},
+   {id:'c', text:'Chuyển hẳn sang dùng CloudFront thay cho Route 53 vì CloudFront tự động tạo DNS record cho mọi Ingress resource mới trong cluster.'},
+   {id:'d', text:'Viết Terraform để mỗi lần deploy service mới sẽ tự chạy terraform apply tạo thêm 1 Route 53 record tương ứng.'}
+ ],
+ correct:['a'],
+ explain:'ExternalDNS là controller được thiết kế đúng cho bài toán này: theo dõi Ingress/Service resource trong Kubernetes, tự động đồng bộ tạo/cập nhật/xoá bản ghi Route 53 tương ứng — loại bỏ hoàn toàn thao tác thủ công.',
+ whyWrong:'Alias Record vẫn cần được TẠO trước (dù không cần biết IP cụ thể của ALB), nó không tự nhận diện Ingress mới nếu không có cơ chế tự động hoá như ExternalDNS đứng sau. CloudFront là CDN, không tự động tạo DNS record cho Ingress mới — đây không phải chức năng của CloudFront. Terraform tự động chạy theo mỗi lần deploy service là giải pháp khả thi nhưng phức tạp và chậm hơn nhiều so với ExternalDNS vốn được xây riêng, tích hợp trực tiếp vào vòng đời Kubernetes resource.',
+ tip:'Cần tự động đồng bộ Route 53 record theo đúng vòng đời Ingress/Service trong Kubernetes (tạo, sửa, xoá) → ExternalDNS, đây là công cụ chuẩn của hệ sinh thái Kubernetes cho đúng bài toán này.'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'Team bảo mật muốn giới hạn traffic mạng ở cấp TỪNG POD (không phải cấp node hay subnet), ví dụ chỉ cho phép pod "frontend" gọi tới pod "backend" trên đúng port cần thiết, dùng cơ chế Security Group thật của AWS thay vì phụ thuộc vào CNI plugin bên thứ ba.',
+ options:[
+   {id:'a', text:'Kubernetes NetworkPolicy tiêu chuẩn — được enforce bởi CNI plugin (như Calico), hoạt động độc lập với khái niệm Security Group của AWS EC2.'},
+   {id:'b', text:'Security Groups for Pods — tính năng của EKS dùng branch network interface (ENI trunking) trên instance họ Nitro, cho phép gắn trực tiếp EC2 Security Group vào 1 nhóm pod cụ thể qua SecurityGroupPolicy.'},
+   {id:'c', text:'Network ACL gắn vào subnet chứa node — áp dụng cho toàn bộ traffic ra/vào subnet đó, không phân biệt được pod nào với pod nào trong cùng subnet.'},
+   {id:'d', text:'Security Group gắn trực tiếp vào Elastic Network Interface (ENI) chính của EC2 node — áp dụng chung cho mọi pod chạy trên node đó.'}
+ ],
+ correct:['b'],
+ explain:'Security Groups for Pods là tính năng cho phép gắn Security Group EC2 THẬT trực tiếp vào 1 nhóm pod cụ thể (qua branch ENI/ENI trunking trên instance Nitro), đúng chính xác yêu cầu "dùng cơ chế Security Group thật của AWS" ở cấp độ TỪNG POD.',
+ whyWrong:'NetworkPolicy tiêu chuẩn dùng cơ chế của CNI plugin bên thứ ba (như Calico), KHÔNG phải Security Group thật của AWS — sai yêu cầu đề bài dù cùng mục đích kiểm soát traffic. NACL áp dụng ở cấp SUBNET, không phân biệt được pod nào với pod nào bên trong cùng subnet — quá thô cho yêu cầu cấp pod. Security Group gắn vào ENI chính của node áp dụng cho TOÀN BỘ pod trên node đó, không phân biệt được từng pod riêng lẻ như yêu cầu.',
+ tip:'Cần Security Group AWS THẬT áp dụng ở cấp TỪNG POD → Security Groups for Pods (branch ENI). NetworkPolicy thông thường vẫn hữu ích nhưng dùng cơ chế CNI plugin, không phải Security Group AWS gốc.'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Team đang dùng Cluster Autoscaler quản lý nhiều Managed Node Group riêng biệt cho từng loại instance type khác nhau, gặp khó khăn khi cần chọn đúng instance type tối ưu cho từng loại pod (workload đa dạng về CPU/memory/GPU) và thời gian scale-out khi có pod pending khá chậm.',
+ options:[
+   {id:'a', text:'Karpenter — cung cấp node trực tiếp dựa trên yêu cầu resource thực tế của pod pending, tự chọn instance type phù hợp nhất trong danh sách cho phép, không cần định nghĩa trước nhiều node group riêng theo từng loại instance.'},
+   {id:'b', text:'Tăng thêm nhiều Managed Node Group nữa, mỗi node group ứng với 1 loại instance type khác để phủ hết nhu cầu của mọi loại workload.'},
+   {id:'c', text:'Cluster Autoscaler không có giới hạn gì về việc chọn instance type, vấn đề chậm chọn instance type phù hợp không liên quan gì tới Cluster Autoscaler.'},
+   {id:'d', text:'Chuyển toàn bộ workload sang Fargate để không cần quan tâm tới việc chọn instance type nữa dưới bất kỳ hình thức nào.'}
+ ],
+ correct:['a'],
+ explain:'Karpenter cung cấp node theo mô hình "just-in-time" dựa trên yêu cầu resource thực tế của pod pending, tự chọn instance type tối ưu từ danh sách cho phép (không cần định nghĩa cứng nhiều node group theo từng loại instance như Cluster Autoscaler truyền thống), thường bin-packing và scale-out nhanh hơn.',
+ whyWrong:'Thêm nhiều Managed Node Group hơn giải quyết được phần "đa dạng instance type" nhưng làm tăng độ phức tạp quản lý và không giải quyết được vấn đề tốc độ scale-out chậm vốn có của Cluster Autoscaler khi làm việc với ASG truyền thống. Nói Cluster Autoscaler "không liên quan" là sai — Cluster Autoscaler vốn hoạt động dựa trên việc scale các ASG/node group đã định nghĩa sẵn, không tự chọn instance type tối ưu linh hoạt như Karpenter. Fargate không hỗ trợ GPU và có nhiều giới hạn tính năng khác, không phải giải pháp thay thế toàn diện cho mọi loại workload đa dạng.',
+ tip:'Cluster Autoscaler = scale các node group ĐÃ ĐỊNH NGHĨA SẴN theo instance type cố định. Karpenter = tự chọn instance type tối ưu theo yêu cầu pod thực tế, không cần định nghĩa trước nhiều node group — thường nhanh và linh hoạt hơn cho workload đa dạng.'
+},
+{domain:'secure', diff:'b', multi:true,
+ stem:'Team DevOps thiết lập pipeline CI/CD (GitHub Actions) chạy "terraform apply" để quản lý hạ tầng AWS, bao gồm cả việc tạo RDS instance (state file sẽ chứa thông tin nhạy cảm). Chọn 2 việc bắt buộc phải làm để pipeline này đạt chuẩn bảo mật, không dùng static credentials và không lộ dữ liệu nhạy cảm trong state.',
+ options:[
+   {id:'a', text:'Cấu hình IAM OIDC Identity Provider trust GitHub Actions, để pipeline AssumeRoleWithWebIdentity lấy temporary credentials, không lưu access key/secret key nào trong GitHub Secret.'},
+   {id:'b', text:'Bật SSE-KMS encryption cho S3 bucket chứa Terraform state file, đồng thời giới hạn bucket policy/IAM chỉ cho phép đúng pipeline role và admin hạ tầng truy cập.'},
+   {id:'c', text:'Lưu AWS access key/secret key dạng plaintext trực tiếp trong file .tf để pipeline dễ dàng đọc và sử dụng khi cần chạy apply.'},
+   {id:'d', text:'Tắt hoàn toàn Terraform state (không lưu state file ở đâu cả) để không có nguy cơ lộ dữ liệu nhạy cảm trong state.'}
+ ],
+ correct:['a','b'],
+ explain:'OIDC Federation loại bỏ hoàn toàn static credentials cho CI/CD (giống nguyên lý IRSA nhưng áp dụng cho GitHub Actions). SSE-KMS + giới hạn quyền truy cập bảo vệ state file (vốn là JSON plaintext theo mặc định) khỏi bị đọc trái phép — 2 lớp bảo vệ bổ trợ nhau: 1 cho việc XÁC THỰC của pipeline, 1 cho việc BẢO VỆ dữ liệu nhạy cảm trong state.',
+ whyWrong:'Lưu access key/secret key dạng plaintext trong file .tf là anti-pattern nghiêm trọng nhất có thể — file này thường được commit vào git, lộ credentials vĩnh viễn trong lịch sử repository. Tắt hoàn toàn Terraform state là không khả thi — Terraform BẮT BUỘC cần state để biết hạ tầng hiện tại nhằm tính toán được thay đổi (diff) cho lần apply tiếp theo, không có state đồng nghĩa không dùng được Terraform.',
+ tip:'2 lớp bảo mật cần tách biệt rõ: OIDC Federation giải quyết "pipeline xác thực với AWS thế nào" (không cần static key). SSE-KMS + IAM giải quyết "ai được đọc state file chứa dữ liệu nhạy cảm". Thiếu 1 trong 2 vẫn còn lỗ hổng.'
+},
+{domain:'cost', diff:'b', multi:true,
+ stem:'Cluster EKS chạy nhiều loại workload: có phần ổn định 24/7, có phần batch job chịu được gián đoạn, và node hiện tại thường xuyên bị over-provisioned (dư thừa capacity so với pod thực tế đang chạy) do dùng Cluster Autoscaler truyền thống. Chọn 2 thay đổi giúp tối ưu chi phí compute nhất mà không ảnh hưởng workload ổn định.',
+ options:[
+   {id:'a', text:'Thay Cluster Autoscaler bằng Karpenter với cấu hình consolidation — tự động terminate/thay thế node kém hiệu quả (ít pod, lãng phí capacity) bằng node phù hợp hơn, giảm dư thừa compute theo thời gian thực.'},
+   {id:'b', text:'Cấu hình Karpenter với NodePool riêng cho phần batch job cho phép dùng Spot Instance, trong khi NodePool cho workload ổn định vẫn dùng On-Demand hoặc Reserved capacity.'},
+   {id:'c', text:'Bật Spot Instance cho TOÀN BỘ node trong cluster, kể cả node đang chạy workload ổn định 24/7, để tối đa hoá mức tiết kiệm chi phí có thể đạt được.'},
+   {id:'d', text:'Tắt hẳn Cluster Autoscaler/Karpenter, giữ cố định 1 số lượng node lớn không đổi để tránh mọi rủi ro liên quan tới việc scale node.'}
+ ],
+ correct:['a','b'],
+ explain:'Karpenter với consolidation tự động dọn dẹp node lãng phí capacity theo thời gian thực (giải quyết đúng vấn đề "over-provisioned" trong đề bài). Tách NodePool riêng theo đặc tính workload (Spot cho batch job chịu được gián đoạn, On-Demand/Reserved cho workload ổn định) tối ưu chi phí đúng nơi mà không ảnh hưởng tới phần cần độ ổn định cao.',
+ whyWrong:'Bật Spot cho TOÀN BỘ node kể cả workload ổn định 24/7 tạo rủi ro downtime không chấp nhận được cho phần cần độ ổn định — vi phạm điều kiện "không ảnh hưởng workload ổn định" của đề bài. Giữ cố định số lượng node lớn không đổi triệt tiêu hoàn toàn lợi ích autoscaling, gây lãng phí chi phí thường trực thay vì giải quyết vấn đề over-provisioned đã nêu.',
+ tip:'Tối ưu chi phí compute đa dạng workload = tách theo ĐẶC TÍNH workload (ổn định vs chịu được gián đoạn) bằng NodePool/node group riêng, KHÔNG áp 1 chiến lược pricing chung cho toàn cluster. Karpenter consolidation giải quyết phần "dư thừa capacity theo thời gian thực" mà Cluster Autoscaler truyền thống làm chậm hơn nhiều.'
+}
+];
+
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function startExam(){
+  document.getElementById('introCard').style.display='none';
+  document.getElementById('examArea').style.display='block';
+  renderDots();
+  renderQuestion();
+}
+
+function renderDots(){
+  const wrap = document.getElementById('dots');
+  wrap.innerHTML='';
+  QUESTIONS.forEach((q,i)=>{
+    const d = document.createElement('div');
+    d.className='dot'+(i===current?' current':'')+(answers[i]&&answers[i].submitted?(answers[i].correct?' answered correct':' answered wrong'):'');
+    d.title='Câu '+(i+1);
+    d.onclick=()=>{ current=i; renderQuestion(); };
+    wrap.appendChild(d);
+  });
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById('qcount').textContent = 'Câu '+(current+1)+'/'+QUESTIONS.length;
+  let state = answers[current];
+  if(!state){
+    state = {selected:[], submitted:false, correct:false, order:shuffleArr(q.options.map(o=>o.id))};
+    answers[current] = state;
+  }
+
+  const isMulti = q.multi;
+  const orderedOpts = state.order.map(id => q.options.find(o=>o.id===id));
+
+  let optsHtml = '';
+  orderedOpts.forEach(opt=>{
+    let cls = 'opt'+(isMulti?' multi':'');
+    if(!state.submitted){
+      if(state.selected.includes(opt.id)) cls += ' selected';
+    } else {
+      const isCorrect = q.correct.includes(opt.id);
+      const wasSelected = state.selected.includes(opt.id);
+      if(isCorrect) cls += ' reveal-correct';
+      else if(wasSelected) cls += ' reveal-wrong';
+      cls += ' locked';
+    }
+    optsHtml += '<div class="'+cls+'" onclick="toggleOpt(\''+opt.id+'\')"><div class="mark"></div><div>'+opt.text+'</div></div>';
+  });
+
+  let infoHtml = '';
+  if(state.submitted){
+    const domain = DOMAIN_META[q.domain];
+    infoHtml = '<div class="info-panel show">'
+      + '<div class="verdict '+(state.correct?'ok':'no')+'">'+(state.correct?'✓ CHÍNH XÁC':'✕ CHƯA ĐÚNG')
+      + '<span class="domain-pill dtag '+domain.cls+'">'+domain.label+'</span></div>'
+      + '<p>'+q.explain+'</p>'
+      + '<div class="why-wrong"><b>Vì sao đáp án khác nghe có lý nhưng sai:</b> '+q.whyWrong+'</div>'
+      + '<div class="tip-line"><b>Chốt hạ:</b> '+q.tip+'</div>'
+      + '</div>';
+  }
+
+  const diffCls = q.diff;
+  document.getElementById('qContainer').innerHTML =
+    '<div class="qframe">'
+    + '<div class="qtag-corner">Q'+String(current+1).padStart(2,'0')+'</div>'
+    + '<div class="qhead"><div class="qnum-row"><span class="qnum">CÂU '+(current+1)+' / '+QUESTIONS.length+'</span>'
+    + '<span class="diff-badge '+diffCls+'">'+DIFF_LABEL[diffCls]+'</span></div>'
+    + '<div class="qstem">'+q.stem+'</div>'
+    + (isMulti?'<div class="multi-note">⚠ Chọn đúng 2 đáp án</div>':'')
+    + '</div>'
+    + '<div class="options">'+optsHtml+'</div>'
+    + (!state.submitted?'<div class="qactions"><button class="check-btn" id="checkBtn" onclick="submitAnswer()" '+(state.selected.length===0?'disabled':'')+'>Kiểm tra đáp án</button></div>':'')
+    + infoHtml
+    + '</div>';
+
+  document.getElementById('prevBtn').disabled = current===0;
+  document.getElementById('nextBtn').textContent = current===QUESTIONS.length-1 ? 'Xem kết quả →' : 'Tiếp →';
+  renderDots();
+}
+
+function toggleOpt(id){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  if(state.submitted) return;
+  if(q.multi){
+    const idx = state.selected.indexOf(id);
+    if(idx>=0) state.selected.splice(idx,1);
+    else {
+      if(state.selected.length < q.correct.length) state.selected.push(id);
+      else { state.selected.shift(); state.selected.push(id); }
+    }
+  } else {
+    state.selected = [id];
+  }
+  renderQuestion();
+}
+
+function submitAnswer(){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  const sel = [...state.selected].sort();
+  const cor = [...q.correct].sort();
+  state.correct = sel.length===cor.length && sel.every((v,i)=>v===cor[i]);
+  state.submitted = true;
+  renderQuestion();
+}
+
+function nextQ(){
+  if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+  else { showSummary(); }
+}
+function prevQ(){
+  if(current>0){ current--; renderQuestion(); }
+}
+
+function showSummary(){
+  document.getElementById('examArea').style.display='none';
+  const summary = document.getElementById('summary');
+  summary.classList.add('show');
+
+  let correctCount = 0;
+  const domainStats = {secure:{c:0,t:0}, resilient:{c:0,t:0}, performing:{c:0,t:0}, cost:{c:0,t:0}};
+  QUESTIONS.forEach((q,i)=>{
+    domainStats[q.domain].t++;
+    if(answers[i] && answers[i].submitted && answers[i].correct){ correctCount++; domainStats[q.domain].c++; }
+  });
+  const pct = Math.round(correctCount/QUESTIONS.length*100);
+  document.getElementById('scoreBig').textContent = correctCount+'/'+QUESTIONS.length;
+  document.getElementById('scorePct').textContent = pct+'%';
+
+  let verdict = '';
+  if(pct>=85) verdict='Mức này thi thật khả năng cao pass thoải mái — nhưng đề này cố tình khó hơn thi thật, đừng chủ quan tuyệt đối.';
+  else if(pct>=70) verdict='Ổn nhưng chưa chắc chắn — soi kỹ domain yếu nhất bên dưới trước khi đăng ký thi thật.';
+  else if(pct>=50) verdict='Còn lỗ hổng lý thuyết rõ rệt, không phải vấn đề trí nhớ — cần đọc lại đúng phần domain đang tụt, không học tủ lại đề này.';
+  else verdict='Cần ôn lại có hệ thống trước khi nghĩ tới lịch thi — đọc kỹ phần "vì sao đáp án khác sai" + "chốt hạ" của từng câu sai bên dưới.';
+  document.getElementById('verdictLine').textContent = verdict;
+
+  const order = ['secure','resilient','performing','cost'];
+  let bdHtml = '';
+  order.forEach(d=>{
+    const s = domainStats[d];
+    const dpct = s.t? Math.round(s.c/s.t*100):0;
+    bdHtml += '<div class="bd-row"><div class="bd-label" style="color:'+DOMAIN_COLOR[d]+'">'+DOMAIN_META[d].label+'</div>'
+      + '<div class="bd-bar-track"><div class="bd-bar-fill" style="width:'+dpct+'%; background:'+DOMAIN_COLOR[d]+';"></div></div>'
+      + '<div class="bd-pct">'+s.c+'/'+s.t+'</div></div>';
+  });
+  document.getElementById('bdRows').innerHTML = bdHtml;
+
+  let missHtml = '';
+  let missCount = 0;
+  QUESTIONS.forEach((q,i)=>{
+    if(!(answers[i] && answers[i].submitted && answers[i].correct)){
+      missCount++;
+      const short = q.stem.length>90 ? q.stem.slice(0,90)+'…' : q.stem;
+      missHtml += '<div class="miss-item" onclick="jumpTo('+i+')"><span>Câu '+(i+1)+' · '+DOMAIN_META[q.domain].label+' — '+short+'</span><span class="go">Xem lại →</span></div>';
+    }
+  });
+  document.getElementById('missWrap').style.display = missCount>0 ? 'block' : 'none';
+  document.getElementById('missRows').innerHTML = missHtml;
+}
+
+function jumpTo(i){
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('examArea').style.display='block';
+  current = i;
+  renderQuestion();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function restartExam(){
+  answers = new Array(QUESTIONS.length).fill(null);
+  current = 0;
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('introCard').style.display='block';
+  document.getElementById('examArea').style.display='none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+.page {
+  min-height: 100vh;
+  padding: 44px max(20px, calc((100vw - 1040px) / 2)) 88px;
+  color: #30271f;
+  background: #f2ece1;
+}
+.header { max-width: 740px; margin-bottom: 30px; }
+.backLink { display: inline-block; margin-bottom: 30px; color: #725b48; text-decoration: none; font-size: 13px; }
+.backLink:hover { color: #35271d; }
+.eyebrow { margin: 0 0 10px; color: #805333; font: 700 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em; text-transform: uppercase; }
+.header h1 { margin: 0; color: #30271f; font: 650 clamp(30px, 5vw, 44px)/1.12 Georgia, 'Times New Roman', serif; letter-spacing: -.035em; }
+.intro { margin: 12px 0 0; color: #6f6255; font-size: 15px; line-height: 1.65; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 14px; }
+.card {
+  position: relative;
+  display: flex;
+  min-height: 224px;
+  flex-direction: column;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid #d8cbbc;
+  border-radius: 9px;
+  background: #fffdf8;
+  box-shadow: 0 2px 5px rgba(64, 43, 26, .05);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.card::before { position: absolute; top: 0; right: 0; left: 0; height: 4px; background: #9b7451; content: ''; }
+.card:hover { transform: translateY(-2px); border-color: #b49778; box-shadow: 0 8px 18px rgba(64, 43, 26, .1); }
+.cardTop { display: flex; align-items: center; justify-content: space-between; margin: 1px 0 18px; }
+.label { display: inline-flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 4px; color: #496246; background: #e5eee0; font-size: 10px; font-weight: 700; letter-spacing: .035em; text-transform: uppercase; }
+.labelDot { width: 6px; height: 6px; border-radius: 50%; background: #6e8d62; }
+.number { color: #9a8978; font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.card h2 { margin: 0 0 7px; color: #342a21; font: 650 19px/1.3 Georgia, 'Times New Roman', serif; }
+.card > p { margin: 0 0 18px; color: #77695c; font-size: 12px; line-height: 1.55; }
+.cardFooter { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 13px; border-top: 1px solid #eee7dd; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 14px; color: #766756; font-size: 10px; line-height: 1.4; }
+.stats span { white-space: nowrap; }
+.stats strong { color: #59412e; font-size: 11px; }
+.startButton, .backButton { cursor: pointer; border: 0; font: inherit; }
+.startButton { display: inline-flex; flex-shrink: 0; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid #765239; border-radius: 6px; color: #fffaf3; background: #765239; font-size: 11px; font-weight: 700; transition: background .15s ease, border-color .15s ease; }
+.startButton:hover { border-color: #4e3828; background: #4e3828; }
+.sampleNote { margin: 14px 0 0; color: #847665; font-size: 11px; }
+.examShell { overflow: hidden; border: 1px solid #d7cabb; border-radius: 9px; background: #faf7f0; }
+.toolbar { display: flex; min-height: 48px; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid #d7cabb; }
+.toolbar a, .backButton { padding: 0; color: #66482f; background: none; text-decoration: none; font-size: 12px; font-weight: 650; }
+.toolbar a:hover, .backButton:hover { color: #342a21; }
+.examFrame { display: block; width: 100%; height: min(82vh, 1050px); min-height: 620px; border: 0; background: #fff; }
+@media (max-width: 680px) {
+  .page { padding: 28px 14px 64px; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .card { min-height: 205px; }
+  .examFrame { height: 78vh; min-height: 560px; }
+}
+@media (prefers-reduced-motion: reduce) { .card, .startButton { transition: none; } }

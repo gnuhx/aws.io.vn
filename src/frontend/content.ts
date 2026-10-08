@@ -42,6 +42,35 @@ const courseHtmlAssets = import.meta.glob([
   import: 'default',
 }) as Record<string, string>
 
+const examHtmlAssets = import.meta.glob('../../content/aws-saa-c03/Tests/SAA-C03_hardmode_exam_v*.html', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
+
+export type PracticeExam = { id: number; title: string; description: string; url: string; attempts: string; yesterdayHigh: number }
+
+const sampleExamStats: Record<number, { attempts: string; yesterdayHigh: number }> = {
+  2: { attempts: '1,284', yesterdayHigh: 88 },
+  3: { attempts: '936', yesterdayHigh: 92 },
+  4: { attempts: '1,108', yesterdayHigh: 84 },
+  5: { attempts: '847', yesterdayHigh: 90 },
+  6: { attempts: '1,452', yesterdayHigh: 86 },
+  7: { attempts: '763', yesterdayHigh: 94 },
+  8: { attempts: '1,016', yesterdayHigh: 89 },
+  9: { attempts: '688', yesterdayHigh: 91 },
+  10: { attempts: '529', yesterdayHigh: 87 },
+}
+
+export const getPracticeExams = (): PracticeExam[] =>
+  Array.from({ length: 9 }, (_, index) => index + 2)
+    .map((id) => {
+      const path = `../../content/aws-saa-c03/Tests/SAA-C03_hardmode_exam_v${id}.html`
+      const url = examHtmlAssets[path]
+      return url ? { id, title: `Hardmode practice exam ${String(id).padStart(2, '0')}`, description: 'Timed practice with answer review and domain breakdown.', url, ...sampleExamStats[id] } : null
+    })
+    .filter((exam): exam is PracticeExam => exam !== null)
+
 const courseMarkdownAssets = import.meta.glob([
   '../../content/aws-saa-c03/Module */*.md',
   '!../../content/aws-saa-c03/Module 2/prompt_template.md',

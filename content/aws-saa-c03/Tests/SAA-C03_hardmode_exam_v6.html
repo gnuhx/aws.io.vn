@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAA-C03 // hardmode-exam-06</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF7; --paper:#FFFFFF; --ink:#1a1a18; --ink-dim:#75756c;
+    --line:#e6e2d8;
+    --orange:#FF9900; --orange-dim:#FFF4E0; --orange-line:#e6890a;
+    --squid:#232F3E; --squid-2:#2f3f52;
+    --green:#1a7f4e; --green-dim:#eaf7f0; --green-line:#bfe3d0;
+    --wrong:#b1490f; --wrong-dim:#fdece1; --wrong-line:#f0c39e;
+    --violet:#5b4b8a; --violet-dim:#f1eef8; --violet-line:#d8cfec;
+    --cyan:#0a6e8c; --cyan-dim:#e7f4f8; --cyan-line:#bfe0ea;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; min-height:100vh;
+  }
+  .topbar{
+    background:var(--squid); color:#fff; padding:22px 4vw 20px;
+    border-bottom:3px solid var(--orange);
+  }
+  .topbar-inner{width:100%; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px;}
+  .topbar h1{font-family:'Source Serif 4',serif; font-weight:700; font-size:clamp(20px,3vw,28px); margin:0; letter-spacing:-.01em;}
+  .topbar .stamp{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.03em; color:var(--squid); background:var(--orange); padding:4px 10px; border-radius:3px; white-space:nowrap; font-weight:600;}
+  .cmdline{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb3c8; width:100%; margin:10px 0 0; padding:0 4vw; box-sizing:border-box;}
+  .cmdline .prompt{color:var(--orange);}
+
+  .sheet{width:100%; margin:0; padding:0 4vw 6vw; box-sizing:border-box;}
+  .subtitle{color:var(--ink-dim); font-size:15px; line-height:1.75; margin:24px 0 22px; font-family:'Inter',sans-serif;}
+  .subtitle b{color:var(--ink); font-weight:600; background:var(--orange-dim); padding:1px 4px; border-radius:3px;}
+
+  .intro-card{border:1px solid var(--line); border-radius:4px; padding:26px 28px; margin-bottom:24px; background:var(--paper);}
+  .intro-card h2{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.06em; margin:0 0 14px; color:var(--ink-dim); text-transform:uppercase; border-bottom:1px solid var(--line); padding-bottom:10px;}
+  .intro-card p{font-size:14.5px; line-height:1.75; color:var(--ink-dim); margin:0 0 10px;}
+  .intro-card p b{color:var(--ink);}
+  .diff-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;}
+  .dchip{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 11px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim);}
+  .dchip.e{border-color:var(--green-line); color:var(--green); background:var(--green-dim);}
+  .dchip.m{border-color:var(--cyan-line); color:var(--cyan); background:var(--cyan-dim);}
+  .dchip.h{border-color:var(--orange-line); color:#a15c00; background:var(--orange-dim);}
+  .dchip.b{border-color:var(--violet-line); color:var(--violet); background:var(--violet-dim);}
+  .domain-legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .dtag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 11px; border-radius:20px; border:1px solid;}
+  .dtag.secure{color:var(--cyan); border-color:var(--cyan-line); background:var(--cyan-dim);}
+  .dtag.resilient{color:var(--green); border-color:var(--green-line); background:var(--green-dim);}
+  .dtag.performing{color:var(--violet); border-color:var(--violet-line); background:var(--violet-dim);}
+  .dtag.cost{color:#a15c00; border-color:var(--orange-line); background:var(--orange-dim);}
+
+  .start-btn,.nav-btn,.restart-btn{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:.03em;
+    background:var(--squid); color:#fff; border:1px solid var(--squid); padding:11px 22px; border-radius:3px; cursor:pointer;
+    text-transform:uppercase; transition:background .15s;
+  }
+  .start-btn:hover,.nav-btn:not(:disabled):hover,.restart-btn:hover{background:var(--orange); border-color:var(--orange); color:var(--squid);}
+  .nav-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .nav-btn{background:transparent; color:var(--squid); border:1px solid var(--line);}
+  .nav-btn:not(:disabled):hover{background:var(--squid); color:#fff; border-color:var(--squid);}
+
+  .progress-row{display:flex; align-items:center; gap:14px; margin:26px 0 20px; flex-wrap:wrap; justify-content:space-between;}
+  .dots{display:flex; gap:5px; flex-wrap:wrap;}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--line); cursor:pointer; border:1px solid var(--line);}
+  .dot.answered{background:#c9c4b4; border-color:#c9c4b4;}
+  .dot.correct{background:var(--green); border-color:var(--green);}
+  .dot.wrong{background:var(--wrong); border-color:var(--wrong);}
+  .dot.current{outline:2px solid var(--orange); outline-offset:2px;}
+  .qcount{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); white-space:nowrap;}
+  .diff-badge{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 10px; border-radius:20px; border:1px solid; white-space:nowrap; text-transform:uppercase; letter-spacing:.03em;}
+  .diff-badge.e{color:var(--green); border-color:var(--green-line); background:var(--green-dim);}
+  .diff-badge.m{color:var(--cyan); border-color:var(--cyan-line); background:var(--cyan-dim);}
+  .diff-badge.h{color:#a15c00; border-color:var(--orange-line); background:var(--orange-dim);}
+  .diff-badge.b{color:var(--violet); border-color:var(--violet-line); background:var(--violet-dim);}
+
+  .qframe{border:1px solid var(--line); border-radius:4px; overflow:hidden; background:var(--paper); margin-bottom:22px; position:relative;}
+  .qframe .qtag-corner{position:absolute; top:14px; right:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#c9c4b4; letter-spacing:.03em;}
+  .qhead{padding:24px 26px 16px; border-bottom:1px solid var(--line);}
+  .qnum-row{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .qnum{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em;}
+  .qstem{font-family:'Source Serif 4',serif; font-size:19px; line-height:1.55; color:var(--ink); font-weight:400;}
+  .multi-note{display:inline-block; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#a15c00; border:1px solid var(--orange-line); background:var(--orange-dim); padding:3px 9px; border-radius:3px;}
+
+  .options{padding:18px 26px;}
+  .opt{display:flex; gap:13px; align-items:flex-start; padding:13px 14px; margin-bottom:9px; border:1px solid var(--line); border-radius:4px; cursor:pointer; font-size:14.5px; line-height:1.6; transition:border-color .12s, background .12s; background:var(--bg);}
+  .opt:hover{border-color:var(--squid);}
+  .opt.selected{border-color:var(--squid); background:#eef1f4;}
+  .opt .mark{width:15px; height:15px; flex:0 0 15px; margin-top:3px; border:1.5px solid #b8b4a6; border-radius:50%; position:relative;}
+  .opt.selected .mark{border-color:var(--squid);}
+  .opt.selected .mark::after{content:''; position:absolute; inset:3px; background:var(--squid); border-radius:50%;}
+  .opt.multi .mark{border-radius:3px;}
+  .opt.multi.selected .mark::after{border-radius:2px;}
+  .opt.locked{cursor:default;}
+  .opt.reveal-correct{border-color:var(--green); background:var(--green-dim);}
+  .opt.reveal-correct .mark{border-color:var(--green);}
+  .opt.reveal-correct .mark::after{background:var(--green); border-radius:inherit;}
+  .opt.reveal-wrong{border-color:var(--wrong); background:var(--wrong-dim);}
+  .opt.reveal-wrong .mark{border-color:var(--wrong);}
+  .opt.reveal-wrong .mark::after{background:var(--wrong); border-radius:inherit;}
+
+  .qactions{padding:0 26px 22px; display:flex; gap:10px;}
+  .check-btn{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.03em; background:var(--orange); color:var(--squid); border:1px solid var(--orange); padding:10px 20px; border-radius:3px; cursor:pointer;}
+  .check-btn:disabled{opacity:.3; cursor:not-allowed;}
+  .check-btn:not(:disabled):hover{background:var(--squid); color:#fff; border-color:var(--squid);}
+
+  .info-panel{border-top:1px solid var(--line); padding:20px 26px 24px; display:none; background:#fbfaf6;}
+  .info-panel.show{display:block;}
+  .info-panel .verdict{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.04em; margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; text-transform:uppercase;}
+  .verdict.ok{color:var(--green);}
+  .verdict.no{color:var(--wrong);}
+  .domain-pill{font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:20px; border:1px solid; margin-left:auto; text-transform:none; font-weight:600;}
+  .info-panel p{font-size:14.5px; line-height:1.75; color:var(--ink); margin:0 0 14px; font-family:'Inter',sans-serif;}
+  .why-wrong{font-size:13.5px; line-height:1.75; color:var(--ink-dim); margin:0 0 14px; border-left:3px solid var(--wrong); padding:8px 14px; background:#fff;}
+  .why-wrong b{color:var(--wrong);}
+  .tip-line{font-size:13.5px; line-height:1.65; color:var(--ink); border-left:3px solid var(--orange); padding:10px 14px; background:var(--orange-dim); border-radius:0 4px 4px 0;}
+  .tip-line b{color:#a15c00; font-family:'IBM Plex Mono',monospace; text-transform:uppercase; font-size:11px; letter-spacing:.03em; display:block; margin-bottom:4px;}
+
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:6px;}
+
+  .summary{display:none;}
+  .summary.show{display:block;}
+  .score-hero{border:1px solid var(--line); border-radius:4px; padding:34px 28px; text-align:center; margin-bottom:24px; background:var(--paper);}
+  .score-big{font-family:'IBM Plex Mono',monospace; font-size:clamp(38px,7vw,58px); font-weight:700; color:var(--squid); line-height:1;}
+  .score-sub{color:var(--ink-dim); font-size:13.5px; margin-top:10px; font-family:'IBM Plex Mono',monospace;}
+  .verdict-line{font-size:15px; margin-top:16px; color:var(--ink); font-family:'Source Serif 4',serif; line-height:1.6;}
+
+  .breakdown{margin-bottom:24px;}
+  .breakdown h3{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); margin:0 0 14px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .bd-row{display:flex; align-items:center; gap:12px; margin-bottom:11px;}
+  .bd-label{width:150px; font-family:'IBM Plex Mono',monospace; font-size:12px; flex:0 0 150px;}
+  .bd-bar-track{flex:1; height:9px; background:var(--line); border-radius:5px; overflow:hidden;}
+  .bd-bar-fill{height:100%; border-radius:5px;}
+  .bd-pct{width:42px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-dim); flex:0 0 42px;}
+
+  .miss-list{margin-bottom:26px;}
+  .miss-list h3{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--wrong); margin:0 0 14px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .miss-item{display:flex; justify-content:space-between; gap:10px; padding:10px 14px; border:1px solid var(--wrong-line); background:var(--wrong-dim); border-radius:4px; margin-bottom:7px; cursor:pointer; font-size:13.5px;}
+  .miss-item:hover{background:#fbe0d0;}
+  .miss-item span.go{font-family:'IBM Plex Mono',monospace; color:var(--wrong); flex:0 0 auto; font-size:12px;}
+
+  @media (max-width:640px){ .qstem{font-size:17px;} .bd-label{width:110px; flex:0 0 110px; font-size:11px;} }
+
+  /* Plain white reading surface; preserve the exam's existing questions and behavior. */
+  :root {
+    color-scheme: light;
+    --navy: #ffffff; --grid: transparent;
+    --paper: #24292f; --paper-dim: #57606a;
+    --cyan: #0969da; --cyan-dim: #ffffff; --cyan-border: #d0d7de;
+    --amber: #805500; --amber-dim: #ffffff; --amber-border: #d0d7de;
+    --green: #1a7f37; --green-dim: #ffffff; --green-border: #d0d7de;
+    --violet: #6639ba; --violet-dim: #ffffff; --violet-border: #d0d7de;
+    --bg: #ffffff; --ink: #24292f; --ink-dim: #57606a; --line: #d0d7de;
+    --orange: #805500; --orange-dim: #ffffff; --orange-line: #d0d7de;
+    --squid: #ffffff; --squid-2: #ffffff;
+    --green-line: #d0d7de; --wrong: #a40e26; --wrong-dim: #ffffff; --wrong-line: #d0d7de;
+    --violet-line: #d0d7de; --cyan-line: #d0d7de;
+  }
+  html, body { background: #fff !important; color: #24292f !important; }
+  body { padding: 24px max(18px, 4vw) 56px !important; }
+  .topbar, .intro-card, .qframe, .score-hero, .opt, .info-panel,
+  .why-wrong, .tip-line, .miss-item, .title-block .stamp,
+  .dchip, .dtag, .diff-badge, .multi-note { background: #fff !important; }
+  .topbar { border: 0 !important; padding: 0 0 20px !important; color: #24292f !important; }
+  .topbar h1, .title-block h1, .qstem, .intro-card p, .info-panel p,
+  .verdict-line, .score-sub, .subtitle, .opt { color: #24292f !important; }
+  .sheet { max-width: 900px; margin: 0 auto; padding: 0 !important; background: #fff !important; box-shadow: none !important; }
+  .intro-card, .score-hero { border: 0 !important; border-radius: 0 !important; padding: 18px 0 !important; }
+  .qframe { border: 0 !important; border-radius: 0 !important; overflow: visible !important; }
+  .qhead { border: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+  .options { padding-left: 0 !important; padding-right: 0 !important; }
+  .opt { border-color: #d0d7de !important; border-radius: 5px !important; }
+  .opt.selected, .opt.reveal-correct, .opt.reveal-wrong { background: #fff !important; }
+  .info-panel { border-top: 1px solid #d0d7de !important; }
+  .bd-bar-track { background: #f6f8fa !important; }
+  .rivet { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <h1>SAA-C03 // hardmode-exam-06</h1>
+    <span class="stamp">ĐỀ 06 · HYBRID/NETWORKING/OBSERVABILITY</span>
+  </div>
+</div>
+<div class="cmdline"><span class="prompt">$</span> ./run-exam --set=06 --shuffle=answers --reveal-domain=on-submit</div>
+
+<div class="sheet">
+  <p class="subtitle">Đề né sạch 5 đề trước. Lần này xoáy vào nhóm hybrid-network, observability và managed service ít bị đụng tới: SSM Session Manager, IAM Identity Center, S3 Bucket Owner Enforced, Direct Connect resiliency + encryption, Route 53 Resolver hybrid DNS, RDS Blue/Green Deployment, S3 Multi-Region Access Points, MSK vs Kinesis, X-Ray, FSx Lustre vs Windows, Step Functions Standard vs Express, AWS Batch, RI Marketplace. <b>4 đáp án cân bằng độ dài, xáo vị trí ngẫu nhiên</b> mỗi lần vào câu.</p>
+
+  <div class="intro-card" id="introCard">
+    <h2>▸ Trước khi vào ca</h2>
+    <p>Domain chỉ hiện ra sau khi bạn chốt đáp án — đề thi thật cũng không báo trước câu này thuộc domain nào.</p>
+    <div class="diff-legend">
+      <span class="dchip e">● Dễ — câu 1-7</span>
+      <span class="dchip m">● Trung bình — câu 8-17</span>
+      <span class="dchip h">● Khó — câu 18-25</span>
+      <span class="dchip b">● Não tàn — câu 26-28 (chọn 2)</span>
+    </div>
+    <div class="domain-legend">
+      <span class="dtag secure">Design Secure</span>
+      <span class="dtag resilient">Design Resilient</span>
+      <span class="dtag performing">Design High-Performing</span>
+      <span class="dtag cost">Design Cost-Optimized</span>
+    </div>
+    <div style="margin-top:22px;">
+      <button class="start-btn" onclick="startExam()">Bắt đầu →</button>
+    </div>
+  </div>
+
+  <div id="examArea" style="display:none;">
+    <div class="progress-row">
+      <div class="qcount" id="qcount">Câu 1/28</div>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div id="qContainer"></div>
+    <div class="nav-row">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">← Trước</button>
+      <button class="nav-btn" id="nextBtn" onclick="nextQ()">Tiếp →</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="score-hero">
+      <div class="score-big" id="scoreBig">0/28</div>
+      <div class="score-sub" id="scorePct">0%</div>
+      <div class="verdict-line" id="verdictLine"></div>
+    </div>
+    <div class="breakdown">
+      <h3>▸ Breakdown theo domain</h3>
+      <div id="bdRows"></div>
+    </div>
+    <div class="miss-list" id="missWrap">
+      <h3>▸ Các câu sai — bấm để nhảy lại xem giải thích</h3>
+      <div id="missRows"></div>
+    </div>
+    <button class="restart-btn" onclick="restartExam()">↺ Làm lại từ đầu (xáo lại đáp án)</button>
+  </div>
+</div>
+
+<script>
+const DOMAIN_META = {
+  secure:{label:'Design Secure Architectures', cls:'secure'},
+  resilient:{label:'Design Resilient Architectures', cls:'resilient'},
+  performing:{label:'Design High-Performing Architectures', cls:'performing'},
+  cost:{label:'Design Cost-Optimized Architectures', cls:'cost'}
+};
+const DOMAIN_COLOR = {secure:'var(--cyan)', resilient:'var(--green)', performing:'var(--violet)', cost:'#a15c00'};
+const DIFF_LABEL = {e:'DỄ', m:'TRUNG BÌNH', h:'KHÓ', b:'NÃO TÀN'};
+
+const QUESTIONS = [
+{domain:'secure', diff:'e', multi:false,
+ stem:'Team vận hành cần truy cập shell vào hàng chục EC2 instance trong private subnet để debug, nhưng chính sách bảo mật công ty cấm mở port 22 ra bất kỳ đâu, kể cả qua bastion host, và không muốn quản lý SSH key cho từng instance.',
+ options:[
+   {id:'a', text:'Tạo 1 bastion host trong public subnet, mở port 22 chỉ cho dải IP văn phòng, quản lý tập trung SSH key trên bastion đó.'},
+   {id:'b', text:'AWS Systems Manager Session Manager — mở shell trực tiếp vào instance qua Console/CLI dựa trên IAM permission, không cần mở port 22 hay quản lý SSH key nào.'},
+   {id:'c', text:'AWS Site-to-Site VPN kết nối từ văn phòng vào VPC, sau đó SSH trực tiếp vào từng instance qua kết nối VPN đã mã hoá.'},
+   {id:'d', text:'Đặt toàn bộ instance vào Security Group cho phép SSH từ chính VPC CIDR để giới hạn phạm vi truy cập port 22.'},
+ ],
+ correct:['b'],
+ explain:'Session Manager cho phép mở shell trực tiếp vào instance (qua SSM Agent) dựa trên IAM permission, hoàn toàn không cần mở inbound port 22 ở bất kỳ đâu (kể cả Security Group) và không cần quản lý/phân phối SSH key — đúng chính xác yêu cầu đề bài.',
+ whyWrong:'Bastion host vẫn phải mở port 22 (dù giới hạn IP), đi ngược yêu cầu "cấm mở port 22 kể cả qua bastion". VPN vẫn cần SSH vào từng instance sau khi kết nối, vẫn phải mở port 22 trong Security Group và quản lý SSH key. Giới hạn Security Group theo VPC CIDR vẫn là mở port 22 (dù phạm vi hẹp hơn), không đáp ứng yêu cầu "cấm mở port 22" tuyệt đối.',
+ tip:'"Không mở port 22, không quản lý SSH key" → luôn là Session Manager. Đây là giải pháp thay thế hoàn toàn bastion host truyền thống, dựa trên IAM thay vì network/key.'
+},
+{domain:'performing', diff:'e', multi:false,
+ stem:'Team vận hành muốn biết NGAY khi 1 API endpoint công khai bị chậm hoặc lỗi, thay vì chờ khách hàng report — cần 1 cơ chế chủ động gọi thử endpoint đó định kỳ từ nhiều vị trí và cảnh báo khi phát hiện bất thường.',
+ options:[
+   {id:'a', text:'Amazon CloudWatch Synthetics — chạy script canary (Node.js/Python) định kỳ theo lịch gọi thử endpoint/luồng UI thật, cảnh báo chủ động trước khi user thật gặp sự cố.'},
+   {id:'b', text:'Amazon CloudWatch Logs Insights — truy vấn log ứng dụng đã ghi lại để tìm request nào bị lỗi hoặc chậm trong quá khứ.'},
+   {id:'c', text:'AWS X-Ray — phân tích trace của các request đã thực sự xảy ra để tìm nguyên nhân latency, không tự chủ động gọi thử endpoint.'},
+   {id:'d', text:'Amazon CloudWatch Alarm gắn trực tiếp vào metric CPUUtilization của EC2 instance chạy API, cảnh báo khi CPU vượt ngưỡng.'}
+ ],
+ correct:['a'],
+ explain:'CloudWatch Synthetics chạy canary script CHỦ ĐỘNG gọi thử endpoint theo lịch định kỳ từ nhiều vị trí, mô phỏng đúng hành vi user thật — phát hiện sự cố TRƯỚC KHI user thật gặp phải, đúng chính xác yêu cầu "biết ngay, chủ động" trong đề bài.',
+ whyWrong:'CloudWatch Logs Insights và X-Ray đều là công cụ PHÂN TÍCH SAU KHI đã có request thật xảy ra (reactive), không chủ động tạo request thử để kiểm tra khi không có traffic thật. CPUUtilization alarm chỉ phản ánh tải server, không trực tiếp đo được trải nghiệm thực tế của endpoint (API có thể chậm/lỗi dù CPU vẫn bình thường, ví dụ do downstream dependency).',
+ tip:'Cần chủ động "giả làm user" gọi thử định kỳ để phát hiện sự cố TRƯỚC khi user thật gặp phải → CloudWatch Synthetics. Log Insights/X-Ray chỉ phân tích được SAU KHI đã có traffic thật.'
+},
+{domain:'cost', diff:'e', multi:false,
+ stem:'Startup nhỏ muốn deploy 1 API backend dạng container lên AWS nhanh nhất có thể, không có đội DevOps chuyên trách để tự quản lý cluster ECS/EKS, chỉ muốn đưa source code/image lên và AWS tự lo phần còn lại (build, scale, load balancing).',
+ options:[
+   {id:'a', text:'Amazon EKS — triển khai Kubernetes managed control plane, vẫn cần team tự quản lý node group, cấu hình Ingress, scaling policy chi tiết.'},
+   {id:'b', text:'AWS App Runner — chỉ cần trỏ tới source code hoặc container image, AWS tự động build, deploy, scale, và cấu hình load balancing mà không cần quản lý cluster hay hạ tầng bên dưới.'},
+   {id:'c', text:'Amazon ECS trên EC2 launch type — vẫn cần tự quản lý EC2 instance làm worker node cho cluster ECS.'},
+   {id:'d', text:'EC2 instance đơn lẻ chạy Docker thủ công, tự cài đặt reverse proxy và cấu hình auto scaling group riêng.'}
+ ],
+ correct:['b'],
+ explain:'App Runner được thiết kế đúng cho use case "không có đội DevOps chuyên trách": chỉ cần trỏ source code/image, AWS tự động lo toàn bộ build, deploy, scale, load balancing — mức độ trừu tượng hoá cao nhất trong 4 lựa chọn.',
+ whyWrong:'EKS mạnh mẽ nhưng đòi hỏi kiến thức Kubernetes và tự quản lý nhiều thành phần (node group, Ingress, scaling) — không phù hợp team không có DevOps chuyên trách. ECS EC2 launch type vẫn cần tự quản lý EC2 worker node. EC2 đơn lẻ tự cấu hình thủ công đòi hỏi nhiều công sức vận hành nhất, đi ngược hoàn toàn yêu cầu "AWS tự lo phần còn lại".',
+ tip:'Cần deploy nhanh, không muốn quản lý hạ tầng container bên dưới, không có DevOps chuyên trách → App Runner. Càng cần kiểm soát chi tiết (EKS/ECS/EC2) càng đòi hỏi vận hành nhiều hơn.'
+},
+{domain:'performing', diff:'e', multi:false,
+ stem:'Team data cần chạy truy vấn SQL trực tiếp lên hàng triệu file log JSON đang lưu trong S3 để phân tích nhanh 1 lần, không muốn provision cluster database hay ETL server nào, và tần suất truy vấn không thường xuyên.',
+ options:[
+   {id:'a', text:'Amazon Athena kết hợp AWS Glue Data Catalog — Athena chạy truy vấn SQL serverless trực tiếp lên dữ liệu trong S3, Glue Crawler tự động khám phá schema và đăng ký vào Data Catalog để Athena truy vấn.'},
+   {id:'b', text:'Amazon RDS — cần tạo instance database, import toàn bộ dữ liệu log từ S3 vào RDS trước khi truy vấn được bằng SQL.'},
+   {id:'c', text:'Amazon Redshift Cluster — cần provision cluster data warehouse trước, sau đó load dữ liệu từ S3 vào cluster mới truy vấn được.'},
+   {id:'d', text:'Amazon EMR — cần khởi tạo cluster Hadoop/Spark, cấu hình job xử lý dữ liệu trước khi có thể truy vấn.'}
+ ],
+ correct:['a'],
+ explain:'Athena + Glue là combo serverless đúng nhất cho nhu cầu "truy vấn SQL trực tiếp lên S3, không provision gì, tần suất không thường xuyên" — Glue Crawler tự khám phá schema, Athena query trực tiếp trên S3 mà không cần load dữ liệu đi đâu cả.',
+ whyWrong:'RDS và Redshift đều yêu cầu PROVISION instance/cluster trước và LOAD dữ liệu vào trong đó mới truy vấn được — tốn công sức và chi phí không cần thiết cho nhu cầu truy vấn không thường xuyên. EMR cũng cần khởi tạo cluster Hadoop/Spark, phù hợp xử lý dữ liệu lớn phức tạp hơn, không tối ưu cho truy vấn SQL đơn giản không thường xuyên.',
+ tip:'Truy vấn SQL trực tiếp lên S3, không muốn provision gì, tần suất thấp → Athena + Glue. Cần provision instance/cluster trước khi query → RDS/Redshift/EMR, không tối ưu cho use case này.'
+},
+{domain:'secure', diff:'e', multi:false,
+ stem:'Công ty có hàng trăm EC2 instance chạy nhiều hệ điều hành khác nhau, cần đảm bảo tất cả đều được vá lỗi bảo mật (security patch) định kỳ theo đúng lịch bảo trì, và có báo cáo compliance cho biết instance nào còn thiếu patch.',
+ options:[
+   {id:'a', text:'AWS Systems Manager Patch Manager — tự động hoá việc vá lỗi theo patch baseline đã định nghĩa, lên lịch qua Maintenance Window, cung cấp báo cáo compliance instance nào thiếu patch.'},
+   {id:'b', text:'AWS Config — chỉ ghi lại lịch sử thay đổi cấu hình resource, không có cơ chế tự động cài đặt patch cho instance.'},
+   {id:'c', text:'Amazon Inspector — quét phát hiện lỗ hổng CVE trên instance, nhưng không tự động cài đặt patch để khắc phục lỗ hổng đã tìm thấy.'},
+   {id:'d', text:'AWS Trusted Advisor — chỉ đưa ra khuyến nghị chung theo best practice, không có cơ chế tự động vá lỗi theo lịch bảo trì cho từng instance.'}
+ ],
+ correct:['a'],
+ explain:'Patch Manager là dịch vụ chuyên biệt để TỰ ĐỘNG HOÁ việc vá lỗi theo patch baseline, lên lịch qua Maintenance Window, và cung cấp báo cáo compliance — đúng chính xác toàn bộ yêu cầu đề bài (tự động vá + báo cáo compliance).',
+ whyWrong:'Config chỉ ghi lại lịch sử cấu hình, không tự cài đặt patch. Inspector chỉ PHÁT HIỆN lỗ hổng (detective), không tự động KHẮC PHỤC bằng cách cài patch (remediative) — 2 việc khác nhau hay bị nhầm. Trusted Advisor chỉ đưa gợi ý chung, không có cơ chế tự động hoá vá lỗi theo lịch cho từng instance cụ thể.',
+ tip:'Cần TỰ ĐỘNG cài đặt patch theo lịch + báo cáo compliance → Patch Manager. Inspector chỉ phát hiện lỗ hổng, không tự vá — 2 dịch vụ bổ trợ nhau (Inspector tìm ra vấn đề, Patch Manager khắc phục).'
+},
+{domain:'performing', diff:'e', multi:false,
+ stem:'Team muốn nhận dữ liệu clickstream từ website theo thời gian thực, chỉ cần chuyển thẳng dữ liệu đó vào S3 để lưu trữ và phân tích sau bằng Athena, có transform nhẹ (convert JSON sang Parquet) nhưng không cần tự viết code xử lý consumer phức tạp.',
+ options:[
+   {id:'a', text:'Amazon Kinesis Data Streams — cần tự viết và quản lý consumer application để đọc dữ liệu từ stream rồi tự ghi vào S3, kiểm soát chi tiết nhưng tốn công code hơn.'},
+   {id:'b', text:'Amazon Kinesis Data Firehose — dịch vụ được quản lý hoàn toàn, tự động buffer và ghi dữ liệu vào S3 theo lịch, hỗ trợ transform nhẹ (như convert format) qua Lambda tích hợp sẵn, không cần tự viết consumer.'},
+   {id:'c', text:'Amazon SQS Standard Queue — phù hợp hàng đợi message xử lý theo yêu cầu riêng lẻ, không tối ưu cho luồng dữ liệu clickstream liên tục cần ghi hàng loạt vào S3.'},
+   {id:'d', text:'Amazon MQ — message broker cho ứng dụng dùng giao thức truyền thống như JMS/AMQP, không phải công cụ tối ưu để đổ dữ liệu clickstream vào S3.'}
+ ],
+ correct:['b'],
+ explain:'Firehose đúng chính xác cho nhu cầu "chuyển thẳng vào S3, transform nhẹ, không muốn tự viết consumer" — đây là dịch vụ managed hoàn toàn, khác với Data Streams cần tự quản lý logic đọc/ghi.',
+ whyWrong:'Kinesis Data Streams mạnh hơn nhưng đòi hỏi tự viết và vận hành consumer application — không đáp ứng "không cần tự viết code xử lý consumer phức tạp". SQS phù hợp cho message xử lý riêng lẻ theo yêu cầu, không tối ưu cho luồng dữ liệu clickstream liên tục cần đổ hàng loạt vào S3. Amazon MQ dành cho ứng dụng cần giao thức message broker truyền thống (JMS/AMQP/MQTT), không phải công cụ cho pipeline dữ liệu streaming vào S3.',
+ tip:'Cần custom logic xử lý real-time phức tạp → Kinesis Data Streams (tự quản lý consumer). Chỉ cần đổ dữ liệu vào đích (S3/Redshift/OpenSearch) với transform nhẹ, không tự viết consumer → Firehose.'
+},
+{domain:'resilient', diff:'e', multi:false,
+ stem:'Team dùng EC2 Spot Fleet với nhiều instance type khác nhau (diversified) cho 1 workload chịu được gián đoạn, nhưng muốn GIẢM THIỂU tần suất bị thu hồi (interruption) nhất có thể, chấp nhận trả giá không phải thấp nhất tuyệt đối.',
+ options:[
+   {id:'a', text:'Allocation Strategy "lowest-price" — Spot Fleet luôn chọn pool có giá thấp nhất trong số các instance type đã chỉ định, bất kể pool đó có đang khan hiếm capacity hay không.'},
+   {id:'b', text:'Allocation Strategy "capacity-optimized" — Spot Fleet chọn pool có capacity khả dụng nhiều nhất (ít khả năng bị thu hồi hơn) trong số các instance type đã chỉ định, ưu tiên độ ổn định hơn mức giá tuyệt đối thấp nhất.'},
+   {id:'c', text:'Chuyển toàn bộ sang On-Demand Instance để loại bỏ hoàn toàn rủi ro bị thu hồi, chấp nhận trả giá cao nhất trong mọi tình huống.'},
+   {id:'d', text:'Không cấu hình allocation strategy nào, để AWS tự chọn ngẫu nhiên giữa các pool instance type đã chỉ định trong Spot Fleet.'}
+ ],
+ correct:['b'],
+ explain:'"capacity-optimized" đúng chính xác ưu tiên chọn pool có capacity dư dả nhất (ít khả năng bị AWS thu hồi lại) thay vì chỉ nhìn giá — đáp ứng đúng yêu cầu "giảm thiểu tần suất bị thu hồi, chấp nhận không phải giá thấp nhất tuyệt đối".',
+ whyWrong:'"lowest-price" tối ưu CHI PHÍ chứ không tối ưu ĐỘ ỔN ĐỊNH — pool giá rẻ nhất có thể đang khan hiếm capacity, dễ bị thu hồi hơn, ngược yêu cầu đề bài. Chuyển sang On-Demand mất hoàn toàn lợi ích chi phí của Spot, không phải giải pháp đề bài tìm kiếm (đề bài vẫn muốn dùng Spot, chỉ muốn giảm interruption). AWS không có chế độ "chọn ngẫu nhiên" mặc định — luôn có allocation strategy cụ thể được áp dụng.',
+ tip:'"lowest-price" = tối ưu giá, chấp nhận rủi ro interruption cao hơn. "capacity-optimized" = tối ưu độ ổn định, giảm interruption, giá có thể không phải thấp nhất tuyệt đối. Chọn đúng theo ưu tiên đề bài nêu.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Tập đoàn có 60 account AWS trong Organizations, nhân viên hiện phải nhớ nhiều bộ IAM credentials khác nhau hoặc qua nhiều lần thiết lập SAML riêng lẻ cho từng account để truy cập. Team muốn 1 nơi đăng nhập DUY NHẤT, sau đó nhân viên thấy danh sách account/role họ được cấp quyền và chọn vào.',
+ options:[
+   {id:'a', text:'Thiết lập SAML 2.0 Federation riêng biệt cho từng account, mỗi account có 1 Identity Provider và trust policy riêng để nhân viên đăng nhập.'},
+   {id:'b', text:'AWS IAM Identity Center — điểm đăng nhập tập trung cho toàn bộ Organizations, tích hợp với Identity Provider ngoài hoặc directory nội bộ, dùng Permission Set để cấp quyền theo account, nhân viên đăng nhập 1 lần rồi chọn account/role muốn vào.'},
+   {id:'c', text:'Tạo 1 IAM user chung duy nhất có quyền admin ở tất cả 60 account, chia sẻ credentials cho toàn bộ nhân viên dùng chung.'},
+   {id:'d', text:'AWS Cognito User Pool — thiết lập 1 User Pool trung tâm để nhân viên đăng nhập, cấp quyền tương đương IAM Identity Center cho môi trường multi-account.'}
+ ],
+ correct:['b'],
+ explain:'IAM Identity Center được thiết kế đúng cho use case này: 1 điểm đăng nhập tập trung cho toàn Organizations, Permission Set định nghĩa quyền theo từng account, nhân viên đăng nhập 1 lần và thấy danh sách account/role được cấp — giải quyết đúng vấn đề "nhiều bộ credentials/SAML riêng lẻ".',
+ whyWrong:'SAML riêng lẻ từng account chính là vấn đề đề bài đang muốn giải quyết (nhiều lần thiết lập rời rạc), không phải giải pháp. IAM user chung dùng chia sẻ là anti-pattern bảo mật nghiêm trọng (không truy vết được ai làm gì, không thể thu hồi quyền riêng lẻ). Cognito User Pool được thiết kế cho end-user của ứng dụng do công ty tự xây (consumer-facing), không phải công cụ quản lý truy cập multi-account cho nhân viên nội bộ như Identity Center.',
+ tip:'SAML Federation (đơn lẻ, cấu hình riêng từng account) khác với IAM Identity Center (tập trung toàn Organizations, 1 lần đăng nhập cho nhiều account qua Permission Set) — Identity Center là lựa chọn đúng khi quy mô nhiều account.'
+},
+{domain:'secure', diff:'m', multi:false,
+ stem:'Team bảo mật review các bucket S3 và phát hiện một số bucket vẫn dùng ACL để cấp quyền cho tài khoản khác bên cạnh bucket policy, gây khó khăn khi audit vì có 2 cơ chế cấp quyền chồng chéo nhau. Team muốn đơn giản hoá về chỉ còn 1 mô hình cấp quyền duy nhất dựa trên policy.',
+ options:[
+   {id:'a', text:'Bật S3 Object Ownership ở chế độ "Bucket owner enforced" — vô hiệu hoá hoàn toàn ACL trên bucket và object, bucket owner tự động sở hữu mọi object, quyền truy cập chỉ còn quản lý qua IAM/bucket policy.'},
+   {id:'b', text:'Xoá thủ công từng ACL entry trên từng object một, giữ nguyên khả năng dùng ACL cho các object mới trong tương lai nếu cần.'},
+   {id:'c', text:'Bật S3 Versioning để tự động vô hiệu hoá ACL cũ trên các version object trước đó, chỉ áp dụng policy cho version mới nhất.'},
+   {id:'d', text:'Chuyển toàn bộ bucket sang chế độ Requester Pays để ACL tự động không còn hiệu lực khi có cấu hình này.'}
+ ],
+ correct:['a'],
+ explain:'"Bucket owner enforced" là chế độ Object Ownership mới nhất, vô hiệu hoá hoàn toàn ACL (cả bucket và object), đơn giản hoá về chỉ còn IAM/bucket policy — đúng chính xác mục tiêu "chỉ còn 1 mô hình cấp quyền duy nhất" của đề bài.',
+ whyWrong:'Xoá thủ công từng ACL entry không giải quyết được gốc rễ vì ACL vẫn còn khả năng được dùng lại cho object mới trong tương lai — không đạt được "đơn giản hoá về 1 mô hình duy nhất" lâu dài. Versioning không liên quan gì tới việc vô hiệu hoá ACL. Requester Pays chỉ liên quan tới việc ai trả phí data transfer, hoàn toàn không tác động tới cơ chế ACL.',
+ tip:'Muốn loại bỏ hoàn toàn ACL, chỉ dùng policy để quản lý quyền S3 → "Bucket owner enforced" trong S3 Object Ownership, đây là khuyến nghị mặc định hiện nay cho bucket mới.'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Công ty có văn phòng on-premises kết nối VPC qua Direct Connect, nhân viên trong VPC cần resolve được tên miền nội bộ của hệ thống on-premises (ví dụ "printer.corp.local"), và ngược lại, hệ thống DNS server on-premises cũng cần resolve được các private hosted zone record trong Route 53 của VPC.',
+ options:[
+   {id:'a', text:'Chỉ cần cấu hình Route 53 Private Hosted Zone bình thường, DNS 2 chiều giữa VPC và on-premises sẽ tự động hoạt động không cần thêm gì.'},
+   {id:'b', text:'Route 53 Resolver Outbound Endpoint (để VPC forward truy vấn miền on-premises ra ngoài) kết hợp Inbound Endpoint (để DNS server on-premises gửi truy vấn vào resolve record trong VPC) — 2 chiều riêng biệt cần cấu hình đủ cả 2.'},
+   {id:'c', text:'Chỉ cần Route 53 Resolver Inbound Endpoint là đủ cho cả 2 chiều truy vấn DNS giữa VPC và on-premises.'},
+   {id:'d', text:'Cấu hình lại toàn bộ DNS server on-premises trỏ thẳng 100% truy vấn về Route 53 Resolver mặc định của VPC (.2 resolver), không cần endpoint riêng nào.'}
+ ],
+ correct:['b'],
+ explain:'Cần cả 2 endpoint riêng biệt cho 2 chiều: Outbound Endpoint để VPC forward truy vấn tên miền on-premises ra ngoài (qua conditional forwarding rule), và Inbound Endpoint để DNS server on-premises gửi truy vấn vào VPC resolve được Route 53 private hosted zone record — đây là kiến trúc hybrid DNS chuẩn.',
+ whyWrong:'Private Hosted Zone mặc định chỉ resolve được TRONG VPC, không tự động cho phép on-premises truy vấn vào hay VPC truy vấn ra ngoài — cần thêm Resolver Endpoint. Chỉ dùng 1 chiều Inbound Endpoint không đáp ứng được chiều ngược lại (VPC cần resolve miền on-premises). Resolver mặc định (.2) của VPC chỉ hoạt động NỘI BỘ VPC, DNS server on-premises không thể gọi thẳng vào đó mà không qua Inbound Endpoint.',
+ tip:'Hybrid DNS 2 chiều giữa VPC và on-premises luôn cần CẢ 2: Outbound Endpoint (VPC → on-premises) và Inbound Endpoint (on-premises → VPC) — thiếu 1 chiều là chỉ giải quyết được 1 nửa bài toán.'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Công ty đang dùng đúng 1 kết nối Direct Connect duy nhất từ datacenter tới AWS cho toàn bộ traffic production quan trọng. Đội hạ tầng lo ngại đây là single point of failure — nếu đường cáp vật lý đó đứt, toàn bộ kết nối tới AWS sẽ mất.',
+ options:[
+   {id:'a', text:'Không cần lo lắng vì Direct Connect là dịch vụ được AWS quản lý hoàn toàn, tự động có độ dự phòng (redundancy) sẵn ở tầng vật lý mà không cần thêm gì.'},
+   {id:'b', text:'Thiết lập thêm 1 kết nối Direct Connect thứ 2 tại 1 DX location khác (khác thiết bị/đường cáp vật lý), hoặc kết hợp Direct Connect với Site-to-Site VPN làm đường dự phòng khi DX gặp sự cố.'},
+   {id:'c', text:'Tăng băng thông của kết nối Direct Connect hiện tại lên mức cao nhất có thể để giảm rủi ro đường cáp bị đứt.'},
+   {id:'d', text:'Chuyển hẳn sang dùng Transit Gateway thay cho Direct Connect vì Transit Gateway tự có tính năng chống đứt cáp vật lý tích hợp sẵn.'}
+ ],
+ correct:['b'],
+ explain:'Direct Connect là 1 kết nối vật lý cụ thể — AWS không tự cấp dự phòng cho phần hạ tầng vật lý đó. Cách chuẩn để giải quyết single point of failure là thêm 1 kết nối DX thứ 2 ở location/thiết bị khác, hoặc dùng VPN làm đường dự phòng (fallback) khi DX gặp sự cố.',
+ whyWrong:'Direct Connect KHÔNG tự động có redundancy vật lý — đây chính là rủi ro thật mà đề bài nêu ra, không phải hiểu lầm. Tăng băng thông không giải quyết được vấn đề "đường cáp vật lý bị đứt" — băng thông cao hay thấp đều mất kết nối như nhau nếu cáp đứt. Transit Gateway là dịch vụ định tuyến giữa nhiều VPC/kết nối, không phải giải pháp thay thế Direct Connect hay tự có khả năng chống đứt cáp vật lý.',
+ tip:'1 kết nối Direct Connect DUY NHẤT luôn là single point of failure vật lý — cần dự phòng bằng DX thứ 2 khác location, hoặc VPN backup, AWS không tự cấp redundancy cho đường cáp riêng của bạn.'
+},
+{domain:'performing', diff:'m', multi:false,
+ stem:'Team đang migrate 1 hệ thống xử lý message hiện có đang chạy Apache Kafka on-premises lên AWS, ứng dụng consumer/producer hiện tại dùng thẳng Kafka API và có nhiều Kafka Connect connector đang hoạt động, team muốn giữ nguyên toàn bộ code và connector này khi lên cloud.',
+ options:[
+   {id:'a', text:'Amazon Kinesis Data Streams — dịch vụ streaming AWS-native, nhưng dùng API riêng của Kinesis, không tương thích trực tiếp với code/connector đang viết cho Kafka API.'},
+   {id:'b', text:'Amazon Managed Streaming for Apache Kafka (MSK) — dịch vụ Kafka được AWS quản lý, tương thích hoàn toàn với Kafka API hiện có, cho phép giữ nguyên producer/consumer code và Kafka Connect connector đã có.'},
+   {id:'c', text:'Amazon SQS — hàng đợi message đơn giản, không hỗ trợ mô hình publish-subscribe nhiều consumer group hay Kafka Connect ecosystem như Kafka.'},
+   {id:'d', text:'Amazon SNS kết hợp SQS Fan-out — mô hình pub-sub của AWS, nhưng đòi hỏi viết lại hoàn toàn logic producer/consumer theo API của SNS/SQS thay vì Kafka.'}
+ ],
+ correct:['b'],
+ explain:'MSK là Kafka được AWS quản lý, tương thích Kafka API hoàn toàn — đúng chính xác yêu cầu "giữ nguyên toàn bộ code và connector" khi migrate từ Kafka on-premises lên cloud, không cần viết lại logic.',
+ whyWrong:'Kinesis Data Streams là dịch vụ streaming mạnh nhưng dùng API và mô hình riêng của AWS, không tương thích trực tiếp với code/connector đã viết cho Kafka — sẽ cần viết lại đáng kể. SQS không hỗ trợ mô hình pub-sub nhiều consumer group hay hệ sinh thái Kafka Connect như Kafka cung cấp. SNS+SQS Fan-out là mô hình pub-sub khác hẳn API và tư duy so với Kafka, đòi hỏi viết lại logic ứng dụng.',
+ tip:'Cần GIỮ NGUYÊN code/tooling đang dùng Kafka API khi lên cloud → MSK (Kafka tương thích hoàn toàn). Xây MỚI hoàn toàn, không có ràng buộc Kafka, muốn AWS-native đơn giản hơn → Kinesis Data Streams.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'Công ty đã mua Standard Reserved Instance 1 năm cho 1 loại instance cụ thể, nhưng sau 4 tháng, do thay đổi kiến trúc, loại instance đó không còn được dùng nữa và RI này sẽ bị lãng phí 8 tháng còn lại nếu không làm gì.',
+ options:[
+   {id:'a', text:'Chấp nhận để RI hết hạn tự nhiên sau 8 tháng còn lại, coi đây là chi phí chìm (sunk cost) không thể thu hồi được dưới bất kỳ hình thức nào.'},
+   {id:'b', text:'Bán lại RI còn thời hạn trên AWS Reserved Instance Marketplace cho khách hàng AWS khác đang cần đúng loại instance đó, thu hồi lại 1 phần giá trị thay vì để lãng phí hoàn toàn.'},
+   {id:'c', text:'Chuyển đổi trực tiếp Standard RI sang instance family khác mà không mất thêm chi phí hay ràng buộc gì, vì Standard RI vốn linh hoạt đổi loại instance tuỳ ý.'},
+   {id:'d', text:'Yêu cầu AWS hoàn tiền toàn bộ phần RI chưa dùng vì lý do thay đổi kiến trúc nội bộ của công ty.'}
+ ],
+ correct:['b'],
+ explain:'AWS Reserved Instance Marketplace cho phép bán lại Standard RI còn thời hạn cho khách hàng AWS khác, thu hồi lại 1 phần giá trị thay vì để lãng phí hoàn toàn tới khi hết hạn — đúng giải pháp thực tế cho tình huống đề bài.',
+ whyWrong:'Chấp nhận lãng phí hoàn toàn bỏ qua giải pháp thực tế sẵn có (RI Marketplace), không phải lựa chọn tối ưu. Standard RI (khác Convertible RI) không cho phép đổi instance family miễn phí linh hoạt — đây là điểm khác biệt quan trọng giữa Standard và Convertible RI. AWS không có chính sách hoàn tiền RI đã mua chỉ vì lý do thay đổi kiến trúc nội bộ của khách hàng.',
+ tip:'RI không còn phù hợp nhưng vẫn còn thời hạn → cân nhắc bán lại qua RI Marketplace (chỉ áp dụng Standard RI) thay vì để lãng phí hoàn toàn. Standard RI không tự do đổi instance family như Convertible RI.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'Team FinOps muốn biết: trong tổng chi tiêu EC2 hàng tháng, bao nhiêu % đang được covered bởi Reserved Instance/Savings Plan đã mua, và có đang mua THỪA hay THIẾU commitment so với usage thực tế hay không, để ra quyết định mua thêm hoặc không mua thêm.',
+ options:[
+   {id:'a', text:'AWS Cost Explorer — RI/Savings Plans Coverage Report và Utilization Report, cho biết % usage được cover bởi commitment, và tỷ lệ commitment đã mua có đang được dùng hết hay bị lãng phí.'},
+   {id:'b', text:'AWS Budgets — chỉ cảnh báo khi tổng chi tiêu vượt ngưỡng đã đặt, không phân tích chi tiết tỷ lệ coverage của RI/Savings Plan.'},
+   {id:'c', text:'AWS Trusted Advisor — chỉ đưa gợi ý chung về việc nên mua Reserved Instance, không có báo cáo coverage/utilization chi tiết theo thời gian.'},
+   {id:'d', text:'AWS Compute Optimizer — chỉ đưa khuyến nghị rightsizing instance type, không liên quan tới việc phân tích coverage của RI/Savings Plan đã mua.'}
+ ],
+ correct:['a'],
+ explain:'Cost Explorer có báo cáo chuyên biệt RI/Savings Plans Coverage & Utilization — chính xác trả lời được cả 2 câu hỏi: "bao nhiêu % usage được cover" (coverage) và "commitment mua có đang dùng hết không" (utilization), giúp ra quyết định mua thêm hợp lý.',
+ whyWrong:'Budgets chỉ cảnh báo ngưỡng chi tiêu tổng, không phân tích chi tiết coverage/utilization của từng commitment. Trusted Advisor chỉ đưa gợi ý chung chung, không có báo cáo số liệu chi tiết theo thời gian như Cost Explorer. Compute Optimizer tập trung vào rightsizing INSTANCE TYPE (đổi loại instance phù hợp hơn), khác hẳn mục đích phân tích coverage của RI/Savings Plan.',
+ tip:'Cần biết CHI TIẾT % coverage và utilization của RI/Savings Plan đã mua → luôn là Cost Explorer với báo cáo chuyên biệt, không phải Budgets hay Trusted Advisor (cả 2 đều không đủ chi tiết cho việc này).'
+},
+{domain:'resilient', diff:'m', multi:false,
+ stem:'Hệ thống xử lý đơn hàng dùng Step Functions điều phối nhiều bước (validate, charge payment, update inventory, gửi email), toàn bộ quy trình có thể kéo dài vài giờ nếu có bước chờ con người duyệt thủ công, và tuyệt đối không được xử lý trùng lặp 1 đơn hàng 2 lần.',
+ options:[
+   {id:'a', text:'Step Functions Express Workflow — tối ưu cho khối lượng lớn, thời gian ngắn (dưới 5 phút), execution semantics thường là "at-least-once" (có thể xử lý trùng trong 1 số trường hợp).'},
+   {id:'b', text:'Step Functions Standard Workflow — hỗ trợ workflow kéo dài (tới 1 năm), execution semantics "exactly-once", phù hợp quy trình có bước chờ con người và yêu cầu không xử lý trùng lặp.'},
+   {id:'c', text:'Cả Standard và Express Workflow hoàn toàn giống nhau về thời gian chạy tối đa và execution semantics, chỉ khác nhau về giao diện hiển thị.'},
+   {id:'d', text:'AWS Batch thay cho Step Functions vì Batch phù hợp hơn cho quy trình nhiều bước có thời gian chờ dài như mô tả trong đề bài.'}
+ ],
+ correct:['b'],
+ explain:'Standard Workflow hỗ trợ thời gian chạy dài (tới 1 năm, phù hợp có bước chờ con người duyệt) và có execution semantics "exactly-once" — đúng chính xác cả 2 yêu cầu "kéo dài vài giờ" và "tuyệt đối không xử lý trùng" trong đề bài.',
+ whyWrong:'Express Workflow tối ưu cho khối lượng lớn thời gian NGẮN (dưới 5 phút) và có khả năng xử lý trùng lặp trong một số tình huống — không phù hợp với yêu cầu "tuyệt đối không trùng lặp" và "kéo dài vài giờ" của đề bài. Nói 2 loại hoàn toàn giống nhau là sai, đây chính là 2 điểm khác biệt cốt lõi giữa chúng. AWS Batch tối ưu cho batch computing job (xử lý dữ liệu lớn dạng job), không phải công cụ điều phối workflow nhiều bước có logic rẽ nhánh như Step Functions.',
+ tip:'Cần workflow DÀI (có thể có human-in-the-loop) + KHÔNG được trùng lặp (exactly-once) → Standard Workflow. Cần khối lượng LỚN, thời gian NGẮN, chấp nhận at-least-once → Express Workflow.'
+},
+{domain:'cost', diff:'m', multi:false,
+ stem:'Team khoa học dữ liệu cần chạy hàng nghìn job xử lý dữ liệu dạng batch (mỗi job vài phút tới vài giờ), khối lượng job thay đổi thất thường theo ngày, muốn AWS tự động tính toán và cấp phát đúng loại/lượng compute cần thiết cho từng job, ưu tiên chi phí thấp nhất có thể vì job chịu được gián đoạn.',
+ options:[
+   {id:'a', text:'AWS Batch — dịch vụ quản lý batch computing, tự động tính toán loại/lượng compute tối ưu cho từng job trong queue, hỗ trợ tích hợp Spot Instance để tối ưu chi phí cho job chịu được gián đoạn, tự retry khi cần.'},
+   {id:'b', text:'Tự dựng 1 Auto Scaling Group EC2 và tự viết logic scheduler riêng để phân phối job vào các instance đang chạy.'},
+   {id:'c', text:'AWS Lambda cho từng job — mỗi job chạy như 1 Lambda function riêng lẻ, phù hợp cho mọi loại batch job bất kể thời gian chạy bao lâu.'},
+   {id:'d', text:'Amazon EMR Cluster chạy cố định 24/7 để luôn sẵn sàng xử lý job bất kỳ lúc nào job xuất hiện trong queue.'}
+ ],
+ correct:['a'],
+ explain:'AWS Batch được thiết kế đúng cho use case "nhiều job batch, khối lượng thất thường, cần AWS tự tính toán compute phù hợp" — tích hợp sẵn Spot cho tối ưu chi phí, tự quản lý queue/retry, không cần tự dựng scheduler.',
+ whyWrong:'Tự dựng ASG + scheduler riêng là công sức tái tạo lại những gì AWS Batch đã cung cấp sẵn, tốn công phát triển/bảo trì không cần thiết. Lambda có giới hạn thời gian chạy tối đa (15 phút), không phù hợp job "vài giờ" như đề bài mô tả. EMR chạy cố định 24/7 gây lãng phí lớn khi khối lượng job thất thường, ngược hoàn toàn mục tiêu "chi phí thấp nhất".',
+ tip:'Nhiều batch job, khối lượng thất thường, cần AWS tự tính compute + tích hợp Spot cho rẻ → AWS Batch. Đây là dịch vụ chuyên biệt cho đúng bài toán, không cần tự dựng lại bằng ASG hay chạy cluster cố định lãng phí.'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'Công ty tài chính bắt buộc mọi traffic đi qua Direct Connect giữa datacenter và VPC phải được MÃ HOÁ đầu cuối, nhưng Direct Connect ở dạng kết nối riêng tư tiêu chuẩn (private VIF) lại KHÔNG tự động mã hoá traffic theo mặc định.',
+ options:[
+   {id:'a', text:'Direct Connect tự động mã hoá toàn bộ traffic theo chuẩn AES-256 ngay khi kết nối được thiết lập, không cần cấu hình gì thêm.'},
+   {id:'b', text:'Thiết lập Site-to-Site VPN (IPsec) chạy trên nền private VIF của Direct Connect — kết hợp được cả độ trễ thấp/băng thông ổn định của DX lẫn mã hoá đầu cuối của VPN.'},
+   {id:'c', text:'Chuyển hẳn sang dùng Site-to-Site VPN qua public internet thay thế hoàn toàn Direct Connect để có mã hoá, chấp nhận đánh đổi độ trễ và băng thông không ổn định.'},
+   {id:'d', text:'Bật S3 Server-Side Encryption cho mọi dữ liệu truyền qua Direct Connect để đảm bảo yêu cầu mã hoá của công ty tài chính.'}
+ ],
+ correct:['b'],
+ explain:'Direct Connect (private VIF) tự nó KHÔNG mã hoá traffic — cần lớp VPN (IPsec) chạy trên nền kết nối DX để vừa giữ được độ trễ thấp/băng thông ổn định của đường riêng, vừa có mã hoá đầu cuối theo yêu cầu compliance.',
+ whyWrong:'Direct Connect KHÔNG tự động mã hoá theo mặc định — đây chính là vấn đề đề bài nêu ra, không phải hiểu lầm cần đính chính. Chuyển hẳn sang VPN qua public internet có mã hoá nhưng mất đi lợi ích độ trễ thấp/băng thông ổn định của DX — đánh đổi không cần thiết khi có thể kết hợp cả 2. S3 Server-Side Encryption chỉ mã hoá dữ liệu LƯU TRỮ trong S3, hoàn toàn không liên quan tới mã hoá dữ liệu ĐANG TRUYỀN qua kết nối mạng Direct Connect.',
+ tip:'Direct Connect = riêng tư (private network) nhưng KHÔNG mã hoá mặc định. Cần cả riêng tư LẪN mã hoá → VPN (IPsec) chạy trên nền private VIF của DX, kết hợp lợi ích của cả 2 công nghệ.'
+},
+{domain:'secure', diff:'h', multi:false,
+ stem:'Công ty có 1 quy định nội bộ đặc thù: mọi EC2 instance phải có tag "cost-center" theo đúng định dạng 4 chữ số, không được để trống hoặc sai định dạng. Không có AWS Config Managed Rule nào kiểm tra được đúng định dạng tag tuỳ chỉnh này.',
+ options:[
+   {id:'a', text:'Chờ AWS bổ sung thêm Managed Rule mới hỗ trợ kiểm tra định dạng tag tuỳ chỉnh này trong tương lai, hiện tại chưa có cách nào khác để kiểm tra.'},
+   {id:'b', text:'AWS Config Custom Rule dùng Lambda function tự viết — Lambda kiểm tra logic tuỳ chỉnh (đúng định dạng 4 chữ số) mỗi khi resource thay đổi, trả kết quả compliant/non-compliant về cho Config.'},
+   {id:'c', text:'AWS Trusted Advisor — thêm 1 custom check mới vào danh sách kiểm tra sẵn có để đánh giá định dạng tag theo yêu cầu riêng của công ty.'},
+   {id:'d', text:'CloudTrail Insight — tự động phát hiện bất thường trong việc gắn tag sai định dạng dựa trên phân tích pattern log API call.'}
+ ],
+ correct:['b'],
+ explain:'Config Custom Rule cho phép viết Lambda function với logic kiểm tra tuỳ chỉnh bất kỳ (như đúng định dạng tag theo yêu cầu riêng của công ty) — đúng giải pháp cho những rule không có sẵn trong danh sách Managed Rule của AWS.',
+ whyWrong:'Chờ AWS bổ sung Managed Rule mới là thụ động và không cần thiết — Custom Rule đã giải quyết được ngay bài toán này mà không cần chờ đợi. Trusted Advisor không hỗ trợ thêm custom check tuỳ chỉnh theo yêu cầu riêng của từng công ty — danh sách check của Trusted Advisor cố định do AWS định nghĩa. CloudTrail Insight phát hiện bất thường về TẦN SUẤT/PATTERN gọi API, không kiểm tra được nội dung/định dạng cụ thể của giá trị tag.',
+ tip:'Yêu cầu compliance đặc thù riêng của công ty, không có Managed Rule nào khớp → luôn nghĩ tới AWS Config Custom Rule (tự viết Lambda), đây là cơ chế mở rộng chính thức của Config cho đúng tình huống này.'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Team DBA cần nâng cấp RDS PostgreSQL lên major version mới (có thể có breaking change), muốn TEST kỹ trên 1 bản sao giống hệt production trước, và nếu có vấn đề phát sinh sau khi chuyển đổi thì có thể ROLLBACK nhanh chóng mà không mất dữ liệu mới ghi trong lúc chuyển đổi.',
+ options:[
+   {id:'a', text:'Tạo Read Replica, nâng cấp version trên Read Replica trước, sau đó promote Read Replica lên làm primary mới nếu test ổn.'},
+   {id:'b', text:'RDS Blue/Green Deployment — tạo môi trường "green" đầy đủ (bản sao production, đồng bộ liên tục), test kỹ trên green, sau đó switchover gần như không downtime; nếu phát hiện vấn đề trước khi switchover thì huỷ green mà không ảnh hưởng blue (production) đang chạy.'},
+   {id:'c', text:'Tạo Manual Snapshot của RDS hiện tại trước khi nâng cấp, nếu có vấn đề thì restore lại từ snapshot đó.'},
+   {id:'d', text:'Nâng cấp trực tiếp trên production instance hiện tại trong maintenance window, chấp nhận rủi ro downtime nếu có breaking change.'}
+ ],
+ correct:['b'],
+ explain:'RDS Blue/Green Deployment tạo môi trường "green" đầy đủ đồng bộ liên tục với production ("blue"), cho phép test kỹ trước khi switchover gần như không downtime, và nếu phát hiện vấn đề TRƯỚC switchover thì chỉ cần huỷ green mà blue (production) hoàn toàn không bị ảnh hưởng — đúng chính xác yêu cầu "test kỹ + rollback nhanh không mất dữ liệu".',
+ whyWrong:'Promote Read Replica là thao tác MỘT CHIỀU khó đảo ngược nhanh nếu có vấn đề sau khi promote — không đáp ứng tốt yêu cầu "rollback nhanh chóng". Restore từ Manual Snapshot mất dữ liệu ghi SAU thời điểm snapshot, và quá trình restore + đổi endpoint tốn thời gian, downtime dài hơn. Nâng cấp trực tiếp trên production chấp nhận downtime và rủi ro cao nếu breaking change xảy ra — không có bước test riêng biệt an toàn trước khi ảnh hưởng thật tới production.',
+ tip:'Cần nâng cấp major version an toàn, test kỹ trước, rollback nhanh không mất dữ liệu → RDS Blue/Green Deployment, tính năng được thiết kế riêng cho đúng bài toán "thay đổi rủi ro cao cần môi trường test giống hệt production".'
+},
+{domain:'resilient', diff:'h', multi:false,
+ stem:'Ứng dụng toàn cầu đọc dữ liệu từ S3, có bucket dữ liệu được replicate (Cross-Region Replication) ở 3 region khác nhau để phục vụ user gần nhất. Hiện tại ứng dụng phải tự viết logic chọn endpoint region nào để gọi, và tự xử lý failover thủ công khi 1 region gặp sự cố.',
+ options:[
+   {id:'a', text:'S3 Transfer Acceleration — tăng tốc độ upload/download từ client ở xa tới 1 bucket duy nhất, không giải quyết được việc định tuyến động giữa nhiều bucket ở nhiều region.'},
+   {id:'b', text:'S3 Multi-Region Access Point — cung cấp 1 endpoint global DUY NHẤT, tự động định tuyến request tới bucket region gần/khỏe nhất trong số các bucket đã replicate, tự failover khi 1 region gặp sự cố mà ứng dụng không cần tự viết logic.'},
+   {id:'c', text:'Route 53 Latency-based Routing trỏ trực tiếp tới từng bucket S3 theo domain riêng của từng region, ứng dụng vẫn cần tự quản lý logic chọn domain nào.'},
+   {id:'d', text:'CloudFront với nhiều origin là các bucket S3 ở từng region, cấu hình origin failover thủ công theo thứ tự ưu tiên cố định.'}
+ ],
+ correct:['b'],
+ explain:'S3 Multi-Region Access Point cung cấp đúng 1 endpoint DUY NHẤT, tự động định tuyến và failover giữa các bucket đã replicate ở nhiều region dựa trên độ trễ/tình trạng khỏe mạnh — loại bỏ hoàn toàn việc ứng dụng phải tự viết logic chọn endpoint/failover thủ công.',
+ whyWrong:'Transfer Acceleration chỉ tăng tốc kết nối tới 1 bucket, không giải quyết bài toán định tuyến động giữa NHIỀU bucket ở nhiều region. Route 53 Latency-based Routing vẫn cần ứng dụng tự quản lý domain/logic chọn endpoint tương ứng, không tự động ở cấp S3 API như Multi-Region Access Point. CloudFront với origin failover thủ công theo thứ tự cố định không thông minh bằng cơ chế tự động định tuyến theo độ trễ/tình trạng thực tế của Multi-Region Access Point.',
+ tip:'Nhiều bucket S3 đã replicate ở nhiều region, cần 1 endpoint DUY NHẤT tự động định tuyến + failover mà ứng dụng không cần tự viết logic → S3 Multi-Region Access Point.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Hệ thống microservices trên AWS có 1 request của user đi qua 6 service khác nhau trước khi trả kết quả, tổng thời gian phản hồi đôi khi chậm bất thường nhưng team không biết CHÍNH XÁC service nào trong chuỗi 6 service đó là điểm nghẽn.',
+ options:[
+   {id:'a', text:'AWS X-Ray — thu thập trace chi tiết của từng request đi qua toàn bộ chuỗi service, hiển thị service map và timeline, chỉ rõ chính xác service nào chiếm nhiều thời gian nhất trong tổng latency.'},
+   {id:'b', text:'Amazon CloudWatch Metrics mặc định của từng service riêng lẻ — mỗi service có dashboard CPU/memory/latency riêng, phải tự đối chiếu thủ công giữa 6 dashboard để suy luận điểm nghẽn.'},
+   {id:'c', text:'AWS Config — theo dõi lịch sử thay đổi cấu hình của từng service, không phải công cụ đo lường latency giữa các lần gọi service.'},
+   {id:'d', text:'Amazon CloudWatch Synthetics — chạy canary định kỳ gọi thử toàn bộ luồng, chỉ cho biết luồng CÓ chậm hay không, không chỉ ra được CHÍNH XÁC service nào trong chuỗi là điểm nghẽn.'}
+ ],
+ correct:['a'],
+ explain:'X-Ray thu thập trace xuyên suốt toàn bộ chuỗi service của 1 request, hiển thị service map và timeline chi tiết — chỉ rõ CHÍNH XÁC service nào chiếm nhiều thời gian nhất, đúng chính xác yêu cầu "biết chính xác service nào là điểm nghẽn" trong chuỗi 6 service.',
+ whyWrong:'CloudWatch Metrics riêng lẻ từng service đòi hỏi tự đối chiếu thủ công giữa nhiều dashboard, không có view tổng hợp theo TỪNG REQUEST cụ thể như X-Ray — khó xác định chính xác điểm nghẽn trong 1 request cụ thể. Config chỉ theo dõi thay đổi CẤU HÌNH, không đo latency giữa các service. Synthetics phát hiện CÓ vấn đề chậm (qua canary định kỳ) nhưng không có khả năng phân tích CHI TIẾT service nào trong chuỗi là nguyên nhân — đó chính xác là việc X-Ray làm được mà Synthetics không làm được.',
+ tip:'Cần biết CHÍNH XÁC service nào trong 1 chuỗi microservices là điểm nghẽn latency của 1 request cụ thể → AWS X-Ray (distributed tracing). Đây là công cụ đúng cho bài toán root-cause latency across nhiều service.'
+},
+{domain:'performing', diff:'h', multi:false,
+ stem:'Team ML cần chạy training job xử lý dataset cực lớn (hàng TB) với hàng trăm compute node đọc/ghi song song vào cùng 1 file system, đòi hỏi throughput cực cao và độ trễ thấp — khác hẳn nhu cầu 1 team khác chỉ cần file share thông thường cho ứng dụng Windows nội bộ dùng SMB.',
+ options:[
+   {id:'a', text:'Amazon FSx for Windows File Server cho CẢ 2 nhu cầu — vì đây là dịch vụ file storage tổng quát phù hợp với mọi loại workload bất kể yêu cầu hiệu năng.'},
+   {id:'b', text:'Amazon FSx for Lustre cho training job ML (throughput cực cao, tối ưu HPC/song song hàng trăm node), và Amazon FSx for Windows File Server cho nhu cầu file share SMB nội bộ — 2 loại FSx khác nhau cho 2 nhu cầu khác nhau.'},
+   {id:'c', text:'Amazon EFS cho cả 2 nhu cầu — vì EFS đã tối ưu sẵn cho cả workload HPC hiệu năng cực cao lẫn file share SMB truyền thống cho Windows.'},
+   {id:'d', text:'Amazon FSx for Lustre cho CẢ 2 nhu cầu — vì Lustre hỗ trợ đầy đủ giao thức SMB cho ứng dụng Windows tương đương FSx for Windows File Server.'}
+ ],
+ correct:['b'],
+ explain:'FSx for Lustre được tối ưu riêng cho HPC/ML (throughput cực cao, truy cập song song hàng trăm node) — đúng cho training job. FSx for Windows File Server tối ưu cho file share SMB tích hợp Active Directory — đúng cho nhu cầu Windows nội bộ. Đây là 2 nhu cầu khác hẳn nhau nên cần 2 loại FSx riêng biệt.',
+ whyWrong:'FSx for Windows File Server không tối ưu cho throughput cực cao/truy cập song song hàng trăm node như yêu cầu training job ML — dùng chung cho cả 2 sẽ làm giảm hiệu năng training nghiêm trọng. EFS là file storage NFS tổng quát, không tối ưu bằng Lustre cho HPC/ML và không hỗ trợ giao thức SMB cho Windows như FSx for Windows. FSx for Lustre không hỗ trợ giao thức SMB — không thể dùng thay thế FSx for Windows File Server cho ứng dụng Windows cần SMB.',
+ tip:'FSx for LUSTRE = HPC/ML, throughput cực cao, nhiều node song song. FSx for WINDOWS FILE SERVER = SMB, tích hợp AD, cho ứng dụng Windows truyền thống. Hai loại FSx phục vụ 2 mục đích hoàn toàn khác nhau, không thay thế lẫn nhau được.'
+},
+{domain:'secure', diff:'b', multi:true,
+ stem:'Tập đoàn triển khai IAM Identity Center để quản lý truy cập tập trung cho 500 nhân viên vào 60 account AWS trong Organizations. Chọn 2 việc BẮT BUỘC phải làm để mô hình này hoạt động đúng và an toàn.',
+ options:[
+   {id:'a', text:'Kết nối IAM Identity Center với nguồn danh tính (identity source) — dùng directory nội bộ có sẵn của Identity Center, hoặc liên kết với Identity Provider ngoài (Azure AD, Okta) qua SCIM/SAML để đồng bộ user/group.'},
+   {id:'b', text:'Định nghĩa Permission Set (tương đương 1 tập quyền IAM cụ thể) và gán Permission Set đó cho user/group ứng với từng account trong Organizations mà họ cần truy cập.'},
+   {id:'c', text:'Tạo IAM user riêng lẻ trong từng 1 trong 60 account cho mỗi nhân viên, sau đó liên kết thủ công các IAM user này với Identity Center.'},
+   {id:'d', text:'Tắt hoàn toàn MFA cho tài khoản Identity Center để nhân viên đăng nhập nhanh hơn, bù lại bằng việc giới hạn IP truy cập.'}
+ ],
+ correct:['a','b'],
+ explain:'Cần nguồn danh tính (identity source) để Identity Center biết ai là user/group hợp lệ, và cần Permission Set để định nghĩa CHÍNH XÁC quyền gì được cấp cho ai ở account nào — đây là 2 thành phần cốt lõi bắt buộc để mô hình multi-account access hoạt động.',
+ whyWrong:'Tạo IAM user riêng lẻ trong từng account đi ngược hoàn toàn mục đích của Identity Center (vốn sinh ra để LOẠI BỎ nhu cầu IAM user riêng lẻ per-account) — đây là anti-pattern, không phải bước bắt buộc. Tắt MFA làm giảm bảo mật nghiêm trọng cho hệ thống quản lý truy cập TẬP TRUNG tới 60 account — rủi ro rất lớn nếu 1 credential bị lộ sẽ ảnh hưởng nhiều account cùng lúc, ngược lại nên tăng cường MFA chứ không phải tắt.',
+ tip:'IAM Identity Center hoạt động dựa trên 2 trụ cột: Identity Source (ai là user) + Permission Set (họ được làm gì ở đâu). Tạo IAM user riêng từng account là đi ngược lại chính mục đích Identity Center sinh ra để giải quyết.'
+},
+{domain:'cost', diff:'b', multi:true,
+ stem:'Team FinOps review chi phí EC2 quý vừa qua, phát hiện: (1) có nhiều Reserved Instance đã mua nhưng utilization chỉ khoảng 40% (mua dư so với nhu cầu thực tế), và (2) có nhiều workload đang chạy On-Demand dù pattern sử dụng ổn định, đáng lẽ nên có commitment. Chọn 2 hành động đúng để tối ưu cả 2 vấn đề cùng lúc.',
+ options:[
+   {id:'a', text:'Dùng Cost Explorer RI/Savings Plan Utilization Report để xác định chính xác phần RI đang bị lãng phí, cân nhắc bán lại phần dư thừa qua RI Marketplace nếu là Standard RI.'},
+   {id:'b', text:'Phân tích usage pattern của các workload On-Demand ổn định qua Cost Explorer, mua thêm Savings Plan hoặc RI mới đúng với mức baseline thực tế đang dùng.'},
+   {id:'c', text:'Mua thêm thật nhiều Reserved Instance nữa để tăng tổng mức discount trung bình, bất kể utilization hiện tại đang thấp.'},
+   {id:'d', text:'Huỷ toàn bộ Reserved Instance hiện có ngay lập tức và chuyển 100% sang On-Demand để đơn giản hoá việc quản lý chi phí.'}
+ ],
+ correct:['a','b'],
+ explain:'Xử lý đúng cả 2 vấn đề riêng biệt: dùng Utilization Report tìm phần RI lãng phí để cân nhắc bán lại (giải quyết vấn đề 1 - mua dư), và phân tích pattern On-Demand ổn định để mua ĐÚNG mức commitment mới cần thiết (giải quyết vấn đề 2 - thiếu commitment cho phần đáng lẽ nên cam kết).',
+ whyWrong:'Mua thêm nhiều RI nữa trong khi utilization hiện tại đang THẤP (40%) sẽ làm trầm trọng thêm vấn đề lãng phí đã có, không giải quyết được gốc rễ. Huỷ toàn bộ RI và chuyển 100% sang On-Demand bỏ lỡ hoàn toàn lợi ích discount cho phần workload ổn định thực sự cần commitment (vấn đề 2 trong đề bài) — phản ứng thái quá, không phải giải pháp cân bằng.',
+ tip:'2 vấn đề cần 2 hành động riêng biệt: RI THỪA (utilization thấp) → xem xét bán lại/giảm mua thêm. Workload ổn định CHƯA CÓ commitment → mua đúng mức baseline thực tế. Không nên xử lý gộp chung 1 hướng cực đoan (mua thêm bừa hoặc bỏ hết).'
+}
+];
+
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function startExam(){
+  document.getElementById('introCard').style.display='none';
+  document.getElementById('examArea').style.display='block';
+  renderDots();
+  renderQuestion();
+}
+
+function renderDots(){
+  const wrap = document.getElementById('dots');
+  wrap.innerHTML='';
+  QUESTIONS.forEach((q,i)=>{
+    const d = document.createElement('div');
+    d.className='dot'+(i===current?' current':'')+(answers[i]&&answers[i].submitted?(answers[i].correct?' answered correct':' answered wrong'):'');
+    d.title='Câu '+(i+1);
+    d.onclick=()=>{ current=i; renderQuestion(); };
+    wrap.appendChild(d);
+  });
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById('qcount').textContent = 'Câu '+(current+1)+'/'+QUESTIONS.length;
+  let state = answers[current];
+  if(!state){
+    state = {selected:[], submitted:false, correct:false, order:shuffleArr(q.options.map(o=>o.id))};
+    answers[current] = state;
+  }
+
+  const isMulti = q.multi;
+  const orderedOpts = state.order.map(id => q.options.find(o=>o.id===id));
+
+  let optsHtml = '';
+  orderedOpts.forEach(opt=>{
+    let cls = 'opt'+(isMulti?' multi':'');
+    if(!state.submitted){
+      if(state.selected.includes(opt.id)) cls += ' selected';
+    } else {
+      const isCorrect = q.correct.includes(opt.id);
+      const wasSelected = state.selected.includes(opt.id);
+      if(isCorrect) cls += ' reveal-correct';
+      else if(wasSelected) cls += ' reveal-wrong';
+      cls += ' locked';
+    }
+    optsHtml += '<div class="'+cls+'" onclick="toggleOpt(\''+opt.id+'\')"><div class="mark"></div><div>'+opt.text+'</div></div>';
+  });
+
+  let infoHtml = '';
+  if(state.submitted){
+    const domain = DOMAIN_META[q.domain];
+    infoHtml = '<div class="info-panel show">'
+      + '<div class="verdict '+(state.correct?'ok':'no')+'">'+(state.correct?'✓ CHÍNH XÁC':'✕ CHƯA ĐÚNG')
+      + '<span class="domain-pill dtag '+domain.cls+'">'+domain.label+'</span></div>'
+      + '<p>'+q.explain+'</p>'
+      + '<div class="why-wrong"><b>Vì sao đáp án khác nghe có lý nhưng sai:</b> '+q.whyWrong+'</div>'
+      + '<div class="tip-line"><b>Chốt hạ:</b> '+q.tip+'</div>'
+      + '</div>';
+  }
+
+  const diffCls = q.diff;
+  document.getElementById('qContainer').innerHTML =
+    '<div class="qframe">'
+    + '<div class="qtag-corner">Q'+String(current+1).padStart(2,'0')+'</div>'
+    + '<div class="qhead"><div class="qnum-row"><span class="qnum">CÂU '+(current+1)+' / '+QUESTIONS.length+'</span>'
+    + '<span class="diff-badge '+diffCls+'">'+DIFF_LABEL[diffCls]+'</span></div>'
+    + '<div class="qstem">'+q.stem+'</div>'
+    + (isMulti?'<div class="multi-note">⚠ Chọn đúng 2 đáp án</div>':'')
+    + '</div>'
+    + '<div class="options">'+optsHtml+'</div>'
+    + (!state.submitted?'<div class="qactions"><button class="check-btn" id="checkBtn" onclick="submitAnswer()" '+(state.selected.length===0?'disabled':'')+'>Kiểm tra đáp án</button></div>':'')
+    + infoHtml
+    + '</div>';
+
+  document.getElementById('prevBtn').disabled = current===0;
+  document.getElementById('nextBtn').textContent = current===QUESTIONS.length-1 ? 'Xem kết quả →' : 'Tiếp →';
+  renderDots();
+}
+
+function toggleOpt(id){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  if(state.submitted) return;
+  if(q.multi){
+    const idx = state.selected.indexOf(id);
+    if(idx>=0) state.selected.splice(idx,1);
+    else {
+      if(state.selected.length < q.correct.length) state.selected.push(id);
+      else { state.selected.shift(); state.selected.push(id); }
+    }
+  } else {
+    state.selected = [id];
+  }
+  renderQuestion();
+}
+
+function submitAnswer(){
+  const q = QUESTIONS[current];
+  const state = answers[current];
+  const sel = [...state.selected].sort();
+  const cor = [...q.correct].sort();
+  state.correct = sel.length===cor.length && sel.every((v,i)=>v===cor[i]);
+  state.submitted = true;
+  renderQuestion();
+}
+
+function nextQ(){
+  if(current < QUESTIONS.length-1){ current++; renderQuestion(); }
+  else { showSummary(); }
+}
+function prevQ(){
+  if(current>0){ current--; renderQuestion(); }
+}
+
+function showSummary(){
+  document.getElementById('examArea').style.display='none';
+  const summary = document.getElementById('summary');
+  summary.classList.add('show');
+
+  let correctCount = 0;
+  const domainStats = {secure:{c:0,t:0}, resilient:{c:0,t:0}, performing:{c:0,t:0}, cost:{c:0,t:0}};
+  QUESTIONS.forEach((q,i)=>{
+    domainStats[q.domain].t++;
+    if(answers[i] && answers[i].submitted && answers[i].correct){ correctCount++; domainStats[q.domain].c++; }
+  });
+  const pct = Math.round(correctCount/QUESTIONS.length*100);
+  document.getElementById('scoreBig').textContent = correctCount+'/'+QUESTIONS.length;
+  document.getElementById('scorePct').textContent = pct+'%';
+
+  let verdict = '';
+  if(pct>=85) verdict='Mức này thi thật khả năng cao pass thoải mái — nhưng đề này cố tình khó hơn thi thật, đừng chủ quan tuyệt đối.';
+  else if(pct>=70) verdict='Ổn nhưng chưa chắc chắn — soi kỹ domain yếu nhất bên dưới trước khi đăng ký thi thật.';
+  else if(pct>=50) verdict='Còn lỗ hổng lý thuyết rõ rệt, không phải vấn đề trí nhớ — cần đọc lại đúng phần domain đang tụt, không học tủ lại đề này.';
+  else verdict='Cần ôn lại có hệ thống trước khi nghĩ tới lịch thi — đọc kỹ phần "vì sao đáp án khác sai" + "chốt hạ" của từng câu sai bên dưới.';
+  document.getElementById('verdictLine').textContent = verdict;
+
+  const order = ['secure','resilient','performing','cost'];
+  let bdHtml = '';
+  order.forEach(d=>{
+    const s = domainStats[d];
+    const dpct = s.t? Math.round(s.c/s.t*100):0;
+    bdHtml += '<div class="bd-row"><div class="bd-label" style="color:'+DOMAIN_COLOR[d]+'">'+DOMAIN_META[d].label+'</div>'
+      + '<div class="bd-bar-track"><div class="bd-bar-fill" style="width:'+dpct+'%; background:'+DOMAIN_COLOR[d]+';"></div></div>'
+      + '<div class="bd-pct">'+s.c+'/'+s.t+'</div></div>';
+  });
+  document.getElementById('bdRows').innerHTML = bdHtml;
+
+  let missHtml = '';
+  let missCount = 0;
+  QUESTIONS.forEach((q,i)=>{
+    if(!(answers[i] && answers[i].submitted && answers[i].correct)){
+      missCount++;
+      const short = q.stem.length>90 ? q.stem.slice(0,90)+'…' : q.stem;
+      missHtml += '<div class="miss-item" onclick="jumpTo('+i+')"><span>Câu '+(i+1)+' · '+DOMAIN_META[q.domain].label+' — '+short+'</span><span class="go">Xem lại →</span></div>';
+    }
+  });
+  document.getElementById('missWrap').style.display = missCount>0 ? 'block' : 'none';
+  document.getElementById('missRows').innerHTML = missHtml;
+}
+
+function jumpTo(i){
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('examArea').style.display='block';
+  current = i;
+  renderQuestion();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function restartExam(){
+  answers = new Array(QUESTIONS.length).fill(null);
+  current = 0;
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('introCard').style.display='block';
+  document.getElementById('examArea').style.display='none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
