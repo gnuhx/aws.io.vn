@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Migration and Transfer · SAA-C03 Module 7</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdfcfa; --ink:#1a1a1a; --sub:#5b5b5b; --line:#e5e2dc;
+    --accent:#b5541f; --accent2:#3d6b52; --sidebar-w:260px;
+    --serif:'Source Serif 4',serif; --sans:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+    --card:#f7f5f0;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;}
+  a{color:var(--accent);}
+  table{border-collapse:collapse;width:100%;font-size:.85rem;margin:.8rem 0;}
+  th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top;}
+  th{background:#f1ede4;font-family:var(--sans);font-weight:600;}
+  code{font-family:var(--mono);background:#f0ece3;padding:.1rem .35rem;border-radius:4px;font-size:.85em;}
+  pre{font-family:var(--mono);background:#1e1c19;color:#e9e5db;padding:1rem;border-radius:8px;overflow-x:auto;font-size:.78rem;line-height:1.6;}
+  pre code{background:none;padding:0;color:inherit;}
+  h1,h2,h3{font-family:var(--serif);}
+  h2{border-bottom:1px solid var(--line);padding-bottom:.4rem;margin-top:0;}
+  h3{margin-top:1.6rem;color:var(--accent);}
+
+  /* ---------- NAV ---------- */
+  .nav{position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--line);
+       display:flex;align-items:center;justify-content:space-between;padding:.7rem 3vw;flex-wrap:wrap;gap:.5rem;}
+  .brand{font-family:var(--serif);font-weight:700;font-size:1.05rem;}
+  .brand span{color:var(--accent);}
+  .progress-strip{display:flex;gap:1rem;font-family:var(--mono);font-size:.72rem;color:var(--sub);flex-wrap:wrap;}
+  .progress-strip b{color:var(--accent2);}
+
+  /* ---------- TABS ---------- */
+  .tabbar{position:sticky;top:52px;z-index:55;background:var(--bg);border-bottom:1px solid var(--line);
+          display:flex;padding:0 3vw;gap:0;}
+  .tabbar button{font-family:var(--sans);font-weight:600;font-size:.88rem;background:none;border:none;
+                 padding:.85rem 1.2rem;cursor:pointer;color:var(--sub);border-bottom:2px solid transparent;}
+  .tabbar button.active{color:var(--ink);border-bottom-color:var(--accent);}
+
+  body.has-sidebar .hero{margin-left:var(--sidebar-w);}
+  .hero{padding:1.6rem 3vw .4rem;}
+  .hero h1{font-size:1.6rem;margin:.2rem 0;}
+  .hero .meta{font-family:var(--mono);font-size:.78rem;color:var(--sub);}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{position:fixed;top:105px;left:0;width:var(--sidebar-w);height:calc(100vh - 105px);
+           overflow-y:auto;border-right:1px solid var(--line);padding:1.2rem 1rem;font-size:.82rem;
+           background:var(--bg);display:none;}
+  body.has-sidebar .sidebar{display:block;}
+  .sidebar h4{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;
+              color:var(--sub);margin:0 0 .6rem;}
+  .sidebar a{display:block;color:var(--ink);text-decoration:none;padding:.35rem .5rem;border-radius:6px;
+             margin-bottom:2px;border-left:2px solid transparent;}
+  .sidebar a:hover{background:var(--card);}
+  .sidebar a.active{border-left-color:var(--accent);color:var(--accent);font-weight:600;background:var(--card);}
+
+  .panel{display:none;padding:0 3vw 4rem;}
+  .panel.active{display:block;}
+  body.has-sidebar .panel.active{margin-left:var(--sidebar-w);}
+
+  /* ---------- LESSON 2-COL ---------- */
+  .lesson{display:grid;grid-template-columns:56% 44%;gap:2rem;padding:2rem 0;border-bottom:1px dashed var(--line);}
+  .lesson:last-child{border-bottom:none;}
+  .lesson .col-left, .lesson .col-right{min-width:0;}
+  .lesson .tag-num{font-family:var(--mono);color:var(--accent2);font-size:.85rem;}
+  .case-box{background:var(--card);border-left:3px solid var(--accent);padding:.8rem 1rem;margin-top:.6rem;border-radius:0 6px 6px 0;font-size:.9rem;}
+  .arch-box{background:#eef2ee;border-left:3px solid var(--accent2);padding:.8rem 1rem;margin-top:.6rem;border-radius:0 6px 6px 0;font-size:.9rem;}
+  .warn-box{background:#fdf0e6;border-left:3px solid var(--accent);padding:.7rem 1rem;border-radius:0 6px 6px 0;font-size:.85rem;margin-bottom:1rem;}
+
+  /* ---------- LAB ---------- */
+  .lab-grid{display:grid;grid-template-columns:42% 58%;gap:2rem;padding:2rem 0;}
+  .lab-grid pre{max-height:none;}
+  .lab-steps h4{margin-bottom:.2rem;color:var(--accent2);}
+
+  /* ---------- QUIZ ---------- */
+  .quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:2rem 0;}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem;cursor:pointer;}
+  .qcard .q{font-weight:600;margin-bottom:.4rem;}
+  .qcard .a{display:none;font-size:.88rem;color:var(--accent2);border-top:1px dashed var(--line);margin-top:.5rem;padding-top:.5rem;}
+  .qcard.open .a{display:block;}
+  .qcard .hint{font-family:var(--mono);font-size:.7rem;color:var(--sub);}
+
+  /* ---------- CHEAT SHEET ---------- */
+  .cheat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:2rem 0 1rem;}
+  .cheat-card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem;font-size:.87rem;}
+  .cheat-card h4{margin:0 0 .5rem;font-family:var(--serif);color:var(--accent);}
+  .pattern-block{background:#fdf6ec;border:1px solid #e8c99a;border-radius:8px;padding:1.2rem;margin-top:1rem;font-size:.92rem;}
+  .pattern-block .tag{font-family:var(--mono);font-size:.7rem;text-transform:uppercase;color:var(--accent);letter-spacing:.05em;}
+  .station-card{background:#eef2ee;border:1px solid #c7d8cb;border-radius:8px;padding:1rem;font-size:.85rem;margin-top:1rem;}
+  .station-card li{margin-bottom:.4rem;}
+
+  @media(max-width:900px){
+    .sidebar{display:none !important;}
+    body.has-sidebar .panel.active, body.has-sidebar .hero{margin-left:0;}
+    .lesson, .lab-grid{grid-template-columns:1fr;}
+    .quiz-grid, .cheat-grid{grid-template-columns:1fr;}
+    .tabbar{overflow-x:auto;}
+  }
+</style>
+</head>
+<body class="has-sidebar">
+
+<div class="nav">
+  <div class="brand">SAA-C03 · <span>Module 7 — Migration and Transfer</span></div>
+  <div class="progress-strip">
+    <span><b>M7.1</b> Migration &amp; Transfer ✅</span>
+    <span>M7.2 Web/Mobile/ML/Cost ⏳</span>
+    <span>M7.3 Practice Exam ⏳</span>
+    <span>M7.4 Final Prep ⏳</span>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="active" data-tab="theory">Lý thuyết</button>
+  <button data-tab="quiz">Quiz</button>
+  <button data-tab="lab">Lab</button>
+  <button data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="hero">
+  <h1>🔹 Migration and Transfer</h1>
+  <div class="meta">Bài 7.1–7.12 · Domain thi: Design Resilient Architectures (26%) · Design Cost-Optimized Architectures (20%)</div>
+</div>
+
+<aside class="sidebar" id="sidebar-theory">
+  <h4>Bài trong section</h4>
+  <a href="#l72" data-target="theory">7.2 Migration Tools Overview</a>
+  <a href="#l73" data-target="theory">7.3 Application Discovery Service</a>
+  <a href="#l74" data-target="theory">7.4 Database Migration Service</a>
+  <a href="#l75" data-target="theory">7.5 Application Migration Service</a>
+  <a href="#l76" data-target="theory">7.6 DataSync</a>
+  <a href="#l77" data-target="theory">7.7 Snow Family</a>
+  <a href="#l78" data-target="theory">7.8 The 7 Rs of Migration</a>
+</aside>
+
+<aside class="sidebar" id="sidebar-quiz" style="display:none;">
+  <h4>Bài trong section</h4>
+  <a href="#q72">7.2</a><a href="#q73">7.3</a><a href="#q74">7.4</a><a href="#q75">7.5</a>
+  <a href="#q76">7.6</a><a href="#q77">7.7</a><a href="#q78">7.8</a>
+</aside>
+
+<!-- ================= THEORY ================= -->
+<div class="panel active" id="panel-theory">
+
+  <div class="lesson" id="l72">
+    <div class="col-left">
+      <div class="tag-num">7.2</div>
+      <h2>AWS Migration Tools Overview</h2>
+      <p>AWS không có "1 nút bấm" để migrate — mà cung cấp 1 bộ công cụ theo từng giai đoạn: <b>Assess</b> (đánh giá) → <b>Mobilize</b> (lên kế hoạch) → <b>Migrate &amp; Modernize</b> (thực thi). <b>AWS Migration Hub</b> là bảng điều khiển trung tâm theo dõi tiến độ mọi công cụ ở 1 nơi. Ví dụ: công ty chuyển nhà trọn gói có 1 bảng điều phối trung tâm theo dõi cùng lúc đội khảo sát, đóng gói, xe tải, lắp đặt.</p>
+      <ul>
+        <li><b>Assess:</b> Application Discovery Service, Migration Evaluator</li>
+        <li><b>Mobilize:</b> Migration Hub, Strategy Recommendations</li>
+        <li><b>Migrate &amp; Modernize:</b> DMS, MGN, DataSync, Snow Family, Transfer Family</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Migration Hub Strategy Recommendations tự động chấm điểm và đề xuất 1 trong 7R cho từng server dựa trên dữ liệu Discovery.</p>
+      <div class="case-box"><b>Case:</b> ngân hàng có ~800 server on-prem tích lũy 15 năm, không ai nhớ rõ dependency. Chạy Discovery Agent 2 tuần rồi dùng Strategy Recommendations phân loại tự động: server ít traffic → Retire; app .NET còn support → Rehost; core banking → Refactor. Rút thời gian lập kế hoạch từ nhiều tháng còn vài tuần.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Không phải trạm sản xuất — là <b>"phòng kế hoạch mở rộng"</b> đứng tách biệt ngoài dây chuyền, quan sát toàn bộ bản đồ nhà máy cũ và mới, không nằm trong luồng xử lý request khách hàng.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws migrationhub-config create-home-region-control \
+  --home-region us-east-1 \
+  --target '{"Type":"ACCOUNT","Id":"123456789012"}' \
+  --dry-run false
+
+aws migrationhub list-progress-update-streams
+
+aws migrationhub list-created-artifacts \
+  --progress-update-stream "OnPremStream" \
+  --migration-task-name "AppServer-01"</code></pre>
+      <table>
+        <tr><th>Flag/Lệnh</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--home-region</code></td><td>Home Region</td><td>Region chính lưu metadata, set 1 lần duy nhất</td></tr>
+        <tr><td><code>--target</code></td><td>Migration Target</td><td>Account/org áp dụng home region control</td></tr>
+        <tr><td><code>--dry-run</code></td><td>Dry Run</td><td>true = chỉ kiểm tra quyền, không tạo gì</td></tr>
+        <tr><td><code>--progress-update-stream</code></td><td>Progress Stream</td><td>Kênh nhận cập nhật tiến độ từ 1 tool cụ thể</td></tr>
+        <tr><td><code>--migration-task-name</code></td><td>Migration Task</td><td>Tên định danh 1 tác vụ di dời</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Nhóm</th><th>Mục đích</th><th>Dịch vụ</th></tr>
+        <tr><td>Assess</td><td>Biết mình có gì</td><td>Discovery Service, Migration Evaluator</td></tr>
+        <tr><td>Mobilize</td><td>Lên chiến lược + theo dõi</td><td>Migration Hub, Strategy Recommendations</td></tr>
+        <tr><td>Migrate &amp; Modernize</td><td>Thực thi di dời</td><td>DMS, MGN, DataSync, Snow Family</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Home Region</td><td>1 lần/account</td><td>Không đổi được sau khi set</td></tr>
+        <tr><td>Migration Hub</td><td>Miễn phí</td><td>Chỉ trả phí service migration thật bên dưới</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="lesson" id="l73">
+    <div class="col-left">
+      <div class="tag-num">7.3</div>
+      <h2>AWS Application Discovery Service</h2>
+      <p>Khảo sát hạ tầng on-premise <b>trước khi</b> di dời: thu thập cấu hình, mức sử dụng tài nguyên, và dependency giữa các server. Ví dụ: đội khảo sát đo đạc, chụp ảnh nhà cũ trước khi chuyển đồ, ghi chú món nào đi cùng món nào.</p>
+      <ul>
+        <li><b>Agentless Connector:</b> OVA trên VMware vCenter, không cần cài trên guest OS</li>
+        <li><b>Agent-based:</b> cài trực tiếp trên server, chi tiết hơn (process, network connection) → dependency map chính xác</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Dữ liệu dependency-map là đầu vào bắt buộc để Strategy Recommendations chấm điểm 7R chính xác.</p>
+      <div class="case-box"><b>Case:</b> chuỗi bán lẻ có hệ thống POS legacy mất tài liệu kiến trúc. Cài Discovery Agent 3 tuần vẽ lại dependency thật, phát hiện 1 server "tưởng không ai dùng" thực chất đang phục vụ báo cáo tồn kho cuối ngày — tránh downtime nghiêm trọng.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Cùng nhóm "phòng kế hoạch mở rộng" — là <b>đội khảo sát hiện trường</b>, đầu vào cho Migration Hub Strategy Recommendations.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws discovery start-data-collection-by-agent-ids \
+  --agent-ids i-0abc123 i-0def456
+
+aws discovery describe-agents
+
+aws discovery start-export-task \
+  --export-data-format CSV</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--agent-ids</code></td><td>Agent IDs</td><td>ID Discovery Agent cần bật thu thập</td></tr>
+        <tr><td><code>--export-data-format</code></td><td>Export Format</td><td>Định dạng file xuất (CSV) chứa dữ liệu inventory</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Loại</th><th>Phạm vi</th><th>Physical server?</th></tr>
+        <tr><td>Agentless Connector</td><td>Cấu hình VM + utilization tổng quát</td><td>Không</td></tr>
+        <tr><td>Discovery Agent</td><td>Process + network connection, dependency chính xác</td><td>Có</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Lưu dữ liệu</td><td>90 ngày</td><td>Sau khi ngừng thu thập, cần export trước</td></tr>
+        <tr><td>Export tới</td><td>Amazon S3</td><td>CSV, dùng cho Strategy Recommendations</td></tr>
+      </table>
+      <h3>Cấu hình liên quan</h3>
+      <p style="font-size:.87rem;">IAM policy <code>AWSApplicationDiscoveryAgentAccess</code> gắn cho role agent dùng; cài qua <code>.rpm</code>/<code>.msi</code> tải từ console Migration Hub.</p>
+    </div>
+  </div>
+
+  <div class="lesson" id="l74">
+    <div class="col-left">
+      <div class="tag-num">7.4</div>
+      <h2>AWS Database Migration Service (DMS)</h2>
+      <p>Di dời <b>database</b> với downtime tối thiểu — hỗ trợ homogeneous (Oracle→Oracle) và heterogeneous (Oracle→Aurora, cần <b>AWS SCT</b> convert schema trước). Ví dụ: xe tải chở đồ dễ vỡ, chạy liên tục nhiều chuyến trong khi kho cũ vẫn hoạt động, tới khi kho mới đầy đủ mới "khóa kho cũ" trong vài phút.</p>
+      <ul>
+        <li><b>Full Load:</b> copy toàn bộ dữ liệu hiện có 1 lần</li>
+        <li><b>CDC:</b> tiếp tục bắt thay đổi (insert/update/delete) sau full load tới khi cutover</li>
+        <li><b>Replication instance:</b> EC2 do DMS quản lý, chạy engine replication</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Bật Multi-AZ cho replication instance khi CDC chạy dài hạn trong production để HA.</p>
+      <div class="case-box"><b>Case:</b> sàn giao dịch chứng khoán migrate Oracle on-prem sang Aurora PostgreSQL, downtime tối đa 5 phút. Dùng SCT convert schema + DMS full-load-and-cdc chạy nhiều ngày, cutover đúng lúc thị trường đóng cửa cuối tuần.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Khớp vào <b>Kho tổng — RDS/Aurora</b>, đóng vai "đội bốc dỡ hàng chuyên trách tạm thời" đứng giữa kho cũ và kho tổng mới, tháo dỡ sau khi cutover xong.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws dms create-replication-instance \
+  --replication-instance-identifier dms-repl-01 \
+  --replication-instance-class dms.t3.micro \
+  --allocated-storage 20 --multi-az false
+
+aws dms create-endpoint \
+  --endpoint-identifier source-oracle \
+  --endpoint-type source --engine-name oracle \
+  --server-name onprem-db.company.local --port 1521
+
+aws dms create-replication-task \
+  --replication-task-identifier task-01 \
+  --migration-type full-load-and-cdc \
+  --table-mappings file://table-mappings.json</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--replication-instance-class</code></td><td>Instance Class</td><td>Size EC2 chạy engine DMS</td></tr>
+        <tr><td><code>--allocated-storage</code></td><td>Storage</td><td>Ổ đĩa (GB) lưu log/cache</td></tr>
+        <tr><td><code>--multi-az</code></td><td>Multi-AZ</td><td>Standby instance AZ khác cho HA</td></tr>
+        <tr><td><code>--endpoint-type</code></td><td>Endpoint Type</td><td>source/target</td></tr>
+        <tr><td><code>--migration-type</code></td><td>Migration Type</td><td>full-load / cdc / full-load-and-cdc</td></tr>
+        <tr><td><code>--table-mappings</code></td><td>Table Mappings</td><td>JSON chọn bảng + transform</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Type</th><th>Khi dùng</th><th>Downtime</th></tr>
+        <tr><td>Full Load only</td><td>Data tĩnh</td><td>Cần dừng ghi source</td></tr>
+        <tr><td>Full Load + CDC</td><td>Production đang chạy</td><td>Gần 0 tới lúc cutover</td></tr>
+        <tr><td>CDC only</td><td>Đã full-load xong trước</td><td>Không cần load lại</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Instance class</td><td>dms.t3.micro → dms.r5.24xlarge</td><td>Theo throughput</td></tr>
+        <tr><td>Heterogeneous</td><td>Cần AWS SCT</td><td>DMS chỉ chuyển data, không convert schema</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="lesson" id="l75">
+    <div class="col-left">
+      <div class="tag-num">7.5</div>
+      <h2>AWS Application Migration Service (MGN)</h2>
+      <p>Lift-and-shift toàn bộ server sang AWS bằng replicate liên tục ở mức block-level, không cần convert OS. MGN là bản kế thừa mặc định của CloudEndure Migration. Ví dụ: chở nguyên khối căn nhà sang vị trí mới, dựng lại y hệt kiến trúc cũ trên nền đất mới (EC2).</p>
+      <ul>
+        <li><b>Continuous replication</b> vào staging area (EC2 nhẹ)</li>
+        <li><b>Test instance:</b> launch thử để verify trước khi cutover thật</li>
+        <li><b>Cutover:</b> launch instance production thật</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Luôn chạy <code>start-test</code> trước để verify network/license/driver trước khi <code>start-cutover</code> thật.</p>
+      <div class="case-box"><b>Case:</b> startup SaaS rời datacenter thuê ngoài trong 30 ngày, hơn 100 VM VMware. Replicate liên tục 2 tuần, test theo nhóm service, cutover hàng loạt cuối tuần khi traffic thấp — giữ gần 100% uptime.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Khớp vào <b>Xưởng lắp ráp — EC2</b> — MGN là "đội dựng nhà y hệt bản gốc" đưa server cũ vào đúng vị trí xưởng lắp ráp trong subnet private.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws mgn describe-source-servers
+
+aws mgn start-test \
+  --source-server-id s-1234567890abcdef0
+
+aws mgn start-cutover \
+  --source-server-id s-1234567890abcdef0
+
+aws mgn finalize-cutover \
+  --source-server-id s-1234567890abcdef0</code></pre>
+      <table>
+        <tr><th>Lệnh</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--source-server-id</code></td><td>Source Server</td><td>ID server đang được replicate</td></tr>
+        <tr><td><code>start-test</code></td><td>Test Launch</td><td>Launch instance thử, không ảnh hưởng production</td></tr>
+        <tr><td><code>start-cutover</code></td><td>Cutover</td><td>Launch instance production thật</td></tr>
+        <tr><td><code>finalize-cutover</code></td><td>Finalize</td><td>Hoàn tất, dừng replication</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Tiêu chí</th><th>MGN</th><th>DMS</th></tr>
+        <tr><td>Đối tượng</td><td>Toàn bộ server</td><td>Chỉ database</td></tr>
+        <tr><td>Cơ chế</td><td>Block-level liên tục</td><td>Full load + CDC bản ghi</td></tr>
+        <tr><td>Kết quả</td><td>EC2 y hệt server gốc</td><td>DB engine trên RDS/Aurora</td></tr>
+      </table>
+      <h3>Cấu hình liên quan</h3>
+      <p style="font-size:.87rem;"><b>Launch Template</b> định nghĩa instance type/subnet/SG cho target — chỉnh khi cần đặt đúng subnet private theo kiến trúc VPC.</p>
+    </div>
+  </div>
+
+  <div class="lesson" id="l76">
+    <div class="col-left">
+      <div class="tag-num">7.6</div>
+      <h2>AWS DataSync</h2>
+      <p>Chuyển file/dữ liệu giữa on-premise storage (NFS/SMB) và AWS storage (S3, EFS, FSx), chạy 1 lần hoặc <b>định kỳ theo lịch</b>. Ví dụ: băng chuyền tự động chở hàng theo lịch cố định giữa 2 kho, tự nhận diện món mới/đổi để chỉ chở phần thay đổi.</p>
+      <ul>
+        <li><b>DataSync Agent:</b> VM on-premise kết nối NFS/SMB</li>
+        <li><b>Task:</b> định nghĩa location, filter, schedule</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Kết hợp schedule với EventBridge để trigger xử lý thêm sau khi transfer xong.</p>
+      <div class="case-box"><b>Case:</b> hãng hậu kỳ phim đồng bộ hàng chục TB file dựng phim mỗi đêm từ NAS on-prem lên S3 cho render farm. DataSync task chạy cron mỗi đêm, chỉ đồng bộ phần thay đổi trong ngày.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Khớp vào <b>Kho hàng tĩnh — S3</b> (hoặc EFS/FSx) — "băng chuyền nối kho cũ-mới", chạy định kỳ khác MGN/DMS chỉ chạy 1 lần.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws datasync create-location-nfs \
+  --server-hostname 10.0.1.50 \
+  --subdirectory /export/data \
+  --on-prem-config AgentArns=arn:...:agent/agent-01
+
+aws datasync create-location-s3 \
+  --s3-bucket-arn arn:aws:s3:::my-migration-bucket \
+  --s3-config BucketAccessRoleArn=arn:...:role/DataSyncRole
+
+aws datasync create-task \
+  --source-location-arn arn:...:location/loc-nfs \
+  --destination-location-arn arn:...:location/loc-s3 \
+  --schedule ScheduleExpression="cron(0 2 * * ? *)"
+
+aws datasync start-task-execution --task-arn arn:...:task/task-01</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--server-hostname</code></td><td>NFS Hostname</td><td>Server NFS on-prem cần đồng bộ</td></tr>
+        <tr><td><code>--on-prem-config</code></td><td>On-Prem Config</td><td>Trỏ tới DataSync Agent</td></tr>
+        <tr><td><code>--s3-config</code></td><td>S3 Config</td><td>IAM role ghi vào bucket đích</td></tr>
+        <tr><td><code>--schedule</code></td><td>Schedule</td><td>Biểu thức cron tần suất chạy</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Tiêu chí</th><th>DataSync</th><th>Storage Gateway (File)</th></tr>
+        <tr><td>Mục đích</td><td>Transfer 1 lần/định kỳ, tốc độ cao</td><td>Truy cập file liên tục hàng ngày</td></tr>
+        <tr><td>Use case</td><td>Migration, backup định kỳ</td><td>App on-prem đọc/ghi S3 như NFS</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Encryption in-transit</td><td>TLS mặc định</td><td>Không cần cấu hình thêm</td></tr>
+        <tr><td>Destination</td><td>S3, EFS, FSx</td><td>Không chỉ giới hạn S3</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="lesson" id="l77">
+    <div class="col-left">
+      <div class="tag-num">7.7</div>
+      <h2>AWS Snow Family</h2>
+      <p>Thiết bị vật lý chuyển dữ liệu khối lượng lớn khi mạng quá chậm — "không đường truyền nào nhanh bằng 1 xe tải chở đầy ổ cứng". Ví dụ: bể nước quá lớn để bơm qua ống nhỏ trong thời gian hợp lý, người ta chở nguyên bể bằng xe tải.</p>
+      <ul>
+        <li><b>Snowcone</b> (~8TB): edge computing, data nhỏ</li>
+        <li><b>Snowball Edge</b> (~80TB): vừa storage vừa compute tại chỗ (EC2/Lambda)</li>
+        <li><b>Snowmobile</b> (tới 100PB): container 45-foot, di dời datacenter cực lớn</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Dùng <b>OpsHub</b> để chạy EC2/Lambda ngay trên Snowball Edge tại hiện trường, xử lý sơ bộ trước khi gửi về AWS.</p>
+      <div class="case-box"><b>Case:</b> công ty dầu khí thu thập dữ liệu địa chất tại giàn khoan không có Internet. Dùng Snowball Edge Compute Optimized chạy inference AI ngay tại chỗ, chỉ gửi kết quả đã xử lý về AWS.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> "Cửa nhận hàng hóa vật lý" — cổng riêng ngoài network layer (Route 53/CloudFront/VPC), đưa thẳng dữ liệu vật lý vào Kho tổng/Kho tĩnh.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws snowball create-job \
+  --job-type IMPORT --resources '{}' \
+  --snowball-type EDGE_STORAGE_OPTIMIZED \
+  --shipping-option SECOND_DAY
+
+aws snowball describe-job --job-id JID1234567-abcd
+
+aws snowball list-jobs</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--job-type</code></td><td>Job Type</td><td>IMPORT/EXPORT</td></tr>
+        <tr><td><code>--snowball-type</code></td><td>Device Type</td><td>Loại thiết bị Snow</td></tr>
+        <tr><td><code>--shipping-option</code></td><td>Shipping</td><td>Tốc độ vận chuyển thiết bị</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Thiết bị</th><th>Dung lượng</th><th>Compute tại chỗ?</th></tr>
+        <tr><td>Snowcone</td><td>~8TB</td><td>Có (giới hạn)</td></tr>
+        <tr><td>Snowball Edge</td><td>~80TB</td><td>Có (EC2/Lambda)</td></tr>
+        <tr><td>Snowmobile</td><td>tới 100PB</td><td>Không</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Encryption</td><td>KMS 256-bit</td><td>Tự động toàn bộ thiết bị</td></tr>
+        <tr><td>Xóa dữ liệu</td><td>Tự động sau import</td><td>Chuẩn NIST 800-88</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="lesson" id="l78">
+    <div class="col-left">
+      <div class="tag-num">7.8</div>
+      <h2>The 7 Rs of Migration</h2>
+      <p>7 chiến lược di dời ứng dụng. Ví dụ chuyển nhà: có món <b>bỏ luôn</b> (Retire), <b>để lại</b> (Retain), <b>chuyển y nguyên</b> (Rehost), <b>đóng nguyên khối</b> (Relocate), <b>mua đồ mới</b> (Repurchase), <b>đổi kiểu dáng</b> (Replatform), <b>đóng lại hoàn toàn</b> (Refactor).</p>
+      <table>
+        <tr><th>Chiến lược</th><th>Ý nghĩa</th></tr>
+        <tr><td>Retire</td><td>Ngừng dùng, không migrate</td></tr>
+        <tr><td>Retain</td><td>Giữ nguyên tại chỗ</td></tr>
+        <tr><td>Rehost</td><td>Lift-and-shift (AWS MGN)</td></tr>
+        <tr><td>Relocate</td><td>Di dời nguyên khối ảo hóa (VMware Cloud on AWS)</td></tr>
+        <tr><td>Repurchase</td><td>Chuyển sang SaaS mới</td></tr>
+        <tr><td>Replatform</td><td>Đổi 1 phần nền tảng, giữ kiến trúc chính</td></tr>
+        <tr><td>Refactor</td><td>Thiết kế lại cloud-native</td></tr>
+      </table>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Strategy Recommendations chấm điểm 7R tự động, nhưng quyết định cuối vẫn cần cân nhắc thêm ROI/rủi ro nghiệp vụ.</p>
+      <div class="case-box"><b>Case:</b> tập đoàn bán lẻ 500 app legacy. Strategy Recommendations phân loại: ~150 app → Retire, ~250 app → Rehost bằng MGN, ~100 app giá trị lâu dài → lộ trình Refactor sang serverless trong 2 năm.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Không phải trạm — là <b>bộ tiêu chí quyết định</b> cách xây MỖI trạm trong nhà máy, áp dụng cho mọi trạm từ Module 2 tới giờ.</div>
+    </div>
+    <div class="col-right">
+      <h3>So sánh nhanh — Effort &amp; Tool</h3>
+      <table>
+        <tr><th>7R</th><th>Effort</th><th>Tool AWS</th></tr>
+        <tr><td>Retire</td><td>Rất thấp</td><td>—</td></tr>
+        <tr><td>Retain</td><td>Không làm gì</td><td>—</td></tr>
+        <tr><td>Rehost</td><td>Thấp</td><td>AWS MGN</td></tr>
+        <tr><td>Relocate</td><td>Thấp-trung bình</td><td>VMware Cloud on AWS</td></tr>
+        <tr><td>Repurchase</td><td>Trung bình</td><td>— (SaaS bên thứ 3)</td></tr>
+        <tr><td>Replatform</td><td>Trung bình</td><td>AWS DMS, RDS</td></tr>
+        <tr><td>Refactor</td><td>Cao nhất</td><td>Lambda, ECS/EKS</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= QUIZ ================= -->
+<div class="panel" id="panel-quiz">
+  <div class="quiz-grid" id="quiz-container"></div>
+</div>
+
+<!-- ================= LAB ================= -->
+<div class="panel" id="panel-lab">
+  <div class="warn-box">⚠️ Section gốc không có bài <code>[HOL]</code> nào — lab dưới đây được <b>tự dựng</b> mô phỏng công việc thật, dùng EC2/RDS free tier đóng vai hệ thống "on-premise" giả lập.</div>
+  <div class="lab-grid">
+    <div class="lab-steps">
+      <h4>🧭 Bối cảnh</h4>
+      <p style="font-size:.9rem;">Công ty đang có kế hoạch rời datacenter thuê ngoài. Nhiệm vụ: dựng 1 pilot nhỏ chứng minh 4 công cụ migration chính (Discovery, DMS, MGN, DataSync) hoạt động đúng, trước khi trình bày kế hoạch di dời thật cho 800 server.</p>
+      <h4>✅ Lệnh verify</h4>
+      <pre><code>aws discovery describe-agents
+aws dms describe-replication-tasks \
+  --query 'ReplicationTasks[*].Status'
+aws mgn describe-source-servers
+aws datasync describe-task-execution \
+  --task-execution-arn &lt;arn&gt;</code></pre>
+      <h4>🧹 Cleanup</h4>
+      <pre><code>aws ec2 terminate-instances --instance-ids &lt;id&gt;
+aws dms delete-replication-task --replication-task-arn &lt;arn&gt;
+aws dms delete-replication-instance --replication-instance-arn &lt;arn&gt;
+aws rds delete-db-instance --db-instance-identifier source-db --skip-final-snapshot
+aws rds delete-db-instance --db-instance-identifier target-db --skip-final-snapshot
+aws mgn disconnect-from-service --source-server-id &lt;id&gt;
+aws datasync delete-task --task-arn &lt;arn&gt;
+aws s3 rb s3://lab-source-bucket --force
+aws s3 rb s3://lab-target-bucket --force</code></pre>
+      <h4>⚠️ Lưu ý dễ tốn phí</h4>
+      <ul style="font-size:.85rem;">
+        <li>DMS replication instance tính phí theo giờ dù task không chạy — xóa ngay sau khi test.</li>
+        <li>MGN <code>start-test</code> tạo 1 EC2 thật — nhớ terminate, <b>không</b> gọi start-cutover/finalize-cutover.</li>
+        <li>Snowball Edge chỉ demo tới bước xem cấu hình — không "Place order" thật.</li>
+        <li>RDS free tier chỉ miễn phí <code>db.t3.micro</code>/<code>db.t2.micro</code> trong 12 tháng đầu.</li>
+      </ul>
+    </div>
+    <div class="lab-script">
+      <pre><code># Bước 1 — Dựng "on-premise" giả lập
+aws ec2 run-instances --image-id ami-0abcdef1234567890 \
+  --instance-type t2.micro --key-name my-key \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=onprem-simulated}]'
+
+# Bước 2 — Application Discovery Service
+sudo ./aws-discovery-agent.sh -r us-east-1 -k &lt;access-key&gt; -s &lt;secret-key&gt;
+aws discovery start-data-collection-by-agent-ids --agent-ids &lt;agent-id&gt;
+# Verify: Migration Hub > Discover, thấy server + utilization
+
+# Bước 3 — AWS DMS (migrate database)
+aws rds create-db-instance --db-instance-identifier source-db \
+  --db-instance-class db.t3.micro --engine mysql ...
+aws rds create-db-instance --db-instance-identifier target-db \
+  --db-instance-class db.t3.micro --engine aurora-mysql ...
+
+aws dms create-replication-instance \
+  --replication-instance-identifier dms-lab \
+  --replication-instance-class dms.t3.micro --allocated-storage 20
+
+aws dms create-endpoint --endpoint-identifier src --endpoint-type source \
+  --engine-name mysql --server-name &lt;source-db-endpoint&gt; --port 3306
+aws dms create-endpoint --endpoint-identifier tgt --endpoint-type target \
+  --engine-name aurora --server-name &lt;target-db-endpoint&gt; --port 3306
+
+aws dms create-replication-task --replication-task-identifier lab-task \
+  --migration-type full-load-and-cdc \
+  --table-mappings file://table-mappings.json \
+  --source-endpoint-arn &lt;src-arn&gt; --target-endpoint-arn &lt;tgt-arn&gt; \
+  --replication-instance-arn &lt;dms-lab-arn&gt;
+
+# Bước 4 — AWS MGN (test cutover, KHÔNG finalize)
+sudo ./aws-replication-installer-init.py --region us-east-1 \
+  --aws-access-key-id &lt;key&gt; --aws-secret-access-key &lt;secret&gt;
+# Chờ trạng thái "Healthy" trên console MGN, rồi:
+aws mgn start-test --source-server-id &lt;server-id&gt;
+# DỪNG Ở ĐÂY — không chạy start-cutover/finalize-cutover trong lab
+
+# Bước 5 — AWS DataSync (đồng bộ định kỳ)
+aws s3 mb s3://lab-source-bucket
+aws s3 mb s3://lab-target-bucket
+aws datasync create-location-s3 --s3-bucket-arn arn:aws:s3:::lab-source-bucket \
+  --s3-config BucketAccessRoleArn=&lt;role-arn&gt;
+aws datasync create-location-s3 --s3-bucket-arn arn:aws:s3:::lab-target-bucket \
+  --s3-config BucketAccessRoleArn=&lt;role-arn&gt;
+aws datasync create-task --source-location-arn &lt;loc-1&gt; \
+  --destination-location-arn &lt;loc-2&gt;
+aws datasync start-task-execution --task-arn &lt;task-arn&gt;
+
+# Bước 6 — Snow Family (chỉ xem giao diện, KHÔNG order thật)
+# Console Snow Family > Create job > điền thử config
+# DỪNG trước bước "Place order"</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CHEAT SHEET ================= -->
+<div class="panel" id="panel-cheat">
+  <div class="cheat-grid" id="cheat-container"></div>
+  <div class="pattern-block">
+    <span class="tag">Pattern chuẩn cần nhớ nằm lòng</span>
+    <p>Discovery → Strategy Recommendations (chọn 7R) → DMS (data) / MGN (server) / DataSync (file, định kỳ) / Snow Family (khi mạng quá chậm) → Migration Hub (theo dõi tổng tiến độ). Heterogeneous DB luôn cần SCT trước DMS. Lift-and-shift hàng loạt VM: MGN agent → replicate → test → cutover theo lô, ưu tiên giờ traffic thấp.</p>
+  </div>
+  <div class="station-card">
+    <b>🏭 Trạm mới thêm vào nhà máy nền ở section này</b>
+    <ul>
+      <li><b>Phòng kế hoạch mở rộng</b> — Migration Hub + Discovery + Strategy Recommendations</li>
+      <li><b>Đội bốc dỡ hàng chuyên trách</b> — AWS DMS, giữa kho cũ và Kho tổng RDS/Aurora</li>
+      <li><b>Đội dựng nhà y hệt bản gốc</b> — AWS MGN, vào Xưởng lắp ráp EC2</li>
+      <li><b>Băng chuyền chạy định kỳ</b> — AWS DataSync, cùng khu Kho hàng tĩnh S3/EFS/FSx</li>
+      <li><b>Cửa nhận hàng hóa vật lý</b> — AWS Snow Family, ngoài network layer</li>
+      <li><b>7 Rs</b> — bộ tiêu chí quyết định cách xây mỗi trạm hiện có</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const quizData = [
+  {sec:"7.2", q:"Home Region của Migration Hub có đổi được sau khi set không?", a:"Không — chỉ set 1 lần cho mỗi account, cần chọn cẩn thận."},
+  {sec:"7.2", q:"Công cụ nào tự động đề xuất chiến lược 7R cho từng server?", a:"Migration Hub Strategy Recommendations, dựa trên dữ liệu Discovery."},
+  {sec:"7.2", q:"Migration Hub có tính phí riêng không?", a:"Không, chỉ trả phí các service migration thật chạy bên dưới."},
+  {sec:"7.2", q:"Nhóm 'Assess' gồm những dịch vụ nào?", a:"Application Discovery Service và Migration Evaluator."},
+  {sec:"7.2", q:"Vì sao ngân hàng cần chạy Discovery Agent trước khi quyết định 7R?", a:"Vì thiếu dữ liệu dependency/utilization chính xác dễ gây downtime khi tắt nhầm server còn phụ thuộc."},
+
+  {sec:"7.3", q:"Agentless Connector có hỗ trợ physical server không?", a:"Không — chỉ hỗ trợ VM trên VMware vCenter."},
+  {sec:"7.3", q:"Muốn có dependency map chi tiết theo network connection, dùng loại nào?", a:"Discovery Agent (agent-based)."},
+  {sec:"7.3", q:"Dữ liệu discovery lưu bao lâu sau khi dừng thu thập?", a:"90 ngày, sau đó bị xóa nếu không export."},
+  {sec:"7.3", q:"Export dữ liệu discovery ra đâu để phân tích?", a:"Amazon S3, dạng CSV."},
+  {sec:"7.3", q:"Vì sao case chuỗi bán lẻ cần chạy Discovery Agent 3 tuần?", a:"Vì thiếu tài liệu dependency thật, cần thời gian đủ dài để bắt toàn bộ pattern kết nối."},
+
+  {sec:"7.4", q:"DMS có tự convert schema khi chuyển Oracle sang Aurora không?", a:"Không — cần AWS SCT convert schema trước, DMS chỉ chuyển data."},
+  {sec:"7.4", q:"Muốn downtime gần như 0 khi DB production đang ghi liên tục, dùng type nào?", a:"full-load-and-cdc."},
+  {sec:"7.4", q:"Replication instance của DMS chạy trên hạ tầng gì?", a:"1 EC2 instance do DMS quản lý."},
+  {sec:"7.4", q:"Khi nào nên bật Multi-AZ cho replication instance?", a:"Khi task CDC chạy dài hạn trong production, cần HA."},
+  {sec:"7.4", q:"Vì sao sàn giao dịch phải cutover đúng lúc thị trường đóng cửa?", a:"Vì downtime cho phép rất thấp, cần chọn thời điểm traffic thấp nhất."},
+
+  {sec:"7.5", q:"MGN thay thế dịch vụ nào trước đây?", a:"AWS CloudEndure Migration."},
+  {sec:"7.5", q:"Bước nào nên làm trước khi cutover thật?", a:"start-test — launch instance thử để verify."},
+  {sec:"7.5", q:"MGN replicate dữ liệu ở mức nào?", a:"Block-level, liên tục."},
+  {sec:"7.5", q:"Sau khi cutover ổn định, gọi lệnh gì để hoàn tất?", a:"finalize-cutover."},
+  {sec:"7.5", q:"Vì sao startup SaaS test theo từng nhóm service thay vì cutover 1 lần?", a:"Giảm rủi ro — lỗi ở 1 nhóm không làm sập toàn bộ hệ thống."},
+
+  {sec:"7.6", q:"DataSync khác Storage Gateway File Gateway ở điểm nào?", a:"DataSync tối ưu transfer 1 lần/định kỳ; Storage Gateway tối ưu truy cập liên tục kiểu file share."},
+  {sec:"7.6", q:"DataSync có hỗ trợ đích EFS/FSx không hay chỉ S3?", a:"Có, hỗ trợ cả S3, EFS, và FSx."},
+  {sec:"7.6", q:"Muốn agent kết nối AWS lần đầu cần gì?", a:"Activation key lấy từ console."},
+  {sec:"7.6", q:"Sau khi transfer, DataSync verify dữ liệu bằng cách nào?", a:"Checksum tự động so sánh nguồn và đích."},
+  {sec:"7.6", q:"Vì sao hãng phim chạy định kỳ thay vì di dời 1 lần?", a:"Vì dữ liệu media tiếp tục phát sinh mỗi ngày."},
+
+  {sec:"7.7", q:"Thiết bị nào phù hợp di dời cả 1 datacenter cỡ petabyte?", a:"Snowmobile."},
+  {sec:"7.7", q:"Thiết bị nào chạy được EC2/Lambda ngay tại chỗ?", a:"Snowball Edge."},
+  {sec:"7.7", q:"Dữ liệu trên Snow device bị xóa khi nào?", a:"Tự động sau khi AWS import thành công, theo chuẩn NIST 800-88."},
+  {sec:"7.7", q:"Công cụ nào giúp quản lý compute local trên Snowball Edge?", a:"AWS OpsHub."},
+  {sec:"7.7", q:"Vì sao case dầu khí xử lý ngay tại giàn khoan?", a:"Không có Internet ổn định, xử lý tại chỗ giảm dung lượng cần vận chuyển."},
+
+  {sec:"7.8", q:"Chiến lược 'lift-and-shift' dùng tool AWS nào?", a:"Rehost, dùng AWS MGN."},
+  {sec:"7.8", q:"Chuyển CRM tự viết sang Salesforce thuộc chiến lược nào?", a:"Repurchase."},
+  {sec:"7.8", q:"Chiến lược nào tốn effort và thời gian nhiều nhất?", a:"Refactor/Re-architect."},
+  {sec:"7.8", q:"'Retain' nghĩa là gì?", a:"Giữ nguyên hệ thống tại chỗ, chưa di dời."},
+  {sec:"7.8", q:"Vì sao 100 app giá trị lâu dài chọn Refactor thay vì Rehost?", a:"Refactor tối ưu chi phí vận hành và khả năng mở rộng lâu dài, Rehost chỉ giải quyết bài toán ngắn hạn."}
+];
+
+const quizContainer = document.getElementById('quiz-container');
+let lastSec = "";
+quizData.forEach((item, i) => {
+  if(item.sec !== lastSec){
+    const anchor = document.createElement('div');
+    anchor.id = 'q' + item.sec.replace('.', '');
+    anchor.style.gridColumn = '1 / -1';
+    quizContainer.appendChild(anchor);
+    lastSec = item.sec;
+  }
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.innerHTML = `<div class="hint">Bài ${item.sec}</div><div class="q">${item.q}</div><div class="a">${item.a}</div>`;
+  card.addEventListener('click', () => card.classList.toggle('open'));
+  quizContainer.appendChild(card);
+});
+
+const cheatData = [
+  {t:"7 Rs = tình huống", d:"Đề thi hỏi bằng tình huống: 'ngừng vận hành app cũ' → Retire; 'chuyển nhanh nhất, ít đổi nhất' → Rehost."},
+  {t:"DMS vs MGN", d:"DMS di dời database; MGN di dời cả server (OS+app+data). Đề hay đánh lừa 2 khái niệm này."},
+  {t:"DataSync = định kỳ", d:"Cho file/object storage, chạy được lặp lại theo lịch — khác DMS/MGN chỉ chạy 1 lần lúc cutover."},
+  {t:"Snowball Edge có compute", d:"Snowmobile thì không — chỉ là phương tiện vận chuyển thuần túy cho khối lượng petabyte."},
+  {t:"Heterogeneous DB", d:"Khác engine luôn cần AWS SCT convert schema trước khi chạy DMS."},
+  {t:"Discovery trước Strategy", d:"Application Discovery Service là bước khảo sát bắt buộc trước khi Strategy Recommendations đề xuất 7R chính xác."}
+];
+const cheatContainer = document.getElementById('cheat-container');
+cheatData.forEach(c => {
+  const card = document.createElement('div');
+  card.className = 'cheat-card';
+  card.innerHTML = `<h4>${c.t}</h4><p>${c.d}</p>`;
+  cheatContainer.appendChild(card);
+});
+
+// Tab switching
+const tabButtons = document.querySelectorAll('.tabbar button');
+const panels = document.querySelectorAll('.panel');
+const sidebarTheory = document.getElementById('sidebar-theory');
+const sidebarQuiz = document.getElementById('sidebar-quiz');
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.tab;
+    panels.forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + target).classList.add('active');
+
+    if(target === 'theory'){
+      document.body.classList.add('has-sidebar');
+      sidebarTheory.style.display='block'; sidebarQuiz.style.display='none';
+    } else if(target === 'quiz'){
+      document.body.classList.add('has-sidebar');
+      sidebarTheory.style.display='none'; sidebarQuiz.style.display='block';
+    } else {
+      document.body.classList.remove('has-sidebar');
+    }
+  });
+});
+
+// Scrollspy for theory sidebar
+const lessonSections = document.querySelectorAll('#panel-theory .lesson');
+const sidebarLinks = sidebarTheory.querySelectorAll('a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      sidebarLinks.forEach(l => l.classList.remove('active'));
+      const link = sidebarTheory.querySelector(`a[href="#${entry.target.id}"]`);
+      if(link) link.classList.add('active');
+    }
+  });
+}, {rootMargin: '-20% 0px -70% 0px'});
+lessonSections.forEach(s => observer.observe(s));
+
+sidebarTheory.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>

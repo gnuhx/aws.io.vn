@@ -17,6 +17,7 @@ export function LessonPage() {
   const previous = moduleLessons[currentIndex - 1]
   const next = moduleLessons[currentIndex + 1]
   const pageTitle = topic === 'aws-saa-c03' ? 'AWS SAA-C03' : topic.replace(/-/g, ' ')
+  const itemLabel = lesson.kind === 'section' ? 'Section' : 'Lesson'
 
   return (
     <div className={styles.page}>
@@ -26,12 +27,13 @@ export function LessonPage() {
         <Link to={`/${topic}`} className={styles.topbarCourse}>{pageTitle}</Link>
       </header>
 
-      <div className={styles.layout}>
+      <div className={`${styles.layout} ${lesson.interactiveHtmlUrl ? styles.layoutWide : ''}`}>
         <aside className={styles.sidebar} aria-label="Course navigation">
           <Link to={`/${topic}`} className={styles.backLink}>← Course overview</Link>
           <p className={styles.sidebarEyebrow}>{lesson.module ? `Module ${lesson.module.order}` : 'Lessons'}</p>
           <h2 className={styles.sidebarTitle}>{lesson.module?.title ?? pageTitle}</h2>
           <nav>
+            <p className={styles.navLabel}>{lesson.kind === 'section' ? 'Sections' : 'Lessons'}</p>
             <ol className={styles.lessonNav}>
               {moduleLessons.map((entry, index) => (
                 <li key={entry.slug}>
@@ -50,27 +52,44 @@ export function LessonPage() {
         </aside>
 
         <main className={styles.main}>
-          <div className={styles.articleMeta}>
-            <span>{lesson.module ? `Module ${String(lesson.module.order).padStart(2, '0')}` : pageTitle}</span>
-            <span className={styles.metaDot}>·</span>
-            <span>Lesson {String(currentIndex + 1).padStart(2, '0')}</span>
-            <span className={styles.metaDot}>·</span>
-            <span>Study notes</span>
-          </div>
-          <h1 className={styles.title}>{lesson.title}</h1>
-          <p className={styles.summary}>{lesson.summary}</p>
-          <div className={styles.rule} />
-          <article className={styles.article} dangerouslySetInnerHTML={{ __html: lesson.bodyHtml }} />
+          {lesson.interactiveHtmlUrl ? (
+            <section className={styles.interactiveShell} aria-label={`${lesson.title} interactive lesson`}>
+              <div className={styles.interactiveToolbar}>
+                <span>Interactive lesson · original tabs, quizzes, labs, and navigation</span>
+                <a href={lesson.interactiveHtmlUrl} target="_blank" rel="noreferrer">Open separately ↗</a>
+              </div>
+              <iframe
+                className={styles.interactiveFrame}
+                src={lesson.interactiveHtmlUrl}
+                title={lesson.title}
+                sandbox="allow-scripts"
+              />
+            </section>
+          ) : (
+            <>
+              <div className={styles.articleMeta}>
+                <span>{lesson.module ? `Module ${String(lesson.module.order).padStart(2, '0')}` : pageTitle}</span>
+                <span className={styles.metaDot}>·</span>
+                <span>{itemLabel} {String(currentIndex + 1).padStart(2, '0')}</span>
+                <span className={styles.metaDot}>·</span>
+                <span>Study notes</span>
+              </div>
+              <h1 className={styles.title}>{lesson.title}</h1>
+              <p className={styles.summary}>{lesson.summary}</p>
+              <div className={styles.rule} />
+              <article className={styles.article} dangerouslySetInnerHTML={{ __html: lesson.bodyHtml }} />
+            </>
+          )}
 
           <nav className={styles.lessonPager} aria-label="Lesson navigation">
             {previous ? (
               <Link to={`/${topic}/${previous.slug}`} className={styles.pagerLink}>
-                <span>← Previous</span><strong>{previous.title}</strong>
+                <span>← Previous {itemLabel.toLowerCase()}</span><strong>{previous.title}</strong>
               </Link>
             ) : <span />}
             {next && (
               <Link to={`/${topic}/${next.slug}`} className={`${styles.pagerLink} ${styles.pagerNext}`}>
-                <span>Next →</span><strong>{next.title}</strong>
+                <span>Next {itemLabel.toLowerCase()} →</span><strong>{next.title}</strong>
               </Link>
             )}
           </nav>

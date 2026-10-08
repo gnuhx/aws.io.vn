@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Security · SAA-C03</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdfcfa; --ink:#1a1a1a; --sub:#5b5b5b; --line:#e5e2dc;
+    --accent:#8a5cf6; --accent2:#c9781c; --sidebar-w:250px;
+    --serif:'Source Serif 4',serif; --sans:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;}
+  a{color:var(--accent);}
+  table{border-collapse:collapse;width:100%;font-size:.88rem;margin:.8rem 0;}
+  th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top;}
+  th{background:#f4f1ea;font-family:var(--sans);font-weight:600;}
+  code{font-family:var(--mono);background:#f2efe8;padding:.1rem .35rem;border-radius:4px;font-size:.85em;}
+  pre{font-family:var(--mono);background:#1e1e1e;color:#e8e6e1;padding:1rem;border-radius:8px;overflow-x:auto;font-size:.8rem;line-height:1.55;}
+  pre code{background:none;padding:0;color:inherit;}
+  h1,h2,h3{font-family:var(--serif);}
+  h2{border-bottom:1px solid var(--line);padding-bottom:.4rem;margin-top:2.2rem;}
+  .nav{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line);
+       display:flex;align-items:center;justify-content:space-between;padding:.7rem 3vw;}
+  .brand{font-family:var(--serif);font-weight:700;font-size:1rem;}
+  .roadmap-nav{display:flex;gap:1rem;font-size:.78rem;font-family:var(--mono);}
+  .roadmap-nav span{color:var(--sub);}
+  .roadmap-nav .cur{color:var(--accent);font-weight:700;}
+  .roadmap-nav .done{color:var(--accent2);}
+  .tabbar{position:sticky;top:44px;z-index:49;background:var(--bg);border-bottom:1px solid var(--line);
+          display:flex;gap:0;padding:0 3vw;}
+  .tabbtn{padding:.75rem 1.2rem;font-family:var(--sans);font-weight:600;font-size:.88rem;color:var(--sub);
+          cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;}
+  .tabbtn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  body.has-sidebar .hero{margin-left:var(--sidebar-w);}
+  body.has-sidebar .tabpanel-content{margin-left:var(--sidebar-w);}
+  .hero{padding:2.2rem 3vw 1.2rem;}
+  .eyebrow{font-family:var(--mono);font-size:.78rem;color:var(--accent2);text-transform:uppercase;letter-spacing:.04em;}
+  .hero h1{font-size:2rem;margin:.3rem 0;}
+  .lede{color:var(--sub);max-width:70ch;}
+  .sidebar{position:fixed;top:90px;left:0;width:var(--sidebar-w);bottom:0;overflow-y:auto;
+           border-right:1px solid var(--line);padding:1rem 1rem 3rem;font-size:.8rem;display:block;}
+  .sidebar h4{font-family:var(--mono);text-transform:uppercase;font-size:.7rem;color:var(--sub);margin:0 0 .6rem;}
+  .sidebar a{display:block;color:var(--ink);text-decoration:none;padding:.3rem .5rem;border-radius:6px;margin-bottom:.05rem;}
+  .sidebar a:hover{background:#f2efe8;}
+  .sidebar a.active{background:#efe7fb;color:var(--accent);font-weight:600;}
+  .tabpanel{display:none;padding:0 3vw 4rem;}
+  .tabpanel.active{display:block;}
+  .lesson{padding:2.2rem 0;border-bottom:1px dashed var(--line);}
+  .lesson-grid{display:grid;grid-template-columns:56% 44%;gap:2rem;}
+  .lesson-grid .col-right{border-left:1px solid var(--line);padding-left:1.5rem;}
+  .lesson h3{margin-top:0;color:var(--accent2);}
+  .qa{background:#f7f4ee;border-radius:8px;padding:.9rem 1.1rem;margin-top:.6rem;font-size:.88rem;}
+  .qa ol{margin:.3rem 0 0;padding-left:1.2rem;}
+  .lab-grid{display:grid;grid-template-columns:38% 62%;gap:2rem;margin-top:1.5rem;}
+  .warn-box{background:#fdf2ee;border:1px solid #e8c3ae;border-radius:8px;padding:1rem;margin-top:1rem;font-size:.86rem;}
+  .quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.2rem;}
+  .qcard{border:1px solid var(--line);border-radius:8px;padding:1rem;background:#fff;}
+  .qcard .ans{display:none;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--line);color:var(--accent2);font-size:.86rem;}
+  .qcard.revealed .ans{display:block;}
+  .qcard button{margin-top:.5rem;font-family:var(--sans);font-size:.78rem;background:var(--accent);color:#fff;border:none;padding:.35rem .8rem;border-radius:6px;cursor:pointer;}
+  .cheat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.2rem;}
+  .cheat-card{border:1px solid var(--line);border-radius:8px;padding:1rem;background:#fff;font-size:.84rem;}
+  .cheat-card h4{margin-top:0;font-family:var(--sans);color:var(--accent2);}
+  .pattern-box{margin-top:1.5rem;background:#efe7fb;border-radius:10px;padding:1.3rem;}
+  .factory-card{grid-column:1/-1;background:#0D1B2A;color:#e8e6e1;border:none;}
+  .factory-card h4{color:#E8A33D;}
+  @media(max-width:900px){
+    .sidebar{display:none!important;}
+    body.has-sidebar .hero,body.has-sidebar .tabpanel-content{margin-left:0;}
+    .lesson-grid,.lab-grid{grid-template-columns:1fr;}
+    .lesson-grid .col-right{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:1rem;}
+    .cheat-grid,.quiz-grid{grid-template-columns:1fr;}
+    .roadmap-nav{display:none;}
+  }
+</style>
+</head>
+<body class="has-sidebar">
+
+<div class="nav">
+  <div class="brand">SAA-C03 · Module 6 · Security</div>
+  <div class="roadmap-nav">
+    <span class="done">01 Deployment&amp;Mgmt</span>
+    <span class="done">02 Monitoring/Logging</span>
+    <span class="cur">03 Security</span>
+  </div>
+</div>
+
+<div class="tabbar" id="tabbar">
+  <button class="tabbtn active" data-tab="theory">Lý thuyết</button>
+  <button class="tabbtn" data-tab="quiz">Quiz</button>
+  <button class="tabbtn" data-tab="lab">Lab</button>
+  <button class="tabbtn" data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Domain — Secure Architectures 30% (nặng nhất)</p>
+  <h1>Security</h1>
+  <p class="lede">Sổ hộ khẩu AD, cổng công nhận thẻ đối tác (Federation), quầy lễ tân khách vãng lai (Cognito), tủ khóa trung tâm (KMS/CloudHSM), con dấu danh tính (ACM), trạm soát người (WAF), hàng rào chắn đám đông (Shield), và 3 lớp camera chuyên biệt (Inspector/Macie/GuardDuty).</p>
+</div>
+
+<div class="sidebar" id="sidebar-theory">
+  <h4>Bài trong section</h4>
+  <a href="#l6-33" class="side-link">6.33 Directory Service</a>
+  <a href="#l6-34" class="side-link">6.34 Identity Federation</a>
+  <a href="#l6-36" class="side-link">6.36 Cognito</a>
+  <a href="#l6-37" class="side-link">6.37 Encryption Primer</a>
+  <a href="#l6-38" class="side-link">6.38 KMS</a>
+  <a href="#l6-40" class="side-link">6.40 CloudHSM</a>
+  <a href="#l6-41" class="side-link">6.41 ACM</a>
+  <a href="#l6-43" class="side-link">6.43 WAF</a>
+  <a href="#l6-44" class="side-link">6.44 Inspector</a>
+  <a href="#l6-45" class="side-link">6.45 Macie</a>
+  <a href="#l6-46" class="side-link">6.46 GuardDuty</a>
+  <a href="#l6-47" class="side-link">6.47 Shield</a>
+  <a href="#l6-48" class="side-link">6.48 Defense In-Depth</a>
+</div>
+
+<div class="tabpanel-content">
+<div class="tabpanel active" id="tab-theory">
+
+<section class="lesson" id="l6-33">
+<h3>6.33 — AWS Directory Service</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> AD managed trên AWS. Như sổ hộ khẩu trung tâm biết ai thuộc phòng ban nào.</p>
+    <ul><li>Managed Microsoft AD: đầy đủ, dữ liệu trên AWS</li><li>AD Connector: proxy tới AD on-premise, không lưu data</li><li>Simple AD: cơ bản, rẻ</li></ul>
+    <p><b>Case:</b> ngân hàng dùng AD Connector nối AD on-premise, không duplicate dữ liệu user lên cloud.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ an ninh cạnh IAM — sổ hộ khẩu kiểu AD.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>AD Connector khác Managed AD? → Chỉ proxy, không lưu data trên AWS.</li>
+      <li>Ngân hàng dùng lại AD cũ không duplicate? → AD Connector.</li>
+      <li>Loại rẻ nhất? → Simple AD.</li>
+      <li>AD Connector cần gì trước? → VPN/Direct Connect thông tới on-premise.</li>
+      <li>Khớp đâu? → Cạnh IAM, sổ hộ khẩu AD.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws ds create-microsoft-ad --name corp.example.com \
+  --password 'P@ssw0rd123' \
+  --vpc-settings VpcId=vpc-abc,SubnetIds=subnet-1,subnet-2
+
+aws ds connect-directory --name corp.example.com \
+  --connect-settings VpcId=vpc-abc,SubnetIds=subnet-1,subnet-2,\
+CustomerDnsIps=10.0.0.5,CustomerUserName=admin</code></pre>
+    <table><tr><th>So sánh</th><th>Managed AD</th><th>AD Connector</th><th>Simple AD</th></tr>
+      <tr><td>Data</td><td>Trên AWS</td><td>On-premise</td><td>Trên AWS</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-34">
+<h3>6.34 — Identity Providers and Federation</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Đăng nhập bằng danh tính có sẵn (IdP) lấy quyền tạm thời vào AWS. Như dùng thẻ công ty mẹ vào thăm chi nhánh.</p>
+    <ul><li>SAML: enterprise (AD/Okta) → STS</li><li>Web Identity/OIDC: consumer (Google/FB) → Cognito</li></ul>
+    <p><b>Case:</b> tập đoàn 5000 nhân viên SSO qua IAM Identity Center, tắt quyền tức thời khi nghỉ việc bằng cách vô hiệu ở AD.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ IAM — cổng công nhận thẻ đối tác.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Federation giải quyết vấn đề gì? → Không cần IAM User riêng cho từng người.</li>
+      <li>SAML dùng cho ai, Web Identity cho ai? → Nội bộ AD/Okta vs người dùng cuối app.</li>
+      <li>Tắt quyền nhanh nhất khi nghỉ việc? → Vô hiệu ở IdP gốc.</li>
+      <li>Lệnh STS đổi SAML assertion? → assume-role-with-saml.</li>
+      <li>Khớp đâu? → Lớp phủ IAM, cổng công nhận thẻ đối tác.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws iam create-saml-provider --name CorpADFederation \
+  --saml-metadata-document file://adfs-metadata.xml
+
+aws sts assume-role-with-saml \
+  --role-arn arn:aws:iam::123456789012:role/FederatedRole \
+  --principal-arn arn:...:saml-provider/CorpADFederation \
+  --saml-assertion file://assertion.xml</code></pre>
+    <table><tr><th>So sánh</th><th>SAML</th><th>Web Identity</th></tr>
+      <tr><td>Dùng cho</td><td>Nhân viên nội bộ</td><td>Người dùng cuối app</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-36">
+<h3>6.36 — Amazon Cognito</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> User Pool (danh tính, JWT) + Identity Pool (đổi token lấy temp AWS credentials). Như lễ tân cấp thẻ khách + đổi thẻ lấy chìa tạm.</p>
+    <p><b>Case:</b> app chia sẻ ảnh, mobile upload thẳng S3 qua Identity Pool, không qua server trung gian.</p>
+    <p><b>Vị trí kiến trúc:</b> Trạm mới — quầy lễ tân khách vãng lai, khác IAM/Federation (nhân viên).</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>User Pool vs Identity Pool? → Danh tính (JWT) vs temp AWS credentials.</li>
+      <li>Upload thẳng S3 không qua server? → Identity Pool.</li>
+      <li>Mỗi user chỉ upload thư mục riêng? → Policy dùng ${cognito-identity...:sub}.</li>
+      <li>Guest access gọi là gì? → Unauthenticated identities.</li>
+      <li>Khớp đâu? → Trạm mới, quầy lễ tân khách vãng lai.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws cognito-idp create-user-pool --pool-name my-app-users \
+  --mfa-configuration OPTIONAL
+aws cognito-identity create-identity-pool \
+  --identity-pool-name my_app_identity \
+  --allow-unauthenticated-identities</code></pre>
+    <table><tr><th>So sánh</th><th>User Pool</th><th>Identity Pool</th></tr>
+      <tr><td>Trả về</td><td>JWT</td><td>Temp AWS credentials</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-37">
+<h3>6.37 — Encryption Primer</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> At rest (lưu trữ) vs in transit (truyền). Symmetric (1 khóa) vs Asymmetric (cặp public/private). Như 1 chìa dùng chung vs hộp thư công khai + chìa riêng mở.</p>
+    <p><b>Pattern:</b> TLS dùng asymmetric để handshake trao đổi khóa an toàn, rồi chuyển symmetric cho tốc độ truyền dữ liệu lớn.</p>
+    <p><b>Vị trí kiến trúc:</b> Không phải trạm — nguyên lý vận hành của KMS.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>At rest vs in transit? → Lưu trữ vs truyền đi.</li>
+      <li>Vì sao TLS cần asymmetric ban đầu? → An toàn trao đổi khóa qua kênh chưa an toàn.</li>
+      <li>Ký số dùng khóa nào? → Asymmetric.</li>
+      <li>AES-256 loại gì? → Symmetric.</li>
+      <li>Khớp đâu? → Nguyên lý nền của KMS.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+    <table><tr><th>So sánh</th><th>Symmetric</th><th>Asymmetric</th></tr>
+      <tr><td>Tốc độ</td><td>Nhanh</td><td>Chậm</td></tr>
+      <tr><td>Số khóa</td><td>1</td><td>Cặp public/private</td></tr>
+      <tr><td>Ví dụ</td><td>AES-256</td><td>RSA, ECC</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-38">
+<h3>6.38 — AWS Key Management Service (KMS)</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Tủ khóa trung tâm. Envelope Encryption: Data Key mã hóa dữ liệu (nhanh), Data Key được CMK mã hóa lại.</p>
+    <p><b>Pattern:</b> Key Policy + kms:ViaService giới hạn key chỉ cho 1 service dùng. <b>Case:</b> ngân hàng dùng CMK riêng để có thể disable tức thời khi rò rỉ.</p>
+    <p><b>Vị trí kiến trúc:</b> Đúng là tủ khóa trung tâm đã có sẵn.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Vì sao cần Envelope Encryption? → Encrypt trực tiếp giới hạn 4KB.</li>
+      <li>AWS Managed vs CMK? → CMK tùy chỉnh policy, disable được.</li>
+      <li>Ngân hàng cần thu hồi tức thời chọn gì? → CMK.</li>
+      <li>Giới hạn key cho 1 service? → kms:ViaService.</li>
+      <li>Khớp đâu? → Tủ khóa trung tâm có sẵn.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws kms create-key --description "prod-app-key" \
+  --key-usage ENCRYPT_DECRYPT
+aws kms generate-data-key --key-id alias/prod-app-key \
+  --key-spec AES_256
+aws kms enable-key-rotation --key-id alias/prod-app-key</code></pre>
+    <table><tr><th>So sánh</th><th>AWS Managed</th><th>CMK</th></tr>
+      <tr><td>Rotation</td><td>Tự động, không tắt</td><td>Tùy chọn</td></tr>
+      <tr><td>Chi phí</td><td>Miễn phí</td><td>Trả phí</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-40">
+<h3>6.40 — AWS CloudHSM</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> HSM single-tenant, AWS không truy cập được khóa. Như mua két sắt riêng thay vì thuê ngăn tủ chung.</p>
+    <p><b>Case:</b> công ty thanh toán quốc tế cần PCI-DSS mức cao nhất, AWS không được truy cập khóa dưới bất kỳ hình thức nào.</p>
+    <p><b>Vị trí kiến trúc:</b> Nhánh đặc biệt cạnh KMS — két sắt riêng biệt.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Khác biệt cốt lõi với KMS? → Single-tenant, AWS không truy cập được.</li>
+      <li>Chuẩn compliance đạt được? → FIPS 140-2 Level 3.</li>
+      <li>Rủi ro lớn nhất? → Mất credential, AWS không khôi phục được.</li>
+      <li>PCI-DSS cao nhất chọn gì? → CloudHSM.</li>
+      <li>Khớp đâu? → Nhánh đặc biệt cạnh KMS.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws cloudhsmv2 create-cluster --hsm-type hsm1.medium \
+  --subnet-ids subnet-1 subnet-2
+aws cloudhsmv2 create-hsm --cluster-id cluster-abc \
+  --availability-zone ap-southeast-1a</code></pre>
+    <table><tr><th>So sánh</th><th>KMS</th><th>CloudHSM</th></tr>
+      <tr><td>Tenancy</td><td>Multi</td><td>Single</td></tr>
+      <tr><td>Compliance</td><td>FIPS 140-2 L2</td><td>FIPS 140-2 L3</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-41">
+<h3>6.41 — AWS Certificate Manager</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Cấp SSL/TLS miễn phí, tự gia hạn khi gắn dịch vụ AWS. Như con dấu xác nhận danh tính tự đóng dấu mới trước khi hết hạn.</p>
+    <p><b>Pattern:</b> Luôn chọn DNS validation cho true auto-renewal. <b>Case:</b> website dùng CloudFront+ACM+Route53, không ai cần nhớ gia hạn.</p>
+    <p><b>Vị trí kiến trúc:</b> Trạm mới ở ALB/CloudFront — con dấu danh tính.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Vì sao chọn DNS thay vì Email validation? → Auto-renew hoàn toàn.</li>
+      <li>Xuất private key dùng ở nơi khác được không? → Không.</li>
+      <li>SAN dùng để làm gì? → Thêm domain phụ vào 1 cert.</li>
+      <li>Chi phí khi dùng ALB/CloudFront? → Miễn phí.</li>
+      <li>Khớp đâu? → Trạm mới ở ALB/CloudFront.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws acm request-certificate --domain-name example.com \
+  --subject-alternative-names www.example.com \
+  --validation-method DNS</code></pre>
+    <table><tr><th>So sánh</th><th>DNS Validation</th><th>Email Validation</th></tr>
+      <tr><td>Auto-renew</td><td>Hoàn toàn</td><td>Cần xác nhận tay</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-43">
+<h3>6.43 — AWS Web Application Firewall (WAF)</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Lọc HTTP Layer 7 (SQLi, XSS, rate limit, geo-block). Như trạm soát người kiểm tra hành lý ngay cổng.</p>
+    <p><b>Case:</b> website tin tức bị bot cào nội dung — WAF rate-based rule giới hạn 100 req/5 phút/IP.</p>
+    <p><b>Vị trí kiến trúc:</b> Đúng vị trí trạm soát người tại cổng/ALB đã có sẵn.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>WAF khác Security Group ở tầng nào? → Layer 7 vs Layer 4.</li>
+      <li>Chặn bot cào nội dung? → Rate-based Rule.</li>
+      <li>Scope CLOUDFRONT vs REGIONAL? → Global CDN vs 1 region (ALB/API GW).</li>
+      <li>Rule sẵn chặn SQLi/XSS? → Managed Rule Groups.</li>
+      <li>Khớp đâu? → Đúng vị trí có sẵn — cổng bảo vệ/ALB.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws wafv2 create-web-acl --name my-web-acl --scope CLOUDFRONT \
+  --default-action Allow={} --rules file://rules.json \
+  --visibility-config SampledRequestsEnabled=true,\
+CloudWatchMetricsEnabled=true,MetricName=myacl</code></pre>
+    <table><tr><th>So sánh</th><th>WAF</th><th>SG/NACL</th></tr>
+      <tr><td>Tầng</td><td>Layer 7</td><td>Layer 3/4</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-44">
+<h3>6.44 — Amazon Inspector</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Quét lỗ hổng (CVE) trên EC2/ECR/Lambda. Như đội kiểm tra an toàn lao động tìm vết nứt thiết bị trước khi gây tai nạn.</p>
+    <p><b>Case:</b> DevSecOps chặn CI/CD pipeline nếu Docker image có CVE CRITICAL trước khi push ECR.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ an ninh — đội kiểm tra thiết bị định kỳ.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Khác GuardDuty? → Quét lỗ hổng chủ động vs phát hiện tấn công đang xảy ra.</li>
+      <li>Network Reachability giúp gì? → Ưu tiên vá theo rủi ro thực tế (khai thác được từ internet).</li>
+      <li>Case CI/CD dùng để làm gì? → Fail build nếu CVE CRITICAL.</li>
+      <li>Scan được resource nào? → EC2, ECR, Lambda.</li>
+      <li>Khớp đâu? → Đội kiểm tra thiết bị định kỳ.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws inspector2 enable --resource-types EC2 ECR LAMBDA
+aws inspector2 list-findings --filter-criteria \
+  '{"severity":[{"comparison":"EQUALS","value":"CRITICAL"}]}'</code></pre>
+    <table><tr><th>So sánh</th><th>Inspector</th><th>GuardDuty</th><th>Config</th></tr>
+      <tr><td>Phát hiện</td><td>CVE</td><td>Hành vi tấn công</td><td>Cấu hình lệch</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-45">
+<h3>6.45 — Amazon Macie</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> ML quét S3 tìm dữ liệu nhạy cảm (PII). Như mắt thần đi qua kho hàng tìm thùng chứa hàng đặc biệt.</p>
+    <p><b>Case:</b> công ty y tế phát hiện bucket cũ bị bỏ quên chứa hồ sơ bệnh nhân ở chế độ public.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ an ninh chuyên trách S3 — mắt thần.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Macie quét gì, ở đâu? → PII trong S3.</li>
+      <li>Nhận diện định dạng riêng công ty? → Custom Data Identifier.</li>
+      <li>Case y tế phát hiện gì? → Bucket cũ public chứa hồ sơ bệnh nhân.</li>
+      <li>Khác Inspector? → Nội dung dữ liệu vs lỗ hổng phần mềm.</li>
+      <li>Khớp đâu? → Mắt thần chuyên trách S3.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws macie2 enable-macie
+aws macie2 create-classification-job --job-type ONE_TIME \
+  --s3-job-definition '{"bucketDefinitions":[{"accountId":"123456789012","buckets":["my-data-bucket"]}]}' \
+  --name scan-customer-data</code></pre>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-46">
+<h3>6.46 — AWS GuardDuty</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Threat detection liên tục từ VPC Flow Logs/CloudTrail/DNS logs, ML + threat intel. Đúng vai đội an ninh tuần tra — không cần cấu hình rule.</p>
+    <p><b>Case:</b> phát hiện credential bị đánh cắp, kết hợp EventBridge+Lambda tự thu hồi trong vài giây.</p>
+    <p><b>Vị trí kiến trúc:</b> Đúng vị trí đội tuần tra có sẵn, dùng lại data CloudTrail/VPC Flow Logs.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Nguồn dữ liệu? → VPC Flow Logs, CloudTrail, DNS logs.</li>
+      <li>Cần tự viết rule không? → Không, tự học hành vi.</li>
+      <li>Case credential bị đánh cắp xử lý sao? → GuardDuty+EventBridge+Lambda tự thu hồi.</li>
+      <li>Severity score khoảng nào? → 0.1–8.9.</li>
+      <li>Khớp đâu? → Đội tuần tra có sẵn.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws guardduty create-detector --enable
+aws guardduty list-findings --detector-id abc123 \
+  --finding-criteria '{"Criterion":{"severity":{"Gte":7}}}'</code></pre>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-47">
+<h3>6.47 — AWS Shield</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Bảo vệ DDoS. Như hàng rào chắn đám đông ở cổng nhà máy.</p>
+    <ul><li>Standard: miễn phí, tự bật, Layer 3/4</li><li>Advanced: ~$3000/tháng, Layer 3/4/7, DRT 24/7, cost protection</li></ul>
+    <p><b>Case:</b> sàn giao dịch mua Advanced vì cost protection — hoàn phí scale-out do DDoS gây ra.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ an ninh cùng nhóm WAF — chặn tầng mạng trước WAF.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Standard cần đăng ký không? → Không, tự động miễn phí.</li>
+      <li>Advanced có gì Standard không có? → Layer 7, DRT, cost protection.</li>
+      <li>Vì sao mua Advanced ngoài bảo vệ? → Cost protection.</li>
+      <li>Shield chặn loại tấn công gì? → DDoS.</li>
+      <li>Khớp đâu? → Cùng nhóm WAF, chặn Layer 3/4 trước.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+<pre><code>aws shield subscribe
+aws shield create-protection --name my-alb-protection \
+  --resource-arn arn:aws:elasticloadbalancing:...:loadbalancer/app/my-alb</code></pre>
+    <table><tr><th>So sánh</th><th>Standard</th><th>Advanced</th></tr>
+      <tr><td>Chi phí</td><td>Free</td><td>~$3000/tháng</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-48">
+<h3>6.48 — Defense In-Depth</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Xếp chồng nhiều lớp bảo mật độc lập, không dựa 1 lớp duy nhất. Đây là toàn bộ triết lý nhà máy nền: tường rào, bảo vệ cửa, thẻ ra vào, camera, tủ khóa.</p>
+    <p><b>Case:</b> ngân hàng số 5 lớp độc lập — pen test tìm lỗi ở Security Group nhưng IAM+KMS vẫn chặn tiếp, dữ liệu vẫn an toàn.</p>
+    <p><b>Vị trí kiến trúc:</b> Không phải trạm — triết lý toàn bộ lớp phủ an ninh.</p>
+    <div class="qa"><b>5 câu hỏi</b><ol>
+      <li>Defense in Depth là gì? → Nhiều lớp bảo mật độc lập xếp chồng.</li>
+      <li>1 lớp lỗi thì sập hết không? → Không nếu thiết kế đúng.</li>
+      <li>5 lớp ngân hàng số gồm gì? → Network perimeter, segmentation, Identity, Data, Detection.</li>
+      <li>Có phải 1 dịch vụ cụ thể? → Không, là nguyên tắc kiến trúc.</li>
+      <li>Khớp đâu? → Triết lý toàn bộ lớp phủ an ninh.</li>
+    </ol></div>
+  </div>
+  <div class="col-right">
+    <table><tr><th>Lớp</th><th>Dịch vụ</th></tr>
+      <tr><td>Network perimeter</td><td>Shield, WAF, NACL</td></tr>
+      <tr><td>Network segmentation</td><td>VPC, Security Group</td></tr>
+      <tr><td>Identity</td><td>IAM, Federation, MFA</td></tr>
+      <tr><td>Data protection</td><td>KMS, CloudHSM, ACM</td></tr>
+      <tr><td>Detection & Response</td><td>GuardDuty, Inspector, Macie, Config, CloudTrail</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+</div>
+
+<div class="tabpanel" id="tab-quiz">
+<h2>Quiz — Security</h2>
+<div class="quiz-grid">
+  <div class="qcard"><b>1. SAML Federation dùng cho đối tượng nào?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Nhân viên nội bộ dùng danh tính có sẵn ở AD/Okta.</div></div>
+  <div class="qcard"><b>2. Muốn mobile app upload thẳng lên S3 mà không cần server trung gian, dùng gì?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Amazon Cognito Identity Pool (cấp temp AWS credentials).</div></div>
+  <div class="qcard"><b>3. Khác biệt cốt lõi giữa KMS và CloudHSM?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">KMS multi-tenant (AWS hỗ trợ được); CloudHSM single-tenant (AWS không truy cập được khóa).</div></div>
+  <div class="qcard"><b>4. Vì sao nên dùng DNS validation cho ACM thay vì Email?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Cho phép auto-renew hoàn toàn, không phụ thuộc email admin domain.</div></div>
+  <div class="qcard"><b>5. WAF hoạt động ở tầng OSI nào, khác Security Group ra sao?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Layer 7 (hiểu nội dung HTTP); Security Group chỉ Layer 4 (port/protocol).</div></div>
+  <div class="qcard"><b>6. Phân biệt Inspector, Macie, GuardDuty?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Inspector = lỗ hổng phần mềm; Macie = PII trong S3; GuardDuty = hành vi tấn công thời gian thực.</div></div>
+  <div class="qcard"><b>7. Vì sao công ty mua Shield Advanced ngoài khả năng chặn DDoS mạnh hơn?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Cost protection — hoàn phí scale-out phát sinh do tấn công DDoS.</div></div>
+  <div class="qcard"><b>8. Defense in Depth có phải là 1 dịch vụ AWS cụ thể không?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Không — là nguyên tắc kiến trúc xếp chồng nhiều lớp bảo mật độc lập.</div></div>
+</div>
+</div>
+
+<div class="tabpanel" id="tab-lab">
+<h2>Lab tổng — Dựng hệ thống bảo mật nhiều lớp</h2>
+<div class="lab-grid">
+  <div>
+    <p>🧭 <b>Bối cảnh:</b> Chuẩn bị go-live app web xử lý dữ liệu khách hàng — SSO nhân viên, mã hóa dữ liệu, SSL, và giám sát bảo mật nhiều lớp.</p>
+    <p><b>Verify:</b></p>
+    <pre><code>aws acm describe-certificate --certificate-arn &lt;arn&gt; --query 'Certificate.Status'
+aws inspector2 batch-get-account-status
+aws guardduty list-findings --detector-id &lt;detector-id&gt;</code></pre>
+    <p><b>Cleanup:</b></p>
+    <pre><code>aws guardduty delete-detector --detector-id &lt;detector-id&gt;
+aws macie2 disable-macie
+aws inspector2 disable --resource-types EC2 ECR LAMBDA
+aws wafv2 disassociate-web-acl --resource-arn &lt;alb-arn&gt;
+aws kms schedule-key-deletion --key-id alias/prod-app-key --pending-window-in-days 7
+aws iam delete-saml-provider --saml-provider-arn &lt;arn&gt;</code></pre>
+    <div class="warn-box"><b>⚠️ Lưu ý dễ sai/dễ tốn phí:</b>
+    <ul>
+      <li>kms schedule-key-deletion chờ tối thiểu 7 ngày — thiết kế an toàn cố ý.</li>
+      <li>WAF Web ACL phải disassociate TRƯỚC khi delete.</li>
+      <li>GuardDuty/Macie tính phí theo lượng log/data — disable ngay sau khi test.</li>
+      <li>Shield Advanced (~$3000/tháng) KHÔNG nên bật thử trong lab cá nhân.</li>
+    </ul></div>
+  </div>
+  <div>
+<pre><code># BƯỚC 1: SSO qua SAML Federation
+aws iam create-saml-provider --name CorpADFederation \
+  --saml-metadata-document file://adfs-metadata.xml
+
+# BƯỚC 2: KMS key mã hóa dữ liệu
+aws kms create-key --description "prod-app-key" \
+  --key-usage ENCRYPT_DECRYPT
+aws kms enable-key-rotation --key-id alias/prod-app-key
+
+# BƯỚC 3: SSL certificate
+aws acm request-certificate --domain-name app.example.com \
+  --validation-method DNS
+aws route53 change-resource-record-sets --hosted-zone-id Z123 \
+  --change-batch file://acm-validation-cname.json
+
+# BƯỚC 4: WAF chặn tấn công tầng ứng dụng
+aws wafv2 create-web-acl --name app-web-acl --scope REGIONAL \
+  --default-action Allow={} --rules file://rate-limit-rule.json \
+  --visibility-config SampledRequestsEnabled=true,\
+CloudWatchMetricsEnabled=true,MetricName=appacl
+aws wafv2 associate-web-acl --web-acl-arn &lt;waf-arn&gt; \
+  --resource-arn &lt;alb-arn&gt;
+
+# BƯỚC 5: Giám sát lỗ hổng + PII + hành vi bất thường
+aws inspector2 enable --resource-types EC2 ECR LAMBDA
+aws macie2 enable-macie
+aws guardduty create-detector --enable</code></pre>
+  </div>
+</div>
+</div>
+
+<div class="tabpanel" id="tab-cheat">
+<h2>Cheat Sheet — Security</h2>
+<div class="cheat-grid">
+  <div class="cheat-card"><h4>Federation vs Cognito</h4>SAML = nhân viên nội bộ (AD/Okta). Cognito = người dùng cuối app (mobile/web).</div>
+  <div class="cheat-card"><h4>KMS vs CloudHSM</h4>KMS = tủ khóa chung (multi-tenant, AWS hỗ trợ). CloudHSM = két riêng (single-tenant, AWS không truy cập).</div>
+  <div class="cheat-card"><h4>ACM</h4>SSL miễn phí, DNS validation cho auto-renew hoàn toàn, chỉ gắn được dịch vụ AWS.</div>
+  <div class="cheat-card"><h4>WAF vs SG/NACL vs Shield</h4>WAF = Layer 7. SG/NACL = Layer 3/4. Shield = DDoS tầng mạng trước WAF.</div>
+  <div class="cheat-card"><h4>Inspector vs Macie vs GuardDuty</h4>Inspector = CVE phần mềm. Macie = PII trong S3. GuardDuty = hành vi tấn công thời gian thực.</div>
+  <div class="cheat-card"><h4>Defense in Depth</h4>Xếp chồng nhiều lớp độc lập — luôn đúng khi đề hỏi "thiết kế bảo mật toàn diện nhất".</div>
+  <div class="pattern-box" style="grid-column:1/-1"><h4>🎯 Pattern chuẩn thi</h4>SSO hàng nghìn nhân viên, tắt quyền tức thời → SAML Federation qua IAM Identity Center. Compliance yêu cầu AWS không truy cập khóa → CloudHSM. Chặn bot/brute-force → WAF Rate-based Rule. Phát hiện PII bị bỏ quên → Macie. Phản ứng tự động credential bị đánh cắp → GuardDuty + EventBridge + Lambda.</div>
+  <div class="cheat-card factory-card"><h4>🏭 Trạm mới thêm vào nhà máy nền</h4>
+    <ul>
+      <li>Directory Service — sổ hộ khẩu AD, cạnh IAM</li>
+      <li>Federation — cổng công nhận thẻ đối tác</li>
+      <li>Cognito — quầy lễ tân khách vãng lai (trạm mới)</li>
+      <li>KMS — xác nhận tủ khóa trung tâm có sẵn + Envelope Encryption</li>
+      <li>CloudHSM — két sắt riêng biệt, nhánh đặc biệt cạnh KMS</li>
+      <li>ACM — con dấu danh tính ở ALB/CloudFront (trạm mới)</li>
+      <li>WAF — xác nhận trạm soát người có sẵn</li>
+      <li>Inspector/Macie/GuardDuty — 3 lớp camera an ninh chuyên biệt</li>
+      <li>Shield — hàng rào chắn đám đông, cùng nhóm WAF</li>
+      <li>Defense in Depth — triết lý toàn bộ lớp phủ an ninh</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+</div>
+
+<script>
+  const tabbtns = document.querySelectorAll('.tabbtn');
+  const panels = {theory:'tab-theory', quiz:'tab-quiz', lab:'tab-lab', cheat:'tab-cheat'};
+  tabbtns.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      tabbtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(panels).forEach(id=>document.getElementById(id).classList.remove('active'));
+      document.getElementById(panels[btn.dataset.tab]).classList.add('active');
+      const showSidebar = btn.dataset.tab==='theory' || btn.dataset.tab==='quiz';
+      document.body.classList.toggle('has-sidebar', showSidebar);
+      document.getElementById('sidebar-theory').style.display = showSidebar? 'block':'none';
+    });
+  });
+  const links = document.querySelectorAll('.side-link');
+  const sections = document.querySelectorAll('.lesson');
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(l=>l.classList.remove('active'));
+        const match = document.querySelector('.side-link[href="#'+e.target.id+'"]');
+        if(match) match.classList.add('active');
+      }
+    });
+  },{rootMargin:'-20% 0px -70% 0px'});
+  sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

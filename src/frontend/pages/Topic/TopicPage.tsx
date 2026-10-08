@@ -30,7 +30,7 @@ export function TopicPage() {
         <h1>{label}</h1>
         <p className={styles.intro}>A clear path through the concepts, one focused lesson at a time.</p>
         <div className={styles.courseMeta}>
-          <span>{lessons.length} lessons</span>
+          <span>{lessons.length} content pages</span>
           {sortedModules.length > 0 && <span>{sortedModules.length} {sortedModules.length === 1 ? 'module' : 'modules'}</span>}
         </div>
       </header>
@@ -44,7 +44,9 @@ export function TopicPage() {
                 <p className={styles.moduleKicker}>Module {order}</p>
                 <h2>{group.title}</h2>
               </div>
-              <span className={styles.lessonCount}>{group.lessons.length} {group.lessons.length === 1 ? 'lesson' : 'lessons'}</span>
+              <span className={styles.lessonCount}>
+                {group.lessons.length} {group.lessons.some((lesson) => lesson.kind === 'section') ? 'sections' : 'lessons'}
+              </span>
             </div>
             <ol className={styles.lessonList}>
               {group.lessons.sort((a, b) => a.order - b.order).map((lesson, index) => (

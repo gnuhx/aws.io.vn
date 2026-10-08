@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data & Analytics Suite — 4.61 → 4.69</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c2340; --bg-deep: #081a30; --grid: rgba(255,255,255,0.05);
+    --node-fill: #103457; --node-stroke-dim: #2c4a63;
+    --text-main: #f2ede1; --text-dim: #90aac2;
+    --cyan: #6fd6ff; --amber: #ffb454; --green: #7be0a8; --violet: #c9a8ff; --pink:#ff9ecb;
+    --panel-bg: #0a2038; --panel-border: #1e4a6e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color: var(--text-main); font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh; padding: 28px 20px 60px;
+  }
+  .wrap{ max-width: 1040px; margin: 0 auto; }
+  .kicker{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing: 0.08em; color: var(--cyan); }
+  h1{ font-family:'IBM Plex Mono', monospace; font-size: clamp(18px, 2.8vw, 25px); font-weight:600; margin: 6px 0 8px; line-height:1.3; }
+  p.lede{ color: var(--text-dim); max-width: 680px; font-size: 13.5px; line-height:1.6; margin:0 0 20px; }
+
+  .lesson-tabs{ display:flex; gap:7px; flex-wrap:wrap; margin-bottom: 20px; border-bottom: 1px solid var(--panel-border); padding-bottom: 14px; }
+  .lesson-tabs button{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; background: var(--panel-bg);
+    border: 1px solid var(--panel-border); color: var(--text-dim); padding: 8px 12px;
+    border-radius: 4px; cursor:pointer; text-align:left; line-height:1.4;
+  }
+  .lesson-tabs button b{ display:block; font-size:12px; color: var(--text-main); }
+  .lesson-tabs button span{ font-size:10px; opacity:0.8; }
+  .lesson-tabs button.active{ border-color: var(--cyan); background: rgba(111,214,255,0.08); }
+  .lesson-tabs button.active b{ color: var(--cyan); }
+
+  .sub-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 16px; }
+  .sub-tabs button{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background: transparent;
+    border: 1px solid var(--panel-border); color: var(--text-dim); padding: 8px 14px;
+    border-radius: 3px; cursor:pointer;
+  }
+  .sub-tabs button.active{ color: var(--bg-deep); font-weight:600; background: var(--cyan); border-color: var(--cyan); }
+
+  .diagram-frame{
+    border: 1px solid var(--panel-border); border-radius: 4px; background: var(--bg-deep);
+    padding: 6px; position:relative; overflow:hidden;
+  }
+  .diagram-frame::before{
+    content: attr(data-tag); position:absolute; top:-1px; left:-1px;
+    font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.06em;
+    color: var(--text-dim); background: var(--panel-border); padding: 3px 8px;
+    border-radius: 0 0 4px 0; z-index:2;
+  }
+  svg{ display:block; width:100%; height:auto; }
+
+  .node rect{ fill: var(--node-fill); stroke: var(--node-stroke-dim); stroke-width: 1.5; }
+  .node.c-cyan rect{ stroke: var(--cyan); stroke-width:2; fill:#123a52; }
+  .node.c-amber rect{ stroke: var(--amber); stroke-width:2; fill:#3a2c14; }
+  .node.c-green rect{ stroke: var(--green); stroke-width:2; fill:#123a30; }
+  .node.c-violet rect{ stroke: var(--violet); stroke-width:2; fill:#241a3a; }
+  .node.c-pink rect{ stroke: var(--pink); stroke-width:2; fill:#3a1a2c; }
+  .node .label{ font-family:'IBM Plex Mono', monospace; font-size: 11px; font-weight:600; fill: var(--text-main); }
+  .node .sub{ font-family:'IBM Plex Sans', sans-serif; font-size: 9px; fill: var(--text-dim); }
+  .col-label{ font-family:'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing:0.04em; fill: var(--text-dim); }
+
+  .edge{ fill:none; stroke: var(--node-stroke-dim); stroke-width: 1.6; }
+  .edge.c-cyan{ stroke: var(--cyan); stroke-width:2; }
+  .edge.c-amber{ stroke: var(--amber); stroke-width:2; }
+  .edge.c-green{ stroke: var(--green); stroke-width:2; }
+  .edge.c-violet{ stroke: var(--violet); stroke-width:2; }
+  .edge.dashed{ stroke-dasharray: 5 4; }
+
+  .info-panel{ margin-top: 18px; border: 1px solid var(--panel-border); background: var(--panel-bg); border-radius: 4px; padding: 18px 20px; }
+  .info-panel h3{ margin: 0 0 8px; font-family:'IBM Plex Mono', monospace; font-size: 14px; font-weight:600; color: var(--cyan); }
+  .info-panel h3.amber{ color: var(--amber); } .info-panel h3.green{ color: var(--green); }
+  .info-panel h3.violet{ color: var(--violet); } .info-panel h3.pink{ color: var(--pink); }
+  .info-panel p{ margin: 0 0 10px; font-size: 13px; line-height:1.65; color: var(--text-dim); }
+  .info-panel p:last-child{ margin-bottom:0; }
+  .info-panel ul{ margin:8px 0 0; padding-left:18px; }
+  .info-panel li{ font-size:13px; color:var(--text-dim); line-height:1.7; }
+  .info-panel li b{ color: var(--text-main); }
+
+  .card-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap:12px; }
+  .card{ border:1px solid var(--panel-border); border-radius:4px; padding:14px 16px; background: var(--bg-deep); }
+  .card .name{ font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; color:var(--cyan); margin-bottom:6px; }
+  .card p{ margin:0; font-size:12.5px; color:var(--text-dim); line-height:1.6; }
+
+  .step-controls{ display:flex; justify-content: space-between; align-items:center; margin-top: 14px; }
+  .step-controls .dots{ display:flex; gap:6px; }
+  .step-controls .dots span{ width:7px; height:7px; border-radius:50%; background: var(--node-stroke-dim); display:inline-block; }
+  .step-controls .dots span.on{ background: var(--cyan); }
+  .navbtns{ display:flex; gap:8px; }
+  .navbtns button{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; background: transparent;
+    border: 1px solid var(--panel-border); color: var(--text-main); padding: 7px 14px;
+    border-radius: 3px; cursor:pointer;
+  }
+  .navbtns button:disabled{ opacity:0.35; cursor:default; }
+  .navbtns button:not(:disabled):hover{ border-color: var(--cyan); }
+
+  @media (max-width: 640px){ .lesson-tabs{ flex-direction:column; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">CHƯƠNG 4 · DATA &amp; ANALYTICS SUITE</div>
+  <h1>4.61 → 4.69 — Redshift, EMR, Kinesis, Athena/Glue, OpenSearch, Batch...</h1>
+  <p class="lede">Bắt đầu từ tab "Tổng quan" để thấy bức tranh lớn, rồi vào từng tab để xem chi tiết.</p>
+
+  <div class="lesson-tabs" id="lessonTabs">
+    <button data-l="overview" class="active"><b>Tổng quan</b><span>Ráp cả pipeline</span></button>
+    <button data-l="redshift"><b>4.61 Redshift</b><span>Data Warehouse</span></button>
+    <button data-l="emr"><b>4.62 EMR</b><span>Hadoop/Spark</span></button>
+    <button data-l="kinesis"><b>4.63 Kinesis</b><span>Real-time stream</span></button>
+    <button data-l="athena"><b>4.64 Athena/Glue</b><span>Query S3 + ETL</span></button>
+    <button data-l="opensearch"><b>4.66 OpenSearch</b><span>Search & Log</span></button>
+    <button data-l="batch"><b>4.67 AWS Batch</b><span>Batch compute</span></button>
+    <button data-l="otherdb"><b>4.68 Other DB</b><span>Doc/Graph/Time-series</span></button>
+    <button data-l="otheranalytics"><b>4.69 Other Analytics</b><span>QuickSight, MSK...</span></button>
+  </div>
+
+  <div id="content"></div>
+
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function node(svg, x, y, w, h, cls, label, sub){
+  const g = el("g", {class: "node " + cls}, svg);
+  el("rect", {x, y, width:w, height:h, rx:4}, g);
+  el("text", {x: x+w/2, y: y+h/2-2, "text-anchor":"middle", class:"label"}, g).textContent = label;
+  if(sub) el("text", {x: x+w/2, y: y+h/2+13, "text-anchor":"middle", class:"sub"}, g).textContent = sub;
+  return g;
+}
+function colLabel(svg, x, y, text){ el("text", {x, y, class:"col-label"}, svg).textContent = text; }
+function edge(svg, d, cls){ return el("path", {d, class:"edge "+(cls||"")}, svg); }
+
+const content = document.getElementById("content");
+
+/* ============ OVERVIEW ============ */
+function renderOverview(){
+  content.innerHTML = `
+    <div class="diagram-frame" data-tag="BỨC TRANH LỚN · MODERN DATA PIPELINE">
+      <svg viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg" id="ovSvg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3>Đọc sơ đồ này như thế nào</h3>
+      <p>Dữ liệu <b style="color:var(--text-main)">chảy từ trái sang phải</b>: sinh ra ở nguồn → nạp vào (ingest) → chứa ở Data Lake (S3) → dọn dẹp/lên schema (Glue) → xử lý nặng (EMR) hoặc phân tích trực tiếp (Athena/Redshift) → hiển thị (QuickSight) hoặc search (OpenSearch).</p>
+      <p>AWS Batch đứng riêng — không nằm trong luồng dữ liệu, mà là nơi chạy các job tính toán nặng theo lịch/hàng đợi, không liên quan trực tiếp tới pipeline phân tích này.</p>
+    </div>`;
+  const svg = document.getElementById("ovSvg");
+  colLabel(svg, 20, 25, "NGUỒN DỮ LIỆU");
+  node(svg, 20, 50, 130, 55, "node c-pink", "App / IoT", "Clickstream, sensor");
+  node(svg, 20, 120, 130, 55, "node c-pink", "RDS / DynamoDB", "Dữ liệu giao dịch");
+
+  colLabel(svg, 200, 25, "INGEST");
+  node(svg, 200, 80, 130, 55, "node c-amber", "Kinesis", "Firehose / Streams");
+
+  colLabel(svg, 380, 25, "DATA LAKE");
+  node(svg, 380, 80, 130, 55, "node c-cyan", "Amazon S3", "Lưu raw + processed");
+
+  colLabel(svg, 380, 170, "CATALOG");
+  node(svg, 380, 195, 130, 55, "node c-green", "Glue Crawler", "Tự tạo schema");
+
+  colLabel(svg, 560, 25, "XỬ LÝ NẶNG");
+  node(svg, 560, 80, 130, 55, "node c-green", "EMR", "Spark/Hadoop batch");
+
+  colLabel(svg, 560, 170, "QUERY TRỰC TIẾP");
+  node(svg, 560, 195, 130, 55, "node c-cyan", "Athena", "SQL thẳng trên S3");
+
+  colLabel(svg, 740, 25, "DATA WAREHOUSE");
+  node(svg, 740, 80, 130, 55, "node c-violet", "Redshift", "OLAP, báo cáo lớn");
+
+  colLabel(svg, 740, 170, "SEARCH / LOG");
+  node(svg, 740, 195, 150, 55, "node c-pink", "OpenSearch", "Full-text + log");
+
+  colLabel(svg, 740, 280, "HIỂN THỊ");
+  node(svg, 740, 305, 150, 55, "node c-amber", "QuickSight", "Dashboard, BI");
+
+  colLabel(svg, 380, 340, "TÁCH RIÊNG");
+  node(svg, 380, 365, 200, 50, "node", "AWS Batch", "Job nặng, không real-time, không nằm trong luồng data này");
+
+  // edges
+  edge(svg,"M150,77 L200,100");
+  edge(svg,"M150,147 L200,120");
+  edge(svg,"M330,107 L380,107");
+  edge(svg,"M445,135 L445,195");
+  edge(svg,"M510,107 L560,107");
+  edge(svg,"M510,222 L560,222");
+  edge(svg,"M690,107 L740,107");
+  edge(svg,"M690,222 L740,222", "", );
+  edge(svg,"M815,135 L815,170");
+  edge(svg,"M815,250 L815,280");
+  edge(svg,"M660,222 Q700,260 740,300", "dashed");
+}
+
+/* ============ REDSHIFT ============ */
+function renderRedshift(){
+  content.innerHTML = `
+    <div class="diagram-frame" data-tag="4.61 · COLUMNAR DATA WAREHOUSE">
+      <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" id="rsSvg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3>OLAP, không phải OLTP</h3>
+      <p>Redshift lưu dữ liệu theo <b style="color:var(--text-main)">cột</b> thay vì theo hàng như RDS — nên khi query kiểu "tổng doanh thu theo khu vực", nó chỉ đọc đúng 2 cột cần thiết thay vì quét cả bảng.</p>
+      <ul>
+        <li><b>Leader node</b>: nhận query, lập kế hoạch, gộp kết quả trả về</li>
+        <li><b>Compute node</b>: chạy song song, mỗi node xử lý 1 phần dữ liệu</li>
+        <li><b>Redshift Spectrum</b>: query thẳng dữ liệu nằm ở S3 mà không cần load vào Redshift trước</li>
+      </ul>
+    </div>`;
+  const svg = document.getElementById("rsSvg");
+  node(svg, 30, 90, 140, 65, "node c-violet", "BI Tool", "Truy vấn báo cáo");
+  node(svg, 240, 90, 140, 65, "node c-violet", "Leader Node", "Lập kế hoạch query");
+  node(svg, 480, 40, 130, 55, "node", "Compute 1", "Cột: region, revenue");
+  node(svg, 480, 105, 130, 55, "node", "Compute 2", "Cột: region, revenue");
+  node(svg, 480, 170, 130, 55, "node", "Compute 3", "Cột: region, revenue");
+  node(svg, 700, 90, 180, 65, "node c-cyan", "Redshift Spectrum", "Query trực tiếp S3, không cần load");
+  edge(svg,"M170,122 L240,122");
+  edge(svg,"M380,110 L480,67");
+  edge(svg,"M380,122 L480,132");
+  edge(svg,"M380,135 L480,197");
+  edge(svg,"M610,122 L700,122", "dashed");
+}
+
+/* ============ EMR ============ */
+function renderEmr(){
+  content.innerHTML = `
+    <div class="diagram-frame" data-tag="4.62 · EMR CLUSTER">
+      <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" id="emrSvg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3 class="green">Cluster tạm thời, xử lý xong thì tắt</h3>
+      <p>EMR dựng 1 cụm Hadoop/Spark managed để xử lý dữ liệu khối lượng cực lớn theo kiểu <b style="color:var(--text-main)">batch</b>, thường đọc/ghi trực tiếp S3 qua EMRFS thay vì HDFS truyền thống.</p>
+      <ul>
+        <li><b>Master node</b>: điều phối cluster</li>
+        <li><b>Core node</b>: lưu trữ + xử lý (chạy HDFS nếu có)</li>
+        <li><b>Task node</b>: chỉ xử lý, không lưu trữ — hợp để dùng Spot Instance vì mất cũng không sao</li>
+      </ul>
+    </div>`;
+  const svg = document.getElementById("emrSvg");
+  node(svg, 30, 90, 150, 65, "node c-cyan", "S3 (raw log)", "Dữ liệu đầu vào 10TB+");
+  node(svg, 260, 30, 150, 55, "node c-green", "Master Node", "Điều phối cluster");
+  node(svg, 260, 100, 150, 55, "node c-green", "Core Node ×N", "Lưu trữ + xử lý");
+  node(svg, 260, 170, 150, 55, "node", "Task Node ×N", "Chỉ xử lý (Spot OK)");
+  node(svg, 500, 90, 150, 65, "node c-cyan", "S3 (kết quả)", "Dữ liệu đã transform");
+  node(svg, 720, 90, 180, 65, "node", "Cluster tắt", "Trả tiền theo giờ đã dùng");
+  edge(svg,"M180,122 L260,57");
+  edge(svg,"M180,122 L260,127");
+  edge(svg,"M180,122 L260,197");
+  edge(svg,"M410,127 L500,122");
+  edge(svg,"M650,122 L720,122", "dashed");
+}
+
+/* ============ KINESIS (toggle 4 loại) ============ */
+const kinesisModes = {
+  streams: { title:"Kinesis Data Streams", desc:"Bạn tự viết consumer (EC2/Lambda) để đọc và xử lý dữ liệu real-time theo shard. Linh hoạt nhất nhưng phải tự quản lý scaling & logic xử lý.", flow:["Nguồn (clickstream)","Kinesis Data Streams","Consumer tự viết (EC2/Lambda)"] },
+  firehose: { title:"Kinesis Data Firehose", desc:"Không cần code consumer — Firehose tự động đổ dữ liệu thẳng vào S3, Redshift, hoặc OpenSearch theo batch nhỏ, gần real-time (buffer vài chục giây).", flow:["Nguồn (IoT sensor)","Kinesis Firehose","S3 / Redshift / OpenSearch (tự động)"] },
+  analytics: { title:"Kinesis Data Analytics", desc:"Chạy trực tiếp SQL hoặc Apache Flink ngay trên luồng dữ liệu đang chảy, để tính toán (VD: đếm số click mỗi phút) mà không cần chờ dữ liệu vào kho trước.", flow:["Nguồn (transaction)","Kinesis Data Analytics (SQL/Flink)","Kết quả real-time / cảnh báo"] },
+  video: { title:"Kinesis Video Streams", desc:"Chuyên nạp và lưu trữ video/audio streaming (VD: camera an ninh), tích hợp với Rekognition để phân tích hình ảnh real-time.", flow:["Camera / thiết bị","Kinesis Video Streams","Rekognition / lưu trữ phân tích"] }
+};
+let kinesisMode = "streams";
+function renderKinesis(){
+  const m = kinesisModes[kinesisMode];
+  content.innerHTML = `
+    <div class="sub-tabs" id="kTabs">
+      <button data-m="streams" class="${kinesisMode==='streams'?'active':''}">Data Streams</button>
+      <button data-m="firehose" class="${kinesisMode==='firehose'?'active':''}">Data Firehose</button>
+      <button data-m="analytics" class="${kinesisMode==='analytics'?'active':''}">Data Analytics</button>
+      <button data-m="video" class="${kinesisMode==='video'?'active':''}">Video Streams</button>
+    </div>
+    <div class="diagram-frame" data-tag="4.63 · KINESIS — 4 LOẠI">
+      <svg viewBox="0 0 960 200" xmlns="http://www.w3.org/2000/svg" id="kSvg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3 class="amber">${m.title}</h3>
+      <p>${m.desc}</p>
+    </div>`;
+  document.querySelectorAll("#kTabs button").forEach(b=>b.addEventListener("click", ()=>{ kinesisMode=b.dataset.m; renderKinesis(); }));
+  const svg = document.getElementById("kSvg");
+  const f = m.flow;
+  node(svg, 30, 65, 220, 65, "node c-amber", f[0], "");
+  node(svg, 370, 65, 220, 65, "node c-amber", f[1], "");
+  node(svg, 710, 65, 220, 65, "node c-amber", f[2], "");
+  edge(svg,"M250,97 L370,97", "c-amber");
+  edge(svg,"M590,97 L710,97", "c-amber");
+}
+
+/* ============ ATHENA + GLUE (stepper) ============ */
+const athenaSteps = [
+  {n:["a-s3"], e:[], title:"Log JSON nằm ở S3", desc:"Ứng dụng ghi log dạng JSON thẳng vào S3, chưa có schema hay bảng nào cả."},
+  {n:["a-s3","a-crawler"], e:["ae1"], title:"Glue Crawler quét S3", desc:"Crawler tự động đọc file, đoán ra kiểu dữ liệu từng field, tạo schema."},
+  {n:["a-crawler","a-catalog"], e:["ae2"], title:"Ghi vào Glue Data Catalog", desc:"Schema được lưu vào Data Catalog — metadata dùng chung, không tốn chi phí lưu dữ liệu thật."},
+  {n:["a-catalog","a-athena"], e:["ae3"], title:"Athena đọc catalog để biết cấu trúc", desc:"Athena dùng catalog này để biết bảng có cột gì, kiểu dữ liệu gì, mà không cần bạn khai báo tay."},
+  {n:["a-athena","a-s3","a-user"], e:["ae4","ae5"], title:"Chạy SQL, trả tiền theo dữ liệu quét", desc:"Bạn viết SELECT ... như SQL bình thường, Athena quét trực tiếp file trên S3 và trả kết quả — tính phí theo GB dữ liệu đã quét."}
+];
+let athenaIdx = 0;
+function renderAthena(){
+  content.innerHTML = `
+    <div class="diagram-frame" data-tag="4.64 · ATHENA + GLUE">
+      <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" id="aSvg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3 id="aTitle" class="cyan">${athenaSteps[0].title}</h3>
+      <p id="aDesc">${athenaSteps[0].desc}</p>
+    </div>
+    <div class="step-controls">
+      <div class="dots" id="aDots"></div>
+      <div class="navbtns"><button id="aPrev">← Trước</button><button id="aNext">Tiếp →</button></div>
+    </div>`;
+  document.getElementById("aPrev").addEventListener("click", ()=>{ if(athenaIdx>0){athenaIdx--; drawAthena();} });
+  document.getElementById("aNext").addEventListener("click", ()=>{ if(athenaIdx<athenaSteps.length-1){athenaIdx++; drawAthena();} });
+  drawAthena();
+}
+function drawAthena(){
+  const svg = document.getElementById("aSvg");
+  svg.innerHTML = "";
+  const step = athenaSteps[athenaIdx];
+  const on = id => step.n.includes(id) ? "c-cyan" : "";
+  const onE = id => step.e.includes(id) ? "c-cyan" : "";
+  node(svg, 30, 100, 130, 65, "node "+on("a-s3"), "S3", "Log JSON raw");
+  node(svg, 240, 30, 150, 65, "node "+on("a-crawler"), "Glue Crawler", "Tự đoán schema");
+  node(svg, 240, 165, 150, 65, "node "+on("a-catalog"), "Glue Data Catalog", "Metadata dùng chung");
+  node(svg, 480, 100, 150, 65, "node "+on("a-athena"), "Athena", "SQL engine serverless");
+  node(svg, 720, 100, 180, 65, "node "+on("a-user"), "Bạn (SELECT ...)", "Trả tiền theo GB quét");
+  edge(svg,"M160,120 L240,62", onE("ae1"));
+  edge(svg,"M315,95 L315,165", onE("ae2"));
+  edge(svg,"M390,197 L480,140", onE("ae3"));
+  edge(svg,"M630,120 L160,150", onE("ae4")+" dashed");
+  edge(svg,"M630,132 L720,132", onE("ae5"));
+
+  document.getElementById("aTitle").textContent = step.title;
+  document.getElementById("aDesc").textContent = step.desc;
+  document.getElementById("aPrev").disabled = athenaIdx===0;
+  document.getElementById("aNext").disabled = athenaIdx===athenaSteps.length-1;
+  const dotsEl = document.getElementById("aDots");
+  dotsEl.innerHTML = "";
+  athenaSteps.forEach((_,i)=>{ const d=document.createElement("span"); if(i===athenaIdx)d.classList.add("on"); dotsEl.appendChild(d); });
+}
+
+/* ============ OPENSEARCH ============ */
+function renderOpenSearch(){
+  content.innerHTML = `
+    <div class="diagram-frame" data-tag="4.66 · SEARCH & LOG ANALYTICS">
+      <svg viewBox="0 0 960 240" xmlns="http://www.w3.org/2000/svg" id="osSvg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3 class="pink">2 use case chính</h3>
+      <p><b style="color:var(--text-main)">Full-text search</b>: tìm sản phẩm theo từ khóa mờ, gợi ý, xếp hạng theo độ liên quan — thứ mà DynamoDB/RDS không làm tốt.</p>
+      <p><b style="color:var(--text-main)">Log analytics</b>: gom log từ nhiều nguồn (CloudWatch Logs, Kinesis Firehose) về 1 nơi, dò lỗi qua OpenSearch Dashboards — giống bộ ELK Stack (Elasticsearch-Logstash-Kibana) truyền thống.</p>
+    </div>`;
+  const svg = document.getElementById("osSvg");
+  node(svg, 30, 40, 160, 60, "node c-pink", "Trang sản phẩm", "Người dùng gõ tìm kiếm");
+  node(svg, 30, 140, 160, 60, "node", "CloudWatch Logs", "Log từ nhiều service");
+  node(svg, 350, 90, 180, 65, "node c-pink", "Amazon OpenSearch", "Index + search engine");
+  node(svg, 640, 40, 200, 60, "node c-pink", "Kết quả tìm kiếm", "Xếp hạng theo độ liên quan");
+  node(svg, 640, 140, 200, 60, "node", "OpenSearch Dashboards", "Dò lỗi, biểu đồ log");
+  edge(svg,"M190,70 L350,110");
+  edge(svg,"M190,170 L350,145");
+  edge(svg,"M530,110 L640,70");
+  edge(svg,"M530,145 L640,170");
+}
+
+/* ============ AWS BATCH ============ */
+function renderBatch(){
+  content.innerHTML = `
+    <div class="diagram-frame" data-tag="4.67 · BATCH JOB QUEUE">
+      <svg viewBox="0 0 960 220" xmlns="http://www.w3.org/2000/svg" id="bSvg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3>Không real-time, xếp hàng rồi chạy khi có tài nguyên</h3>
+      <p>Bạn nộp Job (đóng gói bằng Docker) vào Job Queue. AWS Batch tự cấp phát EC2 (kể cả Spot Instance để tiết kiệm) đúng lúc có việc, chạy xong thì giải phóng.</p>
+      <p>Khác EMR ở chỗ: EMR dành cho xử lý dữ liệu lớn kiểu Hadoop/Spark; Batch tổng quát hơn — chạy được bất kỳ workload đóng gói Docker nào (render video, mô phỏng khoa học, tính toán tài chính).</p>
+    </div>`;
+  const svg = document.getElementById("bSvg");
+  node(svg, 30, 80, 150, 60, "node", "Job 1, 2, 3...", "Đóng gói Docker container");
+  node(svg, 280, 80, 170, 60, "node", "Job Queue", "Xếp hàng theo độ ưu tiên");
+  node(svg, 550, 40, 180, 60, "node", "Compute Environment", "Tự cấp EC2 / Spot phù hợp");
+  node(svg, 550, 130, 180, 60, "node", "Chạy xong → giải phóng", "Trả tiền đúng theo compute đã dùng");
+  edge(svg,"M180,110 L280,110");
+  edge(svg,"M450,100 L550,70");
+  edge(svg,"M660,100 L660,130");
+}
+
+/* ============ OTHER DB (cards) ============ */
+function renderOtherDb(){
+  content.innerHTML = `
+    <div class="card-grid">
+      <div class="card"><div class="name">Amazon DocumentDB</div><p>Tương thích MongoDB — document database, dùng khi app đã quen thao tác kiểu MongoDB.</p></div>
+      <div class="card"><div class="name">Amazon Neptune</div><p>Graph database — lưu quan hệ dạng đồ thị: mạng xã hội, hệ thống gợi ý sản phẩm dựa trên liên kết.</p></div>
+      <div class="card"><div class="name">Amazon Keyspaces</div><p>Tương thích Apache Cassandra — wide-column store, phù hợp workload ghi cực lớn, phân tán nhiều region.</p></div>
+      <div class="card"><div class="name">Amazon Timestream</div><p>Database chuyên time-series — dữ liệu cảm biến IoT, metrics theo thời gian, tối ưu nén & truy vấn theo khoảng thời gian.</p></div>
+      <div class="card"><div class="name">Amazon QLDB</div><p>Ledger database — log bất biến (immutable), dùng cho audit trail, lịch sử giao dịch không được sửa/xoá.</p></div>
+      <div class="card"><div class="name">Amazon MemoryDB for Redis</div><p>Redis nhưng có durability thật sự (không chỉ là cache như ElastiCache) — dùng làm primary database tốc độ cao.</p></div>
+    </div>`;
+}
+
+/* ============ OTHER ANALYTICS (cards) ============ */
+function renderOtherAnalytics(){
+  content.innerHTML = `
+    <div class="card-grid">
+      <div class="card"><div class="name">Amazon QuickSight</div><p>Công cụ BI — vẽ dashboard trực quan, kết nối trực tiếp Redshift, Athena, S3 để trình bày số liệu cho sếp/khách hàng.</p></div>
+      <div class="card"><div class="name">Amazon MSK</div><p>Apache Kafka được AWS quản lý — lựa chọn thay thế Kinesis cho team đã quen dùng hệ sinh thái Kafka.</p></div>
+      <div class="card"><div class="name">AWS Lake Formation</div><p>Quản lý quyền truy cập tập trung cho Data Lake trên S3 — ai được đọc bảng nào, cột nào, dễ dàng hơn tự cấu hình IAM Policy thủ công.</p></div>
+      <div class="card"><div class="name">AWS Glue DataBrew</div><p>Làm sạch/chuẩn hoá dữ liệu bằng giao diện kéo-thả, không cần viết code Spark như Glue Jobs thông thường.</p></div>
+    </div>`;
+}
+
+/* ============ ROUTER ============ */
+const renderers = {
+  overview: renderOverview, redshift: renderRedshift, emr: renderEmr, kinesis: renderKinesis,
+  athena: renderAthena, opensearch: renderOpenSearch, batch: renderBatch,
+  otherdb: renderOtherDb, otheranalytics: renderOtherAnalytics
+};
+document.querySelectorAll("#lessonTabs button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("#lessonTabs button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    renderers[b.dataset.l]();
+  });
+});
+renderOverview();
+</script>
+</body>
+</html>

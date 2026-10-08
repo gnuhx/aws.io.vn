@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scaling ElastiCache — Vertical vs Horizontal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c2340;
+    --bg-deep: #081a30;
+    --grid: rgba(255,255,255,0.05);
+    --node-fill: #103457;
+    --node-stroke-dim: #2c4a63;
+    --text-main: #f2ede1;
+    --text-dim: #90aac2;
+    --cyan: #6fd6ff;
+    --amber: #ffb454;
+    --green: #7be0a8;
+    --panel-bg: #0a2038;
+    --panel-border: #1e4a6e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color: var(--text-main);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 28px 20px 60px;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; }
+
+  .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+  }
+  h1{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: clamp(20px, 3.2vw, 27px);
+    font-weight:600;
+    margin: 6px 0 8px;
+    line-height:1.3;
+  }
+  p.lede{
+    color: var(--text-dim);
+    max-width: 640px;
+    font-size: 14.5px;
+    line-height:1.6;
+    margin:0 0 20px;
+  }
+
+  .tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom: 18px;
+  }
+  .tabs button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 9px 14px;
+    border-radius: 3px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .tabs button.active{ color: var(--bg-deep); font-weight:600; }
+  .tabs button[data-mode="vertical"].active{ background: var(--green); border-color: var(--green); }
+  .tabs button[data-mode="replica"].active{ background: var(--cyan); border-color: var(--cyan); }
+  .tabs button[data-mode="shard"].active{ background: var(--cyan); border-color: var(--cyan); }
+  .tabs button[data-mode="memcached"].active{ background: var(--amber); border-color: var(--amber); }
+
+  .diagram-frame{
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+    background: var(--bg-deep);
+    padding: 6px;
+    position:relative;
+    overflow:hidden;
+  }
+  .diagram-frame::before{
+    content: attr(data-tag);
+    position:absolute;
+    top:-1px; left:-1px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    color: var(--text-dim);
+    background: var(--panel-border);
+    padding: 3px 8px;
+    border-radius: 0 0 4px 0;
+    z-index:2;
+  }
+  svg{ display:block; width:100%; height:auto; }
+
+  .col-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing:0.05em;
+    fill: var(--text-dim);
+  }
+
+  .node rect{
+    fill: var(--node-fill);
+    stroke: var(--node-stroke-dim);
+    stroke-width: 1.5;
+  }
+  .node.primary rect{ stroke: var(--cyan); }
+  .node.replica rect{ stroke: var(--cyan); stroke-dasharray: 3 2; }
+  .node.shard rect{ stroke: var(--cyan); }
+  .node.mem rect{ stroke: var(--amber); }
+  .node.big rect{ stroke: var(--green); stroke-width:2.2; }
+
+  .node.new rect{ opacity: 0; animation: pop .5s ease forwards; }
+  .node.new .label, .node.new .sub{ opacity: 0; animation: pop .5s ease forwards; }
+  @keyframes pop{ from{ opacity:0; transform: scale(0.8); } to{ opacity:1; transform: scale(1); } }
+
+  .node .label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    font-weight:600;
+    fill: var(--text-main);
+  }
+  .node .sub{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size: 9.5px;
+    fill: var(--text-dim);
+  }
+
+  .arrow-mid{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    fill: var(--text-dim);
+  }
+
+  .keydot{ r:3; }
+  .keydot.moved{ fill: var(--amber); }
+  .keydot.stable{ fill: var(--cyan); }
+
+  .info-panel{
+    margin-top: 18px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    border-radius: 4px;
+    padding: 18px 20px;
+  }
+  .info-panel h3{
+    margin: 0 0 8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight:600;
+  }
+  .info-panel h3.vertical{ color: var(--green); }
+  .info-panel h3.replica, .info-panel h3.shard{ color: var(--cyan); }
+  .info-panel h3.memcached{ color: var(--amber); }
+  .info-panel p{
+    margin: 0 0 10px;
+    font-size: 13.5px;
+    line-height:1.65;
+    color: var(--text-dim);
+  }
+  .info-panel .tradeoff{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-top: 12px;
+  }
+  .tradeoff .box{
+    flex:1;
+    min-width: 220px;
+    border: 1px solid var(--panel-border);
+    border-radius:3px;
+    padding: 10px 12px;
+  }
+  .tradeoff .box .h{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing:0.04em;
+    margin-bottom:5px;
+  }
+  .tradeoff .box.good .h{ color: var(--green); }
+  .tradeoff .box.bad .h{ color: var(--amber); }
+  .tradeoff .box p{ margin:0; font-size:12.5px; color: var(--text-dim); line-height:1.5; }
+
+  @media (max-width: 640px){
+    .tradeoff{ flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">4.53.1 · SCALING ELASTICACHE</div>
+  <h1>Scale Up vs Scale Out — Redis &amp; Memcached khác nhau chỗ nào</h1>
+  <p class="lede">Bấm từng tab để xem trước/sau khi scale, cùng key (ô nhỏ) đi đâu về đâu trong mỗi cách.</p>
+
+  <div class="tabs">
+    <button data-mode="vertical" class="active">Vertical — Scale Up</button>
+    <button data-mode="replica">Redis — Thêm Read Replica</button>
+    <button data-mode="shard">Redis — Cluster Mode (Sharding)</button>
+    <button data-mode="memcached">Memcached — Thêm Node</button>
+  </div>
+
+  <div class="diagram-frame" id="frame" data-tag="TRƯỚC / SAU">
+    <svg id="diagram" viewBox="0 0 960 320" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="info-panel">
+    <h3 id="infoTitle" class="vertical">Vertical Scaling — đổi node type lớn hơn</h3>
+    <p id="infoDesc">Giữ nguyên 1 node, chỉ đổi sang loại instance mạnh hơn (nhiều CPU/RAM hơn). Áp dụng được cho cả Redis và Memcached.</p>
+    <div class="tradeoff">
+      <div class="box good"><div class="h">HỢP LÝ KHI</div><p id="goodText">CPU/Memory của node hiện tại đang là nút thắt, nhưng lưu lượng chưa đủ lớn để cần chia nhỏ ra nhiều node.</p></div>
+      <div class="box bad"><div class="h">ĐÁNH ĐỔI</div><p id="badText">Có 1 khoảng downtime/failover ngắn khi resize. Và vẫn có trần — không thể phóng to mãi.</p></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+function drawNode(svg, x, y, w, h, cls, label, sub, delay){
+  const g = el("g", {class: "node " + cls}, svg);
+  if (delay) g.classList.add("new");
+  if (delay) g.style.animationDelay = delay + "s";
+  el("rect", {x, y, width:w, height:h, rx:4}, g);
+  el("text", {x: x+w/2, y: y+h/2-2, "text-anchor":"middle", class:"label"}, g).textContent = label;
+  el("text", {x: x+w/2, y: y+h/2+13, "text-anchor":"middle", class:"sub"}, g).textContent = sub;
+  return g;
+}
+
+function drawColLabel(svg, x, y, text){
+  el("text", {x, y, class:"col-label"}, svg).textContent = text;
+}
+
+function drawArrowMid(svg, x, y, text){
+  el("text", {x, y, "text-anchor":"middle", class:"arrow-mid"}, svg).textContent = "→ " + text + " →";
+}
+
+const scenes = {
+  vertical(svg){
+    drawColLabel(svg, 40, 40, "TRƯỚC");
+    drawNode(svg, 40, 130, 140, 80, "primary", "cache.r6g.large", "2 vCPU · 13 GB");
+
+    drawArrowMid(svg, 480, 175, "RESIZE");
+
+    drawColLabel(svg, 780, 40, "SAU");
+    drawNode(svg, 750, 100, 170, 140, "big", "cache.r6g.2xlarge", "8 vCPU · 52 GB", 0.1);
+  },
+
+  replica(svg){
+    drawColLabel(svg, 40, 30, "TRƯỚC — Cluster Mode Disabled");
+    drawNode(svg, 40, 130, 130, 70, "primary", "Primary", "Ghi + Đọc");
+
+    drawArrowMid(svg, 480, 165, "ADD REPLICA");
+
+    drawColLabel(svg, 640, 30, "SAU — vẫn 1 shard, thêm nơi đọc");
+    drawNode(svg, 640, 60, 120, 65, "primary", "Primary", "Chỉ nhận Ghi");
+    drawNode(svg, 790, 20, 110, 60, "replica", "Replica 1", "Đọc", 0.1);
+    drawNode(svg, 790, 90, 110, 60, "replica", "Replica 2", "Đọc", 0.2);
+    drawNode(svg, 790, 160, 110, 60, "replica", "Replica 3", "Đọc", 0.3);
+    el("path", {d:"M700,90 L790,50", stroke:"#4f7ea3", "stroke-width":1.2, fill:"none"}, svg);
+    el("path", {d:"M700,95 L790,120", stroke:"#4f7ea3", "stroke-width":1.2, fill:"none"}, svg);
+    el("path", {d:"M700,100 L790,190", stroke:"#4f7ea3", "stroke-width":1.2, fill:"none"}, svg);
+    el("text", {x:640, y:250, class:"col-label"}, svg).textContent = "→ Đọc rải ra 3 nơi, nhưng GHI vẫn dồn vào 1 node.";
+  },
+
+  shard(svg){
+    drawColLabel(svg, 40, 30, "TRƯỚC — 1 shard");
+    drawNode(svg, 40, 130, 130, 70, "primary", "Shard A", "16384 slot");
+
+    drawArrowMid(svg, 400, 165, "RESHARD");
+
+    drawColLabel(svg, 560, 30, "SAU — Cluster Mode Enabled, 3 shard");
+    drawNode(svg, 560, 130, 110, 70, "shard", "Shard A", "Slot 0–5460");
+    drawNode(svg, 690, 130, 110, 70, "shard", "Shard B", "Slot 5461–10921", 0.1);
+    drawNode(svg, 820, 130, 110, 70, "shard", "Shard C", "Slot 10922–16383", 0.2);
+
+    // keys distributing
+    const keys = [
+      {x:590, y:230, cls:"stable"},
+      {x:610, y:245, cls:"stable"},
+      {x:720, y:230, cls:"moved"},
+      {x:740, y:245, cls:"moved"},
+      {x:850, y:230, cls:"moved"},
+    ];
+    keys.forEach((k,i)=>{
+      const c = el("circle", {cx:k.x, cy:k.y, class:"keydot "+k.cls}, svg);
+      c.style.opacity = 0;
+      c.style.animation = "pop .4s ease forwards";
+      c.style.animationDelay = (0.4 + i*0.08) + "s";
+    });
+    el("text", {x:560, y:280, class:"col-label"}, svg).textContent = "Mỗi shard = primary riêng, ghi + đọc chia đều theo hash slot.";
+  },
+
+  memcached(svg){
+    drawColLabel(svg, 40, 30, "TRƯỚC — 2 node");
+    drawNode(svg, 40, 130, 100, 65, "mem", "Node 1", "hash range A");
+    drawNode(svg, 160, 130, 100, 65, "mem", "Node 2", "hash range B");
+
+    drawArrowMid(svg, 420, 165, "ADD NODE");
+
+    drawColLabel(svg, 560, 30, "SAU — 3 node (consistent hashing)");
+    drawNode(svg, 560, 130, 100, 65, "mem", "Node 1", "hash range A'");
+    drawNode(svg, 680, 130, 100, 65, "mem", "Node 2", "hash range B'");
+    drawNode(svg, 800, 130, 100, 65, "mem", "Node 3", "hash range C", 0.15);
+
+    // keys re-hashed - some move (amber), some stay (cyan)
+    const keys = [
+      {x:590, y:230, cls:"stable"},
+      {x:700, y:230, cls:"moved"},
+      {x:720, y:245, cls:"moved"},
+      {x:830, y:230, cls:"moved"},
+      {x:610, y:245, cls:"stable"},
+    ];
+    keys.forEach((k,i)=>{
+      const c = el("circle", {cx:k.x, cy:k.y, class:"keydot "+k.cls}, svg);
+      c.style.opacity = 0;
+      c.style.animation = "pop .4s ease forwards";
+      c.style.animationDelay = (0.5 + i*0.08) + "s";
+    });
+    el("text", {x:560, y:280, class:"col-label"}, svg).textContent = "Chấm cam = key bị hash lại sang node khác → tạm thời cache miss.";
+  }
+};
+
+const infoText = {
+  vertical: {
+    title: "Vertical Scaling — đổi node type lớn hơn",
+    desc: "Giữ nguyên 1 node, chỉ đổi sang loại instance mạnh hơn (nhiều CPU/RAM hơn). Áp dụng được cho cả Redis và Memcached.",
+    good: "CPU/Memory của node hiện tại đang là nút thắt, nhưng lưu lượng chưa đủ lớn để cần chia nhỏ ra nhiều node.",
+    bad: "Có một khoảng failover ngắn khi resize (với Redis có replication). Và vẫn có trần — không thể phóng to mãi mãi."
+  },
+  replica: {
+    title: "Redis — Cluster Mode Disabled, thêm Read Replica",
+    desc: "Thêm tối đa 5 replica để rải tải đọc ra nhiều node. Toàn bộ dữ liệu vẫn nằm trong 1 shard, ghi vẫn chỉ đi qua đúng 1 primary.",
+    good: "Ứng dụng đọc nhiều hơn ghi rất nhiều (ví dụ trang sản phẩm, top bán chạy) và cần scale đọc nhanh, không downtime.",
+    bad: "Không giúp gì cho tải ghi. Nếu ghi là nút thắt (session, giỏ hàng nhiều người cùng lúc), replica không giải quyết được."
+  },
+  shard: {
+    title: "Redis — Cluster Mode Enabled, Sharding",
+    desc: "Dữ liệu được chia theo 16384 hash slot ra nhiều shard, mỗi shard có primary + replica riêng. Đây là scale ngang thật sự cho cả đọc lẫn ghi.",
+    good: "Traffic cực lớn, cả đọc và ghi đều cần chia tải — ví dụ session của hàng triệu người dùng đồng thời trong flash sale.",
+    bad: "Phức tạp hơn để vận hành và thiết kế key (tránh hot key dồn vào 1 shard). Resharding cần lên kế hoạch, dù AWS hỗ trợ online resharding."
+  },
+  memcached: {
+    title: "Memcached — Scale Out bằng cách thêm Node",
+    desc: "Không có concept shard/replica. Client dùng consistent hashing (qua Auto Discovery) để biết key nằm ở node nào.",
+    good: "Cache đơn giản, không cần persistence hay replication, muốn tận dụng multi-threading và scale ngang dễ dàng.",
+    bad: "Thêm/bớt node làm một phần key bị hash lại sang node khác → cache miss tạm thời hàng loạt, phải chấp nhận đánh đổi này."
+  }
+};
+
+const svg = document.getElementById("diagram");
+const frame = document.getElementById("frame");
+const infoTitle = document.getElementById("infoTitle");
+const infoDesc = document.getElementById("infoDesc");
+const goodText = document.getElementById("goodText");
+const badText = document.getElementById("badText");
+
+function setMode(mode){
+  svg.innerHTML = "";
+  scenes[mode](svg);
+
+  const t = infoText[mode];
+  infoTitle.textContent = t.title;
+  infoTitle.className = mode;
+  infoDesc.textContent = t.desc;
+  goodText.textContent = t.good;
+  badText.textContent = t.bad;
+
+  frame.setAttribute("data-tag", mode === "vertical" ? "SCALE UP" : "SCALE OUT");
+
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+}
+
+document.querySelectorAll(".tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=> setMode(btn.dataset.mode));
+});
+
+setMode("vertical");
+</script>
+</body>
+</html>

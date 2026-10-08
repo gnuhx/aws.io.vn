@@ -36,6 +36,12 @@
   padding: 2rem 2rem 5rem;
 }
 
+.layoutWide {
+  grid-template-columns: 220px minmax(0, 1fr);
+  width: min(100%, 1600px);
+  gap: 1.5rem;
+}
+
 .sidebar {
   position: sticky;
   top: 5.75rem;
@@ -68,6 +74,15 @@
   font-size: 0.98rem;
   font-weight: 650;
   line-height: 1.4;
+}
+
+.navLabel {
+  margin: 0 0 0.45rem 0.65rem;
+  color: #8c959f;
+  font-size: 0.67rem;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 .lessonNav {
@@ -103,6 +118,44 @@
 .main {
   min-width: 0;
   padding-top: 1.8rem;
+}
+
+.interactiveShell {
+  overflow: hidden;
+  border: 1px solid #d1d9e0;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(31 35 40 / 5%);
+}
+
+.interactiveToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.8rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid #d1d9e0;
+  background: #f6f8fa;
+  color: #59636e;
+  font-size: 0.75rem;
+}
+
+.interactiveToolbar a {
+  flex: 0 0 auto;
+  color: #0969da;
+  font-weight: 600;
+  text-decoration: none;
+}
+.interactiveToolbar a:hover { text-decoration: underline; }
+
+.interactiveFrame {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 7.25rem);
+  min-height: 600px;
+  border: 0;
+  background: #fff;
 }
 
 .articleMeta {
@@ -228,11 +281,14 @@
 .pagerNext { margin-left: auto; text-align: right; }
 
 @media (max-width: 800px) {
-  .layout { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1.2rem 1.25rem 4rem; }
+  .layout,
+  .layoutWide { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1.2rem 1.25rem 4rem; }
   .sidebar { position: static; max-height: none; padding-bottom: 1rem; border-bottom: 1px solid #d8dee4; }
   .backLink { margin-bottom: 1rem; }
   .sidebarTitle { margin-bottom: 0.65rem; }
   .lessonNav { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
   .main { padding-top: 1rem; }
   .article { font-size: 0.98rem; }
+  .interactiveFrame { height: calc(100svh - 12rem); min-height: 520px; }
+  .interactiveToolbar { align-items: flex-start; }
 }

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Web, Mobile, ML &amp; Cost · SAA-C03 Module 7</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdfcfa; --ink:#1a1a1a; --sub:#5b5b5b; --line:#e5e2dc;
+    --accent:#b5541f; --accent2:#3d6b52; --sidebar-w:260px;
+    --serif:'Source Serif 4',serif; --sans:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+    --card:#f7f5f0;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;}
+  a{color:var(--accent);}
+  table{border-collapse:collapse;width:100%;font-size:.85rem;margin:.8rem 0;}
+  th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top;}
+  th{background:#f1ede4;font-family:var(--sans);font-weight:600;}
+  code{font-family:var(--mono);background:#f0ece3;padding:.1rem .35rem;border-radius:4px;font-size:.85em;}
+  pre{font-family:var(--mono);background:#1e1c19;color:#e9e5db;padding:1rem;border-radius:8px;overflow-x:auto;font-size:.78rem;line-height:1.6;}
+  pre code{background:none;padding:0;color:inherit;}
+  h1,h2,h3{font-family:var(--serif);}
+  h2{border-bottom:1px solid var(--line);padding-bottom:.4rem;margin-top:0;}
+  h3{margin-top:1.6rem;color:var(--accent);}
+
+  .nav{position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--line);
+       display:flex;align-items:center;justify-content:space-between;padding:.7rem 3vw;flex-wrap:wrap;gap:.5rem;}
+  .brand{font-family:var(--serif);font-weight:700;font-size:1.05rem;}
+  .brand span{color:var(--accent);}
+  .progress-strip{display:flex;gap:1rem;font-family:var(--mono);font-size:.72rem;color:var(--sub);flex-wrap:wrap;}
+  .progress-strip b{color:var(--accent2);}
+
+  .tabbar{position:sticky;top:52px;z-index:55;background:var(--bg);border-bottom:1px solid var(--line);
+          display:flex;padding:0 3vw;gap:0;}
+  .tabbar button{font-family:var(--sans);font-weight:600;font-size:.88rem;background:none;border:none;
+                 padding:.85rem 1.2rem;cursor:pointer;color:var(--sub);border-bottom:2px solid transparent;}
+  .tabbar button.active{color:var(--ink);border-bottom-color:var(--accent);}
+
+  body.has-sidebar .hero{margin-left:var(--sidebar-w);}
+  .hero{padding:1.6rem 3vw .4rem;}
+  .hero h1{font-size:1.6rem;margin:.2rem 0;}
+  .hero .meta{font-family:var(--mono);font-size:.78rem;color:var(--sub);}
+
+  .sidebar{position:fixed;top:105px;left:0;width:var(--sidebar-w);height:calc(100vh - 105px);
+           overflow-y:auto;border-right:1px solid var(--line);padding:1.2rem 1rem;font-size:.82rem;
+           background:var(--bg);display:none;}
+  body.has-sidebar .sidebar{display:block;}
+  .sidebar h4{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;
+              color:var(--sub);margin:0 0 .6rem;}
+  .sidebar a{display:block;color:var(--ink);text-decoration:none;padding:.35rem .5rem;border-radius:6px;
+             margin-bottom:2px;border-left:2px solid transparent;}
+  .sidebar a:hover{background:var(--card);}
+  .sidebar a.active{border-left-color:var(--accent);color:var(--accent);font-weight:600;background:var(--card);}
+
+  .panel{display:none;padding:0 3vw 4rem;}
+  .panel.active{display:block;}
+  body.has-sidebar .panel.active{margin-left:var(--sidebar-w);}
+
+  .lesson{display:grid;grid-template-columns:56% 44%;gap:2rem;padding:2rem 0;border-bottom:1px dashed var(--line);}
+  .lesson:last-child{border-bottom:none;}
+  .lesson .col-left, .lesson .col-right{min-width:0;}
+  .lesson .tag-num{font-family:var(--mono);color:var(--accent2);font-size:.85rem;}
+  .case-box{background:var(--card);border-left:3px solid var(--accent);padding:.8rem 1rem;margin-top:.6rem;border-radius:0 6px 6px 0;font-size:.9rem;}
+  .arch-box{background:#eef2ee;border-left:3px solid var(--accent2);padding:.8rem 1rem;margin-top:.6rem;border-radius:0 6px 6px 0;font-size:.9rem;}
+  .warn-box{background:#fdf0e6;border-left:3px solid var(--accent);padding:.7rem 1rem;border-radius:0 6px 6px 0;font-size:.85rem;margin-bottom:1rem;}
+
+  .lab-grid{display:grid;grid-template-columns:42% 58%;gap:2rem;padding:2rem 0;}
+  .lab-steps h4{margin-bottom:.2rem;color:var(--accent2);}
+
+  .quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:2rem 0;}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem;cursor:pointer;}
+  .qcard .q{font-weight:600;margin-bottom:.4rem;}
+  .qcard .a{display:none;font-size:.88rem;color:var(--accent2);border-top:1px dashed var(--line);margin-top:.5rem;padding-top:.5rem;}
+  .qcard.open .a{display:block;}
+  .qcard .hint{font-family:var(--mono);font-size:.7rem;color:var(--sub);}
+
+  .cheat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:2rem 0 1rem;}
+  .cheat-card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem;font-size:.87rem;}
+  .cheat-card h4{margin:0 0 .5rem;font-family:var(--serif);color:var(--accent);}
+  .pattern-block{background:#fdf6ec;border:1px solid #e8c99a;border-radius:8px;padding:1.2rem;margin-top:1rem;font-size:.92rem;}
+  .pattern-block .tag{font-family:var(--mono);font-size:.7rem;text-transform:uppercase;color:var(--accent);letter-spacing:.05em;}
+  .station-card{background:#eef2ee;border:1px solid #c7d8cb;border-radius:8px;padding:1rem;font-size:.85rem;margin-top:1rem;}
+  .station-card li{margin-bottom:.4rem;}
+
+  @media(max-width:900px){
+    .sidebar{display:none !important;}
+    body.has-sidebar .panel.active, body.has-sidebar .hero{margin-left:0;}
+    .lesson, .lab-grid{grid-template-columns:1fr;}
+    .quiz-grid, .cheat-grid{grid-template-columns:1fr;}
+    .tabbar{overflow-x:auto;}
+  }
+</style>
+</head>
+<body class="has-sidebar">
+
+<div class="nav">
+  <div class="brand">SAA-C03 · <span>Module 7 — Web, Mobile, ML &amp; Cost Management</span></div>
+  <div class="progress-strip">
+    <span><b>M7.1</b> Migration &amp; Transfer ✅</span>
+    <span><b>M7.2</b> Web/Mobile/ML/Cost ✅</span>
+    <span>M7.3 Practice Exam ⏳</span>
+    <span>M7.4 Final Prep ⏳</span>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="active" data-tab="theory">Lý thuyết</button>
+  <button data-tab="quiz">Quiz</button>
+  <button data-tab="lab">Lab</button>
+  <button data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="hero">
+  <h1>🔹 Web, Mobile, ML, and Cost Management</h1>
+  <div class="meta">Bài 7.13–7.24 · Domain thi: Design Cost-Optimized Architectures (20%) · Design High-Performing Architectures (24%)</div>
+</div>
+
+<aside class="sidebar" id="sidebar-theory">
+  <h4>Bài trong section</h4>
+  <a href="#l714" data-target="theory">7.14 Amplify &amp; AppSync</a>
+  <a href="#l715" data-target="theory">7.15 Device Farm</a>
+  <a href="#l716" data-target="theory">7.16 ML &amp; AI Services</a>
+  <a href="#l718" data-target="theory">7.18 License Manager</a>
+  <a href="#l719" data-target="theory">7.19 Compute Optimizer</a>
+  <a href="#l723" data-target="theory">7.23 Cost Management Tools</a>
+</aside>
+
+<aside class="sidebar" id="sidebar-quiz" style="display:none;">
+  <h4>Bài trong section</h4>
+  <a href="#q714">7.14</a><a href="#q715">7.15</a><a href="#q716">7.16</a>
+  <a href="#q718">7.18</a><a href="#q719">7.19</a><a href="#q723">7.23</a>
+</aside>
+
+<!-- ================= THEORY ================= -->
+<div class="panel active" id="panel-theory">
+
+  <div class="lesson" id="l714">
+    <div class="col-left">
+      <div class="tag-num">7.14</div>
+      <h2>AWS Amplify and AppSync</h2>
+      <p>Amplify là bộ framework + CLI + hosting dựng nhanh app web/mobile full-stack. AppSync là dịch vụ GraphQL managed, hỗ trợ real-time subscriptions và offline sync. Ví dụ: Amplify như bộ đồ nghề lắp nhà lắp ghép nhanh cho developer front-end; AppSync là "tổng đài GraphQL" trả lời đúng câu khách hỏi thay vì trả nguyên cả kho REST.</p>
+      <ul>
+        <li><b>Amplify Hosting:</b> CI/CD tự động deploy từ Git</li>
+        <li><b>Amplify Libraries:</b> SDK client kết nối Cognito/AppSync/S3</li>
+        <li><b>AppSync:</b> GraphQL managed, resolver nối trực tiếp DynamoDB/Lambda/RDS</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Dùng Direct Resolver của AppSync gọi thẳng DynamoDB, bỏ qua Lambda để giảm latency.</p>
+      <div class="case-box"><b>Case:</b> startup mobile game cần bảng leaderboard realtime cho hàng nghìn người chơi. Dùng AppSync subscription push update ngay khi có điểm mới, thay vì polling liên tục gây tốn tài nguyên.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Gắn cạnh Sảnh phân luồng — API Gateway, là "quầy tiếp tân nhanh cho web/mobile" song song API Gateway, nối vào Xưởng lắp ráp Lambda và Kho tổng DynamoDB.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>amplify init
+amplify add api
+amplify push
+
+aws appsync create-graphql-api \
+  --name my-api --authentication-type API_KEY</code></pre>
+      <table>
+        <tr><th>Flag/Lệnh</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>amplify init</code></td><td>Initialize</td><td>Tạo project Amplify mới</td></tr>
+        <tr><td><code>amplify add api</code></td><td>Add API</td><td>Thêm GraphQL (AppSync) hoặc REST (API Gateway)</td></tr>
+        <tr><td><code>amplify push</code></td><td>Push</td><td>Deploy backend lên AWS thật</td></tr>
+        <tr><td><code>--authentication-type</code></td><td>Auth Type</td><td>API_KEY, AWS_IAM, Cognito User Pools...</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Tiêu chí</th><th>Amplify</th><th>AppSync</th></tr>
+        <tr><td>Phạm vi</td><td>Toàn bộ toolchain</td><td>Chỉ tầng API GraphQL</td></tr>
+        <tr><td>Vai trò</td><td>Bộ khung dựng app end-to-end</td><td>1 thành phần backend Amplify dùng</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Direct Lambda resolver timeout</td><td>30 giây</td><td>Xử lý lâu hơn cần tách qua Step Functions</td></tr>
+        <tr><td>Subscription</td><td>Real-time qua WebSocket</td><td>Khác REST polling truyền thống</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="lesson" id="l715">
+    <div class="col-left">
+      <div class="tag-num">7.15</div>
+      <h2>AWS Device Farm</h2>
+      <p>Dịch vụ test ứng dụng mobile/web trên thiết bị thật trong cloud, không cần mua hàng trăm điện thoại thật. Ví dụ: phòng lab QA ảo có sẵn hàng trăm điện thoại thật, thuê theo giờ thay vì mua đứt.</p>
+      <ul>
+        <li><b>Automated testing:</b> chạy test suite (Appium, Espresso, XCTest) song song nhiều thiết bị</li>
+        <li><b>Remote access:</b> điều khiển trực tiếp 1 thiết bị qua browser để debug thủ công</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Tích hợp vào CodePipeline/CodeBuild để tự động test mỗi lần có build mới, chặn merge nếu fail.</p>
+      <div class="case-box"><b>Case:</b> app fintech mobile banking cần đúng trên 50+ dòng máy Android trước mỗi release, vì lỗi hiển thị sai số dư có thể gây khiếu nại nghiêm trọng. Tự động hóa test suite qua Device Farm trong CI/CD thay vì test thủ công nhiều ngày.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Đứng ngoài luồng production — "phòng QA kiểm định trước khi xuất xưởng", không phục vụ request khách hàng thật.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws devicefarm create-project --name "MyMobileApp"
+
+aws devicefarm schedule-run \
+  --project-arn arn:...:project:xxx \
+  --app-arn arn:...:upload:yyy \
+  --device-pool-arn arn:...:devicepool:zzz \
+  --test '{"type":"APPIUM_JAVA_TESTNG"}'
+
+aws devicefarm list-devices</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--project-arn</code></td><td>Project ARN</td><td>Project Device Farm chứa các lần chạy test</td></tr>
+        <tr><td><code>--app-arn</code></td><td>Application ARN</td><td>File .apk/.ipa đã upload</td></tr>
+        <tr><td><code>--device-pool-arn</code></td><td>Device Pool</td><td>Nhóm thiết bị thật sẽ chạy test</td></tr>
+        <tr><td><code>--test</code></td><td>Test Type</td><td>Framework test (Appium, Espresso, XCTest)</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Concurrent devices</td><td>Theo gói dịch vụ</td><td>Ảnh hưởng tốc độ hoàn thành test suite</td></tr>
+      </table>
+      <h3>Cấu hình liên quan</h3>
+      <p style="font-size:.87rem;">Test spec định nghĩa bằng YAML (<code>testspec.yml</code>) — chỉnh khi cần thêm bước setup dependency đặc biệt.</p>
+    </div>
+  </div>
+
+  <div class="lesson" id="l716">
+    <div class="col-left">
+      <div class="tag-num">7.16</div>
+      <h2>AWS Machine Learning and AI Services</h2>
+      <p>Nhóm dịch vụ AI/ML managed, pre-trained — gọi API dùng ngay, không cần tự train model. Ví dụ: thuê chuyên gia bên ngoài xử lý việc chuyên môn (ảnh, dịch thuật, giọng nói) thay vì tự đào tạo nhân viên nội bộ.</p>
+      <ul>
+        <li><b>Rekognition:</b> ảnh/video · <b>Comprehend:</b> NLP text · <b>Transcribe:</b> speech-to-text</li>
+        <li><b>Polly:</b> text-to-speech · <b>Translate:</b> dịch ngôn ngữ · <b>Lex:</b> chatbot</li>
+        <li><b>Textract:</b> OCR document · <b>SageMaker:</b> build/train model custom</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Kết hợp S3 event → Lambda → Rekognition để tự động xử lý ngay khi có ảnh mới upload.</p>
+      <div class="case-box"><b>Case:</b> sàn TMĐT nhận hàng triệu ảnh sản phẩm mỗi ngày. Dùng Rekognition tự động detect nội dung không phù hợp ngay khi upload, chặn hiển thị công khai trước khi kiểm duyệt thủ công.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Nhóm "phòng ban chuyên gia thuê ngoài" gắn cạnh Xưởng lắp ráp Lambda/EC2 — xử lý tác vụ chuyên biệt rồi trả kết quả về, không phải trạm sản xuất chính.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws rekognition detect-labels \
+  --image '{"S3Object":{"Bucket":"my-bucket","Name":"photo.jpg"}}'
+
+aws comprehend detect-sentiment \
+  --text "Sản phẩm này rất tốt" --language-code vi
+
+aws transcribe start-transcription-job \
+  --transcription-job-name job1 \
+  --media MediaFileUri=s3://my-bucket/audio.mp3 \
+  --language-code vi-VN
+
+aws textract analyze-document \
+  --document '{"S3Object":{"Bucket":"my-bucket","Name":"form.png"}}' \
+  --feature-types '["FORMS"]'</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--image</code></td><td>Image Source</td><td>Vị trí ảnh S3 để Rekognition phân tích</td></tr>
+        <tr><td><code>--language-code</code></td><td>Language Code</td><td>Mã ngôn ngữ xử lý</td></tr>
+        <tr><td><code>--media</code></td><td>Media Source</td><td>File audio/video nguồn cho Transcribe</td></tr>
+        <tr><td><code>--feature-types</code></td><td>Feature Types</td><td>Loại trích xuất Textract (FORMS, TABLES)</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Tiêu chí</th><th>AI Services</th><th>SageMaker</th></tr>
+        <tr><td>Model</td><td>Pre-trained, gọi API ngay</td><td>Tự train/fine-tune</td></tr>
+        <tr><td>Triển khai</td><td>Rất nhanh</td><td>Cần chuẩn bị data + train</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="lesson" id="l718">
+    <div class="col-left">
+      <div class="tag-num">7.18</div>
+      <h2>AWS License Manager</h2>
+      <p>Quản lý tập trung license phần mềm BYOL (Bring Your Own License) khi chạy trên AWS, tránh vi phạm điều khoản (Windows Server, SQL Server, Oracle...). Ví dụ: sổ theo dõi giấy phép sử dụng thiết bị trong công ty, cảnh báo khi vượt số lượng đã mua.</p>
+      <ul>
+        <li>Theo dõi theo core, socket, hoặc instance</li>
+        <li>Rules ngăn launch instance mới vi phạm license</li>
+      </ul>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Tích hợp với AWS Organizations để enforce license tập trung toàn bộ account trong tổ chức.</p>
+      <div class="case-box"><b>Case:</b> tập đoàn có nhiều team tự launch Windows/SQL Server rải rác nhiều account. Triển khai License Manager cấp Organization để theo dõi tập trung, tránh bị phạt khi Microsoft audit.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Thuộc "lớp phủ toàn nhà máy" như IAM/KMS — "sổ theo dõi giấy phép thiết bị" áp lên toàn bộ Xưởng lắp ráp EC2.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws license-manager create-license-configuration \
+  --name "SQLServer-Standard" \
+  --license-counting-type vCPU \
+  --license-count 100 \
+  --license-count-hard-limit
+
+aws license-manager list-usage-for-license-configuration \
+  --license-configuration-arn arn:...:license-configuration:xxx</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--license-counting-type</code></td><td>Counting Type</td><td>Đơn vị đếm (vCPU, Core, Socket, Instance)</td></tr>
+        <tr><td><code>--license-count</code></td><td>License Count</td><td>Tổng số license được phép</td></tr>
+        <tr><td><code>--license-count-hard-limit</code></td><td>Hard Limit</td><td>Chặn cứng khi vượt, không chỉ cảnh báo</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Rule enforcement</td><td>Chỉ chặn launch mới</td><td>Không tự dừng instance đang chạy vi phạm</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="lesson" id="l719">
+    <div class="col-left">
+      <div class="tag-num">7.19</div>
+      <h2>AWS Compute Optimizer</h2>
+      <p>Dùng Machine Learning phân tích lịch sử sử dụng CPU/RAM/network của EC2, EBS, Lambda, ASG để đề xuất right-sizing. Ví dụ: chuyên gia phân tích hóa đơn điện nước hàng tháng, đề xuất gói phù hợp hơn với thói quen sử dụng thực tế.</p>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Bật Enhanced infrastructure metrics để phân tích dựa trên 3 tháng dữ liệu thay vì 14 ngày mặc định.</p>
+      <div class="case-box"><b>Case:</b> công ty game có traffic tăng vọt dịp lễ Tết. 14 ngày mặc định (rơi vào thấp điểm) có thể khiến Compute Optimizer đề xuất downsize nhầm — bật Enhanced metrics để thấy toàn bộ chu kỳ traffic.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Thuộc nhóm lớp phủ giám sát như CloudWatch — "phòng kế toán kỹ thuật" theo dõi hiệu suất Xưởng lắp ráp EC2/ASG/Lambda.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws compute-optimizer get-ec2-instance-recommendations \
+  --instance-arns arn:aws:ec2:...:instance/i-0123456789
+
+aws compute-optimizer get-auto-scaling-group-recommendations \
+  --auto-scaling-group-arns arn:...:autoScalingGroup:xxx</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--instance-arns</code></td><td>Instance ARNs</td><td>EC2 instance cần đề xuất right-sizing</td></tr>
+        <tr><td><code>--auto-scaling-group-arns</code></td><td>ASG ARNs</td><td>Auto Scaling Group cần đề xuất tối ưu</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Tiêu chí</th><th>Compute Optimizer</th><th>Cost Explorer Rightsizing</th></tr>
+        <tr><td>Trọng tâm</td><td>ML sâu về performance</td><td>Góc độ chi phí</td></tr>
+        <tr><td>Phạm vi</td><td>EC2, EBS, Lambda, ASG</td><td>Chủ yếu EC2</td></tr>
+      </table>
+      <h3>Giới hạn/tham số</h3>
+      <table>
+        <tr><th>Tham số</th><th>Giá trị</th><th>Ghi chú</th></tr>
+        <tr><td>Dữ liệu tối thiểu</td><td>14 ngày</td><td>Cần đủ dữ liệu cho recommendation tin cậy</td></tr>
+        <tr><td>Enhanced metrics</td><td>Trả phí, tới 3 tháng</td><td>Chính xác hơn cho hệ thống theo mùa</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="lesson" id="l723">
+    <div class="col-left">
+      <div class="tag-num">7.23</div>
+      <h2>AWS Cost Management Tools</h2>
+      <p>Bộ công cụ theo dõi & tối ưu chi phí: Budgets (ngưỡng cảnh báo), Cost Explorer (phân tích & dự báo), CUR (báo cáo chi tiết ra S3), Cost Allocation Tags (phân bổ theo team/project), Savings Plans/RI, Trusted Advisor. Ví dụ: phòng kế toán công ty có nhiều công cụ khác nhau — 1 cái cảnh báo vượt ngân sách, 1 cái vẽ biểu đồ chi tiêu, 1 cái báo cáo theo phòng ban.</p>
+      <h3>Pattern nâng cao / case thực tế</h3>
+      <p>Dùng Budget Actions để tự động áp SCP/IAM policy khi vượt ngưỡng, thay vì chỉ gửi email.</p>
+      <div class="case-box"><b>Case:</b> startup ngân sách hạn chế thiết lập Budget Action tự động áp SCP chặn launch EC2 mới khi chi phí tháng chạm 90% ngân sách, tránh "cháy túi" ngoài kiểm soát.</div>
+      <div class="arch-box"><b>🏭 Vị trí kiến trúc:</b> Nhóm "phòng kế toán trung tâm" — lớp phủ tài chính áp lên tất cả các trạm trong nhà máy, không phải trạm sản xuất.</div>
+    </div>
+    <div class="col-right">
+      <h3>Lệnh quan trọng</h3>
+      <pre><code>aws budgets create-budget \
+  --account-id 123456789012 \
+  --budget file://budget.json \
+  --notifications-with-subscribers file://notifications.json
+
+aws ce get-cost-and-usage \
+  --time-period Start=2026-01-01,End=2026-02-01 \
+  --granularity MONTHLY --metrics "UnblendedCost" \
+  --group-by Type=TAG,Key=Project
+
+aws ce get-rightsizing-recommendation --service AmazonEC2</code></pre>
+      <table>
+        <tr><th>Flag</th><th>Viết tắt</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>--budget</code></td><td>Budget Definition</td><td>JSON định nghĩa ngân sách</td></tr>
+        <tr><td><code>--granularity</code></td><td>Granularity</td><td>Độ chi tiết theo thời gian</td></tr>
+        <tr><td><code>--group-by</code></td><td>Group By</td><td>Nhóm chi phí theo tiêu chí (vd tag)</td></tr>
+      </table>
+      <h3>So sánh nhanh</h3>
+      <table>
+        <tr><th>Công cụ</th><th>Mục đích</th></tr>
+        <tr><td>Budgets</td><td>Đặt ngưỡng, cảnh báo khi vượt</td></tr>
+        <tr><td>Cost Explorer</td><td>Phân tích lịch sử + dự báo</td></tr>
+        <tr><td>CUR</td><td>Báo cáo chi tiết nhất, xuất S3</td></tr>
+        <tr><td>Cost Allocation Tags</td><td>Phân bổ chi phí theo team/project</td></tr>
+      </table>
+      <h3>Cấu hình liên quan</h3>
+      <p style="font-size:.87rem;">Cost Allocation Tag cần <b>Activate thủ công</b> trong Billing console — tag đã gắn resource nhưng chưa activate sẽ không lên report.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= QUIZ ================= -->
+<div class="panel" id="panel-quiz">
+  <div class="quiz-grid" id="quiz-container"></div>
+</div>
+
+<!-- ================= LAB ================= -->
+<div class="panel" id="panel-lab">
+  <div class="lab-grid">
+    <div class="lab-steps">
+      <h4>🧭 Bối cảnh</h4>
+      <p style="font-size:.9rem;">Bạn được giao 2 việc trong tuần đầu: (1) dựng 1 pipeline tự động xử lý video khách hàng upload bằng Rekognition, và (2) thiết lập bộ theo dõi chi phí đầy đủ (Budget + Cost Explorer + Cost Allocation Tags) — vì sếp vừa bị "sốc hóa đơn" AWS tháng trước.</p>
+      <h4>✅ Lệnh verify</h4>
+      <pre><code>aws budgets describe-budgets --account-id 123456789012
+aws ce get-cost-and-usage \
+  --time-period Start=2026-08-01,End=2026-09-01 \
+  --granularity MONTHLY --metrics "UnblendedCost" \
+  --group-by Type=TAG,Key=Project
+aws rekognition get-label-detection --job-id &lt;job-id&gt;</code></pre>
+      <h4>🧹 Cleanup</h4>
+      <pre><code>aws lambda delete-function --function-name process-video
+aws s3 rb s3://video-pipeline-lab --force
+aws budgets delete-budget --account-id 123456789012 \
+  --budget-name VideoPipeline-Monthly</code></pre>
+      <h4>⚠️ Lưu ý dễ tốn phí</h4>
+      <ul style="font-size:.85rem;">
+        <li>Cost Allocation Tag không tự lên report nếu quên bước "Activate" thủ công — lỗi hay bị bỏ sót nhất.</li>
+        <li>Cost Explorer có độ trễ ~24h — đừng hoảng nếu vừa gắn tag mà chưa thấy số liệu ngay.</li>
+        <li>Rekognition Video là async — phải poll <code>get-label-detection</code> hoặc nhận qua SNS.</li>
+        <li>Budget Action tự động (SCP) cần cấu hình cẩn thận, tránh chặn nhầm resource production.</li>
+      </ul>
+    </div>
+    <div class="lab-script">
+      <pre><code># Bước 1 — Pipeline xử lý video tự động (Rekognition)
+aws s3 mb s3://video-pipeline-lab
+
+aws lambda create-function \
+  --function-name process-video \
+  --runtime python3.12 --handler app.handler \
+  --role arn:aws:iam::...:role/VideoPipelineRole \
+  --zip-file fileb://function.zip
+
+aws s3api put-bucket-notification-configuration \
+  --bucket video-pipeline-lab \
+  --notification-configuration file://notif-config.json
+
+aws rekognition start-label-detection \
+  --video '{"S3Object":{"Bucket":"video-pipeline-lab","Name":"sample.mp4"}}' \
+  --notification-channel RoleArn=arn:aws:iam::...:role/RekognitionSNSRole,SNSTopicArn=arn:aws:sns:...:video-results
+
+# Bước 2 — Cost Allocation Tags
+aws s3api put-bucket-tagging --bucket video-pipeline-lab \
+  --tagging 'TagSet=[{Key=Project,Value=VideoPipeline}]'
+aws lambda tag-resource --resource arn:aws:lambda:...:function:process-video \
+  --tags Project=VideoPipeline
+# Activate tag "Project" trong Billing console (chỉ làm được qua UI)
+
+# Bước 3 — AWS Budgets
+cat > budget.json << 'EOF'
+{
+  "BudgetName": "VideoPipeline-Monthly",
+  "BudgetLimit": {"Amount": "50", "Unit": "USD"},
+  "TimeUnit": "MONTHLY",
+  "BudgetType": "COST",
+  "CostFilters": {"TagKeyValue": ["user:Project$VideoPipeline"]}
+}
+EOF
+
+aws budgets create-budget \
+  --account-id 123456789012 \
+  --budget file://budget.json \
+  --notifications-with-subscribers file://notifications.json
+
+# Bước 4 — Cost Explorer
+aws ce get-cost-and-usage \
+  --time-period Start=2026-08-01,End=2026-09-01 \
+  --granularity MONTHLY --metrics "UnblendedCost" \
+  --filter '{"Tags":{"Key":"Project","Values":["VideoPipeline"]}}'
+
+# Bước 5 — Cost Management Tools tổng hợp
+aws ce get-rightsizing-recommendation --service AmazonEC2
+
+aws support describe-trusted-advisor-checks --language en \
+  --query "checks[?category=='cost_optimizing']"</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CHEAT SHEET ================= -->
+<div class="panel" id="panel-cheat">
+  <div class="cheat-grid" id="cheat-container"></div>
+  <div class="pattern-block">
+    <span class="tag">Pattern chuẩn cần nhớ nằm lòng</span>
+    <p>S3 upload → Lambda trigger → AI Service (Rekognition/Textract/Comprehend) xử lý → lưu kết quả/SNS thông báo. Theo dõi chi phí chuẩn: Cost Allocation Tags (activate) → Cost Explorer (phân tích xu hướng) → AWS Budgets (cảnh báo/action) → CUR (chi tiết sâu qua Athena nếu cần). Web/mobile app nhanh: Amplify (frontend + hosting) → AppSync (GraphQL) → DynamoDB/Lambda → Cognito (auth).</p>
+  </div>
+  <div class="station-card">
+    <b>🏭 Trạm mới thêm vào nhà máy nền ở section này</b>
+    <ul>
+      <li><b>Quầy tiếp tân nhanh cho web/mobile</b> — Amplify + AppSync, song song API Gateway</li>
+      <li><b>Phòng QA kiểm định trước khi xuất xưởng</b> — Device Farm, ngoài luồng production</li>
+      <li><b>Phòng ban chuyên gia thuê ngoài</b> — Rekognition, Comprehend, Transcribe, Polly, Translate, Lex, Textract, SageMaker</li>
+      <li><b>Sổ theo dõi giấy phép thiết bị</b> — License Manager, lớp phủ toàn Xưởng lắp ráp EC2</li>
+      <li><b>Phòng kế toán kỹ thuật</b> — Compute Optimizer, lớp phủ giám sát hiệu suất</li>
+      <li><b>Phòng kế toán trung tâm</b> — Budgets, Cost Explorer, CUR, Cost Allocation Tags</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const quizData = [
+  {sec:"7.14", q:"Amplify và AppSync khác nhau ở điểm nào?", a:"Amplify là toàn bộ toolchain dựng app; AppSync chỉ là tầng API GraphQL mà Amplify có thể dùng bên trong."},
+  {sec:"7.14", q:"AppSync hỗ trợ cơ chế nào để cập nhật dữ liệu real-time tới client?", a:"Subscriptions qua WebSocket."},
+  {sec:"7.14", q:"Direct Resolver trong AppSync giúp ích gì?", a:"Gọi thẳng data source (vd DynamoDB) bỏ qua Lambda, giảm latency."},
+  {sec:"7.14", q:"Resolver mapping template của AppSync viết bằng ngôn ngữ gì?", a:"VTL (hoặc JS resolver)."},
+  {sec:"7.14", q:"Vì sao case leaderboard game chọn AppSync subscription thay vì polling?", a:"Polling tốn tài nguyên và độ trễ cao; subscription đẩy update ngay khi có thay đổi."},
+
+  {sec:"7.15", q:"Device Farm test trên thiết bị giả lập hay thiết bị thật?", a:"Thiết bị thật (real device farm trong cloud AWS)."},
+  {sec:"7.15", q:"2 chế độ sử dụng chính của Device Farm là gì?", a:"Automated testing và Remote access."},
+  {sec:"7.15", q:"Test spec của Device Farm định nghĩa bằng định dạng gì?", a:"YAML (testspec.yml)."},
+  {sec:"7.15", q:"Vì sao nên tích hợp Device Farm vào CI/CD?", a:"Tự động hóa, phát hiện lỗi sớm, tiết kiệm thời gian so với test thủ công."},
+  {sec:"7.15", q:"Vì sao case fintech cần test 50+ dòng máy?", a:"Lỗi trên dù 1 dòng máy cụ thể (vd sai số dư) có thể gây hậu quả nghiêm trọng."},
+
+  {sec:"7.16", q:"Dịch vụ nào dùng để chuyển giọng nói thành văn bản?", a:"Amazon Transcribe."},
+  {sec:"7.16", q:"Dịch vụ nào trích xuất dữ liệu từ form/document dạng ảnh?", a:"Amazon Textract."},
+  {sec:"7.16", q:"Điểm khác biệt chính giữa AI Services và SageMaker?", a:"AI Services dùng model pre-trained; SageMaker cho phép tự train model theo dữ liệu riêng."},
+  {sec:"7.16", q:"Dịch vụ nào phù hợp để xây chatbot?", a:"Amazon Lex."},
+  {sec:"7.16", q:"Vì sao sàn TMĐT cần tự động hóa content moderation?", a:"Khối lượng ảnh quá lớn, tự động lọc trước giúp giảm tải và chặn nội dung xấu ngay lập tức."},
+
+  {sec:"7.18", q:"License Manager dùng cho mô hình license nào?", a:"BYOL (Bring Your Own License)."},
+  {sec:"7.18", q:"License Manager có thể theo dõi theo những đơn vị nào?", a:"Core, socket, hoặc instance."},
+  {sec:"7.18", q:"Hard limit trong License Manager làm gì?", a:"Chặn cứng việc launch thêm khi sẽ vượt số license, thay vì chỉ cảnh báo."},
+  {sec:"7.18", q:"License Manager có tự dừng instance đang chạy vi phạm không?", a:"Không — chỉ chặn launch mới."},
+  {sec:"7.18", q:"Vì sao nên dùng License Manager ở cấp Organization?", a:"License mua theo tổng số dùng toàn công ty, cần theo dõi tập trung qua nhiều account."},
+
+  {sec:"7.19", q:"Compute Optimizer dùng công nghệ gì để đưa ra đề xuất?", a:"Machine Learning phân tích lịch sử sử dụng tài nguyên."},
+  {sec:"7.19", q:"Cần tối thiểu bao nhiêu ngày dữ liệu để có recommendation mặc định?", a:"14 ngày."},
+  {sec:"7.19", q:"Compute Optimizer hỗ trợ những loại tài nguyên nào?", a:"EC2, EBS, Lambda, Auto Scaling Group."},
+  {sec:"7.19", q:"Enhanced infrastructure metrics giúp ích gì?", a:"Phân tích dựa trên tới 3 tháng dữ liệu, chính xác hơn cho hệ thống theo mùa."},
+  {sec:"7.19", q:"Vì sao công ty game cần bật Enhanced metrics?", a:"Traffic có tính mùa vụ, 14 ngày mặc định có thể rơi vào thấp điểm gây đề xuất sai."},
+
+  {sec:"7.23", q:"Công cụ nào cho phân tích chi tiết nhất, xuất ra S3?", a:"Cost and Usage Report (CUR)."},
+  {sec:"7.23", q:"Vì sao tag đã gắn resource mà không thấy trong Cost Explorer?", a:"Vì Cost Allocation Tag cần được activate thủ công trong Billing console trước."},
+  {sec:"7.23", q:"Budget Actions khác gì so với Budget notification?", a:"Budget Actions tự động thực thi hành động (vd áp SCP), không chỉ gửi cảnh báo."},
+  {sec:"7.23", q:"Dữ liệu Cost Explorer có độ trễ khoảng bao lâu?", a:"Khoảng 24 giờ."},
+  {sec:"7.23", q:"Budget Action giúp ích gì so với chỉ nhận email cảnh báo?", a:"Tự động chặn resource mới ngay khi vượt ngưỡng, tránh chi phí tiếp tục phát sinh."}
+];
+
+const quizContainer = document.getElementById('quiz-container');
+let lastSec = "";
+quizData.forEach((item) => {
+  if(item.sec !== lastSec){
+    const anchor = document.createElement('div');
+    anchor.id = 'q' + item.sec.replace('.', '');
+    anchor.style.gridColumn = '1 / -1';
+    quizContainer.appendChild(anchor);
+    lastSec = item.sec;
+  }
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.innerHTML = `<div class="hint">Bài ${item.sec}</div><div class="q">${item.q}</div><div class="a">${item.a}</div>`;
+  card.addEventListener('click', () => card.classList.toggle('open'));
+  quizContainer.appendChild(card);
+});
+
+const cheatData = [
+  {t:"Amplify vs AppSync", d:"Amplify = toàn bộ toolchain; AppSync = riêng tầng GraphQL API."},
+  {t:"AI Services vs SageMaker", d:"'Cần kết quả nhanh, bài toán phổ biến' → AI Service; 'cần độ chính xác cao theo domain riêng' → SageMaker."},
+  {t:"License Manager chỉ chặn launch mới", d:"Không tự dừng instance vi phạm đang chạy."},
+  {t:"Compute Optimizer cần ≥14 ngày dữ liệu", d:"Con số hay bị hỏi trực tiếp trong đề thi."},
+  {t:"Cost Allocation Tags cần Activate", d:"Phải activate thủ công trong Billing console — lỗi rất hay gặp."},
+  {t:"Budget Actions vs Notification", d:"Actions = tự động hành động (SCP/IAM); Notification = chỉ gửi cảnh báo."}
+];
+const cheatContainer = document.getElementById('cheat-container');
+cheatData.forEach(c => {
+  const card = document.createElement('div');
+  card.className = 'cheat-card';
+  card.innerHTML = `<h4>${c.t}</h4><p>${c.d}</p>`;
+  cheatContainer.appendChild(card);
+});
+
+const tabButtons = document.querySelectorAll('.tabbar button');
+const panels = document.querySelectorAll('.panel');
+const sidebarTheory = document.getElementById('sidebar-theory');
+const sidebarQuiz = document.getElementById('sidebar-quiz');
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.tab;
+    panels.forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + target).classList.add('active');
+
+    if(target === 'theory'){
+      document.body.classList.add('has-sidebar');
+      sidebarTheory.style.display='block'; sidebarQuiz.style.display='none';
+    } else if(target === 'quiz'){
+      document.body.classList.add('has-sidebar');
+      sidebarTheory.style.display='none'; sidebarQuiz.style.display='block';
+    } else {
+      document.body.classList.remove('has-sidebar');
+    }
+  });
+});
+
+const lessonSections = document.querySelectorAll('#panel-theory .lesson');
+const sidebarLinks = sidebarTheory.querySelectorAll('a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      sidebarLinks.forEach(l => l.classList.remove('active'));
+      const link = sidebarTheory.querySelector(`a[href="#${entry.target.id}"]`);
+      if(link) link.classList.add('active');
+    }
+  });
+}, {rootMargin: '-20% 0px -70% 0px'});
+lessonSections.forEach(s => observer.observe(s));
+
+sidebarTheory.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>

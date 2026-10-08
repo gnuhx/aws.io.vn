@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DynamoDB Suite — 4.55 / 4.57 / 4.58 / 4.59</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c2340;
+    --bg-deep: #081a30;
+    --grid: rgba(255,255,255,0.05);
+    --node-fill: #103457;
+    --node-stroke-dim: #2c4a63;
+    --text-main: #f2ede1;
+    --text-dim: #90aac2;
+    --cyan: #6fd6ff;
+    --amber: #ffb454;
+    --green: #7be0a8;
+    --violet: #c9a8ff;
+    --panel-bg: #0a2038;
+    --panel-border: #1e4a6e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color: var(--text-main);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 28px 20px 60px;
+  }
+  .wrap{ max-width: 1000px; margin: 0 auto; }
+
+  .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+  }
+  h1{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: clamp(19px, 3vw, 26px);
+    font-weight:600;
+    margin: 6px 0 8px;
+    line-height:1.3;
+  }
+  p.lede{
+    color: var(--text-dim);
+    max-width: 660px;
+    font-size: 14px;
+    line-height:1.6;
+    margin:0 0 20px;
+  }
+
+  /* Top-level lesson tabs */
+  .lesson-tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 14px;
+  }
+  .lesson-tabs button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor:pointer;
+    text-align:left;
+    line-height:1.4;
+  }
+  .lesson-tabs button b{ display:block; font-size:13px; color: var(--text-main); }
+  .lesson-tabs button span{ font-size:10.5px; opacity:0.8; }
+  .lesson-tabs button.active{ border-color: var(--cyan); background: rgba(111,214,255,0.08); }
+  .lesson-tabs button.active b{ color: var(--cyan); }
+
+  /* Secondary controls (within a lesson) */
+  .sub-tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom: 16px;
+  }
+  .sub-tabs button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 8px 14px;
+    border-radius: 3px;
+    cursor:pointer;
+  }
+  .sub-tabs button.active{ color: var(--bg-deep); font-weight:600; background: var(--cyan); border-color: var(--cyan); }
+  .sub-tabs button.active.warn{ background: var(--amber); border-color: var(--amber); }
+  .sub-tabs button.active.alt{ background: var(--violet); border-color: var(--violet); }
+
+  .diagram-frame{
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+    background: var(--bg-deep);
+    padding: 6px;
+    position:relative;
+    overflow:hidden;
+  }
+  .diagram-frame::before{
+    content: attr(data-tag);
+    position:absolute;
+    top:-1px; left:-1px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    color: var(--text-dim);
+    background: var(--panel-border);
+    padding: 3px 8px;
+    border-radius: 0 0 4px 0;
+    z-index:2;
+  }
+  svg{ display:block; width:100%; height:auto; }
+
+  .node rect{ fill: var(--node-fill); stroke: var(--node-stroke-dim); stroke-width: 1.5; }
+  .node.on-cyan rect{ stroke: var(--cyan); stroke-width:2; fill:#123a52; }
+  .node.on-amber rect{ stroke: var(--amber); stroke-width:2; fill:#3a2c14; }
+  .node.on-green rect{ stroke: var(--green); stroke-width:2; fill:#123a30; }
+  .node.on-violet rect{ stroke: var(--violet); stroke-width:2; fill:#241a3a; }
+  .node .label{ font-family:'IBM Plex Mono', monospace; font-size: 11.5px; font-weight:600; fill: var(--text-main); }
+  .node .sub{ font-family:'IBM Plex Sans', sans-serif; font-size: 9.5px; fill: var(--text-dim); }
+  .col-label{ font-family:'IBM Plex Mono', monospace; font-size: 11px; letter-spacing:0.04em; fill: var(--text-dim); }
+
+  .edge{ fill:none; stroke: var(--node-stroke-dim); stroke-width: 1.6; }
+  .edge.on-cyan{ stroke: var(--cyan); stroke-width:2.2; }
+  .edge.on-amber{ stroke: var(--amber); stroke-width:2.2; }
+  .edge.on-green{ stroke: var(--green); stroke-width:2.2; }
+  .edge.on-violet{ stroke: var(--violet); stroke-width:2.2; }
+  .edge.dashed{ stroke-dasharray: 5 4; }
+
+  .dot{ r:4; opacity:0; animation: pop .4s ease forwards; }
+  .dot.cyan{ fill: var(--cyan); }
+  .dot.amber{ fill: var(--amber); }
+  .dot.green{ fill: var(--green); }
+  @keyframes pop{ from{opacity:0; transform:scale(0.5);} to{opacity:1; transform:scale(1);} }
+
+  .info-panel{
+    margin-top: 18px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    border-radius: 4px;
+    padding: 18px 20px;
+  }
+  .info-panel h3{ margin: 0 0 8px; font-family:'IBM Plex Mono', monospace; font-size: 14.5px; font-weight:600; color: var(--cyan); }
+  .info-panel h3.amber{ color: var(--amber); }
+  .info-panel h3.green{ color: var(--green); }
+  .info-panel h3.violet{ color: var(--violet); }
+  .info-panel p{ margin: 0 0 10px; font-size: 13.5px; line-height:1.65; color: var(--text-dim); }
+  .info-panel p:last-child{ margin-bottom:0; }
+  .info-panel .tradeoff{ display:flex; gap:14px; flex-wrap:wrap; margin-top: 10px; }
+  .tradeoff .box{ flex:1; min-width: 220px; border: 1px solid var(--panel-border); border-radius:3px; padding: 10px 12px; }
+  .tradeoff .box .h{ font-family:'IBM Plex Mono', monospace; font-size: 11px; letter-spacing:0.04em; margin-bottom:5px; }
+  .tradeoff .box.good .h{ color: var(--green); }
+  .tradeoff .box.bad .h{ color: var(--amber); }
+  .tradeoff .box p{ margin:0; font-size:12.5px; color: var(--text-dim); line-height:1.5; }
+
+  .step-controls{ display:flex; justify-content: space-between; align-items:center; margin-top: 14px; }
+  .step-controls .dots{ display:flex; gap:6px; }
+  .step-controls .dots span{ width:7px; height:7px; border-radius:50%; background: var(--node-stroke-dim); display:inline-block; }
+  .step-controls .dots span.on{ background: var(--cyan); }
+  .navbtns{ display:flex; gap:8px; }
+  .navbtns button{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; background: transparent;
+    border: 1px solid var(--panel-border); color: var(--text-main); padding: 7px 14px;
+    border-radius: 3px; cursor:pointer;
+  }
+  .navbtns button:disabled{ opacity:0.35; cursor:default; }
+  .navbtns button:not(:disabled):hover{ border-color: var(--cyan); }
+
+  @media (max-width: 640px){
+    .tradeoff{ flex-direction:column; }
+    .lesson-tabs{ flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">CHƯƠNG 4 · DYNAMODB SUITE</div>
+  <h1>4.55 → 4.59 — DynamoDB, Streams, DAX, Global Tables</h1>
+  <p class="lede">4 bài gộp lại, mỗi bài có sơ đồ riêng để bấm thử. Chọn bài ở hàng trên, rồi bấm các nút bên trong để đổi kịch bản.</p>
+
+  <div class="lesson-tabs" id="lessonTabs">
+    <button data-lesson="dynamodb" class="active"><b>4.55 DynamoDB</b><span>Partition Key & Hot Key</span></button>
+    <button data-lesson="streams"><b>4.57 Streams</b><span>Table → Lambda</span></button>
+    <button data-lesson="dax"><b>4.58 DAX</b><span>Cache cho DynamoDB</span></button>
+    <button data-lesson="global"><b>4.59 Global Tables</b><span>Multi-region active-active</span></button>
+  </div>
+
+  <div id="lessonContent"></div>
+
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function drawNode(svg, x, y, w, h, cls, label, sub, delay){
+  const g = el("g", {class: "node " + cls}, svg);
+  el("rect", {x, y, width:w, height:h, rx:4}, g);
+  el("text", {x: x+w/2, y: y+h/2-2, "text-anchor":"middle", class:"label"}, g).textContent = label;
+  if(sub) el("text", {x: x+w/2, y: y+h/2+13, "text-anchor":"middle", class:"sub"}, g).textContent = sub;
+  return g;
+}
+function drawColLabel(svg, x, y, text){ el("text", {x, y, class:"col-label"}, svg).textContent = text; }
+function drawDot(svg, cx, cy, cls, delay){
+  const c = el("circle", {cx, cy, class:"dot "+cls}, svg);
+  c.style.animationDelay = (delay||0)+"s";
+  return c;
+}
+
+const content = document.getElementById("lessonContent");
+
+/* ============ 4.55 DYNAMODB ============ */
+const dynamoInfo = {
+  good: {
+    title: "Partition Key rải đều — khoẻ mạnh",
+    cls: "green",
+    desc: "Partition Key được chọn tốt (VD: user_id) khiến request phân bổ đồng đều ra nhiều physical partition. Mỗi partition chỉ gánh 1 phần tải nhỏ, không ai bị nghẽn.",
+    good: "Chọn key có độ phân tán cao (user_id, order_id...). Traffic tăng bao nhiêu, DynamoDB tự thêm partition phía sau mà bạn không thấy.",
+    bad: "Vẫn cần thiết kế đúng ngay từ đầu — đổi partition key sau này thường phải tạo lại bảng."
+  },
+  hot: {
+    title: "Hot Partition — nghẽn cổ chai",
+    cls: "amber",
+    desc: "Partition Key chọn sai (VD: dùng product_category chỉ có vài giá trị, hoặc 1 sản phẩm đang viral) khiến gần như toàn bộ request dồn vào đúng 1 partition.",
+    good: "Vẫn có cách chữa: thêm 'salt' ngẫu nhiên vào key (VD: product_id + số random 0-9) để rải request ra nhiều partition ảo, rồi query gộp lại.",
+    bad: "Partition đó bị throttle (ThrottlingException) dù toàn bảng còn dư rất nhiều capacity — vì DynamoDB chia đều RCU/WCU theo partition, không theo bảng."
+  }
+};
+function renderDynamo(state){
+  content.innerHTML = `
+    <div class="sub-tabs" id="dynamoTabs">
+      <button data-m="good" class="${state==='good'?'active':''}">Partition Key TỐT</button>
+      <button data-m="hot" class="${state==='hot'?'active warn':''}">Partition Key XẤU (Hot Key)</button>
+    </div>
+    <div class="diagram-frame" data-tag="4.55 · TABLE PARTITIONING">
+      <svg id="dynamoSvg" viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3 class="${dynamoInfo[state].cls}">${dynamoInfo[state].title}</h3>
+      <p>${dynamoInfo[state].desc}</p>
+      <div class="tradeoff">
+        <div class="box good"><div class="h">GIẢI PHÁP / ĐIỂM TỐT</div><p>${dynamoInfo[state].good}</p></div>
+        <div class="box bad"><div class="h">RỦI RO / LƯU Ý</div><p>${dynamoInfo[state].bad}</p></div>
+      </div>
+    </div>`;
+  document.querySelectorAll("#dynamoTabs button").forEach(b=>{
+    b.addEventListener("click", ()=> renderDynamo(b.dataset.m));
+  });
+  drawDynamoSvg(state);
+}
+function drawDynamoSvg(state){
+  const svg = document.getElementById("dynamoSvg");
+  svg.innerHTML = "";
+  drawColLabel(svg, 30, 30, "REQUESTS ĐẾN");
+  // incoming requests column
+  for(let i=0;i<9;i++){
+    drawDot(svg, 60, 60+i*22, state==='hot' ? 'amber' : 'cyan', i*0.05);
+  }
+  drawColLabel(svg, 300, 30, "3 PHYSICAL PARTITION");
+  const p1 = drawNode(svg, 300, 60, 160, 70, state==='hot'?'on-amber':'on-cyan', "Partition 1", state==='hot'?'~90% traffic':'~33% traffic');
+  const p2 = drawNode(svg, 300, 150, 160, 70, 'on-cyan', "Partition 2", state==='hot'?'~5% traffic':'~33% traffic');
+  const p3 = drawNode(svg, 300, 240, 160, 40, 'on-cyan', "Partition 3", state==='hot'?'~5%':'~33%');
+
+  // lines from dots to partitions
+  for(let i=0;i<9;i++){
+    let target = state==='hot' ? (i<7? 75 : (i<8?185:265)) : (i%3===0?95:(i%3===1?185:260));
+    el("path", {d:`M70,${60+i*22} C160,${60+i*22} 220,${target} 300,${target}`, class:'edge '+(state==='hot'&&i<7?'on-amber':'on-cyan')}, svg);
+  }
+
+  drawColLabel(svg, 560, 30, state==='hot' ? "⚠ THROTTLED" : "OK — CÂN BẰNG");
+  if(state==='hot'){
+    const warn = drawNode(svg, 560, 90, 200, 90, 'on-amber', "ThrottlingException", "App bị lỗi dù bảng còn dư capacity");
+  } else {
+    drawNode(svg, 560, 90, 200, 90, 'on-green', "Ổn định", "Mọi partition đều dưới ngưỡng, không throttle");
+  }
+}
+
+/* ============ 4.57 STREAMS ============ */
+const streamSteps = [
+  {nodes:["s-table"], edges:[], title:"Có thay đổi trong bảng", desc:"Một đơn hàng mới được ghi (PutItem) vào bảng Orders trong DynamoDB."},
+  {nodes:["s-table","s-stream"], edges:["se-1"], title:"Stream bắt sự kiện", desc:"DynamoDB Streams tự động ghi lại sự kiện này (kèm NEW_IMAGE — dữ liệu đơn hàng mới) vào một hàng đợi nội bộ, giữ trong 24h."},
+  {nodes:["s-stream","s-lambda"], edges:["se-2"], title:"Trigger Lambda", desc:"Stream tự động gọi (invoke) một Lambda function đã đăng ký sẵn, gửi kèm dữ liệu sự kiện."},
+  {nodes:["s-lambda","s-email"], edges:["se-3"], title:"Lambda → gửi email", desc:"Lambda parse dữ liệu, gọi SES/SNS để gửi email xác nhận đơn hàng cho khách."},
+  {nodes:["s-lambda","s-inv"], edges:["se-4"], title:"Lambda → cập nhật tồn kho", desc:"Cùng lúc, Lambda ghi UpdateItem vào bảng Inventory để trừ số lượng tồn — không cần app tự gọi 2 nơi."}
+];
+let streamIdx = 0;
+function renderStreams(){
+  content.innerHTML = `
+    <div class="diagram-frame" data-tag="4.57 · CHANGE DATA CAPTURE">
+      <svg id="streamSvg" viewBox="0 0 960 320" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3 id="stTitle" class="violet">${streamSteps[0].title}</h3>
+      <p id="stDesc">${streamSteps[0].desc}</p>
+    </div>
+    <div class="step-controls">
+      <div class="dots" id="stDots"></div>
+      <div class="navbtns">
+        <button id="stPrev">← Trước</button>
+        <button id="stNext">Tiếp →</button>
+      </div>
+    </div>`;
+  document.getElementById("stPrev").addEventListener("click", ()=>{ if(streamIdx>0){streamIdx--; drawStreams();} });
+  document.getElementById("stNext").addEventListener("click", ()=>{ if(streamIdx<streamSteps.length-1){streamIdx++; drawStreams();} });
+  drawStreams();
+}
+function drawStreams(){
+  const svg = document.getElementById("streamSvg");
+  svg.innerHTML = "";
+  const step = streamSteps[streamIdx];
+  const on = id => step.nodes.includes(id) ? "on-violet" : "";
+  const onE = id => step.edges.includes(id) ? "on-violet" : "";
+
+  drawNode(svg, 30, 130, 130, 65, "node "+on("s-table"), "Orders Table", "DynamoDB");
+  drawNode(svg, 240, 130, 130, 65, "node "+on("s-stream"), "Streams", "Change log 24h");
+  drawNode(svg, 450, 130, 130, 65, "node "+on("s-lambda"), "Lambda", "Xử lý sự kiện");
+  drawNode(svg, 700, 40, 190, 65, "node "+on("s-email"), "SES / Email", "Gửi xác nhận đơn hàng");
+  drawNode(svg, 700, 210, 190, 65, "node "+on("s-inv"), "Inventory Table", "Trừ tồn kho");
+
+  const e1 = el("path", {id:"se-1", d:"M160,162 L240,162", class:"edge "+onE("se-1")}, svg);
+  const e2 = el("path", {id:"se-2", d:"M370,162 L450,162", class:"edge "+onE("se-2")}, svg);
+  const e3 = el("path", {id:"se-3", d:"M580,145 Q650,100 700,73", class:"edge "+onE("se-3")}, svg);
+  const e4 = el("path", {id:"se-4", d:"M580,180 Q650,220 700,243", class:"edge "+onE("se-4")}, svg);
+
+  document.getElementById("stTitle").textContent = step.title;
+  document.getElementById("stDesc").textContent = step.desc;
+  document.getElementById("stPrev").disabled = streamIdx===0;
+  document.getElementById("stNext").disabled = streamIdx===streamSteps.length-1;
+  const dotsEl = document.getElementById("stDots");
+  dotsEl.innerHTML = "";
+  streamSteps.forEach((_,i)=>{
+    const d = document.createElement("span");
+    if(i===streamIdx) d.classList.add("on");
+    dotsEl.appendChild(d);
+  });
+}
+
+/* ============ 4.58 DAX ============ */
+const daxInfo = {
+  hit: {
+    title: "Cache HIT — trả về từ DAX, không chạm DynamoDB",
+    cls:"cyan",
+    desc: "App gọi DAX bằng đúng DynamoDB SDK (chỉ đổi endpoint). DAX đã có sẵn item này trong RAM, trả về ở tầm microsecond — nhanh hơn DynamoDB ~10 lần.",
+  },
+  miss: {
+    title: "Cache MISS — DAX phải hỏi ngược DynamoDB",
+    cls:"amber",
+    desc: "Item chưa có trong DAX (lần đầu hoặc hết TTL). DAX tự động query DynamoDB, lưu kết quả vào cache, rồi mới trả về app — hoàn toàn tự động, app không cần biết chuyện này xảy ra."
+  }
+};
+let daxState = "hit";
+function renderDax(){
+  content.innerHTML = `
+    <div class="sub-tabs" id="daxTabs">
+      <button data-m="hit" class="${daxState==='hit'?'active':''}">Cache HIT</button>
+      <button data-m="miss" class="${daxState==='miss'?'active warn':''}">Cache MISS</button>
+    </div>
+    <div class="diagram-frame" data-tag="4.58 · DAX MICROSECOND CACHE">
+      <svg id="daxSvg" viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3 id="daxTitle" class="${daxInfo[daxState].cls}">${daxInfo[daxState].title}</h3>
+      <p id="daxDesc">${daxInfo[daxState].desc}</p>
+    </div>`;
+  document.querySelectorAll("#daxTabs button").forEach(b=>{
+    b.addEventListener("click", ()=>{ daxState=b.dataset.m; renderDax(); });
+  });
+  drawDax();
+}
+function drawDax(){
+  const svg = document.getElementById("daxSvg");
+  svg.innerHTML="";
+  const accent = daxState==='hit' ? 'on-cyan' : 'on-amber';
+  drawNode(svg, 30, 100, 140, 65, "node "+accent, "App / EC2", "Dùng DynamoDB SDK");
+  drawNode(svg, 300, 100, 160, 65, "node "+accent, "DAX Cluster", "In-memory, RAM");
+  drawNode(svg, 640, 100, 160, 65, "node "+(daxState==='miss'?'on-amber':''), "DynamoDB", "Nguồn dữ liệu gốc");
+
+  el("path", {d:"M170,132 L300,132", class:"edge "+accent, "marker-end":""}, svg);
+  el("path", {d:"M460,120 L640,120", class:"edge "+(daxState==='miss'?'on-amber dashed':'')}, svg);
+  if(daxState==='miss'){
+    el("path", {d:"M640,150 L460,150", class:"edge on-amber dashed"}, svg);
+  }
+  el("path", {d:"M300,160 L170,160", class:"edge "+accent}, svg);
+
+  drawColLabel(svg, 30, 210, daxState==='hit'
+    ? "App → DAX → App  (không đi tới DynamoDB, ~microsecond)"
+    : "App → DAX → DynamoDB → DAX (lưu lại) → App  (chậm hơn lần này)");
+}
+
+/* ============ 4.59 GLOBAL TABLES ============ */
+const regions = {
+  us: {name:"US-EAST", label:"Người dùng Mỹ ghi đơn hàng"},
+  eu: {name:"EU-WEST", label:"Người dùng Châu Âu ghi đơn hàng"},
+  asia: {name:"AP-SOUTHEAST", label:"Người dùng Châu Á ghi đơn hàng"}
+};
+let globalState = "us";
+function renderGlobal(){
+  content.innerHTML = `
+    <div class="sub-tabs" id="globalTabs">
+      <button data-m="us" class="${globalState==='us'?'active':''}">Ghi tại US</button>
+      <button data-m="eu" class="${globalState==='eu'?'active alt':''}">Ghi tại EU</button>
+      <button data-m="asia" class="${globalState==='asia'?'active alt':''}">Ghi tại Asia</button>
+    </div>
+    <div class="diagram-frame" data-tag="4.59 · ACTIVE-ACTIVE MULTI-REGION">
+      <svg id="globalSvg" viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="info-panel">
+      <h3 class="violet">${regions[globalState].label}</h3>
+      <p>Region <b style="color:var(--text-main)">${regions[globalState].name}</b> ghi trực tiếp vào bảng local của nó (độ trễ thấp vì gần user). DynamoDB Streams của region này tự động đẩy thay đổi sang 2 region còn lại.</p>
+      <div class="tradeoff">
+        <div class="box good"><div class="h">ƯU ĐIỂM</div><p>Mọi region đều đọc/ghi được (active-active), không có khái niệm "primary region" — khác hẳn RDS Read Replica.</p></div>
+        <div class="box bad"><div class="h">ĐÁNH ĐỔI</div><p>Chỉ eventual consistency giữa các region. Nếu 2 nơi cùng sửa 1 item gần như đồng thời → giải quyết bằng last-writer-wins (timestamp mới hơn thắng).</p></div>
+      </div>
+    </div>`;
+  document.querySelectorAll("#globalTabs button").forEach(b=>{
+    b.addEventListener("click", ()=>{ globalState=b.dataset.m; renderGlobal(); });
+  });
+  drawGlobal();
+}
+function drawGlobal(){
+  const svg = document.getElementById("globalSvg");
+  svg.innerHTML = "";
+  const pos = {
+    us:   {x:60,  y:110},
+    eu:   {x:390, y:40},
+    asia: {x:720, y:110}
+  };
+  const labels = { us:"US-EAST", eu:"EU-WEST", asia:"AP-SOUTHEAST" };
+
+  // edges (bidirectional, drawn as pairs) - highlight ones originating from globalState
+  const pairs = [["us","eu"],["eu","asia"],["us","asia"]];
+  pairs.forEach(([a,b])=>{
+    const isActive = a===globalState || b===globalState;
+    const p1 = pos[a], p2 = pos[b];
+    const midx=(p1.x+p2.x)/2+65, midy=(p1.y+p2.y)/2+40;
+    el("path", {
+      d:`M${p1.x+65},${p1.y+45} Q${midx},${midy+70} ${p2.x+65},${p2.y+45}`,
+      class:"edge "+(isActive?"on-violet dashed":"dashed")
+    }, svg);
+  });
+
+  Object.keys(pos).forEach(key=>{
+    const p = pos[key];
+    const active = key===globalState;
+    drawNode(svg, p.x, p.y, 130, 90, "node "+(active?"on-violet":""), labels[key], active?"✍ Ghi tại đây":"Đồng bộ ~<1s sau");
+  });
+
+  drawColLabel(svg, 60, 260, "Đường nét đứt = luồng đồng bộ 2 chiều, chạy nền bằng DynamoDB Streams.");
+}
+
+/* ============ ROUTER ============ */
+const lessons = { dynamodb: ()=>renderDynamo("good"), streams: renderStreams, dax: renderDax, global: renderGlobal };
+document.querySelectorAll("#lessonTabs button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("#lessonTabs button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    lessons[b.dataset.lesson]();
+  });
+});
+renderDynamo("good");
+</script>
+</body>
+</html>

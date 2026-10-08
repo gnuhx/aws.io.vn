@@ -9,15 +9,28 @@ export type LessonEntry = {
     title: string
     order: number
   }
+  kind?: 'lesson' | 'section'
+  interactiveHtmlUrl?: string
   filePath: string
   source: 'markdown' | 'html'
   bodyHtml: string
 }
 
-const rawContentModules = import.meta.glob('../../content/**/*.{md,html}', {
+const rawContentModules = import.meta.glob([
+  '../../content/**/*.md',
+  '!../../content/aws-saa-c03/roadmap.md',
+  '!../../content/aws-saa-c03/Module 2/prompt_template.md',
+  '!../../content/aws-saa-c03/Module [3-7]/**',
+], {
   eager: true,
   query: '?raw',
 }) as Record<string, unknown>
+
+const module2HtmlAssets = import.meta.glob('../../content/aws-saa-c03/Module 2/*.html', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
 
 const readRawContent = (value: unknown) => {
   if (typeof value === 'string') return value
@@ -166,6 +179,8 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
     filename.replace(/\.[^.]+$/, '').replace(/^[0-9]+[-_\s]*/, '')
   const title = rawTitle.trim() || 'Untitled lesson'
   const source = filePath.endsWith('.html') ? 'html' : 'markdown'
+  const interactiveHtmlUrl = moduleOrder === 2 ? module2HtmlAssets[filePath.replace(/\.md$/, '.html')] : undefined
+  const kind = getFrontMatterValue(raw, 'kind') === 'section' || interactiveHtmlUrl ? 'section' : 'lesson'
   const body = source === 'html'
     ? raw
     : raw.replace(/^---[\s\S]*?---\n?/, '').replace(/^#\s+[^\n]+\n+/, '').trim()
@@ -178,6 +193,8 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
     summary: parseSummary(raw),
     order: parseOrder(filePath, raw),
     module,
+    kind,
+    interactiveHtmlUrl,
     filePath,
     source,
     bodyHtml,
@@ -193,9 +210,11 @@ export const getLessonCatalog = () => {
 
   const catalog: Record<string, LessonEntry[]> = {}
 
-  const contentPaths = Object.keys(rawContentModules)
   for (const [filePath, rawFile] of Object.entries(rawContentModules)) {
-    if (filePath.endsWith('.html') && contentPaths.includes(filePath.replace(/\.html$/, '.md'))) continue
+    const relativePath = filePath.split('/content/')[1] ?? ''
+    const moduleFolder = relativePath.match(/^aws-saa-c03\/Module (\d+)\//)
+    if (relativePath === 'aws-saa-c03/roadmap.md' || relativePath === 'aws-saa-c03/Module 2/prompt_template.md') continue
+    if (moduleFolder && Number(moduleFolder[1]) > 2) continue
     const rawContent = readRawContent(rawFile)
     if (!rawContent) continue
 

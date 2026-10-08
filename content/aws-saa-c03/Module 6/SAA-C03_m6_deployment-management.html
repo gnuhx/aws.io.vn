@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Deployment &amp; Management · SAA-C03</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdfcfa; --ink:#1a1a1a; --sub:#5b5b5b; --line:#e5e2dc;
+    --accent:#8a5cf6; --accent2:#c9781c; --sidebar-w:250px;
+    --serif:'Source Serif 4',serif; --sans:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;}
+  a{color:var(--accent);}
+  table{border-collapse:collapse;width:100%;font-size:.9rem;margin:.8rem 0;}
+  th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top;}
+  th{background:#f4f1ea;font-family:var(--sans);font-weight:600;}
+  code{font-family:var(--mono);background:#f2efe8;padding:.1rem .35rem;border-radius:4px;font-size:.85em;}
+  pre{font-family:var(--mono);background:#1e1e1e;color:#e8e6e1;padding:1rem;border-radius:8px;overflow-x:auto;font-size:.82rem;line-height:1.55;}
+  pre code{background:none;padding:0;color:inherit;}
+  h1,h2,h3{font-family:var(--serif);}
+  h2{border-bottom:1px solid var(--line);padding-bottom:.4rem;margin-top:2.2rem;}
+
+  /* NAV */
+  .nav{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line);
+       display:flex;align-items:center;justify-content:space-between;padding:.7rem 3vw;}
+  .brand{font-family:var(--serif);font-weight:700;font-size:1rem;}
+  .roadmap-nav{display:flex;gap:1rem;font-size:.78rem;font-family:var(--mono);}
+  .roadmap-nav span{color:var(--sub);}
+  .roadmap-nav .cur{color:var(--accent);font-weight:700;}
+  .roadmap-nav .done{color:var(--accent2);}
+
+  /* TABBAR */
+  .tabbar{position:sticky;top:44px;z-index:49;background:var(--bg);border-bottom:1px solid var(--line);
+          display:flex;gap:0;padding:0 3vw;}
+  .tabbtn{padding:.75rem 1.2rem;font-family:var(--sans);font-weight:600;font-size:.88rem;color:var(--sub);
+          cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;}
+  .tabbtn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  body.has-sidebar .hero{margin-left:var(--sidebar-w);}
+  body.has-sidebar .tabpanel-content{margin-left:var(--sidebar-w);}
+
+  .hero{padding:2.2rem 3vw 1.2rem;}
+  .eyebrow{font-family:var(--mono);font-size:.78rem;color:var(--accent2);text-transform:uppercase;letter-spacing:.04em;}
+  .hero h1{font-size:2rem;margin:.3rem 0;}
+  .lede{color:var(--sub);max-width:70ch;}
+
+  /* SIDEBAR fixed */
+  .sidebar{position:fixed;top:90px;left:0;width:var(--sidebar-w);bottom:0;overflow-y:auto;
+           border-right:1px solid var(--line);padding:1rem 1rem 3rem;font-size:.82rem;display:none;}
+  body.has-sidebar .sidebar{display:block;}
+  .sidebar h4{font-family:var(--mono);text-transform:uppercase;font-size:.7rem;color:var(--sub);margin:0 0 .6rem;}
+  .sidebar a{display:block;color:var(--ink);text-decoration:none;padding:.35rem .5rem;border-radius:6px;margin-bottom:.1rem;}
+  .sidebar a:hover{background:#f2efe8;}
+  .sidebar a.active{background:#efe7fb;color:var(--accent);font-weight:600;}
+
+  .tabpanel{display:none;padding:0 3vw 4rem;}
+  .tabpanel.active{display:block;}
+
+  .lesson{padding:2.2rem 0;border-bottom:1px dashed var(--line);}
+  .lesson-grid{display:grid;grid-template-columns:56% 44%;gap:2rem;}
+  .lesson-grid .col-right{border-left:1px solid var(--line);padding-left:1.5rem;}
+  .lesson h3{margin-top:0;color:var(--accent2);}
+  .qa{background:#f7f4ee;border-radius:8px;padding:.9rem 1.1rem;margin-top:.6rem;font-size:.9rem;}
+  .qa ol{margin:.3rem 0 0;padding-left:1.2rem;}
+
+  /* LAB tab */
+  .lab-grid{display:grid;grid-template-columns:38% 62%;gap:2rem;margin-top:1.5rem;}
+  .lab-grid pre{max-height:none;}
+  .warn-box{background:#fdf2ee;border:1px solid #e8c3ae;border-radius:8px;padding:1rem;margin-top:1rem;font-size:.88rem;}
+
+  /* QUIZ tab */
+  .quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.2rem;}
+  .qcard{border:1px solid var(--line);border-radius:8px;padding:1rem;background:#fff;}
+  .qcard .ans{display:none;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--line);color:var(--accent2);font-size:.88rem;}
+  .qcard.revealed .ans{display:block;}
+  .qcard button{margin-top:.5rem;font-family:var(--sans);font-size:.78rem;background:var(--accent);color:#fff;border:none;padding:.35rem .8rem;border-radius:6px;cursor:pointer;}
+
+  /* CHEATSHEET tab */
+  .cheat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.2rem;}
+  .cheat-card{border:1px solid var(--line);border-radius:8px;padding:1rem;background:#fff;font-size:.86rem;}
+  .cheat-card h4{margin-top:0;font-family:var(--sans);color:var(--accent2);}
+  .pattern-box{margin-top:1.5rem;background:#efe7fb;border-radius:10px;padding:1.3rem;}
+  .factory-card{grid-column:1/-1;background:#0D1B2A;color:#e8e6e1;border:none;}
+  .factory-card h4{color:#E8A33D;}
+  .factory-card li{margin-bottom:.3rem;}
+
+  @media(max-width:900px){
+    .sidebar{display:none!important;}
+    body.has-sidebar .hero,body.has-sidebar .tabpanel-content{margin-left:0;}
+    .lesson-grid,.lab-grid{grid-template-columns:1fr;}
+    .lesson-grid .col-right{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:1rem;}
+    .cheat-grid,.quiz-grid{grid-template-columns:1fr;}
+    .roadmap-nav{display:none;}
+  }
+</style>
+</head>
+<body class="has-sidebar">
+
+<div class="nav">
+  <div class="brand">SAA-C03 · Module 6 · Deployment &amp; Management</div>
+  <div class="roadmap-nav">
+    <span class="cur">01 Deployment&amp;Mgmt</span>
+    <span>02 Monitoring/Logging</span>
+    <span>03 Security</span>
+  </div>
+</div>
+
+<div class="tabbar" id="tabbar">
+  <button class="tabbtn active" data-tab="theory">Lý thuyết</button>
+  <button class="tabbtn" data-tab="quiz">Quiz</button>
+  <button class="tabbtn" data-tab="lab">Lab</button>
+  <button class="tabbtn" data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Domain — Resilient 26% · Cost-Optimized 20%</p>
+  <h1>Deployment and Management</h1>
+  <p class="lede">Bản vẽ kỹ thuật dựng nhà máy (CloudFormation/Beanstalk), sổ tay cấu hình-bí mật (Parameter Store/Secrets Manager), nhân viên kiểm định (Config), hợp đồng thuê chung (RAM), và bản kế hoạch dự phòng khi nhà máy chính gặp sự cố (RPO/RTO/DR).</p>
+</div>
+
+<!-- SIDEBAR (chỉ hiện ở tab Lý thuyết & Quiz) -->
+<div class="sidebar" id="sidebar-theory">
+  <h4>Bài trong section</h4>
+  <a href="#l6-2" class="side-link">6.2 CloudFormation</a>
+  <a href="#l6-5" class="side-link">6.5 Elastic Beanstalk</a>
+  <a href="#l6-7" class="side-link">6.7 SSM Parameter Store</a>
+  <a href="#l6-8" class="side-link">6.8 AWS Config</a>
+  <a href="#l6-10" class="side-link">6.10 Secrets Manager</a>
+  <a href="#l6-11" class="side-link">6.11 Resource Access Manager</a>
+  <a href="#l6-13" class="side-link">6.13 RPO/RTO/DR</a>
+</div>
+
+<div class="tabpanel-content">
+
+<!-- ===== TAB LÝ THUYẾT ===== -->
+<div class="tabpanel active" id="tab-theory">
+
+<section class="lesson" id="l6-2">
+<h3>6.2 — Infrastructure as Code with AWS CloudFormation</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Mô tả toàn bộ hạ tầng trong 1 template YAML/JSON, AWS tự tạo/sửa/xóa đúng thứ tự phụ thuộc. Giống đưa bản vẽ kỹ thuật cho nhà thầu thay vì tự xây tay từng viên gạch.</p>
+    <ul>
+      <li><b>Stack</b> = 1 lần deploy = tập resource quản lý cùng nhau</li>
+      <li><b>Change Set</b> = xem trước thay đổi trước khi apply</li>
+      <li><b>Nested Stack</b> = stack cha gọi nhiều stack con</li>
+      <li><b>Drift Detection</b> = phát hiện resource bị sửa tay ngoài luồng</li>
+    </ul>
+    <p><b>Pattern nâng cao:</b> Dùng <code>validate-template</code> + <code>cfn-lint</code> trước khi commit. <b>Case thực tế:</b> startup SaaS B2B dùng 1 template với <code>Parameters</code> (EnvType) để CI/CD tự deploy dev/staging/prod giống hệt nhau, tránh lỗi "chạy được ở staging nhưng lỗi ở prod".</p>
+    <p><b>Vị trí kiến trúc:</b> Không phải trạm sản xuất — là <b>bản vẽ kỹ thuật + đội thi công</b> dựng toàn bộ nhà máy, đứng trên toàn bộ bản đồ nền, ngoài luồng xử lý request khách hàng.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Xem trước thay đổi trước khi apply stack production dùng gì? → Change Set.</li>
+        <li>Phát hiện ai đó sửa tay Security Group ngoài CFN? → detect-stack-drift.</li>
+        <li>Vì sao startup 3 môi trường nên dùng CFN? → Đồng nhất dev/staging/prod, giảm lỗi.</li>
+        <li>Dùng lại VpcId ở stack khác không hardcode? → Outputs+Export / Fn::ImportValue.</li>
+        <li>CFN khớp trạm nào? → Không khớp trạm nào — là bản vẽ + đội thi công.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws cloudformation create-stack \
+  --stack-name my-vpc-stack \
+  --template-body file://vpc.yaml \
+  --capabilities CAPABILITY_NAMED_IAM
+
+aws cloudformation create-change-set \
+  --stack-name my-vpc-stack \
+  --change-set-name preview-01 \
+  --template-body file://vpc-v2.yaml
+
+aws cloudformation execute-change-set \
+  --change-set-name preview-01 --stack-name my-vpc-stack
+
+aws cloudformation detect-stack-drift --stack-name my-vpc-stack</code></pre>
+    <table><tr><th>Flag/Lệnh</th><th>Ý nghĩa</th></tr>
+      <tr><td>create-stack</td><td>Tạo mới toàn bộ resource theo template</td></tr>
+      <tr><td>--capabilities CAPABILITY_NAMED_IAM</td><td>Xác nhận cho phép tạo IAM resource có tên</td></tr>
+      <tr><td>create-change-set</td><td>Bản xem trước, chưa thi hành</td></tr>
+      <tr><td>detect-stack-drift</td><td>Phát hiện resource bị sửa tay</td></tr>
+    </table>
+    <table><tr><th>So sánh</th><th>CFN</th><th>Beanstalk</th><th>Terraform</th></tr>
+      <tr><td>Phạm vi</td><td>Toàn bộ resource</td><td>Chỉ web app</td><td>Đa cloud</td></tr>
+      <tr><td>State</td><td>AWS tự quản</td><td>AWS tự quản</td><td>Tự quản</td></tr>
+    </table>
+    <table><tr><th>Tham số</th><th>Giá trị</th></tr>
+      <tr><td>Resource/stack</td><td>Tối đa 500</td></tr>
+      <tr><td>Rollback</td><td>Tự động khi create fail</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-5">
+<h3>6.5 — Platform as a Service with AWS Elastic Beanstalk</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> PaaS — upload code, EB tự tạo EC2+ASG+ELB+SG+CloudWatch bên dưới. Như thuê xưởng đóng gói sẵn thay vì tự xây/tuyển thợ.</p>
+    <ul><li>Web server environment: nhận HTTP qua ELB</li><li>Worker environment: xử lý job nền, tự tạo SQS</li></ul>
+    <p><b>Pattern nâng cao:</b> Deployment policy <b>Immutable</b> cho zero-downtime tuyệt đối. <b>Case:</b> team 3 người build MVP TMĐT dùng <code>.ebextensions</code> cài extension, <code>eb deploy</code> nhiều lần/ngày mà không quản chi tiết ASG/ALB.</p>
+    <p><b>Vị trí kiến trúc:</b> Không phải trạm mới — combo đóng gói sẵn của Sảnh phân luồng (ALB) + Xưởng lắp ráp (ASG/EC2).</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Zero-downtime tuyệt đối chọn policy nào? → Immutable.</li>
+        <li>Worker environment tự tạo thêm resource gì? → SQS queue.</li>
+        <li>Vì sao startup nhỏ chọn EB? → Không đủ người vận hành hạ tầng.</li>
+        <li>Cài thêm package OS lúc provision sửa ở đâu? → .ebextensions/*.config.</li>
+        <li>EB khớp đâu trong nhà máy? → Combo ALB + ASG/EC2 đóng gói sẵn.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>eb init my-app --platform python-3.9 --region ap-southeast-1
+eb create my-env --instance-type t3.micro --elb-type application
+eb deploy
+eb status
+eb logs
+eb terminate my-env</code></pre>
+    <table><tr><th>Flag/Lệnh</th><th>Ý nghĩa</th></tr>
+      <tr><td>eb init</td><td>Khởi tạo cấu hình project local</td></tr>
+      <tr><td>--elb-type application</td><td>Chọn ALB thay vì Classic LB</td></tr>
+      <tr><td>eb deploy</td><td>Đóng gói + upload + rolling deploy</td></tr>
+    </table>
+    <table><tr><th>So sánh</th><th>EB</th><th>EC2 tự dựng</th><th>ECS/Fargate</th></tr>
+      <tr><td>Quản lý</td><td>Tự động</td><td>Tự làm hết</td><td>Quản container</td></tr>
+    </table>
+    <table><tr><th>Tham số</th><th>Giá trị</th></tr>
+      <tr><td>Deployment policy</td><td>All-at-once/Rolling/Immutable/Traffic-split</td></tr>
+      <tr><td>Config mở rộng</td><td>.ebextensions/*.config</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-7">
+<h3>6.7 — SSM Parameter Store</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Kho key-value cho config/secret, versioning, mã hóa KMS (SecureString). Như sổ tay dùng chung có khóa thay vì dán số điện thoại lên tường.</p>
+    <ul><li>Standard: miễn phí, 4KB</li><li>Advanced: trả phí, 8KB, throughput cao hơn</li></ul>
+    <p><b>Pattern nâng cao:</b> Path hierarchy <code>/{env}/{service}/{key}</code> + IAM theo path prefix. <b>Case:</b> microservice trên EKS đọc config runtime lúc khởi động thay vì bake vào Docker image.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ cùng nhóm KMS — sổ tay cấu hình dùng chung cho Xưởng lắp ráp và Thợ thời vụ.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Lưu password mã hóa dùng type nào? → SecureString.</li>
+        <li>Vì sao service EKS đọc config qua Parameter Store? → Đổi config không cần build lại image.</li>
+        <li>Standard tier giới hạn kích thước? → 4KB.</li>
+        <li>Giới hạn team chỉ đọc /staging/*? → IAM policy theo path prefix.</li>
+        <li>Khớp đâu trong nhà máy? → Cạnh KMS, lớp phủ an ninh.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws ssm put-parameter --name "/prod/db/password" \
+  --value "S3cret!" --type SecureString --key-id alias/my-key
+
+aws ssm get-parameter --name "/prod/db/password" --with-decryption
+
+aws ssm get-parameters-by-path --path "/prod/db/" --recursive</code></pre>
+    <table><tr><th>Flag</th><th>Ý nghĩa</th></tr>
+      <tr><td>--type SecureString</td><td>Mã hóa bằng KMS</td></tr>
+      <tr><td>--with-decryption</td><td>Giải mã khi đọc</td></tr>
+      <tr><td>get-parameters-by-path</td><td>Lấy hàng loạt theo prefix</td></tr>
+    </table>
+    <table><tr><th>So sánh</th><th>Parameter Store</th><th>Secrets Manager</th></tr>
+      <tr><td>Chi phí</td><td>Miễn phí</td><td>Trả phí</td></tr>
+      <tr><td>Auto-rotate</td><td>Không</td><td>Có sẵn</td></tr>
+    </table>
+    <table><tr><th>Tham số</th><th>Giá trị</th></tr>
+      <tr><td>Kích thước</td><td>4KB (Standard) / 8KB (Advanced)</td></tr>
+      <tr><td>Số parameter miễn phí</td><td>10,000/account</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-8">
+<h3>6.8 — AWS Config</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Ghi lại trạng thái cấu hình resource, so sánh với rule để phát hiện non-compliant. Như nhân viên kiểm định đi vòng quanh nhà máy ghi nhật ký. Khác CloudTrail: Config ghi trạng thái/lịch sử, CloudTrail ghi ai gọi API gì.</p>
+    <p><b>Pattern nâng cao:</b> Auto Remediation qua SSM Automation. <b>Case:</b> ngân hàng dùng Config Aggregator gộp compliance toàn Organization, xuất báo cáo cho audit.</p>
+    <p><b>Vị trí kiến trúc:</b> Lớp phủ an ninh, nhân viên kiểm định cấu hình (khác GuardDuty — đội tuần tra kẻ lạ).</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Config khác CloudTrail điểm nào? → Trạng thái cấu hình vs hành động API.</li>
+        <li>Tự sửa khi phát hiện S3 public? → Auto Remediation qua SSM Automation.</li>
+        <li>Gộp compliance nhiều account? → Config Aggregator.</li>
+        <li>Managed rule không đủ? → Custom Config Rule bằng Lambda.</li>
+        <li>Khớp đâu trong nhà máy? → Lớp phủ an ninh, nhân viên kiểm định.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws configservice put-configuration-recorder \
+  --configuration-recorder name=default,roleARN=arn:...role/config-role
+aws configservice start-configuration-recorder --configuration-recorder-name default
+aws configservice put-config-rule --config-rule file://s3-public-read-prohibited.json
+aws configservice get-compliance-details-by-config-rule \
+  --config-rule-name s3-bucket-public-read-prohibited</code></pre>
+    <table><tr><th>So sánh</th><th>Config</th><th>CloudTrail</th></tr>
+      <tr><td>Ghi lại</td><td>Trạng thái cấu hình</td><td>Lệnh API</td></tr>
+      <tr><td>Remediate</td><td>Có (SSM Automation)</td><td>Không</td></tr>
+    </table>
+    <table><tr><th>Tham số</th><th>Giá trị</th></tr>
+      <tr><td>Recorder</td><td>1/region/account</td></tr>
+      <tr><td>Compliance</td><td>COMPLIANT/NON_COMPLIANT/NOT_APPLICABLE</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-10">
+<h3>6.10 — AWS Secrets Manager</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Lưu secret mã hóa KMS, có auto-rotation tích hợp RDS/Aurora/Redshift/DocumentDB. Như hộp khóa số tự đổi mã mỗi tháng.</p>
+    <p><b>Pattern nâng cao:</b> Cross-region replica cho DR. <b>Case:</b> sàn giao dịch tài chính đổi password DB mỗi 30 ngày tự động không downtime.</p>
+    <p><b>Vị trí kiến trúc:</b> Cùng khu Parameter Store, sổ tay bí mật có tự đổi khóa định kỳ.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>Khác biệt lớn nhất so với Parameter Store? → Auto-rotation tích hợp RDS/Aurora.</li>
+        <li>Đổi password mỗi 30 ngày không downtime? → Secrets Manager + Lambda rotation.</li>
+        <li>Secret sẵn sàng ở region DR? → Cross-region replication.</li>
+        <li>Kích thước tối đa? → 64KB.</li>
+        <li>Khớp đâu trong nhà máy? → Cùng khu Parameter Store, lớp phủ an ninh.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws secretsmanager create-secret --name prod/db/password \
+  --secret-string '{"username":"admin","password":"S3cret!"}'
+aws secretsmanager get-secret-value --secret-id prod/db/password
+aws secretsmanager rotate-secret --secret-id prod/db/password \
+  --rotation-lambda-arn arn:...function:rotate-rds \
+  --rotation-rules AutomaticallyAfterDays=30</code></pre>
+    <table><tr><th>So sánh</th><th>Secrets Manager</th><th>Parameter Store</th></tr>
+      <tr><td>Auto-rotate</td><td>Có sẵn</td><td>Không</td></tr>
+      <tr><td>Chi phí</td><td>~$0.40/secret/tháng</td><td>Miễn phí</td></tr>
+      <tr><td>Kích thước</td><td>64KB</td><td>4-8KB</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-11">
+<h3>6.11 — AWS Resource Access Manager</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>Khái niệm:</b> Chia sẻ resource (subnet, TGW, license) giữa nhiều account mà không cần duplicate. Như xây 1 con đường chung thay vì mỗi phòng ban tự xây riêng.</p>
+    <p><b>Pattern nâng cao:</b> Share Transit Gateway trung tâm cho toàn Organization. <b>Case:</b> tập đoàn nhiều BU dùng chung 1 subnet đặt Active Directory thay vì mỗi BU tự dựng.</p>
+    <p><b>Vị trí kiến trúc:</b> Trạm mới — "hợp đồng thuê chung" hạ tầng giữa các account, cạnh AWS Organizations.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>RAM khác VPC Peering ở đâu? → Chia sẻ resource cụ thể, không chỉ network.</li>
+        <li>Trong cùng Organization cần accept thủ công? → Không, tự động nếu đã bật sharing.</li>
+        <li>Tập đoàn nhiều BU dùng chung subnet AD? → RAM share subnet.</li>
+        <li>Share TGW cho account con cần gì trước? → Bật sharing với Organizations.</li>
+        <li>Khớp đâu trong nhà máy? → Trạm mới, hợp đồng thuê chung, cạnh Organizations.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+<pre><code>aws ram create-resource-share --name shared-subnet \
+  --resource-arns arn:aws:ec2:...:subnet/subnet-abc123 \
+  --principals 222222222222
+
+aws ram enable-sharing-with-aws-organization
+aws ram get-resource-shares --resource-owner SELF</code></pre>
+    <table><tr><th>Tham số</th><th>Ghi chú</th></tr>
+      <tr><td>Trong Organization</td><td>Tự động share, không cần accept</td></tr>
+      <tr><td>Ngoài Organization</td><td>Cần accept-resource-share-invitation</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="lesson" id="l6-13">
+<h3>6.13 — RPO, RTO, and DR Strategies</h3>
+<div class="lesson-grid">
+  <div class="col-left">
+    <p><b>RPO</b> = dữ liệu tối đa chấp nhận mất. <b>RTO</b> = thời gian tối đa chấp nhận downtime. Như "save file lần cuối lúc nào" (RPO) và "mất bao lâu mở lại máy" (RTO).</p>
+    <p><b>Pattern nâng cao:</b> Luôn chọn chiến lược rẻ nhất đáp ứng đủ RTO/RPO đề bài cho. <b>Case:</b> công ty bảo hiểm cần RPO 5 phút chọn Pilot Light thay vì Warm Standby/Active-Active đắt hơn.</p>
+    <p><b>Vị trí kiến trúc:</b> Không phải 1 trạm — bản kế hoạch dự phòng toàn nhà máy; Route 53 chuyển hướng khách sang nhà máy phụ khi cần.</p>
+    <div class="qa"><b>5 câu hỏi ôn tập</b>
+      <ol>
+        <li>RPO đo gì, RTO đo gì? → Dữ liệu mất tối đa vs thời gian downtime tối đa.</li>
+        <li>RPO 5 phút, ngân sách hạn chế? → Pilot Light.</li>
+        <li>Chiến lược RPO/RTO ~0 nhưng đắt nhất? → Multi-site Active/Active.</li>
+        <li>Cơ chế tự chuyển traffic sang DR? → Route 53 Failover routing.</li>
+        <li>Nguyên tắc chọn chiến lược khi đề cho RTO/RPO? → Rẻ nhất vẫn đáp ứng đủ.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-right">
+    <table><tr><th>Chiến lược</th><th>RPO</th><th>RTO</th><th>Chi phí</th></tr>
+      <tr><td>Backup & Restore</td><td>Vài giờ</td><td>Giờ-ngày</td><td>$</td></tr>
+      <tr><td>Pilot Light</td><td>Vài phút</td><td>Chục phút</td><td>$$</td></tr>
+      <tr><td>Warm Standby</td><td>Giây-phút</td><td>Vài phút</td><td>$$$</td></tr>
+      <tr><td>Multi-site A/A</td><td>~0</td><td>~0</td><td>$$$$</td></tr>
+    </table>
+<pre><code>aws rds create-db-instance-read-replica \
+  --db-instance-identifier prod-db-replica-dr \
+  --source-db-instance-identifier prod-db \
+  --source-region ap-southeast-1 --region us-east-1</code></pre>
+  </div>
+</div>
+</section>
+
+</div><!-- /tab-theory -->
+
+<!-- ===== TAB QUIZ ===== -->
+<div class="tabpanel" id="tab-quiz">
+<h2>Quiz — Deployment and Management</h2>
+<div class="quiz-grid">
+  <div class="qcard"><b>1. Muốn xem trước thay đổi trước khi update stack production, dùng gì?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Change Set — tạo bằng create-change-set, review rồi execute-change-set.</div></div>
+  <div class="qcard"><b>2. Deployment policy nào cho zero-downtime tuyệt đối trên Elastic Beanstalk?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Immutable — tạo ASG mới hoàn toàn song song rồi chuyển traffic.</div></div>
+  <div class="qcard"><b>3. Khác biệt chính giữa Parameter Store và Secrets Manager?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Secrets Manager có auto-rotation tích hợp RDS/Aurora, Parameter Store thì không.</div></div>
+  <div class="qcard"><b>4. AWS Config khác CloudTrail ở điểm nào?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Config ghi trạng thái cấu hình + lịch sử thay đổi; CloudTrail ghi ai gọi API gì.</div></div>
+  <div class="qcard"><b>5. RAM dùng để làm gì?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Chia sẻ resource (subnet, TGW, license) giữa nhiều account mà không cần duplicate.</div></div>
+  <div class="qcard"><b>6. Công ty bảo hiểm cần RPO 5 phút, ngân sách hạn chế — chọn chiến lược DR nào?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Pilot Light — DB sync liên tục (RPO thấp), compute tắt sẵn (RTO chấp nhận cao hơn).</div></div>
+  <div class="qcard"><b>7. Nested stack yêu cầu điều gì đặc biệt về template con?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Phải nằm trên S3 (TemplateURL), không dùng file:// local trực tiếp.</div></div>
+  <div class="qcard"><b>8. Muốn tự động sửa khi Config phát hiện S3 bucket public, dùng gì?</b>
+    <button onclick="this.parentElement.classList.toggle('revealed')">Xem đáp án</button>
+    <div class="ans">Auto Remediation gắn SSM Automation document vào Config Rule.</div></div>
+</div>
+</div>
+
+<!-- ===== TAB LAB ===== -->
+<div class="tabpanel" id="tab-lab">
+<h2>Lab tổng — Deploy &amp; Quản trị hạ tầng như kỹ sư mới</h2>
+<div class="lab-grid">
+  <div>
+    <p>🧭 <b>Bối cảnh:</b> Tuần đầu vào startup — dựng VPC bằng CloudFormation, deploy app qua Elastic Beanstalk, tách config/secret khỏi code, bật audit compliance, chia sẻ subnet cho account team khác.</p>
+    <p><b>Verify:</b></p>
+    <pre><code>aws cloudformation describe-stacks --stack-name dev-network \
+  --query 'Stacks[0].StackStatus'
+eb status
+aws ssm get-parameter --name "/dev/app/log-level"
+aws configservice get-compliance-details-by-config-rule \
+  --config-rule-name s3-bucket-public-read-prohibited
+aws ram get-resource-shares --resource-owner SELF</code></pre>
+    <p><b>Cleanup:</b></p>
+    <pre><code>aws ram delete-resource-share --resource-share-arn &lt;arn&gt;
+aws configservice stop-configuration-recorder --configuration-recorder-name default
+aws secretsmanager delete-secret --secret-id dev/db/password --force-delete-without-recovery
+aws ssm delete-parameter --name "/dev/app/log-level"
+eb terminate dev-env
+aws cloudformation delete-stack --stack-name root-app-stack
+aws cloudformation delete-stack --stack-name dev-network</code></pre>
+    <div class="warn-box"><b>⚠️ Lưu ý dễ sai/dễ tốn phí:</b>
+    <ul>
+      <li>Nested stack bắt buộc template con nằm trên S3, không dùng file:// local.</li>
+      <li>eb create tạo NAT Gateway tính phí theo giờ — terminate ngay sau khi test.</li>
+      <li>secretsmanager delete-secret mặc định giữ 7-30 ngày — dùng --force-delete-without-recovery khi chắc chắn.</li>
+      <li>Xóa stack cha (nested) sẽ tự xóa stack con, không cần xóa tay.</li>
+    </ul></div>
+  </div>
+  <div>
+<pre><code># BƯỚC 1: VPC bằng CloudFormation
+aws cloudformation create-stack --stack-name dev-network \
+  --template-body file://vpc.yaml
+aws cloudformation wait stack-create-complete --stack-name dev-network
+
+# BƯỚC 2: Change Set - thêm subnet
+aws cloudformation create-change-set --stack-name dev-network \
+  --change-set-name add-second-subnet --template-body file://vpc-v2.yaml
+aws cloudformation execute-change-set --stack-name dev-network \
+  --change-set-name add-second-subnet
+
+# BƯỚC 3: Nested stack
+aws s3 cp vpc.yaml s3://my-cfn-templates-bucket/vpc.yaml
+aws cloudformation create-stack --stack-name root-app-stack \
+  --template-body file://root-stack.yaml
+
+# BƯỚC 4: Elastic Beanstalk
+eb init my-app --platform python-3.9 --region ap-southeast-1
+eb create dev-env --instance-type t3.micro --elb-type application
+eb deploy && eb status
+
+# BƯỚC 5: Config/secret tách khỏi code
+aws ssm put-parameter --name "/dev/app/log-level" --value "INFO" --type String
+aws secretsmanager create-secret --name dev/db/password \
+  --secret-string '{"username":"admin","password":"TempPass123!"}'
+
+# BƯỚC 6: Audit compliance + auto-remediation
+aws configservice put-configuration-recorder \
+  --configuration-recorder name=default,roleARN=arn:...role/config-role
+aws configservice start-configuration-recorder --configuration-recorder-name default
+aws configservice put-config-rule --config-rule file://s3-public-read-prohibited.json
+
+# BƯỚC 7: Chia sẻ subnet qua RAM
+aws ram create-resource-share --name shared-dev-subnet \
+  --resource-arns arn:aws:ec2:...:subnet/subnet-abc123 \
+  --principals 222222222222</code></pre>
+  </div>
+</div>
+</div>
+
+<!-- ===== TAB CHEAT SHEET ===== -->
+<div class="tabpanel" id="tab-cheat">
+<h2>Cheat Sheet — Deployment and Management</h2>
+<div class="cheat-grid">
+  <div class="cheat-card"><h4>CloudFormation vs Beanstalk</h4>CFN = IaC toàn bộ resource. Beanstalk = PaaS chỉ web app, tự dựng ASG/ELB bên dưới. Change Set = xem trước thay đổi.</div>
+  <div class="cheat-card"><h4>Parameter Store vs Secrets Manager</h4>Parameter Store: rẻ, không auto-rotate. Secrets Manager: có phí, auto-rotate tích hợp RDS/Aurora.</div>
+  <div class="cheat-card"><h4>Config vs CloudTrail</h4>Config = trạng thái cấu hình + compliance. CloudTrail = ai gọi API gì. Đừng nhầm trong câu hỏi audit.</div>
+  <div class="cheat-card"><h4>RAM</h4>Chia sẻ resource giữa account, không cần duplicate hạ tầng — hay đi cùng AWS Organizations.</div>
+  <div class="cheat-card"><h4>DR Strategies</h4>Backup&Restore → Pilot Light → Warm Standby → Multi-site Active/Active. Luôn chọn phương án rẻ nhất đáp ứng đủ RTO/RPO.</div>
+  <div class="cheat-card"><h4>Nested Stack</h4>Template con bắt buộc nằm trên S3 (TemplateURL), không dùng file:// local như stack gốc.</div>
+  <div class="pattern-box" style="grid-column:1/-1"><h4>🎯 Pattern chuẩn thi</h4>Khi đề cho RTO/RPO cụ thể → chọn chiến lược DR rẻ nhất đáp ứng đủ. Khi hỏi "tránh downtime khi update hạ tầng" → Change Set / Immutable deployment. Khi hỏi "audit trạng thái cấu hình" → Config, không phải CloudTrail.</div>
+  <div class="cheat-card factory-card"><h4>🏭 Trạm mới thêm vào nhà máy nền</h4>
+    <ul>
+      <li>CloudFormation — bản vẽ + đội thi công dựng toàn nhà máy</li>
+      <li>Elastic Beanstalk — combo đóng gói ALB+ASG/EC2</li>
+      <li>Parameter Store / Secrets Manager — sổ tay cấu hình/bí mật cạnh KMS</li>
+      <li>AWS Config — nhân viên kiểm định cấu hình (khác GuardDuty)</li>
+      <li>AWS RAM — hợp đồng thuê chung hạ tầng giữa account</li>
+      <li>RPO/RTO/DR — bản kế hoạch dự phòng toàn nhà máy</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+</div><!-- /tabpanel-content -->
+
+<script>
+  const tabbtns = document.querySelectorAll('.tabbtn');
+  const panels = {theory:'tab-theory', quiz:'tab-quiz', lab:'tab-lab', cheat:'tab-cheat'};
+  tabbtns.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      tabbtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(panels).forEach(id=>document.getElementById(id).classList.remove('active'));
+      document.getElementById(panels[btn.dataset.tab]).classList.add('active');
+      document.body.classList.toggle('has-sidebar', btn.dataset.tab==='theory' || btn.dataset.tab==='quiz');
+      document.getElementById('sidebar-theory').style.display = (btn.dataset.tab==='theory')? 'block':'none';
+    });
+  });
+  // scrollspy
+  const links = document.querySelectorAll('.side-link');
+  const sections = document.querySelectorAll('.lesson');
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(l=>l.classList.remove('active'));
+        const match = document.querySelector('.side-link[href="#'+e.target.id+'"]');
+        if(match) match.classList.add('active');
+      }
+    });
+  },{rootMargin:'-20% 0px -70% 0px'});
+  sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EC2 Lifecycle & Pricing · SAA-C03</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#FFFFFF;
+  --ink:#1A1A1A;
+  --muted:#6B6B6B;
+  --line:#E7E5E0;
+  --accent:#D9720B;
+  --accent-soft:#FDF1E4;
+  --surface:#FAF9F7;
+  --navh:53px;
+  --tabh:49px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;width:100%;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+.serif{font-family:'Source Serif 4',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+
+/* ---- Top nav ---- */
+.nav{position:sticky;top:0;z-index:50;height:var(--navh);display:flex;align-items:center;justify-content:space-between;
+  padding:0 4vw;background:rgba(255,255,255,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.nav .brand{font-family:'IBM Plex Mono';font-size:12.5px;letter-spacing:.06em;color:var(--muted);}
+.nav .brand b{color:var(--ink);}
+.roadmap-nav{display:flex;gap:18px;font-family:'IBM Plex Mono';font-size:11.5px;color:var(--muted);}
+.roadmap-nav .cur{color:var(--accent);font-weight:600;}
+.roadmap-nav .done{color:#7A8A6F;}
+
+/* ---- Tabs ---- */
+.tabbar{position:sticky;top:var(--navh);z-index:49;height:var(--tabh);display:flex;align-items:center;gap:28px;padding:0 4vw;
+  background:#fff;border-bottom:1px solid var(--line);}
+.tab-btn{font-family:'IBM Plex Mono';font-size:13px;padding:16px 0;background:none;border:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;letter-spacing:.02em;}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ---- Hero ---- */
+.hero{padding:4vw 4vw 3vw;border-bottom:1px solid var(--line);transition:padding-left .1s;}
+body.has-sidebar .hero{padding-left:calc(230px + 4vw);}
+.eyebrow{font-family:'IBM Plex Mono';font-size:12px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin:0 0 16px;}
+.hero h1{font-family:'Source Serif 4';font-weight:600;font-size:clamp(30px,4.4vw,52px);line-height:1.08;margin:0 0 18px;max-width:26ch;}
+.hero p.lede{font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:#3C3C3C;max-width:70ch;margin:0;}
+
+/* ---- Layout w/ sidebar (fixed) ---- */
+.layout{position:relative;width:100%;}
+.sidebar{position:fixed;top:calc(var(--navh) + var(--tabh));left:0;width:230px;
+  height:calc(100vh - var(--navh) - var(--tabh));overflow-y:auto;
+  border-right:1px solid var(--line);padding:32px 20px 40px;background:#fff;z-index:20;}
+.sidebar .stitle{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 14px 12px;}
+.sidebar a{display:block;font-family:'IBM Plex Mono';font-size:12.5px;padding:8px 12px;color:var(--muted);border-left:2px solid transparent;line-height:1.5;}
+.sidebar a:hover{color:var(--ink);}
+.sidebar a.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-soft);font-weight:600;}
+.sidebar a .t{display:block;font-family:'Inter';font-size:12px;color:inherit;opacity:.85;margin-top:1px;}
+
+.main{margin-left:230px;padding:0 4vw;min-width:0;}
+
+/* ---- Lesson block: 2-col content grid ---- */
+.lesson-block{padding:5vw 0 4.5vw;border-bottom:1px solid var(--line);scroll-margin-top:calc(var(--navh) + var(--tabh) + 20px);}
+.lesson-block:first-child{padding-top:3vw;}
+.lesson-tag{font-family:'IBM Plex Mono';font-size:12px;color:var(--accent);margin:0 0 8px;}
+.lesson-block h2{font-family:'Source Serif 4';font-weight:600;font-size:clamp(22px,2.2vw,30px);line-height:1.25;margin:0 0 28px;max-width:38ch;}
+
+.lgrid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:60px;align-items:start;}
+.lgrid .prose h3{font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:26px 0 8px;}
+.lgrid .prose h3:first-child{margin-top:0;}
+.lgrid .prose p{font-size:16px;line-height:1.8;color:#262626;margin:0 0 6px;max-width:56ch;}
+.role-box{border-left:3px solid var(--accent);background:var(--accent-soft);padding:16px 20px;border-radius:0 6px 6px 0;margin:8px 0 4px;}
+.role-box p{font-size:15px;max-width:none !important;}
+.reality-box{border-left:3px solid #7A8A6F;background:#F1F4EE;padding:16px 20px;border-radius:0 6px 6px 0;margin:8px 0 4px;}
+.reality-box p{font-size:15px;max-width:none !important;}
+.reality-box ul{margin:4px 0 0;padding-left:18px;font-size:15px;line-height:1.8;}
+
+.aside{position:static;}
+.aside h3{font-family:'IBM Plex Mono';font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 8px;}
+.aside table{width:100%;border-collapse:collapse;margin:0 0 22px;font-size:13.5px;}
+.aside th,.aside td{border-bottom:1px solid var(--line);padding:8px 4px;text-align:left;}
+.aside th{font-family:'IBM Plex Mono';font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:500;}
+.aside pre{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px;overflow-x:auto;font-size:12.5px;line-height:1.65;margin:0 0 18px;}
+.limit-line{font-size:13.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px;}
+.limit-line b{color:var(--ink);}
+
+/* ---- Quiz: 2-col grid ---- */
+.quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 48px;}
+.q-item{padding:16px 0;border-top:1px solid var(--line);break-inside:avoid;}
+.q-item p.qtext{font-size:15px;font-weight:500;margin:0 0 10px;line-height:1.5;}
+.q-answer{font-size:13.5px;color:var(--accent);cursor:pointer;display:inline-block;font-family:'IBM Plex Mono';}
+.q-answer-text{display:none;font-size:14px;color:#2E5F2E;margin-top:8px;padding:10px 14px;background:#F1F4EE;border-radius:6px;}
+.q-answer-text.show{display:block;}
+
+/* ---- Lab: 2-col ---- */
+.lab-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:60px;align-items:start;padding:3vw 0 5vw;}
+.lab-grid pre{position:sticky;top:calc(var(--navh) + var(--tabh) + 24px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:22px 26px;overflow-x:auto;font-size:13px;line-height:1.75;max-height:calc(100vh - var(--navh) - var(--tabh) - 60px);overflow-y:auto;}
+.lab-info h2{font-family:'Source Serif 4';font-weight:600;font-size:26px;margin:0 0 14px;}
+.context-line{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:24px;font-style:italic;}
+.lab-info .verify,.lab-info .cleanup{font-size:14.5px;margin:10px 0;line-height:1.6;}
+.lab-info .verify{color:#2E5F2E;}
+.lab-info .cleanup{color:var(--accent);}
+.warn-line{border-top:1px solid var(--line);margin-top:20px;padding-top:16px;font-size:14.5px;color:#8A2E2E;line-height:1.6;}
+
+/* ---- Cheat sheet: card grid ---- */
+.cheat-wrap{padding:4vw 0 6vw;}
+.cheat-wrap h2{font-family:'Source Serif 4';font-weight:600;font-size:28px;margin:0 0 26px;}
+.cheat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:30px;}
+.cheat-card{background:#fff;padding:20px 22px;}
+.cheat-card .k{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.cheat-card .v{font-family:'IBM Plex Mono';font-size:13.5px;color:var(--ink);margin-bottom:8px;}
+.cheat-card .note{font-size:13.5px;color:var(--muted);line-height:1.6;}
+.pattern-line{font-family:'Source Serif 4';font-size:19px;line-height:1.7;padding:28px 32px;background:var(--accent-soft);border-radius:8px;border-left:3px solid var(--accent);max-width:80ch;}
+
+@media (max-width:900px){
+  body.has-sidebar .hero{padding-left:4vw;}
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .lgrid,.lab-grid{grid-template-columns:1fr;gap:24px;}
+  .lab-grid pre{position:static;max-height:none;}
+  .quiz-grid{grid-template-columns:1fr;}
+  .cheat-cards{grid-template-columns:1fr;}
+  .roadmap-nav{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="brand"><b>SAA-C03</b> · Module 2 · EC2 Part 2</div>
+  <div class="roadmap-nav">
+    <span class="done">01 IAM</span>
+    <span class="done">02a EC2·P1</span>
+    <span class="cur">02b EC2·P2</span>
+    <span class="done">03 ELB/ASG</span>
+    <span>04 Org</span>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab-btn active" data-tab="theory">Lý thuyết</button>
+  <button class="tab-btn" data-tab="quiz">Quiz</button>
+  <button class="tab-btn" data-tab="lab">Lab</button>
+  <button class="tab-btn" data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Domain — High-Performing 24% · Resilient 26% · Cost-Optimized 20%</p>
+  <h1>EC2 Lifecycle &amp; Pricing</h1>
+  <p class="lede">Instance sống/chết theo trạng thái nào, và trả tiền cho AWS theo cách nào là hợp lý — mỗi bài theo format tra cứu nhanh: khái niệm+ví dụ, lệnh kèm từ điển flag, bảng so sánh, bảng tham số, pattern nâng cao+case thực tế, vị trí trong kiến trúc.</p>
+</div>
+
+<div class="tab-panel active" id="panel-theory">
+  <div class="layout">
+    <div class="sidebar">
+      <p class="stitle">4 bài trong section</p>
+      <div id="theoryToc"></div>
+    </div>
+    <div class="main" id="theoryArticle"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-quiz">
+  <div class="layout">
+    <div class="sidebar">
+      <p class="stitle">Nhảy nhanh</p>
+      <div id="quizToc"></div>
+    </div>
+    <div class="main" id="quizArticle"></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-lab">
+  <div style="padding:0 4vw;" id="labArticle"></div>
+</div>
+
+<div class="tab-panel" id="panel-cheat">
+  <div style="padding:0 4vw;" id="cheatArticle"></div>
+</div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    document.body.classList.toggle('has-sidebar', btn.dataset.tab==='theory' || btn.dataset.tab==='quiz');
+    window.scrollTo({top:0,behavior:'instant'});
+  });
+});
+document.body.classList.add('has-sidebar');
+
+const lessons = [
+{code:"2.36", title:"EC2 Instance Lifecycle",
+ concept:"Instance đi qua các trạng thái pending → running → stopping → stopped → terminated. Giống hợp đồng thuê xe: đang chạy (running) tính tiền theo giờ; tạm gửi xe vào bãi (stopped) không tính tiền thuê nhưng vẫn tính phí giữ xe (EBS); trả xe hẳn (terminated) là hết hợp đồng.",
+ cmd:`aws ec2 stop-instances --instance-ids i-xxxx
+aws ec2 modify-instance-attribute --instance-id i-xxxx --disable-api-termination
+aws ec2 describe-instance-status --instance-ids i-xxxx`,
+ flagTable:[["stop-instances","—","Dừng instance, giữ nguyên EBS"],["--disable-api-termination","—","Bật Termination Protection, chặn terminate nhầm"],["describe-instance-status","—","Xem trạng thái + status check hiện tại"]],
+ compareCols:["Trạng thái","Phí compute","EBS","Instance Store"],
+ compareRows:[["running","Có","Giữ nguyên","Giữ nguyên"],["stopped","Không","Giữ nguyên","Mất hoàn toàn"],["terminated","Không","Mất (trừ DeleteOnTermination=false)","Mất hoàn toàn"]],
+ paramTable:[["Instance Store khi stop","Mất hoàn toàn","Khác EBS-backed"],["DeleteOnTermination","true/false","Mặc định true — root volume xóa theo khi terminate"]],
+ advCmd:`aws scheduler create-schedule --name stop-dev-nightly \\
+  --schedule-expression "cron(0 20 * * ? *)" \\
+  --target '{"Arn":"arn:aws:scheduler:::aws-sdk:ec2:stopInstances","Input":"{...}"}'`,
+ advReality:"Team vận hành dev/staging dùng EventBridge Scheduler tự động stop toàn bộ instance ngoài giờ hành chính (dựa trên tag Environment=dev) — kỹ thuật cost-optimization đơn giản nhưng hiệu quả.",
+ config:{name:"Tag phân loại môi trường",code:`aws ec2 create-tags --resources i-xxxx --tags Key=Environment,Value=dev`,when:"Cần scale việc quản lý chi phí cho hàng chục/hàng trăm instance mà không chọn tay từng cái."},
+ role:"Instance Lifecycle giống <b>ca làm việc của công nhân</b> — đến ca (running) tính lương, nghỉ giữa ca (stopped) vẫn giữ đồ đạc (EBS) nhưng không lương, nghỉ việc hẳn (terminated) dọn sạch bàn làm việc. Production luôn bật Termination Protection để tránh 'sa thải nhầm'.",
+ quiz:[
+  {q:"Instance stopped có tính phí compute không?",a:"Không, nhưng EBS vẫn tính phí lưu trữ"},
+  {q:"Vì sao team dev/staging hay tự động stop instance ngoài giờ?",a:"Cắt giảm chi phí compute"},
+  {q:"Instance Store có giữ dữ liệu sau khi stop không?",a:"Không, mất hoàn toàn"},
+  {q:"Flag nào bật Termination Protection?",a:"--disable-api-termination"},
+  {q:"Vì sao production luôn nên bật Termination Protection?",a:"Tránh xóa nhầm do thao tác console/CLI sai"}
+ ]
+},
+{code:"2.37", title:"Nitro Instances and Nitro Enclaves",
+ concept:"Nitro System tách phần networking/storage ra phần cứng chuyên dụng (Nitro Card) thay vì xử lý qua hypervisor software. Giống dây chuyền sản xuất chuyên biệt hóa — mỗi trạm có máy chuyên dụng riêng thay vì 1 máy tổng làm hết, giúp cả dây chuyền nhanh hơn.",
+ cmd:`aws ec2 run-instances --image-id ami-xxxx --instance-type m5.xlarge \\
+  --enclave-options 'Enabled=true'`,
+ flagTable:[["--enclave-options","—","Bật Nitro Enclaves cho instance (cần type hỗ trợ)"],["Enabled=true","—","Cờ bật tính năng bên trong JSON tham số"]],
+ compareCols:["","Instance Nitro-based","Instance thế hệ cũ (Xen)"],
+ compareRows:[["ENA mặc định","Có","Không luôn có"],["EBS-optimized","Mặc định","Cần bật riêng"],["Hỗ trợ Nitro Enclaves","Có (tùy type)","Không"]],
+ paramTable:[["Nitro Enclaves network","Không có","Chỉ giao tiếp qua vsock nội bộ"],["Nitro Enclaves storage","Không bền vững","Mất khi enclave dừng"]],
+ advCmd:`aws ec2 describe-instance-types --instance-types m5.xlarge \\
+  --query "InstanceTypes[0].HypervisorInfo"`,
+ advReality:"Công ty fintech/xử lý dữ liệu nhạy cảm dùng Nitro Enclaves để xử lý dữ liệu cực nhạy cảm trong môi trường cô lập hoàn toàn khỏi OS chính — kể cả root trên instance cha cũng không truy cập được, đáp ứng compliance PCI-DSS.",
+ config:{name:"Enclave options (JSON)",code:`{"Enabled": true}`,when:"Cần xử lý secret/khóa mã hóa/dữ liệu định danh mà ngay cả root trên instance cha cũng không được thấy."},
+ role:"Nitro là <b>nền móng nhà xưởng thế hệ mới</b> — giúp mọi máy móc phía trên (ENA, EBS-optimized) tự động chạy nhanh hơn. Nitro Enclaves là 'phòng thí nghiệm niêm phong' — biệt lập hoàn toàn, chỉ có 1 đường ống dữ liệu mã hóa duy nhất nối với xưởng chính.",
+ quiz:[
+  {q:"Nitro System cải thiện điều gì so với ảo hóa truyền thống?",a:"Tách networking/storage ra phần cứng chuyên dụng, giảm hao phí ảo hóa"},
+  {q:"Vì sao ENA có sẵn mặc định trên instance hiện đại?",a:"Vì chạy trên nền Nitro System"},
+  {q:"Ai thực sự cần Nitro Enclaves?",a:"Công ty xử lý dữ liệu cực nhạy cảm, cần compliance nghiêm ngặt"},
+  {q:"Có thể SSH vào Nitro Enclave không?",a:"Không"},
+  {q:"Nitro Enclave giao tiếp với instance cha qua đâu?",a:"vsock nội bộ"}
+ ]
+},
+{code:"2.38", title:"Amazon EC2 Pricing Options",
+ concept:"On-Demand (trả theo giờ), Reserved/Savings Plans (cam kết 1-3 năm), Spot (đấu giá, có thể bị thu hồi), Dedicated Host (phần cứng riêng). Giống gói cước điện thoại: trả sau theo dùng, gói cam kết năm giảm giá, vé standby giá rẻ có thể bị dời chuyến, thuê nguyên tổng đài riêng.",
+ cmd:`aws ec2 request-spot-instances --instance-count 1 --launch-specification file://spot-spec.json
+aws ec2 describe-spot-price-history --instance-types t3.micro`,
+ flagTable:[["request-spot-instances","—","Yêu cầu launch Spot Instance"],["--launch-specification","—","File JSON mô tả cấu hình instance muốn launch"],["describe-spot-price-history","—","Xem lịch sử giá Spot"]],
+ compareCols:["Model","Cam kết","Tiết kiệm"],
+ compareRows:[["On-Demand","Không","0%"],["Reserved/Savings Plans","1-3 năm","40-72%"],["Spot","Không","Đến 90%"],["Dedicated Host","Theo nhu cầu","Thấp nhất"]],
+ paramTable:[["Spot Interruption Notice","2 phút","Cảnh báo trước khi thu hồi"],["Savings Plans commitment","1 hoặc 3 năm","Cam kết theo $/giờ, không theo instance cụ thể"]],
+ advCmd:`aws autoscaling create-auto-scaling-group --auto-scaling-group-name mixed-asg \\
+  --mixed-instances-policy file://mixed-policy.json
+<span style="color:#6B6B6B"># phối hợp On-Demand baseline + Spot cho phần vượt ngưỡng trong cùng 1 ASG</span>`,
+ advReality:"TMĐT có traffic tăng đột biến dịp lễ dùng Mixed Instances Policy: giữ % On-Demand tối thiểu ổn định, phần scale thêm dùng Spot để tối ưu chi phí, tự fallback về On-Demand nếu Spot bị thu hồi hàng loạt.",
+ config:{name:"spot-spec.json",code:`{"ImageId": "ami-xxxx", "InstanceType": "c6i.large", "SubnetId": "subnet-xxxx"}`,when:"Launch Spot Instance qua API/CLI, cần cho batch job hoặc CI/CD runner."},
+ role:"Pricing Model giống <b>hợp đồng lao động khác nhau</b> trong xưởng — nhân viên chính thức dài hạn (Reserved), thời vụ trả theo ngày (On-Demand), lao động tạm có thể bị cho nghỉ bất kỳ lúc nào (Spot). Chọn đúng hợp đồng cho đúng việc là bài toán tài chính vận hành.",
+ quiz:[
+  {q:"Ngân hàng chạy core banking 24/7 nên chọn pricing model nào?",a:"Reserved/Savings Plans"},
+  {q:"Batch job ban đêm chấp nhận gián đoạn nên chọn gì?",a:"Spot Instance"},
+  {q:"Spot Instance được cảnh báo thu hồi trước bao lâu?",a:"2 phút"},
+  {q:"Mixed Instances Policy trong ASG giải quyết vấn đề gì?",a:"Phối hợp On-Demand baseline + Spot, tối ưu chi phí mà vẫn ổn định"},
+  {q:"Khi nào cần Dedicated Host thay vì Reserved Instance?",a:"Khi cần license theo socket/core vật lý hoặc compliance phần cứng riêng"}
+ ]
+},
+{code:"2.39", title:"EC2 Pricing Use Cases",
+ concept:"Bài luyện áp dụng 4 pricing model ở 2.38 vào bài toán thực tế cụ thể — không có khái niệm kỹ thuật mới, trọng tâm là khả năng map đúng tình huống vào pricing model.",
+ cmd:`# Không có lệnh riêng — tái sử dụng toàn bộ lệnh đã học ở bài 2.38`,
+ flagTable:null,
+ compareCols:["Tình huống","Pricing model phù hợp"],
+ compareRows:[["Web server traffic ổn định quanh năm","Reserved/Savings Plans"],["Render phim hàng loạt, không quan trọng khi xong","Spot Instance (fleet)"],["Phần mềm cần license theo CPU socket vật lý","Dedicated Host"],["Demo/POC chạy vài giờ rồi tắt","On-Demand"],["TMĐT traffic tăng vọt dịp lễ, chạy quanh năm","Reserved baseline + On-Demand/Spot cho phần tăng"]],
+ paramTable:null,
+ advCmd:`# Không có lệnh nâng cao riêng — đây là bài luyện ra quyết định`,
+ advReality:"Đây là dạng câu hỏi xuất hiện nhiều nhất trong domain Cost-Optimized (20%). Case thực tế: startup SaaS B2B mới ra mắt, traffic chưa ổn định, nên bắt đầu bằng On-Demand để giữ linh hoạt, chỉ chuyển Reserved sau khi quan sát được baseline traffic ổn định qua vài tháng.",
+ config:null,
+ role:"Đây là bài <b>thực hành tuyển dụng đúng người đúng việc</b> trong xưởng — biết công việc nào cần nhân viên chính thức, công việc nào thuê ngoài theo giờ, công việc nào chấp nhận lao động tạm giá rẻ. Kỹ năng này áp dụng trực tiếp vào thiết kế ngân sách hạ tầng thật.",
+ quiz:[
+  {q:"Web server traffic ổn định quanh năm nên chọn gì?",a:"Reserved/Savings Plans"},
+  {q:"Render phim hàng loạt không quan trọng thời gian hoàn thành nên chọn gì?",a:"Spot Instance"},
+  {q:"Phần mềm cần license theo CPU socket vật lý cần dùng gì?",a:"Dedicated Host"},
+  {q:"TMĐT traffic tăng vọt dịp lễ nhưng chạy quanh năm nên phối hợp model nào?",a:"Reserved cho baseline + On-Demand/Spot cho phần tăng đột biến"},
+  {q:"Startup mới ra mắt traffic chưa ổn định nên bắt đầu với gì?",a:"On-Demand, chuyển Reserved sau khi baseline ổn định"}
+ ]
+}
+];
+
+function renderTable(cols, rows){
+  return '<table><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table>';
+}
+
+// ---- Sidebar TOC (theory) ----
+const theoryToc = document.getElementById('theoryToc');
+const theoryEl = document.getElementById('theoryArticle');
+lessons.forEach((l,i)=>{
+  const a=document.createElement('a');
+  a.href='#lesson-'+i;
+  a.innerHTML = l.code+'<span class="t">'+l.title+'</span>';
+  a.addEventListener('click',(e)=>{e.preventDefault();document.getElementById('lesson-'+i).scrollIntoView({behavior:'smooth'});});
+  theoryToc.appendChild(a);
+
+  const flagHtml = l.flagTable ? '<h3>📖 Từ điển flag nhanh</h3>'+renderTable(["Flag/Lệnh","Nguồn gốc","Ý nghĩa"], l.flagTable) : '';
+  const compareHtml = l.compareCols ? '<h3>So sánh nhanh</h3>'+renderTable(l.compareCols, l.compareRows) : '';
+  const paramHtml = l.paramTable ? '<h3>Giới hạn/tham số</h3>'+renderTable(["Tham số","Giá trị","Ghi chú"], l.paramTable) : '';
+  const configHtml = l.config ? `<h3>Cấu hình liên quan</h3><p style="font-size:13.5px;margin-bottom:6px;"><b>${l.config.name}</b></p><pre>${l.config.code}</pre><p style="font-size:13px;color:#6B6B6B;">${l.config.when}</p>` : '';
+  const div=document.createElement('div');
+  div.className='lesson-block';
+  div.id='lesson-'+i;
+  div.innerHTML=`
+    <p class="lesson-tag mono">${l.code}</p>
+    <h2>${l.title}</h2>
+    <div class="lgrid">
+      <div class="prose">
+        <h3>Khái niệm + ví dụ đời sống</h3><p>${l.concept}</p>
+        <h3>Pattern nâng cao / thực tế</h3><pre>${l.advCmd}</pre><div class="reality-box"><p>${l.advReality}</p></div>
+        <h3>Vị trí trong kiến trúc</h3><div class="role-box"><p>${l.role}</p></div>
+      </div>
+      <div class="aside">
+        <h3>Lệnh quan trọng</h3><pre>${l.cmd}</pre>
+        ${flagHtml}
+        ${compareHtml}
+        ${paramHtml}
+        ${configHtml}
+      </div>
+    </div>
+  `;
+  theoryEl.appendChild(div);
+});
+
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    const idx = entry.target.id.split('-')[1];
+    const link = theoryToc.children[idx];
+    if(entry.isIntersecting){
+      document.querySelectorAll('#theoryToc a').forEach(a=>a.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+document.querySelectorAll('.lesson-block').forEach(el=>observer.observe(el));
+
+// ---- Quiz ----
+const quizToc = document.getElementById('quizToc');
+const quizEl = document.getElementById('quizArticle');
+lessons.forEach((l,i)=>{
+  const a=document.createElement('a');
+  a.href='#quiz-'+i;
+  a.innerHTML = l.code+'<span class="t">'+l.title+'</span>';
+  a.addEventListener('click',(e)=>{e.preventDefault();document.getElementById('quiz-'+i).scrollIntoView({behavior:'smooth'});});
+  quizToc.appendChild(a);
+
+  const wrap=document.createElement('div'); wrap.className='lesson-block'; wrap.id='quiz-'+i;
+  let qHtml = l.quiz.map((q,qi)=>`
+    <div class="q-item">
+      <p class="qtext">${l.code}.${qi+1} — ${q.q}</p>
+      <span class="q-answer">Xem đáp án →</span>
+      <div class="q-answer-text">${q.a}</div>
+    </div>`).join('');
+  wrap.innerHTML = `<p class="lesson-tag mono">${l.code}</p><h2>${l.title}</h2><div class="quiz-grid">${qHtml}</div>`;
+  quizEl.appendChild(wrap);
+});
+document.querySelectorAll('.q-answer').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const ans = el.nextElementSibling;
+    ans.classList.toggle('show');
+    el.textContent = ans.classList.contains('show') ? 'Ẩn đáp án ↑' : 'Xem đáp án →';
+  });
+});
+
+// ---- Lab ----
+document.getElementById('labArticle').innerHTML = `
+<div class="lab-grid">
+  <div class="lab-info">
+    <p class="lesson-tag mono">LAB TỔNG</p>
+    <h2>Quản lý vòng đời &amp; tối ưu chi phí EC2</h2>
+    <p class="context-line">🧭 Bạn được giao dọn dẹp chi phí EC2 cho môi trường có nhiều instance dev/test chạy lãng phí ngoài giờ, đồng thời cần dựng 1 Spot Instance cho batch job và bật Termination Protection cho instance production.</p>
+    <p class="verify">✅ Verify: describe-instances → InstanceLifecycle = "spot" cho instance batch; thử terminate instance production → phải bị chặn bởi Termination Protection.</p>
+    <p class="cleanup">🧹 Cleanup: tắt Termination Protection (Value=false) trước khi terminate toàn bộ instance dev/batch/production dùng cho lab.</p>
+    <div class="warn-line">⚠️ Spot Instance có thể bị thu hồi giữa chừng — batch job cần tự checkpoint tiến độ; quên tắt Termination Protection trước cleanup sẽ khiến lệnh terminate thất bại; instance stopped vẫn tính phí EBS nên nếu không cần dữ liệu nữa nên snapshot rồi terminate hẳn.</div>
+  </div>
+  <pre># 1. Gắn tag môi trường để phân loại
+aws ec2 create-tags --resources i-devxxxx --tags Key=Environment,Value=dev
+
+# 2. Script stop toàn bộ instance dev ngoài giờ hành chính
+aws ec2 describe-instances --filters "Name=tag:Environment,Values=dev" \\
+  --query "Reservations[].Instances[].InstanceId" --output text | \\
+  xargs -n1 -I{} aws ec2 stop-instances --instance-ids {}
+
+# 3. Verify EBS vẫn giữ dữ liệu sau khi stop
+aws ec2 describe-volumes --filters "Name=attachment.instance-id,Values=i-devxxxx"
+
+# 4. Bật Termination Protection cho instance production
+aws ec2 modify-instance-attribute --instance-id i-prodxxxx --disable-api-termination
+
+# 5. Launch Spot Instance cho batch job
+aws ec2 run-instances --image-id ami-xxxx --instance-type c6i.large \\
+  --instance-market-options '{"MarketType":"spot","SpotOptions":{"SpotInstanceType":"one-time"}}' \\
+  --subnet-id subnet-xxxx
+
+# 6. Kiểm tra giá Spot hiện tại trước khi launch
+aws ec2 describe-spot-price-history --instance-types c6i.large --max-items 5</pre>
+</div>`;
+
+// ---- Cheat sheet ----
+document.getElementById('cheatArticle').innerHTML = `
+<div class="cheat-wrap">
+  <h2>Cheat Sheet</h2>
+  <div class="cheat-cards">
+    <div class="cheat-card"><div class="k">Kiểm tra trạng thái</div><div class="v">describe-instances</div><div class="note">stopped không mất EBS, mất hoàn toàn Instance Store</div></div>
+    <div class="cheat-card"><div class="k">Chống xóa nhầm</div><div class="v">--disable-api-termination</div><div class="note">Bắt buộc bật cho production</div></div>
+    <div class="cheat-card"><div class="k">Bảo mật dữ liệu cực nhạy cảm</div><div class="v">Nitro Enclaves</div><div class="note">Không network, không SSH, chỉ vsock</div></div>
+    <div class="cheat-card"><div class="k">Workload ổn định 24/7</div><div class="v">Reserved/Savings Plans</div><div class="note">Giảm 40-72%</div></div>
+    <div class="cheat-card"><div class="k">Workload chấp nhận gián đoạn</div><div class="v">Spot Instance</div><div class="note">Giảm đến 90%, cảnh báo 2 phút</div></div>
+    <div class="cheat-card"><div class="k">Cần phần cứng vật lý riêng</div><div class="v">Dedicated Host</div><div class="note">Cho license theo socket/core</div></div>
+    <div class="cheat-card"><div class="k">Phối hợp On-Demand + Spot</div><div class="v">Mixed Instances Policy</div><div class="note">Baseline ổn định + scale thêm bằng Spot</div></div>
+    <div class="cheat-card"><div class="k">Domain thi</div><div class="v">Cost-Optimized 20%</div><div class="note">Section này khai thác domain này nhiều nhất</div></div>
+  </div>
+  <p class="pattern-line">Baseline ổn định dùng Reserved/Savings Plans, phần traffic biến động dùng On-Demand, batch job chấp nhận gián đoạn dùng Spot, dữ liệu cực nhạy cảm cô lập bằng Nitro Enclaves — cách phối hợp pricing model thật của phần lớn hệ thống production, và dạng câu hỏi lặp lại nhiều nhất ở domain Cost-Optimized (20%).</p>
+</div>`;
+</script>
+</body>
+</html>

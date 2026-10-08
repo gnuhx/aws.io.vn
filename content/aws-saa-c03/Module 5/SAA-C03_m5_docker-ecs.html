@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker Containers &amp; ECS · SAA-C03</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBFAF7;
+  --ink:#1D1C19;
+  --muted:#65605A;
+  --line:#E4DFD5;
+  --accent:#C1521A;      /* safety-orange, container/industrial */
+  --accent-soft:#F5E3D6;
+  --steel:#33505E;       /* steel-blue secondary */
+  --steel-soft:#E1E9EC;
+  --surface:#F3F0E9;
+  --code-bg:#EDE8DC;
+  --sidebar-w:250px;
+  --navh:54px;
+  --tabh:48px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+html,body{margin:0;padding:0;width:100%;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:16px;line-height:1.6;}
+.serif{font-family:'Source Serif 4',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+h1,h2,h3,h4{font-family:'Source Serif 4',Georgia,serif;font-weight:600;line-height:1.28;margin:0 0 .5em 0;}
+a{color:var(--accent);text-decoration:none;}
+code{font-family:'IBM Plex Mono',monospace;background:var(--code-bg);padding:1px 5px;border-radius:3px;font-size:.88em;}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.55;font-family:'IBM Plex Mono',monospace;}
+pre code{background:none;padding:0;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px;}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+th{background:var(--surface);font-weight:600;}
+hr.hairline{border:none;border-top:1px solid var(--line);margin:28px 0;}
+
+/* ---- Nav ---- */
+.nav{position:sticky;top:0;z-index:60;height:var(--navh);display:flex;align-items:center;justify-content:space-between;
+  padding:0 3vw;background:rgba(251,250,247,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+.nav .brand{font-family:'IBM Plex Mono';font-size:12.5px;letter-spacing:.04em;color:var(--muted);}
+.nav .brand b{color:var(--ink);}
+.roadmap-nav{display:flex;gap:16px;font-family:'IBM Plex Mono';font-size:11px;color:var(--muted);}
+.roadmap-nav .cur{color:var(--accent);font-weight:600;}
+.roadmap-nav .todo{opacity:.55;}
+
+/* ---- Tabbar ---- */
+.tabbar{position:sticky;top:var(--navh);z-index:55;display:flex;gap:26px;padding:0 3vw;background:var(--bg);border-bottom:1px solid var(--line);height:var(--tabh);align-items:center;}
+.tab-btn{font-family:'IBM Plex Mono';font-size:12.5px;letter-spacing:.03em;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px 0;border-bottom:2px solid transparent;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ---- Sidebar (fixed, not sticky) ---- */
+.sidebar{position:fixed;top:calc(var(--navh) + var(--tabh));left:0;width:var(--sidebar-w);height:calc(100vh - var(--navh) - var(--tabh));
+  overflow-y:auto;border-right:1px solid var(--line);padding:18px 14px;background:var(--bg);z-index:40;}
+.sidebar .sb-title{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.sidebar a{display:block;font-size:13px;color:var(--ink);padding:6px 8px;border-radius:5px;margin-bottom:2px;}
+.sidebar a:hover{background:var(--surface);}
+.sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+body.has-sidebar .content-wrap, body.has-sidebar .hero{margin-left:var(--sidebar-w);}
+body:not(.has-sidebar) .sidebar{display:none;}
+
+/* ---- Hero ---- */
+.hero{padding:38px 3vw 10px;}
+.hero .eyebrow{font-family:'IBM Plex Mono';font-size:11.5px;color:var(--accent);letter-spacing:.05em;margin-bottom:8px;}
+.hero h1{font-size:2rem;margin-bottom:10px;}
+.hero .lede{color:var(--muted);max-width:800px;font-size:15px;}
+
+.content-wrap{padding:10px 3vw 80px;}
+
+/* ---- Lesson block (2-col) ---- */
+.lesson{border-top:2px solid var(--ink);padding:34px 0;}
+.lesson-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.lesson-num{font-family:'IBM Plex Mono';color:var(--accent);font-size:14px;font-weight:600;}
+.lesson h2{font-size:1.45rem;margin:0;}
+.lesson-grid{display:grid;grid-template-columns:56% 44%;gap:34px;align-items:start;}
+.lesson-grid .prose h4, .lesson-grid .data h4{font-family:'Inter';font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:18px 0 8px;}
+.lesson-grid .prose h4:first-child, .lesson-grid .data h4:first-child{margin-top:0;}
+.case-box{background:var(--steel-soft);border-left:3px solid var(--steel);padding:12px 14px;border-radius:0 6px 6px 0;font-size:14px;margin-top:8px;}
+.case-box b{color:var(--steel);}
+.quiz-inline{margin-top:10px;}
+.quiz-inline details{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin-bottom:6px;font-size:13.5px;}
+.quiz-inline summary{cursor:pointer;font-weight:500;}
+.quiz-inline p{margin:8px 0 2px;color:var(--muted);}
+@media(max-width:900px){.lesson-grid{grid-template-columns:1fr;}}
+
+/* ---- Quiz tab grid ---- */
+.quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:26px 3vw 80px;}
+.quiz-grid .qcard{border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--surface);}
+.quiz-grid .qcard .qnum{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent);}
+.quiz-grid details summary{cursor:pointer;font-weight:500;margin-top:4px;}
+.quiz-grid details p{color:var(--muted);margin:8px 0 0;font-size:13.5px;}
+@media(max-width:900px){.quiz-grid{grid-template-columns:1fr;}}
+
+/* ---- Lab tab ---- */
+.lab-wrap{display:grid;grid-template-columns:38% 62%;gap:30px;padding:26px 3vw 80px;}
+.lab-left h3{font-size:1rem;margin-top:22px;}
+.lab-left h3:first-child{margin-top:0;}
+.lab-right pre{max-height:none;}
+@media(max-width:900px){.lab-wrap{grid-template-columns:1fr;}}
+
+/* ---- Cheat sheet tab ---- */
+.cheat-wrap{padding:26px 3vw 80px;}
+.cheat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.cheat-card{border:1px solid var(--line);border-radius:8px;padding:16px;background:var(--surface);}
+.cheat-card h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:8px;}
+.cheat-card ul{margin:0;padding-left:18px;font-size:13.5px;}
+.pattern-block{background:var(--accent-soft);border-radius:8px;padding:18px 20px;margin-bottom:22px;}
+.pattern-block .tag{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;}
+.pattern-block p{margin:8px 0 0;font-size:14.5px;}
+.station-card{border:1px dashed var(--steel);border-radius:8px;padding:16px;background:var(--steel-soft);}
+.station-card h4{color:var(--steel);}
+@media(max-width:900px){.cheat-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body class="has-sidebar">
+
+<div class="nav">
+  <div class="brand"><b>SAA-C03</b> · Module 5 · Docker Containers &amp; ECS</div>
+  <div class="roadmap-nav">
+    <span class="cur">01 Docker/ECS</span>
+    <span class="todo">02 Serverless</span>
+  </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab-btn active" data-tab="theory">Lý thuyết</button>
+  <button class="tab-btn" data-tab="quiz">Quiz</button>
+  <button class="tab-btn" data-tab="lab">Lab</button>
+  <button class="tab-btn" data-tab="cheat">Cheat Sheet</button>
+</div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sb-title">7 bài kỹ thuật</div>
+  <div id="sidebar-links"></div>
+</div>
+
+<div class="hero">
+  <p class="eyebrow">Domain — High-Performing 24% · Resilient 26% · Cost-Optimized 20%</p>
+  <h1 class="serif">Docker Containers &amp; Amazon ECS</h1>
+  <p class="lede">Đóng gói ứng dụng thành khuôn đúc di động, rồi để 1 đội trưởng điều phối (ECS/EKS) quyết định khuôn nào chạy ở đâu, bao nhiêu bản — mỗi bài theo format tra cứu nhanh: khái niệm+ví dụ, lệnh kèm từ điển flag, bảng so sánh, tham số, pattern nâng cao+case thực tế, vị trí kiến trúc nhà máy nền.</p>
+</div>
+
+<div class="content-wrap">
+  <div class="tab-panel active" id="panel-theory"><div id="theory-content"></div></div>
+  <div class="tab-panel" id="panel-quiz"><div class="quiz-grid" id="quiz-content"></div></div>
+
+  <div class="tab-panel" id="panel-lab">
+    <div class="lab-wrap">
+      <div class="lab-left">
+        <h3>🧭 Bối cảnh</h3>
+        <p>Tuần đầu tại 1 startup SaaS: đóng gói app Node.js thành Docker image, đẩy lên ECR, chạy trên ECS Fargate với ALB đứng trước, rồi thử App Runner để so sánh mức độ "khỏi lo hạ tầng" tối đa.</p>
+        <h3>✅ Lệnh verify</h3>
+        <pre><code>curl http://$(aws elbv2 describe-load-balancers --names demo-alb \
+  --query 'LoadBalancers[0].DNSName' --output text)
+# Kỳ vọng: "Hello from container!"
+
+aws ecs describe-services --cluster demo-cluster --services demo-service \
+  --query 'services[0].{running:runningCount,desired:desiredCount}'
+# Kỳ vọng: running == desired == 2</code></pre>
+        <h3>🧹 Cleanup</h3>
+        <pre><code>aws ecs update-service --cluster demo-cluster --service demo-service --desired-count 0
+aws ecs delete-service --cluster demo-cluster --service demo-service
+aws elbv2 delete-listener --listener-arn &lt;listener-arn&gt;
+aws elbv2 delete-load-balancer --load-balancer-arn $ALB_ARN
+aws elbv2 delete-target-group --target-group-arn $TG_ARN
+aws ecs delete-cluster --cluster demo-cluster
+aws ecr batch-delete-image --repository-name demo-app --image-ids imageTag=v1
+aws ecr delete-repository --repository-name demo-app --force
+aws apprunner delete-service --service-arn &lt;apprunner-service-arn&gt;
+aws iam delete-role --role-name ecsTaskExecutionRole
+aws iam delete-role --role-name demoAppTaskRole</code></pre>
+        <h3>⚠️ Lưu ý dễ sai/dễ tốn phí</h3>
+        <ul style="font-size:13.5px;padding-left:18px;">
+          <li>Quên xóa ALB — tính phí theo giờ dù không traffic.</li>
+          <li>App Runner <code>AutoDeploymentsEnabled</code> tự deploy lại khi có image mới trong ECR — tắt nếu không muốn tốn phí ngoài ý muốn.</li>
+          <li>Fargate cần <code>assignPublicIp=ENABLED</code> ở subnet public để pull được image ECR, hoặc dùng VPC Endpoint nếu ở subnet private.</li>
+          <li>Xóa ECR repo phải xóa hết image trước (hoặc dùng <code>--force</code>).</li>
+        </ul>
+      </div>
+      <div class="lab-right">
+        <h3>📜 Script đầy đủ (copy-paste được)</h3>
+        <pre><code># --- Bước 1: Dockerfile + build local ---
+mkdir demo-app && cd demo-app
+cat > server.js << 'EOF'
+const http = require('http');
+http.createServer((req, res) => res.end('Hello from container!')).listen(80);
+EOF
+cat > Dockerfile << 'EOF'
+FROM node:20-alpine
+WORKDIR /app
+COPY server.js .
+CMD ["node", "server.js"]
+EOF
+docker build -t demo-app:v1 .
+docker run -d -p 8080:80 demo-app:v1   # test local: curl localhost:8080
+
+# --- Bước 2: ECR ---
+aws ecr create-repository --repository-name demo-app --region ap-southeast-1
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+aws ecr get-login-password --region ap-southeast-1 \
+  | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.ap-southeast-1.amazonaws.com
+docker tag demo-app:v1 $ACCOUNT_ID.dkr.ecr.ap-southeast-1.amazonaws.com/demo-app:v1
+docker push $ACCOUNT_ID.dkr.ecr.ap-southeast-1.amazonaws.com/demo-app:v1
+
+# --- Bước 3: 2 IAM Role cho ECS ---
+aws iam create-role --role-name ecsTaskExecutionRole \
+  --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ecs-tasks.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+aws iam attach-role-policy --role-name ecsTaskExecutionRole \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+aws iam create-role --role-name demoAppTaskRole \
+  --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ecs-tasks.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+
+# --- Bước 4: Cluster + Task Definition (Fargate) ---
+aws ecs create-cluster --cluster-name demo-cluster
+cat > task-def.json << EOF
+{
+  "family": "demo-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256", "memory": "512",
+  "executionRoleArn": "arn:aws:iam::$ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::$ACCOUNT_ID:role/demoAppTaskRole",
+  "containerDefinitions": [{
+    "name": "app",
+    "image": "$ACCOUNT_ID.dkr.ecr.ap-southeast-1.amazonaws.com/demo-app:v1",
+    "portMappings": [{ "containerPort": 80, "protocol": "tcp" }],
+    "essential": true
+  }]
+}
+EOF
+aws ecs register-task-definition --cli-input-json file://task-def.json
+
+# --- Bước 5: ALB + Target Group (ip) + Service ---
+aws elbv2 create-target-group --name demo-tg --protocol HTTP --port 80 \
+  --vpc-id $VPC_ID --target-type ip
+ALB_ARN=$(aws elbv2 create-load-balancer --name demo-alb --subnets $SUBNET_1 $SUBNET_2 \
+  --security-groups $SG_ALB --query 'LoadBalancers[0].LoadBalancerArn' --output text)
+TG_ARN=$(aws elbv2 describe-target-groups --names demo-tg --query 'TargetGroups[0].TargetGroupArn' --output text)
+aws elbv2 create-listener --load-balancer-arn $ALB_ARN --protocol HTTP --port 80 \
+  --default-actions Type=forward,TargetGroupArn=$TG_ARN
+aws ecs create-service \
+  --cluster demo-cluster --service-name demo-service \
+  --task-definition demo-task:1 --desired-count 2 --launch-type FARGATE \
+  --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_1,$SUBNET_2],securityGroups=[$SG_TASK],assignPublicIp=ENABLED}" \
+  --load-balancers "targetGroupArn=$TG_ARN,containerName=app,containerPort=80"
+
+# --- Bước 6: Service Auto Scaling ---
+aws application-autoscaling register-scalable-target \
+  --service-namespace ecs --resource-id service/demo-cluster/demo-service \
+  --scalable-dimension ecs:service:DesiredCount --min-capacity 2 --max-capacity 6
+aws application-autoscaling put-scaling-policy \
+  --service-namespace ecs --resource-id service/demo-cluster/demo-service \
+  --scalable-dimension ecs:service:DesiredCount \
+  --policy-name cpu-target --policy-type TargetTrackingScaling \
+  --target-tracking-scaling-policy-configuration '{"TargetValue":70.0,"PredefinedMetricSpecification":{"PredefinedMetricType":"ECSServiceAverageCPUUtilization"}}'
+
+# --- Bước 7: So sánh với App Runner ---
+aws apprunner create-service \
+  --service-name demo-apprunner \
+  --source-configuration '{
+    "ImageRepository": {
+      "ImageIdentifier": "'"$ACCOUNT_ID"'.dkr.ecr.ap-southeast-1.amazonaws.com/demo-app:v1",
+      "ImageRepositoryType": "ECR",
+      "ImageConfiguration": { "Port": "80" }
+    },
+    "AutoDeploymentsEnabled": true
+  }'</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-cheat">
+    <div class="cheat-wrap">
+      <div class="pattern-block">
+        <span class="tag">Pattern chuẩn cần nhớ nằm lòng</span>
+        <p>Docker build → ECR push (kèm Image Scanning) → ECS/EKS Task/Pod định nghĩa 2 role riêng (Execution vs Task) → chạy trên Fargate (đơn giản) hoặc EC2 (tối ưu chi phí) → ALB target-type <code>ip</code> phân traffic → Service Auto Scaling theo đúng metric phản ánh tải thật (CPU hoặc request count) — hoặc bỏ qua tất cả, dùng App Runner nếu chỉ cần nhanh gọn.</p>
+      </div>
+      <div class="cheat-grid" id="cheat-container"></div>
+      <div class="station-card">
+        <h4>🏭 Trạm mới thêm vào nhà máy nền ở section này</h4>
+        <ul>
+          <li><b>Đội trưởng điều phối khuôn đúc — ECS (5.3):</b> nhánh mới tại mục 5 (Xưởng lắp ráp), điều phối container trên EC2 hoặc Fargate.</li>
+          <li><b>Đội trưởng chuẩn quốc tế — EKS (5.8):</b> nhánh song song ECS, cùng mục 5, dùng chuẩn Kubernetes mở.</li>
+          <li><b>Kho khuôn mẫu nội bộ có khóa — ECR (5.9):</b> trạm mới, logic gần S3 (mục 8) nhưng chuyên container image, IAM (mục 10) riêng theo repo.</li>
+        </ul>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:10px;">(Docker/Microservices 5.2 chỉ là khái niệm đóng gói, chưa phải trạm. IAM Role/Scaling/ALB của ECS là ứng dụng cụ thể của mục 4/5/10 có sẵn. App Runner là mức trừu tượng cao hơn của cùng nhánh, không tách trạm riêng.)</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LESSONS = [
+{
+  id:"5.2", title:"Docker Containers and Microservices",
+  concept:`<p>Container = gói phần mềm đóng sẵn (code+thư viện+runtime+config), chạy độc lập nhờ share chung kernel host — khác VM (mỗi VM 1 kernel riêng). Ví dụ: <b>container vận chuyển đường biển</b> — hàng đóng vào khung chuẩn, chạy được trên bất kỳ tàu/cảng nào.</p>
+    <p>Microservices: chia app lớn thành nhiều service nhỏ độc lập, mỗi service 1 container, thay vì 1 khối monolith.</p>
+    <ul><li><b>Docker Image</b>: bản thiết kế đóng băng (read-only), build từ Dockerfile.</li><li><b>Docker Container</b>: instance đang chạy thật của image.</li></ul>`,
+  pattern:`<p>Kỹ thuật ít người để ý: <b>multi-stage build</b> — nhiều <code>FROM</code> trong 1 Dockerfile, build ở stage nặng rồi chỉ copy artifact sang stage runtime nhẹ, giảm image từ ~1GB xuống vài chục MB.</p>
+    <div class="case-box"><b>Case thực tế:</b> Startup SaaS chạy monolith Node.js trên vài EC2 cố định, deploy phải SSH từng máy — dễ lệch version, rollback chậm. Đóng gói thành Docker image, build multi-stage, đẩy lên registry — bước tiếp theo dùng ECS để rollout đồng nhất.</div>`,
+  arch:`<p>Chưa phải 1 trạm cụ thể — là <b>khuôn đúc di động</b> để đóng gói việc của thợ, thay vì xây nguyên xưởng (VM/EC2) cho mỗi loại việc. Sẽ được Đội trưởng ECS/EKS (5.3/5.8) đặt vào <b>Xưởng lắp ráp (mục 5)</b>.</p>`,
+  cmd:`docker build -t my-app:v1 .          # build image từ Dockerfile
+docker images                        # liệt kê image local
+docker run -d -p 8080:80 my-app:v1   # chạy container, map cổng
+docker ps                            # container đang chạy
+docker ps -a                         # cả container đã dừng
+docker logs -f &lt;id&gt;                  # xem log real-time
+docker exec -it &lt;id&gt; bash            # vào shell trong container
+docker stop &lt;id&gt;                     # dừng container
+docker rmi my-app:v1                 # xóa image`,
+  flags:[["-t","tag","Gắn tên:phiên bản cho image"],["-d","detached","Chạy background"],["-p","publish","Map cổng host:container"],["-a","all","Hiện cả container đã dừng"],["-f","follow","Theo dõi log liên tục"],["-it","interactive+tty","Mở terminal tương tác"],["FROM","—","Base image trong Dockerfile"],["COPY","—","Copy file vào image"],["RUN","—","Chạy lệnh lúc build"],["CMD","—","Lệnh chạy khi container start"]],
+  compare:{head:["Tiêu chí","Virtual Machine","Container"],rows:[["OS","Mỗi VM 1 kernel riêng","Dùng chung kernel host"],["Khởi động","Vài phút","Vài giây"],["Kích thước","GB","MB"],["Cách ly","Mạnh (hardware)","Yếu hơn (process-level)"],["Ví dụ AWS","EC2 instance","ECS Task / EKS Pod"]]},
+  limits:[["Docker Hub pull rate-limit","100 pull/6h (anonymous)","Lý do nên dùng ECR riêng"],["Layer cache","Mỗi dòng Dockerfile = 1 layer","Sắp COPY package.json trước COPY . . để cache tốt"]],
+  config:`Dockerfile mẫu (multi-stage):
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+CMD ["node", "dist/server.js"]
+
+→ Cần sửa khi: thêm dependency mới, đổi cổng lắng nghe, tối ưu size trước production.`,
+  quiz:[["Vì sao container khởi động nhanh hơn VM?","Dùng chung kernel host, không phải boot cả 1 OS riêng."],["Multi-stage build giải quyết vấn đề gì?","Giảm size image cuối, chỉ giữ artifact, bỏ compiler/tool build."],["Vấn đề gốc của startup SaaS trong case thực tế?","Deploy thủ công từng máy, dễ lệch version, rollback chậm."],["`docker run -p 8080:80` nghĩa là gì?","Map cổng 8080 host sang cổng 80 trong container."],["Docker image khớp vào đâu trong nhà máy nền?","Khuôn đúc di động, chưa phải trạm — sẽ được ECS/EKS đặt vào Xưởng lắp ráp."]]
+},
+{
+  id:"5.3", title:"Amazon Elastic Container Service (ECS)",
+  concept:`<p>ECS = dịch vụ điều phối container: quyết định container chạy ở đâu, bao nhiêu bản, tự restart khi chết. Ví dụ: <b>đội trưởng ca sản xuất</b> — cầm danh sách khuôn đúc (task definition), phân công thợ máy (EC2/Fargate) thực thi.</p>
+    <ul><li><b>Task Definition</b>: bản thiết kế JSON (image, CPU/RAM, port).</li><li><b>Task</b>: 1 lần chạy thật.</li><li><b>Service</b>: giữ đúng N task luôn chạy, thường kèm ALB.</li><li><b>Cluster</b>: nhóm hạ tầng chạy task.</li></ul>
+    <ul><li><b>EC2 launch type</b>: tự quản lý fleet EC2, trả tiền theo EC2.</li><li><b>Fargate launch type</b>: serverless, trả theo task thực dùng.</li></ul>`,
+  pattern:`<p>Ít người để ý: <code>aws ecs execute-command</code> cho phép SSH-like vào task Fargate đang chạy (cần bật <code>enableExecuteCommand</code>) để debug mà không cần mở SSH port.</p>
+    <div class="case-box"><b>Case thực tế:</b> Sàn giao dịch có service tính phí giao dịch, traffic lệch sáng/tối. Trước đây chạy EC2 cố định 24/7 lãng phí ban đêm. Chuyển ECS Fargate + Service Auto Scaling, trả tiền đúng theo giờ đông.</div>`,
+  arch:`<p><b>Đội trưởng điều phối</b> tại <b>Xưởng lắp ráp (mục 5)</b> — điều phối khuôn đúc container chạy trên nền EC2 (vẫn subnet private khuôn viên VPC) hoặc Fargate (vẫn trong VPC nhờ <code>awsvpc</code> mode, chỉ giấu hạ tầng vật lý). Nhánh mới gắn vào mục 5, không thay thế EC2/ASG.</p>`,
+  cmd:`aws ecs create-cluster --cluster-name my-cluster
+aws ecs register-task-definition --cli-input-json file://task-def.json
+aws ecs create-service \\
+  --cluster my-cluster --service-name my-service \\
+  --task-definition my-task:1 --desired-count 2 \\
+  --launch-type FARGATE \\
+  --network-configuration "awsvpcConfiguration={subnets=[subnet-abc],securityGroups=[sg-abc],assignPublicIp=ENABLED}"
+aws ecs list-tasks --cluster my-cluster
+aws ecs describe-services --cluster my-cluster --services my-service
+aws ecs update-service --cluster my-cluster --service my-service --desired-count 4
+aws ecs stop-task --cluster my-cluster --task &lt;task-arn&gt;`,
+  flags:[["--cluster-name","—","Tên cluster ECS"],["--cli-input-json","—","Nạp config từ JSON"],["--desired-count","—","Số task muốn duy trì"],["--launch-type","—","EC2 hoặc FARGATE"],["awsvpcConfiguration","AWS VPC networking","Bắt buộc Fargate — mỗi task 1 ENI riêng"],["assignPublicIp","—","Task Fargate có public IP không"]],
+  compare:{head:["Tiêu chí","EC2 launch type","Fargate launch type"],rows:[["Quản lý hạ tầng","Tự patch/scale EC2","AWS quản lý hoàn toàn"],["Billing","Theo EC2 chạy (kể cả rảnh)","Theo vCPU/RAM task, theo giây"],["Khởi động task","Nhanh nếu có slot trống","Chậm hơn (cấp phát hạ tầng mới)"],["Dùng khi","Tối ưu chi phí, kiểm soát OS/GPU","Đơn giản, ít vận hành"]]},
+  limits:[["Fargate CPU/Mem combo","0.25vCPU-0.5GB → 4vCPU-30GB","Phải chọn đúng cặp hợp lệ"],["Task definition revision","Tăng dần 1,2,3...","Update service = rolling ra revision mới, cũ vẫn lưu để rollback"],["Container health check","Interval mặc định 30s","Khác health check của ALB"]],
+  config:`task-def.json:
+{
+  "family": "my-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256", "memory": "512",
+  "containerDefinitions": [{
+    "name": "app",
+    "image": "123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/my-app:v1",
+    "portMappings": [{ "containerPort": 80, "protocol": "tcp" }],
+    "essential": true
+  }]
+}
+→ Sửa khi: đổi image version, tăng CPU/memory, thêm sidecar container.`,
+  quiz:[["Khác biệt cốt lõi EC2 launch type vs Fargate?","EC2: bạn quản lý hạ tầng; Fargate: AWS quản lý, bạn chỉ khai CPU/RAM."],["Vì sao sàn giao dịch chuyển sang Fargate?","Traffic dao động mạnh, EC2 cố định lãng phí ban đêm."],["execute-command dùng để làm gì?","Debug bên trong task đang chạy mà không cần SSH."],["Task Definition khác Service thế nào?","Task Definition là bản thiết kế; Service giữ đúng N task luôn chạy."],["ECS khớp vào đâu trong nhà máy nền?","Đội trưởng điều phối tại Xưởng lắp ráp (mục 5), chạy trên EC2 hoặc Fargate."]]
+},
+{
+  id:"5.4", title:"Amazon ECS and IAM Roles",
+  concept:`<p>ECS dùng 2 IAM Role riêng biệt — dễ nhầm nhất section:</p>
+    <ul><li><b>Task Execution Role</b>: thẻ của ECS Agent — khởi động task, pull image ECR, ghi log, lấy secret.</li><li><b>Task Role</b>: thẻ của chính app trong container khi đang chạy — vd gọi <code>s3:GetObject</code>.</li></ul>
+    <p>Ví dụ: Execution Role như <b>thẻ đội hậu cần dựng sân khấu</b> (chuẩn bị trước); Task Role như <b>thẻ diễn viên đang biểu diễn</b> (chỉ dùng khi show chạy).</p>`,
+  pattern:`<p>Pattern hay hỏi thi: gọi <code>aws sts get-caller-identity</code> từ trong container trả về <b>Task Role</b>, không phải Execution Role — vì Execution Role chỉ tồn tại lúc khởi động.</p>
+    <div class="case-box"><b>Case thực tế:</b> Ngân hàng số bị audit yêu cầu chứng minh container không quyền dư. Tách rõ: Execution Role chỉ pull ECR + ghi log; Task Role chỉ <code>dynamodb:PutItem/GetItem</code> trên 1 bảng — chứng minh container không đọc được bucket S3 khác.</div>`,
+  arch:`<p>Chính là <b>lớp thẻ ra vào IAM (mục 10)</b> áp riêng vào Đội trưởng ECS + khuôn đúc tại Xưởng lắp ráp (mục 5) — không phải trạm mới, minh chứng IAM phủ xuống tận cấp task.</p>`,
+  cmd:`aws iam create-role --role-name ecsTaskExecutionRole \\
+  --assume-role-policy-document file://ecs-trust-policy.json
+aws iam attach-role-policy --role-name ecsTaskExecutionRole \\
+  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+aws iam attach-role-policy --role-name myAppTaskRole \\
+  --policy-arn arn:aws:iam::123456789012:policy/MyAppS3ReadPolicy`,
+  flags:[["--assume-role-policy-document","Trust Policy","Ai được phép mượn role này"],["--policy-arn","Amazon Resource Name","Định danh policy"],["AmazonECSTaskExecutionRolePolicy","—","Managed policy chuẩn cho Execution Role"]],
+  compare:{head:["Tiêu chí","Task Execution Role","Task Role"],rows:[["Ai dùng","ECS Agent/hạ tầng","Code app trong container"],["Khi nào","Trước/lúc khởi động task","Lúc task đang chạy"],["Quyền ví dụ","ecr:GetDownloadUrlForLayer, logs:*","s3:GetObject, dynamodb:Query"],["Field task-def","executionRoleArn","taskRoleArn"]]},
+  limits:[["1 task = 2 role riêng","executionRoleArn + taskRoleArn","Không nên dùng chung 1 role (vi phạm least privilege)"],["Session credentials","Refresh qua 169.254.170.2","Container không cần hardcode access key"]],
+  config:`Trong task-def.json:
+{
+  "executionRoleArn": "arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::123456789012:role/myAppTaskRole"
+}
+→ Sửa khi: app cần gọi thêm AWS service mới (thêm quyền vào Task Role, KHÔNG phải Execution Role).`,
+  quiz:[["Task Execution Role dùng để làm gì?","Phục vụ hạ tầng khởi động task (pull image, ghi log)."],["sts get-caller-identity trong container trả về role nào?","Task Role."],["Vì sao ngân hàng số tách riêng 2 role?","Chứng minh least-privilege khi audit."],["Field nào khai báo Task Role?","taskRoleArn."],["IAM Role của ECS khớp vào đâu trong nhà máy nền?","Lớp thẻ ra vào (mục 10) áp xuống cấp task tại Xưởng lắp ráp (mục 5)."]]
+},
+{
+  id:"5.5", title:"Scaling Amazon ECS",
+  concept:`<p>ECS có 2 tầng scaling độc lập:</p>
+    <ul><li><b>Service Auto Scaling</b>: tăng/giảm số <b>task</b> theo CloudWatch metric (CPU, Memory, hoặc ALB Request Count Per Target).</li><li><b>Cluster Auto Scaling (Capacity Provider)</b>: chỉ EC2 launch type — tăng/giảm số <b>EC2 nền</b> khi hết chỗ chạy task.</li></ul>
+    <p>Ví dụ: Service Auto Scaling như tăng/giảm ca làm của thợ trong xưởng có sẵn; Cluster Auto Scaling như xây thêm/dỡ bớt cả xưởng.</p>`,
+  pattern:`<p>Pattern nâng cao: scale theo <code>ALBRequestCountPerTarget</code> thay vì CPU — hợp lý hơn cho app I/O-bound.</p>
+    <div class="case-box"><b>Case thực tế:</b> TMĐT có service xử lý giỏ hàng, CPU luôn thấp (chờ DynamoDB) nhưng flash sale làm latency tăng. Đổi metric scale sang ALB request count, tăng task đúng lúc traffic tăng.</div>`,
+  arch:`<p>Service Auto Scaling khớp đúng cơ chế "đông thợ khi đơn hàng tăng" (mục 5), áp cho task container. Cluster Auto Scaling là mở rộng chính mặt bằng xưởng (EC2 nền), cùng mục 5, không phải trạm mới.</p>`,
+  cmd:`aws application-autoscaling register-scalable-target \\
+  --service-namespace ecs \\
+  --resource-id service/my-cluster/my-service \\
+  --scalable-dimension ecs:service:DesiredCount \\
+  --min-capacity 2 --max-capacity 10
+
+aws application-autoscaling put-scaling-policy \\
+  --service-namespace ecs --resource-id service/my-cluster/my-service \\
+  --scalable-dimension ecs:service:DesiredCount \\
+  --policy-name cpu-target-tracking --policy-type TargetTrackingScaling \\
+  --target-tracking-scaling-policy-configuration file://policy.json`,
+  flags:[["register-scalable-target","—","Khai báo resource sẽ auto scale"],["--scalable-dimension","—","Chiều scale (DesiredCount)"],["--min/max-capacity","—","Biên dưới/trên số task"],["TargetTrackingScaling","—","Policy giữ metric bám target"]],
+  compare:{head:["Tiêu chí","Service Auto Scaling","Cluster Auto Scaling"],rows:[["Scale cái gì","Số task","Số EC2 nền"],["Launch type","Cả EC2 và Fargate","Chỉ EC2"],["Trigger","CloudWatch metric của service","Task pending vì thiếu tài nguyên"]]},
+  limits:[["Metric phổ biến","ECSServiceAverageCPUUtilization","Giữ CPU bám % target"],["Step Scaling","tùy chỉnh theo ngưỡng","Dùng khi cần phản ứng theo bậc"]],
+  config:`policy.json:
+{
+  "TargetValue": 70.0,
+  "PredefinedMetricSpecification": { "PredefinedMetricType": "ECSServiceAverageCPUUtilization" },
+  "ScaleOutCooldown": 60, "ScaleInCooldown": 120
+}
+→ Sửa khi: metric CPU không phản ánh đúng tải (đổi ALB request count), scale-in quá nhanh (tăng cooldown).`,
+  quiz:[["Service Auto Scaling khác Cluster Auto Scaling ở điểm nào?","Service scale số task; Cluster scale số EC2 nền (chỉ EC2 launch type)."],["Vì sao TMĐT đổi metric CPU sang ALB request count?","Service I/O-bound, CPU thấp dù đang quá tải request."],["Fargate có cần Cluster Auto Scaling không?","Không — AWS tự quản lý hạ tầng."],["ScaleInCooldown dùng để làm gì?","Ngăn scale-in quá nhanh gây dao động."],["Scaling ECS khớp vào đâu trong nhà máy nền?","Cơ chế đông thợ khi đơn hàng tăng (mục 5), áp cho task/EC2 nền."]]
+},
+{
+  id:"5.6", title:"Amazon ECS with ALB",
+  concept:`<p>Nhiều task chung 1 EC2 (EC2 launch type) cần cổng khác nhau vì chung IP máy chủ → <b>Dynamic Port Mapping</b>. Với Fargate, mỗi task có ENI+IP riêng (<code>awsvpc</code>) nên không cần dynamic port.</p>
+    <p>Ví dụ: nhiều gian hàng trong 1 tòa nhà (1 EC2) — mỗi gian số phòng riêng (cổng riêng), có 1 sảnh lễ tân (ALB) biết khách cần phòng nào.</p>`,
+  pattern:`<p>Pattern hay dùng: Blue/Green deployment qua CodeDeploy + 2 target group — traffic chuyển dần, rollback tức thì nếu health check fail.</p>
+    <div class="case-box"><b>Case thực tế:</b> Team cần release API mỗi tuần không downtime (SLA doanh nghiệp). Cấu hình <code>minimumHealthyPercent:100%, maximumPercent:200%</code> — giữ đủ task cũ trong lúc task mới pass health check.</div>`,
+  arch:`<p>Ứng dụng cụ thể của <b>Sảnh phân luồng ALB (mục 4)</b> khi đối tượng phân luồng là từng task tại Xưởng lắp ráp (mục 5) — không phải trạm mới, ALB chỉ "nhìn xuống" cấp task/IP.</p>`,
+  cmd:`aws elbv2 create-target-group \\
+  --name ecs-tg --protocol HTTP --port 80 \\
+  --vpc-id vpc-abc --target-type ip
+
+aws elbv2 create-listener \\
+  --load-balancer-arn &lt;alb-arn&gt; --protocol HTTP --port 80 \\
+  --default-actions Type=forward,TargetGroupArn=&lt;tg-arn&gt;
+
+aws ecs create-service \\
+  --cluster my-cluster --service-name my-service \\
+  --task-definition my-task:1 --desired-count 2 \\
+  --load-balancers "targetGroupArn=&lt;tg-arn&gt;,containerName=app,containerPort=80"`,
+  flags:[["--target-type ip","—","Target group trỏ theo IP task (bắt buộc Fargate)"],["--target-type instance","—","Trỏ theo EC2 + cổng dynamic"],["--load-balancers","—","Gắn service với target group"],["containerPort","—","Cổng trong container ALB forward tới"]],
+  compare:{head:["Tiêu chí","EC2 (dynamic port)","Fargate (awsvpc)"],rows:[["Target type","instance","ip (bắt buộc)"],["Số IP","Nhiều task chung 1 IP EC2","Mỗi task 1 ENI+IP riêng"],["Security Group","Gắn ở EC2","Gắn trực tiếp ở task"]]},
+  limits:[["Deregistration delay","mặc định 300s","Giảm để rolling deploy nhanh hơn"],["Target group/service","1 target group/load balancer config","Nhiều path/port cần thêm listener rule"]],
+  config:`create-service thêm deploymentConfiguration:
+{
+  "deploymentConfiguration": { "minimumHealthyPercent": 100, "maximumPercent": 200 }
+}
+→ Sửa khi: cần zero-downtime (tăng maximumPercent), cluster giới hạn tài nguyên (giảm maximumPercent).`,
+  quiz:[["Vì sao Fargate luôn dùng target-type ip?","Mỗi task có ENI/IP riêng nhờ awsvpc mode."],["Dynamic Port Mapping giải quyết vấn đề gì?","Nhiều task chung 1 EC2 cần cổng khác nhau."],["maximumPercent:200% nghĩa là gì?","Cho tạm chạy gấp đôi desired count lúc rolling update, không downtime."],["Security Group gắn ở đâu khi dùng Fargate+ALB?","Trực tiếp ở từng task (ENI riêng)."],["ECS+ALB khớp vào đâu trong nhà máy nền?","Vẫn Sảnh phân luồng ALB (mục 4), xuống cấp task tại Xưởng lắp ráp (mục 5)."]]
+},
+{
+  id:"5.8", title:"Amazon Elastic Kubernetes Service (EKS)",
+  concept:`<p>EKS = Kubernetes được AWS quản lý control plane — dùng chuẩn Kubernetes mở (Pod, Deployment, Service, Node) thay vì ngôn ngữ riêng của ECS. Ví dụ: ECS là đội trưởng nói tiếng riêng nhà máy AWS; EKS là đội trưởng nói ngôn ngữ quốc tế chuẩn.</p>
+    <ul><li><b>Control Plane</b>: AWS quản lý hoàn toàn, không SSH được.</li><li><b>Worker Node</b>: EC2 (Managed Node Group) hoặc Fargate profile.</li><li><b>Pod</b>: đơn vị nhỏ nhất chạy container (gần tương đương Task ECS).</li></ul>`,
+  pattern:`<p>Ít người để ý: <code>kubectl describe pod &lt;name&gt;</code> lộ ra lý do pod Pending — thường thiếu tài nguyên node group.</p>
+    <div class="case-box"><b>Case thực tế:</b> Công ty đa quốc gia đã vận hành K8s on-premise, muốn giữ nguyên pipeline CI/CD, Helm chart, Prometheus hiện có. Chọn EKS để giữ tooling, chỉ trỏ kubectl sang cluster mới, giảm effort di trú so với viết lại bằng ECS.</div>`,
+  arch:`<p>Nhánh mới song song ECS, cùng <b>Xưởng lắp ráp (mục 5)</b> — cùng vai trò đội trưởng điều phối, khác "ngôn ngữ chỉ huy". Worker node vẫn EC2/Fargate, vẫn trong khuôn viên VPC.</p>`,
+  cmd:`eksctl create cluster --name my-cluster --region ap-southeast-1 \\
+  --nodegroup-name ng-1 --node-type t3.medium --nodes 2
+aws eks update-kubeconfig --name my-cluster --region ap-southeast-1
+kubectl get nodes
+kubectl get pods -A
+kubectl apply -f deployment.yaml
+kubectl scale deployment my-app --replicas=5`,
+  flags:[["eksctl","EKS command-line tool","Tool chính thức tạo/xóa cluster nhanh"],["update-kubeconfig","—","Ghi thông tin kết nối vào ~/.kube/config"],["kubectl","Kubernetes control","CLI chuẩn K8s, dùng chung mọi nơi"],["-A","all-namespaces","Xem mọi namespace"],["--replicas","—","Số pod mong muốn"]],
+  compare:{head:["Tiêu chí","Amazon ECS","Amazon EKS"],rows:[["Chuẩn điều phối","Riêng AWS","Kubernetes mở"],["Độ phức tạp","Đơn giản hơn","Nhiều khái niệm hơn"],["Phí control plane","Miễn phí","Có phí cố định/cluster/giờ"],["Portability","Gắn chặt AWS","Dễ mang sang cloud khác"],["Dùng khi","Team nhỏ, ưu tiên đơn giản","Đã có kinh nghiệm K8s, cần portability"]]},
+  limits:[["EKS control plane fee","Tính theo giờ/cluster","Cộng phí worker node riêng"],["Managed Node Group","Tự patch AMI, tích hợp ASG","Vẫn tự quản lý version K8s upgrade"],["Fargate profile trên EKS","Chọn theo namespace","Không phải pod nào cũng chạy được (vd cần hostNetwork thì không)"]],
+  config:`deployment.yaml:
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: my-app }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: my-app } }
+  template:
+    metadata: { labels: { app: my-app } }
+    spec:
+      containers:
+        - name: app
+          image: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/my-app:v1
+          ports: [{ containerPort: 80 }]
+→ Sửa khi: đổi image version, đổi replicas, thêm resources.limits.`,
+  quiz:[["Khác biệt cốt lõi ECS vs EKS?","ECS dùng chuẩn riêng AWS; EKS dùng chuẩn Kubernetes mở."],["Vì sao công ty đa quốc gia chọn EKS?","Đã có sẵn tooling K8s (Helm, CI/CD, Prometheus), không muốn viết lại."],["eksctl khác aws eks CLI ở điểm nào?","eksctl gộp nhiều bước tạo cluster nhanh; aws eks là CLI từng thao tác riêng."],["Control plane EKS ai quản lý?","AWS quản lý hoàn toàn."],["EKS khớp vào đâu trong nhà máy nền?","Nhánh đội trưởng thứ 2 (song song ECS) tại Xưởng lắp ráp (mục 5)."]]
+},
+{
+  id:"5.9", title:"Amazon Elastic Container Registry (ECR)",
+  concept:`<p>ECR = registry lưu Docker image riêng tư, tích hợp IAM kiểm soát push/pull — thay Docker Hub công cộng khi cần bảo mật/tốc độ pull trong cùng Region. Ví dụ: ECR như <b>kho khuôn mẫu nội bộ</b> (chỉ nhân viên có thẻ đúng mới lấy được); Docker Hub như <b>chợ khuôn mẫu công cộng</b> ngoài phố.</p>`,
+  pattern:`<p>Pattern hay dùng: bật <b>ECR Image Scanning</b> (tích hợp Inspector) để tự động quét CVE mỗi lần push — chặn ngay từ registry trước khi deploy.</p>
+    <div class="case-box"><b>Case thực tế:</b> Ngân hàng số bị audit yêu cầu mọi image production đều được quét trước deploy. Pipeline: build → push ECR (tự scan) → chỉ deploy tiếp nếu không có CVE Critical — ECR thành cổng kiểm soát bắt buộc.</div>`,
+  arch:`<p><b>Trạm mới</b>: "Kho khuôn mẫu nội bộ có khóa" — gần logic S3 (mục 8, cũng ngoài tường VPC về network) nhưng chuyên container image, IAM (mục 10) riêng theo repo. Đội trưởng ECS/EKS (mục 5) kéo khuôn mẫu từ đây qua Task Execution Role (5.4).</p>`,
+  cmd:`aws ecr create-repository --repository-name my-app
+aws ecr get-login-password --region ap-southeast-1 \\
+  | docker login --username AWS --password-stdin 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com
+docker tag my-app:v1 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/my-app:v1
+docker push 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/my-app:v1
+aws ecr describe-images --repository-name my-app
+aws ecr put-lifecycle-policy --repository-name my-app --lifecycle-policy-text file://lifecycle.json`,
+  flags:[["get-login-password","—","Lấy token tạm login Docker vào ECR"],["--password-stdin","standard input","Nhận password qua pipe, an toàn hơn"],["docker tag","—","Gắn tên đầy đủ registry URI trước khi push"],["put-lifecycle-policy","—","Quy tắc tự xóa image cũ"]],
+  compare:{head:["Tiêu chí","Amazon ECR","Docker Hub"],rows:[["Kiểm soát quyền","IAM tích hợp theo repo","Tài khoản Docker Hub riêng"],["Vị trí","Trong AWS, cùng Region","Bên ngoài, qua Internet"],["Rate limit pull","Không giới hạn kiểu Docker Hub free","Có rate-limit với free/anonymous"],["Scan lỗ hổng","Có sẵn (Image Scanning)","Cần tool ngoài (trừ Pro)"]]},
+  limits:[["Login token ECR","Hết hạn sau 12 giờ","Phải get-login-password lại"],["Image Scanning","Basic (free) / Enhanced (Inspector)","Basic quét khi push, Enhanced liên tục"],["Lifecycle Policy","Theo số lượng hoặc tuổi image","Tránh phình chi phí lưu trữ"]],
+  config:`lifecycle.json:
+{
+  "rules": [{
+    "rulePriority": 1,
+    "selection": { "tagStatus": "untagged", "countType": "sinceImagePushed", "countUnit": "days", "countNumber": 14 },
+    "action": { "type": "expire" }
+  }]
+}
+→ Sửa khi: repo phình nhiều image cũ không dùng, cần dọn tự động.`,
+  quiz:[["ECR khác Docker Hub ở điểm cốt lõi nào?","ECR tích hợp IAM theo repo, trong AWS, có scan sẵn."],["Vì sao ngân hàng số biến ECR thành cổng kiểm soát?","Pipeline chỉ deploy tiếp nếu scan không có CVE Critical."],["Lifecycle Policy giải quyết vấn đề gì?","Tự xóa image cũ/untagged, tránh phình chi phí."],["Role nào kéo image từ ECR khi task khởi động?","Task Execution Role, không phải Task Role."],["ECR khớp vào đâu trong nhà máy nền?","Trạm mới Kho khuôn mẫu có khóa, cạnh logic S3 (mục 8), IAM (mục 10)."]]
+}
+];
+
+function tableHTML(head, rows){
+  let h = "<table><tr>" + head.map(c=>`<th>${c}</th>`).join("") + "</tr>";
+  rows.forEach(r=>{ h += "<tr>" + r.map(c=>`<td>${c}</td>`).join("") + "</tr>"; });
+  return h + "</table>";
+}
+function flagTable(flags){
+  return tableHTML(["Flag/Lệnh","Viết tắt/nguồn gốc","Ý nghĩa"], flags);
+}
+
+const theoryEl = document.getElementById('theory-content');
+const sidebarLinks = document.getElementById('sidebar-links');
+const quizEl = document.getElementById('quiz-content');
+const cheatEl = document.getElementById('cheat-container');
+
+LESSONS.forEach(L=>{
+  // sidebar link
+  const a = document.createElement('a');
+  a.href = "#lesson-"+L.id; a.textContent = L.id+" · "+L.title; a.dataset.target = "lesson-"+L.id;
+  sidebarLinks.appendChild(a);
+
+  // theory block
+  const sec = document.createElement('div');
+  sec.className = 'lesson'; sec.id = 'lesson-'+L.id;
+  let compareHTML = L.compare ? `<h4>So sánh nhanh</h4>${tableHTML(L.compare.head, L.compare.rows)}` : '';
+  let configHTML = L.config ? `<h4>Cấu hình liên quan</h4><pre><code>${L.config}</code></pre>` : '';
+  sec.innerHTML = `
+    <div class="lesson-head"><span class="lesson-num">${L.id}</span><h2>${L.title}</h2></div>
+    <div class="lesson-grid">
+      <div class="prose">
+        <h4>Khái niệm + ví dụ</h4>${L.concept}
+        <h4>Pattern nâng cao + case thực tế</h4>${L.pattern}
+        <h4>Vị trí trong kiến trúc (nhà máy nền)</h4>${L.arch}
+      </div>
+      <div class="data">
+        <h4>Lệnh quan trọng</h4><pre><code>${L.cmd}</code></pre>
+        <h4>Từ điển flag nhanh</h4>${flagTable(L.flags)}
+        ${compareHTML}
+        <h4>Giới hạn/tham số</h4>${tableHTML(["Khái niệm/Tham số","Giá trị/Ví dụ","Ghi chú"], L.limits)}
+        ${configHTML}
+      </div>
+    </div>`;
+  theoryEl.appendChild(sec);
+
+  // quiz cards
+  L.quiz.forEach((q,i)=>{
+    const card = document.createElement('div'); card.className = 'qcard';
+    card.innerHTML = `<div class="qnum">${L.id}.q${i+1}</div><details><summary>${q[0]}</summary><p>${q[1]}</p></details>`;
+    quizEl.appendChild(card);
+  });
+
+  // cheat mini card
+  const cc = document.createElement('div'); cc.className = 'cheat-card';
+  cc.innerHTML = `<h4>${L.id} ${L.title}</h4><ul><li>${L.compare ? L.compare.rows.map(r=>r[0]).join(' vs ') : 'Xem chi tiết ở tab Lý thuyết'}</li></ul>`;
+  cheatEl.appendChild(cc);
+});
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    const showSidebar = (btn.dataset.tab === 'theory' || btn.dataset.tab === 'quiz');
+    document.body.classList.toggle('has-sidebar', showSidebar);
+  });
+});
+
+// Scrollspy for sidebar (only active in theory tab)
+const links = Array.from(document.querySelectorAll('#sidebar-links a'));
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      links.forEach(l=>l.classList.remove('active'));
+      const match = links.find(l=>l.dataset.target === entry.target.id);
+      if(match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: "-20% 0px -70% 0px" });
+document.querySelectorAll('.lesson').forEach(sec=>observer.observe(sec));
+
+links.forEach(l=>{
+  l.addEventListener('click', (e)=>{
+    e.preventDefault();
+    document.getElementById(l.dataset.target).scrollIntoView({behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>

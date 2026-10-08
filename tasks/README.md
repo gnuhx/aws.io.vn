@@ -33,13 +33,15 @@ git log --follow tasks/TASK-004_Copy-Answer_InProgress.md   # full history acros
 
 ## Course module tasks
 
-For the SAA-C03 course organization work, use one task file per module with this name:
+For SAA-C03 course work, use one task file per module with this name:
 
 ```text
-SAA_C03_M1_<Status>_<Details>.md
+SAA_C03_M<ModuleNumber>_<Status>_<Details>.md
+SAA_C03_M1_InProgress_Module-1-Content-And-Reader.md
+SAA_C03_M2_InProgress_Module-2-Interactive-Sections.md
 ```
 
-- Keep the `SAA_C03_M1` module identifier stable.
+- Keep the `SAA_C03_M<ModuleNumber>` module identifier stable.
 - Use the same status values and meanings listed above (`NeedsInfo`, `Ready`, `InProgress`, `Done`, `Dropped`).
 - Keep `<Details>` short, descriptive, and kebab-case; change only the status when the task moves forward.
 - Rename the file when its status changes so the filename remains the current source of truth.
