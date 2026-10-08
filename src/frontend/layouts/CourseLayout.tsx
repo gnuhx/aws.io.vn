@@ -4,6 +4,6 @@ import { TestNowBubble } from '../components/TestNowBubble/TestNowBubble.tsx'
 export function CourseLayout() {
   const { topic = '' } = useParams()
   const { pathname } = useLocation()
-  const isTestPage = pathname.replace(/\/$/, '').endsWith('/tests')
-  return <><Outlet />{topic === 'aws-saa-c03' && !isTestPage && <TestNowBubble />}</>
+  const isCourseLanding = pathname.replace(/\/$/, '') === `/${topic}`
+  return <><Outlet />{topic === 'aws-saa-c03' && isCourseLanding && <TestNowBubble />}</>
 }
