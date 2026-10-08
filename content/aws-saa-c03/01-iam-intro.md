@@ -1,7 +1,10 @@
 ---
 title: IAM Foundations
+slug: iam-foundations
 topic: aws-saa-c03
 order: 1
+module: 1
+moduleTitle: Identity and Access Management
 ---
 
 # IAM Foundations

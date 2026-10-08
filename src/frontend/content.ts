@@ -4,6 +4,11 @@ export type LessonEntry = {
   title: string
   summary: string
   order: number
+  module?: {
+    slug: string
+    title: string
+    order: number
+  }
   filePath: string
   source: 'markdown' | 'html'
   bodyHtml: string
@@ -79,6 +84,14 @@ const parseSummary = (raw: string) => {
   return stripHtml(firstMeaningful).slice(0, 160)
 }
 
+const inlineMarkdown = (value: string) => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+
 const markdownToHtml = (markdown: string) => {
   const blocks = markdown.split(/\n\s*\n/).filter(Boolean)
   const htmlParts: string[] = []
@@ -88,13 +101,19 @@ const markdownToHtml = (markdown: string) => {
     if (!trimmed) continue
 
     if (/^```/.test(trimmed)) {
-      const code = trimmed.replace(/^```[a-zA-Z]*\n?|```$/g, '')
-      htmlParts.push(`<pre><code>${code}</code></pre>`)
+      const fence = trimmed.match(/^```([^\n]*)\n?([\s\S]*?)\n?```$/)
+      const language = fence?.[1].trim().split(/\s+/)[0] ?? ''
+      const code = fence?.[2] ?? trimmed.replace(/^```[^\n]*\n?|```$/g, '')
+      const escapedCode = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+      htmlParts.push(`<pre><code${language ? ` class="language-${language}"` : ''}>${escapedCode}</code></pre>`)
       continue
     }
 
     if (/^>\s/.test(trimmed)) {
-      htmlParts.push(`<blockquote>${trimmed.replace(/^>\s?/gm, '')}</blockquote>`)
+      htmlParts.push(`<blockquote>${inlineMarkdown(trimmed.replace(/^>\s?/gm, ''))}</blockquote>`)
       continue
     }
 
@@ -102,7 +121,7 @@ const markdownToHtml = (markdown: string) => {
       const listItems = trimmed
         .split(/\n/)
         .filter((line) => /^[-*]\s/.test(line.trim()))
-        .map((line) => `<li>${line.replace(/^[-*]\s?/, '')}</li>`)
+        .map((line) => `<li>${inlineMarkdown(line.replace(/^[-*]\s?/, ''))}</li>`)
         .join('')
       htmlParts.push(`<ul>${listItems}</ul>`)
       continue
@@ -111,28 +130,45 @@ const markdownToHtml = (markdown: string) => {
     if (/^#{1,3}\s/.test(trimmed)) {
       const heading = trimmed.replace(/^#{1,3}\s/, '')
       const level = trimmed.match(/^#+/)?.[0].length ?? 1
-      htmlParts.push(`<h${level}>${heading}</h${level}>`)
+      htmlParts.push(`<h${level}>${inlineMarkdown(heading)}</h${level}>`)
       continue
     }
 
-    htmlParts.push(`<p>${trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>`)
+    htmlParts.push(`<p>${inlineMarkdown(trimmed)}</p>`)
   }
 
   return htmlParts.join('')
 }
 
 const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => {
-  const topic = filePath.split('/content/')[1]?.split('/')[0]
-  if (!topic) return null
+  const relativePath = filePath.split('/content/')[1]
+  const topic = relativePath?.split('/')[0]
+  if (!relativePath || !topic) return null
 
   const filename = filePath.split('/').pop() ?? ''
-  const slug = normalizeSlug(filename)
+  const directoryModule = relativePath.match(/(?:^|\/)module[\s_-]*(\d+)(?:\/|$)/i)
+  const frontMatterModule = getFrontMatterValue(raw, 'module')
+  const moduleOrder = frontMatterModule ? Number(frontMatterModule) : Number(directoryModule?.[1])
+  const moduleTitle = getFrontMatterValue(raw, 'moduleTitle')
+  const baseSlug = normalizeSlug(filename)
+  const slug = getFrontMatterValue(raw, 'slug') ?? (Number.isFinite(moduleOrder) && moduleOrder > 0
+    ? `module-${moduleOrder}-${baseSlug}`
+    : baseSlug)
+  const module = Number.isFinite(moduleOrder) && moduleOrder > 0
+    ? {
+        slug: `module-${moduleOrder}`,
+        title: moduleTitle ?? `Module ${moduleOrder}`,
+        order: moduleOrder,
+      }
+    : undefined
   const rawTitle = getFrontMatterValue(raw, 'title') ??
     raw.match(/<title>([^<]+)<\/title>/i)?.[1] ??
     filename.replace(/\.[^.]+$/, '').replace(/^[0-9]+[-_\s]*/, '')
   const title = rawTitle.trim() || 'Untitled lesson'
   const source = filePath.endsWith('.html') ? 'html' : 'markdown'
-  const body = source === 'html' ? raw : raw.replace(/^---[\s\S]*?---\n?/, '').trim()
+  const body = source === 'html'
+    ? raw
+    : raw.replace(/^---[\s\S]*?---\n?/, '').replace(/^#\s+[^\n]+\n+/, '').trim()
   const bodyHtml = source === 'html' ? raw : markdownToHtml(body)
 
   return {
@@ -141,6 +177,7 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
     title,
     summary: parseSummary(raw),
     order: parseOrder(filePath, raw),
+    module,
     filePath,
     source,
     bodyHtml,
@@ -156,7 +193,9 @@ export const getLessonCatalog = () => {
 
   const catalog: Record<string, LessonEntry[]> = {}
 
+  const contentPaths = Object.keys(rawContentModules)
   for (const [filePath, rawFile] of Object.entries(rawContentModules)) {
+    if (filePath.endsWith('.html') && contentPaths.includes(filePath.replace(/\.html$/, '.md'))) continue
     const rawContent = readRawContent(rawFile)
     if (!rawContent) continue
 

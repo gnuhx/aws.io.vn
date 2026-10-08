@@ -1,33 +1,95 @@
 import { Link, useParams } from 'react-router'
 import { getLessonCatalog } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
+import styles from './TopicPage.module.css'
 
 export function TopicPage() {
   const { topic = '' } = useParams()
-  const catalog = getLessonCatalog()
-  const lessons = catalog[topic] ?? []
+  const lessons = getLessonCatalog()[topic] ?? []
 
-  if (!lessons.length) {
-    return <NotFoundPage />
+  if (!lessons.length) return <NotFoundPage />
+
+  const modules = new Map<number, { title: string; lessons: typeof lessons }>()
+  const unassignedLessons = lessons.filter((lesson) => !lesson.module)
+
+  for (const lesson of lessons) {
+    if (!lesson.module) continue
+    const group = modules.get(lesson.module.order) ?? { title: lesson.module.title, lessons: [] }
+    group.lessons.push(lesson)
+    modules.set(lesson.module.order, group)
   }
 
+  const sortedModules = [...modules.entries()].sort(([a], [b]) => a - b)
+  const label = topic === 'aws-saa-c03' ? 'AWS Certified Solutions Architect — Associate' : topic.replace(/-/g, ' ')
+
   return (
-    <main style={{ maxWidth: '64rem', margin: '0 auto', padding: '2rem 1rem 4rem' }}>
-      <Link to="/">← Back to topics</Link>
-      <h1 style={{ marginTop: '1rem' }}>{topic.replace(/-/g, ' ')}</h1>
-      <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '1rem' }}>
-        {lessons.map((lesson) => (
-          <li key={lesson.slug}>
-            <Link
-              to={`/${topic}/${lesson.slug}`}
-              style={{ display: 'block', padding: '1rem 1.25rem', border: '1px solid #ddd', borderRadius: 12, textDecoration: 'none', color: '#111' }}
-            >
-              <strong>{lesson.title}</strong>
-              <div style={{ color: '#555', marginTop: 6 }}>{lesson.summary}</div>
-            </Link>
-          </li>
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <Link className={styles.backLink} to="/">← All topics</Link>
+        <p className={styles.eyebrow}>Learning path</p>
+        <h1>{label}</h1>
+        <p className={styles.intro}>A clear path through the concepts, one focused lesson at a time.</p>
+        <div className={styles.courseMeta}>
+          <span>{lessons.length} lessons</span>
+          {sortedModules.length > 0 && <span>{sortedModules.length} {sortedModules.length === 1 ? 'module' : 'modules'}</span>}
+        </div>
+      </header>
+
+      <div className={styles.curriculum}>
+        {sortedModules.map(([order, group]) => (
+          <section className={styles.module} key={order}>
+            <div className={styles.moduleHeading}>
+              <span className={styles.moduleNumber}>{String(order).padStart(2, '0')}</span>
+              <div>
+                <p className={styles.moduleKicker}>Module {order}</p>
+                <h2>{group.title}</h2>
+              </div>
+              <span className={styles.lessonCount}>{group.lessons.length} {group.lessons.length === 1 ? 'lesson' : 'lessons'}</span>
+            </div>
+            <ol className={styles.lessonList}>
+              {group.lessons.sort((a, b) => a.order - b.order).map((lesson, index) => (
+                <li key={lesson.slug}>
+                  <Link className={styles.lessonLink} to={`/${topic}/${lesson.slug}`}>
+                    <span className={styles.lessonIndex}>{String(index + 1).padStart(2, '0')}</span>
+                    <span className={styles.lessonCopy}>
+                      <strong>{lesson.title}</strong>
+                      <span>{lesson.summary}</span>
+                    </span>
+                    <span className={styles.arrow} aria-hidden="true">↗</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
         ))}
-      </ul>
+
+        {unassignedLessons.length > 0 && (
+          <section className={styles.module}>
+            <div className={styles.moduleHeading}>
+              <span className={styles.moduleNumber}>••</span>
+              <div>
+                <p className={styles.moduleKicker}>More lessons</p>
+                <h2>Additional topics</h2>
+              </div>
+              <span className={styles.lessonCount}>{unassignedLessons.length} lessons</span>
+            </div>
+            <ol className={styles.lessonList}>
+              {unassignedLessons.sort((a, b) => a.order - b.order).map((lesson, index) => (
+                <li key={lesson.slug}>
+                  <Link className={styles.lessonLink} to={`/${topic}/${lesson.slug}`}>
+                    <span className={styles.lessonIndex}>{String(index + 1).padStart(2, '0')}</span>
+                    <span className={styles.lessonCopy}>
+                      <strong>{lesson.title}</strong>
+                      <span>{lesson.summary}</span>
+                    </span>
+                    <span className={styles.arrow} aria-hidden="true">↗</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+      </div>
     </main>
   )
 }
