@@ -1,0 +1,20 @@
+// Cùng ý tưởng với .github/workflows/ci.yml, viết cho Jenkins
+pipeline {
+  agent { docker { image 'mcr.microsoft.com/playwright:v1.63.0-noble' } } // có sẵn Node + trình duyệt
+  options { timeout(time: 20, unit: 'MINUTES') }
+  stages {
+    stage('Install')   { steps { sh 'corepack enable && pnpm install --frozen-lockfile' } }
+    stage('Typecheck') { steps { sh 'pnpm typecheck' } }
+    stage('Lint')      { steps { sh 'pnpm lint' } }
+    stage('Test')      { steps { sh 'pnpm coverage' } }
+    stage('Build')     { steps { sh 'pnpm build' } }
+    stage('E2E')       { steps { sh 'CI=true pnpm e2e' } }
+    stage('Deploy') {
+      when { branch 'main' }
+      steps { sh 'echo deploy…' }
+    }
+  }
+  post {
+    always { archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true }
+  }
+}

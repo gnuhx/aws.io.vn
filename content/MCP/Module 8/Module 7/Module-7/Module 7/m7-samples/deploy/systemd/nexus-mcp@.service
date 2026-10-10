@@ -1,0 +1,23 @@
+# /etc/systemd/system/nexus-mcp@.service — 1 file, nhiều instance: nexus-mcp@3001, nexus-mcp@3002.
+#   sudo systemctl enable --now nexus-mcp@3001 nexus-mcp@3002
+[Unit]
+Description=Nexus MCP (instance %i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=nexus
+WorkingDirectory=/opt/nexus/m7-samples
+EnvironmentFile=/etc/nexus/mcp.env
+Environment=PORT=%i INSTANCE=ec2-%i
+ExecStart=/usr/bin/node src/main.ts
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGTERM
+TimeoutStopSec=15
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/nexus
+
+[Install]
+WantedBy=multi-user.target

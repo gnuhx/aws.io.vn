@@ -1,0 +1,42 @@
+diff --git a/apps/mcp-server/src/server.ts b/apps/mcp-server/src/server.ts
+index 4f5a155..9fb8c93 100644
+--- a/apps/mcp-server/src/server.ts
++++ b/apps/mcp-server/src/server.ts
+@@ -24,21 +24,30 @@ export const INSTRUCTIONS =
+   "Nexus: dữ liệu khách hàng, đơn hàng và việc nội bộ của công ty. " +
+   "Số liệu tổng hợp: dùng nexus_revenue_by / nexus_find_orders, đừng tự cộng. Danh sách việc dài: theo nextCursor.";
+ 
+-/** 1 server = 1 phiên client. Đăng ký mọi thứ ở đây — composition root của MCP. */
+-export function createServer(deps: Deps): McpServer {
++export const SCOPE_WRITE = "nexus:write";
++
++/** M7 · S7.4: scopes của token (undefined = không bật auth: stdio, local) — tool ghi chỉ đăng ký khi có nexus:write. */
++export type ServerOptions = { scopes?: readonly string[] | undefined };
++
++/** 1 server = 1 phiên client (stdio) hoặc 1 request (HTTP stateless). Đăng ký mọi thứ ở đây — composition root của MCP. */
++export function createServer(deps: Deps, opts: ServerOptions = {}): McpServer {
++  const canWrite = opts.scopes === undefined || opts.scopes.includes(SCOPE_WRITE);
+   const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS, capabilities: { logging: {} } });
+   registerPing(server, deps);
+   registerGetTime(server, deps);
+   registerListCustomers(server, deps);
+   registerGetCustomer(server, deps);
+-  registerEnrichCustomer(server, deps);
++  if (canWrite) registerEnrichCustomer(server, deps); // apply: true ghi dữ liệu
+   registerRevenueBy(server, deps);
+   registerFindOrders(server, deps);
+   registerListTasks(server, deps);
+-  registerCreateTask(server, deps);
+-  registerUpdateTask(server, deps);
+-  registerDeleteTask(server, deps);
+-  registerExportTasks(server, deps, trackRoots(server.server, deps.log)); // roots: theo dõi riêng từng phiên
++  if (canWrite) {
++    registerCreateTask(server, deps);
++    registerUpdateTask(server, deps);
++    registerDeleteTask(server, deps);
++  }
++  // roots chỉ có nghĩa khi server chạy CÙNG máy với người dùng (stdio) — server remote không đăng ký tool này
++  if (opts.scopes === undefined) registerExportTasks(server, deps, trackRoots(server.server, deps.log));
+   registerGlossary(server);
+   registerCustomerResource(server, deps);
+   registerWeeklySummary(server);

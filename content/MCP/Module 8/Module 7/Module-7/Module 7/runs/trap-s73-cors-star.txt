@@ -1,0 +1,5 @@
+❯ node traps/cors-star.ts
+không CORS, không guard       preflight 200 (ACAO: không có) → trình duyệt KHÔNG gửi POST
+  └ request đơn giản (text/plain) không preflight → POST 415 Unsupported Media Type: Content-Type must be application/json
+CORS *, không guard           preflight 204 (ACAO: *) → POST 200 → tool ĐÃ CHẠY, task được tạo
+CORS *, có guard Host/Origin  preflight 204 (ACAO: *) → POST 403 {"jsonrpc":"2.0","error":{"code":-32000,"message":"Origin không được p

@@ -1,0 +1,19 @@
+{
+  "name": "nexus",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "smoke": "pnpm --filter @nexus/mcp-server smoke",
+    "grade": "pnpm --filter @nexus/cli grade",
+    "check": "pnpm typecheck && pnpm smoke && pnpm grade && pnpm roots && pnpm cursor && pnpm agent",
+    "roots": "node apps/cli/scripts/roots-demo.ts",
+    "cursor": "node apps/mcp-server/scripts/cursor-probe.ts",
+    "agent": "node apps/cli/scripts/agent-check.ts"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "6.0.3"
+  }
+}

@@ -1,0 +1,43 @@
+❯ bash scripts/s75-nginx.sh
+❯ nginx -t
+nginx: the configuration file <tmp>/nginx.conf syntax is ok
+nginx: configuration file <tmp>/nginx.conf test is successful
+❯ curl -s https://localhost:8443/healthz   (2 lần)
+{"ok":true,"instance":"ec2-3601","mode":"stateless"}
+{"ok":true,"instance":"ec2-3602","mode":"stateless"}
+❯ curl -si -X POST https://localhost:8443/mcp   (không token)
+HTTP/2 401 
+www-authenticate: Bearer resource_metadata="https://localhost:8443/.well-known/oauth-protected-resource/mcp", scope="nexus:read nexus:write"
+❯ curl -s http://localhost:8080/mcp -o /dev/null -w '%{http_code} → %{redirect_url}'
+301 → https://localhost/mcp
+❯ curl -sk --resolve evil.example:8443:127.0.0.1 -X POST https://evil.example:8443/mcp   (rebinding: Host lạ lọt qua Nginx)
+{"jsonrpc":"2.0","error":{"code":-32000,"message":"Host không được phép: evil.example"},"id":null}
+❯ RESOURCE=https://localhost:8443/mcp ISSUER=http://127.0.0.1:3400 node scripts/s74-oauth-flow.ts   (client qua Nginx + TLS)
+ 1. POST :8443/mcp → 401
+ 2. GET  :8443/.well-known/oauth-protected-resource/mcp → 200
+ 3. GET  :3400/.well-known/oauth-authorization-server → 200
+ 4. POST :3400/register → 201
+ 5. [trình duyệt] :3400/authorize?…&code_challenge_method=S256&resource=:8443/mcp → 302 → :3499/callback?code=…&iss=http://127.0.0.1:3400
+    connect() ném UnauthorizedError → người dùng đã duyệt, đổi code lấy token
+✓ lần đầu: 401 → client tự đi hết discovery + đăng ký + authorize
+ 6. GET  :8443/.well-known/oauth-protected-resource/mcp → 200
+ 7. GET  :3400/.well-known/oauth-authorization-server → 200
+ 8. POST :3400/token → 200
+    access_token: aud=https://localhost:8443/mcp · scope="nexus:read nexus:write" · sub=lan · hết hạn sau 3600s
+✓ token gắn đúng resource (RFC 8707) — server khác không dùng lại được
+ 9. POST :8443/mcp [Bearer] → 200
+10. POST :8443/mcp [Bearer] → 202
+11. GET  :8443/mcp [Bearer] → 405
+12. POST :8443/mcp [Bearer] → 200
+13. POST :8443/mcp [Bearer] → 200
+    tools: nexus_whoami, nexus_list_tasks, nexus_generate_report, nexus_create_task, nexus_delete_task
+    nexus_create_task → {"instance":"ec2-3602","task":{"id":"t4","title":"Việc tạo qua OAuth","owner":"lan","done":false}}
+✓ gọi tool ghi thành công bằng token vừa lấy
+14. POST :8443/mcp [Bearer] → 200
+    progress đến @264ms, @514ms, @764ms, @1018ms · xong @1018ms
+OK: OAuth flow 3/3
+❯ log 2 instance
+[ec2-3602] MCP stateless tại http://127.0.0.1:3602/mcp (OAuth bật)
+[ec2-3601] MCP stateless tại http://127.0.0.1:3601/mcp (OAuth bật)
+[ec2-3602] create t4 by lan
+[ec2-3601] report xong 4/4 bước

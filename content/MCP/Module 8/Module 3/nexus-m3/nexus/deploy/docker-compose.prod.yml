@@ -1,0 +1,31 @@
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    env_file: /etc/nexus/web.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/?replicaSet=rs0
+      MCP_SERVER_ENTRY: /app/mcp/dist/index.js
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+  mongo:
+    image: mongo:8.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    # KHÔNG có ports: web nối qua mạng compose (mongo:27017)
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: >
+        mongosh --quiet --eval "try { rs.status().ok } catch (e) {
+        rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }).ok }"
+      interval: 5s
+      timeout: 10s
+      retries: 20
+    restart: unless-stopped
+volumes:
+  mongo-data:

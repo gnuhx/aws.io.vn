@@ -1,0 +1,24 @@
+❯ AUTH_CHALLENGE_SCOPE=nexus:read node scripts/s74-oauth-flow.ts
+ 1. POST :3401/mcp → 401
+ 2. GET  :3401/.well-known/oauth-protected-resource/mcp → 200
+ 3. GET  :3400/.well-known/oauth-authorization-server → 200
+ 4. POST :3400/register → 201
+ 5. [trình duyệt] :3400/authorize?…&code_challenge_method=S256&resource=:3401/mcp → 302 → :3499/callback?code=…&iss=http://127.0.0.1:3400
+    connect() ném UnauthorizedError → người dùng đã duyệt, đổi code lấy token
+✓ lần đầu: 401 → client tự đi hết discovery + đăng ký + authorize
+ 6. GET  :3401/.well-known/oauth-protected-resource/mcp → 200
+ 7. GET  :3400/.well-known/oauth-authorization-server → 200
+ 8. POST :3400/token → 200
+    access_token: aud=http://127.0.0.1:3401/mcp · scope="nexus:read" · sub=lan · hết hạn sau 3600s
+✓ token gắn đúng resource (RFC 8707) — server khác không dùng lại được
+ 9. POST :3401/mcp [Bearer] → 200
+10. POST :3401/mcp [Bearer] → 202
+11. GET  :3401/mcp [Bearer] → 405
+12. POST :3401/mcp [Bearer] → 200
+13. POST :3401/mcp [Bearer] → 200
+    tools: nexus_whoami, nexus_list_tasks, nexus_generate_report
+    nexus_create_task → undefined
+✗ gọi tool ghi thành công bằng token vừa lấy
+14. POST :3401/mcp [Bearer] → 200
+    progress đến @260ms, @508ms, @758ms, @1010ms · xong @1010ms
+FAILED: OAuth flow 2/3

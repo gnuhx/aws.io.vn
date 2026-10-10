@@ -1,0 +1,6 @@
+❯ node traps/origin-includes.ts
+http://localhost:5173                so chuỗi con: CHO QUA · so tuyệt đối: cho qua
+http://localhost.evil.example        so chuỗi con: CHO QUA · so tuyệt đối: chặn
+https://evil.example/?x=localhost    so chuỗi con: CHO QUA · so tuyệt đối: chặn
+http://127.0.0.1.nip.io              so chuỗi con: CHO QUA · so tuyệt đối: chặn
+http://localhost:5173.evil.example   so chuỗi con: CHO QUA · so tuyệt đối: chặn

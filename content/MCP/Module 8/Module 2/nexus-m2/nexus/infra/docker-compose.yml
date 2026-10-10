@@ -1,0 +1,29 @@
+# MongoDB replica set 1 node cho dev. Cùng cấu hình topology với production.
+#   docker compose -f infra/docker-compose.yml up -d
+name: nexus-dev
+
+services:
+  mongo:
+    image: mongo:8.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27017:27017" # chỉ máy mình, không mở ra LAN
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Lần đầu: rs.status() ném lỗi NotYetInitialized → rs.initiate(). Các lần sau: trả ok = 1.
+      # host "mongo:27017" = tên service trong mạng compose, dùng được cho container khác (S2.5).
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }).ok }"
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

@@ -1,0 +1,14 @@
+❯ node -v && npx tsc -v && npm ls --depth=0 2>/dev/null | tail -n +2 && nginx -v 2>&1 && openssl version
+v22.22.0
+Version 6.0.3
++-- @hono/node-server@2.1.4
++-- @modelcontextprotocol/sdk@1.30.1
++-- @types/express@5.0.6
++-- @types/node@22.20.5
++-- express@5.2.1
++-- jose@6.2.12
++-- typescript@6.0.3
+`-- zod@4.6.5
+
+nginx version: nginx/1.24.0 (Ubuntu)
+OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)

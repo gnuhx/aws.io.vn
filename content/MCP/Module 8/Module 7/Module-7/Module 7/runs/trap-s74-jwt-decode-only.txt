@@ -1,0 +1,7 @@
+❯ node traps/jwt-decode-only.ts
+token tự ký (khóa kẻ tấn công)
+  decode-only: chấp nhận sub=admin scope="nexus:read nexus:write"
+  verify     : từ chối — chữ ký sai
+token của API lịch (aud khác)
+  decode-only: chấp nhận sub=lan scope="nexus:read nexus:write"
+  verify     : từ chối — claim aud không hợp lệ

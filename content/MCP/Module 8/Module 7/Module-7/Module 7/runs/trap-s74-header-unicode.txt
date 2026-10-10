@@ -1,0 +1,5 @@
+❯ node traps/header-unicode.ts 2>&1 | head -4
+client nhận: 500 (không có WWW-Authenticate) · body: <!DOCTYPE html>
+TypeError [ERR_INVALID_CHAR]: Invalid character in header content ["WWW-Authenticate"]
+    at ServerResponse.setHeader (node:_http_outgoing:703:3)
+    at ServerResponse.header (/home/claude/m7/Module 7/m7-samples/node_modules/express/lib/response.js:686:10)

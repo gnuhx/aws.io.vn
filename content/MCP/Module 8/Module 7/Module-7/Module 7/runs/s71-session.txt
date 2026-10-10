@@ -1,0 +1,29 @@
+❯ node scripts/s71-session.ts
+— HTTP thô —
+POST initialize                 → 200 text/event-stream · Mcp-Session-Id: be89a932-f01d-457b-9add-5f7b720c4855
+  {"result":{"protocolVersion":"2025-11-25","capabilities":{"tools":{"listChanged":true}},"serverInfo":{"name":"nexus-m7","version"…
+✓ initialize trả session id
+POST notifications/initialized  → 202 (notification: không có body)
+POST tools/list, KHÔNG session  → 400 {"jsonrpc":"2.0","error":{"code":-32000,"message":"Bad Request: request đầu tiên phải là initialize…
+✓ thiếu session → 400
+POST tools/list, session lạ     → 404 {"jsonrpc":"2.0","error":{"code":-32001,"message":"Session not found: hết hạn hoặc thuộc instance k…
+✓ session không tồn tại → 404 (client phải initialize lại)
+POST tools/list, Accept thiếu SSE → 406 {"jsonrpc":"2.0","error":{"code":-32000,"message":"Not Acceptable: Client must accept both applicat…
+✓ Accept phải có cả application/json và text/event-stream → 406
+POST tools/list, đúng session   → 200 text/event-stream · nexus_whoami, nexus_list_tasks, nexus_generate_report, nexus_create_task, nexus_delete_task
+DELETE /mcp                     → 200; gọi lại cùng session → 404
+✓ DELETE kết thúc session
+
+— Client SDK (StreamableHTTPClientTransport) —
+connect → sessionId 8472d7af-2032-4fff-943a-c83ba4ddd06a · protocol 2025-11-25
+nexus_whoami → {"instance":"A","subject":null,"scopes":[],"sessionId":"8472d7af-2032-4fff-943a-c83ba4ddd06a"}
+  ← server hỏi người dùng (elicitation qua SSE của session): "Xóa hẳn việc t2?" → đồng ý
+nexus_delete_task t2 → {"instance":"A","deleted":true,"note":"đã xóa"}
+✓ server → client request (elicitation) chạy được trong mode có session
+
+— Cùng buildServer() qua stdio —
+stdio: nexus_whoami, nexus_list_tasks, nexus_generate_report, nexus_create_task, nexus_delete_task
+http : nexus_whoami, nexus_list_tasks, nexus_generate_report, nexus_create_task, nexus_delete_task
+✓ 2 transport, 1 định nghĩa tool, cùng danh sách
+log server: [A] MCP stateful tại http://127.0.0.1:3101/mcp
+OK: S7.1 7/7

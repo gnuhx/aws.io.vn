@@ -1,0 +1,7 @@
+❯ npm run check 2>&1 | grep -E "^(OK|FAILED)"
+OK: S7.1 7/7
+OK: S7.2 8/8
+OK: S7.3 11/11
+OK: S7.4 10/10
+OK: OAuth flow 3/3
+OK: S7.5 web + cache 5/5

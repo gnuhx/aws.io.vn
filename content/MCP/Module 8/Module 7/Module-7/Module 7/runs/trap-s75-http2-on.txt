@@ -1,0 +1,3 @@
+❯ W=$(mktemp -d); sed "s#listen 443 ssl http2;#listen 443 ssl;\n    http2 on;#" deploy/nginx/mcp.conf > $W/mcp.conf; printf "events {}\nhttp { include $W/mcp.conf; }\n" > $W/nginx.conf; nginx -t -c $W/nginx.conf 2>&1 | sed "s#$W#<tmp>#g"; rm -rf $W
+2026/10/09 17:30:51 [emerg] 4197#4197: unknown directive "http2" in <tmp>/mcp.conf:20
+nginx: configuration file <tmp>/nginx.conf test failed

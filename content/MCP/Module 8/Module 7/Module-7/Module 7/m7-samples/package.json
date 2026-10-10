@@ -1,0 +1,34 @@
+{
+  "name": "m7-samples",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "start": "node src/main.ts",
+    "start:stdio": "node src/stdio.ts",
+    "start:web": "node src/web-node.ts",
+    "dev:auth": "node scripts/dev-auth.ts",
+    "s71": "node scripts/s71-session.ts",
+    "s72": "node scripts/s72-scale.ts",
+    "s73": "node scripts/s73-guard.ts",
+    "s74": "node scripts/s74-auth.ts && node scripts/s74-oauth-flow.ts",
+    "s75": "node scripts/s75-web.ts",
+    "s75:nginx": "bash scripts/s75-nginx.sh",
+    "check": "npm run typecheck && npm run s71 && npm run s72 && npm run s73 && npm run s74 && npm run s75"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.4",
+    "@modelcontextprotocol/sdk": "1.30.1",
+    "express": "5.2.1",
+    "jose": "6.2.12",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "22.20.5",
+    "typescript": "6.0.3"
+  }
+}

@@ -1,0 +1,13 @@
+❯ cd sdk-v2-probe && node probe.ts
+1. 2026-07-28: server/discover
+  → 200 application/json · mcp-session-id: —
+  {"result":{"supportedVersions":["2026-07-28"],"capabilities":{"tools":{"listChanged":true}},"resultType":"complete","ttlMs":0,"cacheScope":"private","_meta":{"io.modelcontextprotocol/serverInfo":{"name":"nexus-v2","version":"0.7.0"}}},"jsonrpc":"2.0","id":1}
+2. 2026-07-28: tools/list (không initialize trước)
+  → 200 application/json · mcp-session-id: —
+  {"result":{"tools":[{"name":"nexus_list_tasks","description":"Việc của team","inputSchema":{"type":"object","$schema":"https://json-schema.org/draft/2020-12/schema","properties":{"owner":{"type":"string"}}}}],"resultType":"complete","ttlMs":300000,"cacheScope":"public","_meta":{"io.modelcontextprot…
+3. 2026-07-28: thiếu header Mcp-Method
+  → 400 application/json · mcp-session-id: —
+  {"jsonrpc":"2.0","error":{"code":-32020,"message":"Bad Request: the request headers and body disagree: the body names method tools/list but the required Mcp-Method header is absent","data":{"mismatch":{"header":"(missing)","body":"the body names method tools/list but the required Mcp-Method header …
+4. client 2025-11-25: initialize
+  → 200 text/event-stream · mcp-session-id: —
+  {"result":{"protocolVersion":"2025-11-25","capabilities":{"tools":{"listChanged":true}},"serverInfo":{"name":"nexus-v2","version":"0.7.0"}},"jsonrpc":"2.0","id":4}

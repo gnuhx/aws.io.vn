@@ -1,0 +1,17 @@
+{
+  "name": "@nexus/cli",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "nexus-mcp": "./src/main.ts",
+    "nexus-agent": "./src/agent.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "grade": "node scripts/grade.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.1",
+    "zod": "4.6.5"
+  }
+}
