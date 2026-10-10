@@ -1,9 +1,40 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
-.netlify/
+dist-ssr/
 *.tsbuildinfo
+.vite/
+
+# Test / coverage
+coverage/
+
+# Deploy
+.netlify/
+
+# Env & secrets
 .env*
+*.env
+!.env.example
+*.pem
+*.key
+
+# Logs
+*.log
+npm-debug.log*
+
+# Claude Code (local only)
 CLAUDE.local.md
 .claude/settings.local.json
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+
+# OS
 .DS_Store
-*.log
+Thumbs.db
