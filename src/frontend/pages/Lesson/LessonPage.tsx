@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { findLesson, getLessonCatalog, type LessonEntry } from '../../content.ts'
+import { findLesson, getLessonCatalog, getTopicLabel, type LessonEntry } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import styles from './LessonPage.module.css'
 
@@ -60,7 +60,7 @@ export function LessonPage() {
   const currentIndex = moduleLessons.findIndex((entry) => entry.slug === lesson.slug)
   const previous = moduleLessons[currentIndex - 1]
   const next = moduleLessons[currentIndex + 1]
-  const pageTitle = topic === 'aws-saa-c03' ? 'AWS SAA-C03' : topic.replace(/-/g, ' ')
+  const pageTitle = topic === 'aws-saa-c03' ? 'AWS SAA-C03' : getTopicLabel(topic)
   const itemLabel = lesson.kind === 'section'
     ? 'Section'
     : lesson.kind === 'overview'
@@ -105,8 +105,8 @@ export function LessonPage() {
           {lesson.interactiveHtmlUrl ? (
             <section className={styles.interactiveShell} aria-label={`${lesson.title} interactive lesson`}>
               <div className={styles.interactiveToolbar}>
-                <span>Interactive lesson · original tabs, quizzes, labs, and navigation</span>
-                <a href={lesson.interactiveHtmlUrl} target="_blank" rel="noreferrer">Open separately ↗</a>
+                <span>Interactive lesson · labs and sample code</span>
+                <a href={lesson.interactiveHtmlUrl} target="_blank" rel="noreferrer">Open lesson and code samples separately ↗</a>
               </div>
               <iframe
                 className={styles.interactiveFrame}

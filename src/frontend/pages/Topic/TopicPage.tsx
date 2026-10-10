@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router'
-import { getLessonCatalog } from '../../content.ts'
+import { getLessonCatalog, getPublishedModuleOrders, getTopicLabel } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import styles from './TopicPage.module.css'
 
@@ -20,7 +20,8 @@ export function TopicPage() {
   }
 
   const sortedModules = [...modules.entries()].sort(([a], [b]) => a - b)
-  const label = topic === 'aws-saa-c03' ? 'AWS Certified Solutions Architect — Associate' : topic.replace(/-/g, ' ')
+  const label = topic === 'aws-saa-c03' ? 'AWS Certified Solutions Architect — Associate' : getTopicLabel(topic)
+  const publishedModules = getPublishedModuleOrders(topic)
 
   return (
     <main className={styles.page}>
@@ -28,13 +29,23 @@ export function TopicPage() {
         <Link className={styles.backLink} to="/">← All topics</Link>
         <p className={styles.eyebrow}>Learning path</p>
         <h1>{label}</h1>
-        <p className={styles.intro}>A clear path through the concepts, one focused lesson at a time.</p>
+        <p className={styles.intro}>{topic === 'MCP'
+          ? 'Build a production-ready MCP server with Node.js and TypeScript, then connect it to a client and deploy it.'
+          : 'A clear path through the concepts, one focused lesson at a time.'}</p>
         <div className={styles.courseMeta}>
           <span>{lessons.length} content pages</span>
           {sortedModules.length > 0 && <span>{sortedModules.length} {sortedModules.length === 1 ? 'module' : 'modules'}</span>}
         </div>
         {topic === 'aws-saa-c03' && (
           <Link className={styles.roadmapLink} to="/aws-saa-c03/roadmap">View full course roadmap ↗</Link>
+        )}
+        {topic === 'MCP' && (
+          <>
+            <p className={styles.publishStatus}>
+              Published lessons: Modules {publishedModules.join(', ')}. The remaining modules are outlined in the roadmap.
+            </p>
+            <Link className={styles.roadmapLink} to="/MCP/roadmap">View the complete course roadmap ↗</Link>
+          </>
         )}
       </header>
 

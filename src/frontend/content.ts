@@ -23,6 +23,7 @@ const rawContentModules = import.meta.glob([
   '../../content/**/*.md',
   '!../../content/aws-saa-c03/roadmap.md',
   '!../../content/aws-saa-c03/Module */**',
+  '!../../content/MCP/roadmap.md',
 ], {
   eager: true,
   query: '?raw',
@@ -32,6 +33,17 @@ const roadmapRawModule = import.meta.glob('../../content/aws-saa-c03/roadmap.md'
   eager: true,
   query: '?raw',
 }) as Record<string, unknown>
+
+const mcpRoadmapRawModule = import.meta.glob('../../content/MCP/roadmap.md', {
+  eager: true,
+  query: '?raw',
+}) as Record<string, unknown>
+
+const mcpHtmlAssets = import.meta.glob('../../content/MCP/**/*.html', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
 
 const courseHtmlAssets = import.meta.glob([
   '../../content/aws-saa-c03/Module */*.html',
@@ -90,6 +102,16 @@ const moduleTitles: Record<number, string> = {
   5: 'Modern Architecture',
   6: 'Operations, Security & Management',
   7: 'Scale & Final Review',
+}
+
+const mcpModuleTitles: Record<number, string> = {
+  1: 'React & UI',
+  2: 'Walking skeleton',
+  3: 'MCP: Tools',
+  4: 'MCP: Resources & Prompts',
+  5: 'MCP with real data',
+  6: 'MCP client & agent',
+  7: 'Remote MCP, Auth & Deploy',
 }
 
 const rootModuleNumbers: Record<string, number> = {
@@ -166,10 +188,14 @@ const parseOrder = (filePath: string, raw: string) => {
     if (!Number.isNaN(parsed)) return parsed
   }
 
+  const filename = filePath.split('/').pop() ?? ''
+  if (/^Module-\d+/i.test(filename)) return 0
+  const session = filename.match(/^S\d+\.(\d+)/i)
+  if (session) return Number(session[1])
+
   const lecture = raw.match(/\b[2-7]\.(\d+)\b/)
   if (lecture) return Number(lecture[1])
 
-  const filename = filePath.split('/').pop() ?? ''
   const match = filename.match(/^(\d+)/)
   return match ? Number(match[1]) : 999
 }
@@ -213,11 +239,12 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
   const module = Number.isFinite(moduleOrder) && moduleOrder > 0
     ? {
         slug: `module-${moduleOrder}`,
-        title: moduleTitle ?? moduleTitles[moduleOrder] ?? `Module ${moduleOrder}`,
+        title: moduleTitle ?? (topic === 'MCP' ? mcpModuleTitles[moduleOrder] : moduleTitles[moduleOrder]) ?? `Module ${moduleOrder}`,
         order: moduleOrder,
       }
     : undefined
   const rawTitle = getFrontMatterValue(raw, 'title') ??
+    (topic === 'MCP' ? raw.match(/^#\s+([^\n]+)/m)?.[1]?.replace(/^Module\s+\d+\s*[—–-]\s*/i, '') : undefined) ??
     raw.match(/<title>([^<]+)<\/title>/i)?.[1] ??
     filename.replace(/\.[^.]+$/, '').replace(/^[0-9]+[-_\s]*/, '')
   const title = rawTitle.trim() || 'Untitled lesson'
@@ -225,7 +252,7 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
     .replace(/^---[\s\S]*?---\n?/, '')
     .replace(/^#\s+[^\n]+\n+/, '')
     .trim()
-  const kind: LessonKind = getFrontMatterValue(raw, 'kind') === 'overview' || rootModule
+  const kind: LessonKind = getFrontMatterValue(raw, 'kind') === 'overview' || rootModule || (topic === 'MCP' && /^Module-\d+/i.test(filename))
     ? 'overview'
     : 'lesson'
 
@@ -237,6 +264,7 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
     order: parseOrder(filePath, raw),
     module,
     kind,
+    interactiveHtmlUrl: topic === 'MCP' ? mcpHtmlAssets[filePath.replace(/\.md$/, '.html')] : undefined,
     filePath,
     source: 'markdown',
     bodyMarkdown,
@@ -318,9 +346,10 @@ export const getLessonCatalog = () => {
   return lessonCatalogCache
 }
 
-const formatTopicLabel = (topic: string) => {
+export const getTopicLabel = (topic: string) => {
   const topicMap: Record<string, string> = {
     'aws-saa-c03': 'AWS SAA-C03',
+    MCP: 'Node.js MCP Server Learning Course',
     'context-engineering': 'Context Engineering',
     reactjs: 'ReactJS',
     'agentic-ai-code': 'Agentic AI Code',
@@ -333,7 +362,7 @@ export const getTopics = () => {
   const catalog = getLessonCatalog()
   return Object.entries(catalog).map(([topic, lessons]) => ({
     topic,
-    label: formatTopicLabel(topic),
+    label: getTopicLabel(topic),
     lessons,
   }))
 }
@@ -343,4 +372,10 @@ export const findLesson = (topic: string, slug: string) => {
   return lesson ?? null
 }
 
-export const getCourseRoadmap = () => readRawContent(Object.values(roadmapRawModule)[0])
+export const getCourseRoadmap = (topic = 'aws-saa-c03') => readRawContent(
+  Object.values(topic === 'MCP' ? mcpRoadmapRawModule : roadmapRawModule)[0],
+)
+
+export const getPublishedModuleOrders = (topic: string) =>
+  [...new Set((getLessonCatalog()[topic] ?? []).map((lesson) => lesson.module?.order).filter((order): order is number => order !== undefined))]
+    .sort((a, b) => a - b)

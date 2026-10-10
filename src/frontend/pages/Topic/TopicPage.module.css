@@ -73,6 +73,13 @@
 }
 .roadmapLink:hover { text-decoration: underline; }
 
+.publishStatus {
+  margin: 1rem 0 0;
+  color: #59636e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .curriculum {
   display: grid;
   gap: 1.1rem;
