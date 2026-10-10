@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router'
 import { getLessonCatalog, getPublishedModuleOrders, getTopicLabel } from '../../content.ts'
+import { McpModuleWrapup } from '../../components/McpModuleWrapup/McpModuleWrapup.tsx'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import styles from './TopicPage.module.css'
 
@@ -74,6 +75,12 @@ export function TopicPage() {
                 </li>
               ))}
             </ol>
+            {topic === 'MCP' && (
+              <McpModuleWrapup
+                module={order}
+                codeUrl={group.lessons.find((lesson) => lesson.kind === 'overview')?.interactiveHtmlUrl}
+              />
+            )}
           </section>
         ))}
 
