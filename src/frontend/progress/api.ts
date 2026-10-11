@@ -4,9 +4,12 @@ import { ApiError } from '../auth/api.ts'
 /** Saved statuses for one roadmap, keyed by roadmap item ID or lesson ID. Missing = not started / unread. */
 export type SavedStatuses = Record<string, ProgressStatus>
 
+/** One saved status change, for the learning calendar. `at` is an ISO timestamp (UTC). */
+export type ActivityEvent = { itemId: string; status: ProgressStatus | 'not_started'; at: string }
+
 // Same-origin requests send the httpOnly session cookie; the server derives the owner from it.
-async function request<T>(roadmapId: RoadmapId, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`/api/progress/${encodeURIComponent(roadmapId)}`, {
+async function request<T>(roadmapId: RoadmapId, init: RequestInit = {}, suffix = ''): Promise<T> {
+  const response = await fetch(`/api/progress/${encodeURIComponent(roadmapId)}${suffix}`, {
     ...init,
     credentials: 'same-origin',
     headers: init.body ? { 'Content-Type': 'application/json' } : init.headers,
@@ -24,4 +27,7 @@ export const progressApi = {
     request<unknown>(roadmapId, status === 'not_started'
       ? { method: 'DELETE', body: JSON.stringify({ itemId }) }
       : { method: 'PUT', body: JSON.stringify({ itemId, status }) }),
+  /** Status changes from the last year, newest first. */
+  activity: (roadmapId: RoadmapId) =>
+    request<{ activity?: ActivityEvent[] }>(roadmapId, {}, '/activity').then((body) => body.activity ?? []),
 }

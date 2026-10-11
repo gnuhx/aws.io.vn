@@ -1,0 +1,51 @@
+/* Status palette: good #0ca30c, warning #fab219, neutral gray. Calendar: one blue ramp, light → dark. */
+.completed { --status-color: #0ca30c; }
+.inProgress { --status-color: #fab219; }
+.notStarted { --status-color: #c4ccd5; }
+
+.donutBlock { display: flex; align-items: center; gap: 1.25rem; }
+.donut { position: relative; flex: 0 0 auto; width: 132px; height: 132px; }
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donutTrack { fill: none; stroke: #eef1f4; stroke-width: 14; }
+.donutSegment { fill: none; stroke: var(--status-color); stroke-width: 14; cursor: pointer; transition: opacity .15s, stroke-width .15s; }
+.donutSegment:hover { stroke-width: 16; }
+.dimmed { opacity: .35; }
+.donutCenter { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+.donutCenter strong { color: #1f2328; font-size: 1.55rem; line-height: 1.1; }
+.donutCenter span { color: #59636e; font-size: .72rem; }
+.legend { display: grid; gap: .35rem; min-width: 0; margin: 0; padding: 0; list-style: none; }
+.legend li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .5rem; padding: .25rem .45rem; border-radius: 6px; color: #424a53; font-size: .84rem; cursor: default; }
+.legend li.legendActive { background: #fff; }
+.swatch { width: .7rem; height: .7rem; border-radius: 3px; background: var(--status-color); }
+.legendValue { color: #1f2328; font-weight: 650; white-space: nowrap; }
+.legendValue small { color: #59636e; font-weight: 400; }
+
+.calendar { padding: 1rem 1.2rem; border: 1px solid #d1d9e0; border-radius: 12px; background: #fff; }
+.calendarHeading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .75rem 1.5rem; margin-bottom: .75rem; }
+.calendarLabel { margin: 0 0 .25rem; color: #59636e; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.idleMessage { margin: 0; color: #1f2328; font-weight: 650; }
+.idleWarning { color: #9b2c20; }
+.stats { display: flex; gap: 1.25rem; margin: 0; }
+.stats div { display: grid; gap: .1rem; }
+.stats dt { color: #59636e; font-size: .72rem; }
+.stats dd { margin: 0; color: #1f2328; font-size: .95rem; font-weight: 700; white-space: nowrap; }
+.calendarScroll { overflow-x: auto; padding-bottom: .25rem; }
+.calendarGrid { display: grid; grid-template-columns: 2rem repeat(53, 11px); grid-template-rows: 1rem repeat(7, 11px); gap: 3px; width: max-content; }
+.monthLabel { grid-row: 1; color: #59636e; font-size: .66rem; white-space: nowrap; }
+.weekdayLabel { grid-column: 1; color: #59636e; font-size: .62rem; line-height: 11px; }
+.day { display: inline-block; width: 11px; height: 11px; border-radius: 2px; }
+.calendarGrid .day:hover { outline: 1px solid #1f2328; outline-offset: 1px; }
+.level0 { background: #ebeef1; }
+.level1 { background: #b7d3f6; }
+.level2 { background: #6da7ec; }
+.level3 { background: #2a78d6; }
+.level4 { background: #184f95; }
+.calendarFooter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .5rem; color: #59636e; font-size: .75rem; }
+.scale { display: inline-flex; align-items: center; gap: 3px; }
+.calendarError { margin: .5rem 0 0; color: #9b2c20; font-size: .85rem; }
+
+@media (max-width: 650px) {
+  .donutBlock { flex-direction: column; align-items: stretch; }
+  .donut { align-self: center; }
+  .stats { gap: .9rem; }
+}

@@ -49,3 +49,38 @@
   .roadmapArticle { padding: 1rem; }
   .statusSelect { max-width: 8rem; font-size: .72rem; }
 }
+
+/* Status colors (good #0ca30c, warning #fab219, neutral gray); the text label always stays visible. */
+.statusNotStarted { --status-color: #c4ccd5; }
+.statusInProgress { --status-color: #fab219; }
+.statusCompleted { --status-color: #0ca30c; }
+.statusSelect.statusNotStarted { border-color: #aebdca; background: #fff; color: #424a53; }
+.statusSelect.statusInProgress { border-color: #d4940a; background: #fff5d6; color: #6b4a00; font-weight: 650; }
+.statusSelect.statusCompleted { border-color: #0ca30c; background: #dafbe1; color: #116329; font-weight: 650; }
+.statusSelect:disabled.statusInProgress,
+.statusSelect:disabled.statusCompleted { opacity: .75; }
+
+.chartRow { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1.5rem; margin-top: 1rem; }
+.chartRow .moduleProgress { margin-top: 0; }
+.moduleRow { flex-wrap: wrap; }
+.moduleBar { flex: 1 0 100%; height: 4px; overflow: hidden; border-radius: 999px; background: #eef1f4; }
+.moduleBar span { display: block; height: 100%; border-radius: 999px; background: #0ca30c; }
+
+.filterBar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; padding: .65rem .8rem; border: 1px solid #d1d9e0; border-radius: 10px; background: rgb(255 255 255 / 95%); backdrop-filter: blur(4px); }
+.filterGroup { display: flex; flex-wrap: wrap; gap: .35rem; }
+.filterChip { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .65rem; border: 1px solid #d1d9e0; border-radius: 999px; background: #fff; color: #424a53; font: inherit; font-size: .8rem; cursor: pointer; }
+.filterChip:hover { border-color: #8c959f; }
+.filterChip[aria-checked="true"] { border-color: #1f2328; background: #1f2328; color: #fff; }
+.filterChip:focus-visible,
+.filterSelect select:focus-visible { outline: 3px solid #0969da; outline-offset: 2px; }
+.filterDot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--status-color); }
+.filterSelect { display: inline-flex; align-items: center; gap: .4rem; color: #59636e; font-size: .8rem; }
+.filterSelect select { padding: .25rem .4rem; border: 1px solid #d1d9e0; border-radius: 6px; background: #fff; color: #1f2328; font: inherit; }
+.filterCount { display: inline-flex; align-items: center; gap: .5rem; margin-left: auto; color: #59636e; font-size: .8rem; }
+.filterCount button { padding: .15rem .5rem; border: 1px solid #d1d9e0; border-radius: 5px; background: #fff; color: #0969da; font: inherit; cursor: pointer; }
+.roadmapArticle li[hidden] { display: none; }
+
+@media (max-width: 650px) {
+  .chartRow { grid-template-columns: 1fr; }
+  .filterCount { margin-left: 0; }
+}

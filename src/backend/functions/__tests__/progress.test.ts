@@ -6,10 +6,12 @@ const progressService = vi.hoisted(() => ({
   listStatuses: vi.fn(),
   setStatus: vi.fn(),
   clearStatus: vi.fn(),
+  listActivity: vi.fn(),
 }))
 vi.mock('../../services/progress.ts', () => progressService)
 
 const { default: progress } = await import('../progress.ts')
+const { default: progressActivity } = await import('../progress-activity.ts')
 
 const SECRET = 'test-secret-that-is-at-least-32-characters-long'
 const LESSON = 'aws-saa-c03:lesson-0001'
@@ -109,5 +111,37 @@ describe('lesson read tracking', () => {
     const response = await call('PUT', { cookie: await cookieFor('u1'), body: { itemId: ITEM, status: 'in_progress' } })
     expect(response.status).toBe(200)
     expect(progressService.setStatus).toHaveBeenCalledWith('u1', 'aws-saa-c03', ITEM, 'in_progress')
+  })
+})
+
+describe('/api/progress/:roadmapId/activity', () => {
+  const activityCall = (cookie?: string, roadmapId = 'aws-saa-c03', method = 'GET') =>
+    progressActivity(
+      new Request(`https://aws.io.vn/api/progress/${roadmapId}/activity`, { method, headers: cookie ? { cookie, 'content-type': 'application/json' } : {} }),
+      contextFor(roadmapId),
+    )
+
+  it('is 401 without a session cookie', async () => {
+    expect((await activityCall()).status).toBe(401)
+    expect(progressService.listActivity).not.toHaveBeenCalled()
+  })
+
+  it('is 400 for an unknown roadmap', async () => {
+    expect((await activityCall(await cookieFor('u1'), 'nope')).status).toBe(400)
+    expect(progressService.listActivity).not.toHaveBeenCalled()
+  })
+
+  it("returns only the cookie user's events from the last year", async () => {
+    const at = new Date('2026-10-01T23:30:00Z')
+    progressService.listActivity.mockResolvedValue([{ itemId: ITEM, status: 'completed', at }])
+    const response = await activityCall(await cookieFor('user-b'))
+    expect(await response.json()).toEqual({ activity: [{ itemId: ITEM, status: 'completed', at: at.toISOString() }] })
+    const [userId, roadmapId, since] = progressService.listActivity.mock.calls[0] as [string, string, Date]
+    expect([userId, roadmapId]).toEqual(['user-b', 'aws-saa-c03'])
+    expect(Date.now() - since.getTime()).toBeGreaterThanOrEqual(365 * 24 * 60 * 60 * 1000)
+  })
+
+  it('is read-only', async () => {
+    expect((await activityCall(await cookieFor('u1'), 'aws-saa-c03', 'PUT')).status).toBe(405)
   })
 })

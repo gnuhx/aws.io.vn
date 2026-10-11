@@ -5,10 +5,42 @@ import { Link, useLocation } from 'react-router'
 import { ApiError } from '../../auth/api.ts'
 import { useAuth } from '../../auth/authContext.ts'
 import type { TrackedLesson } from '../../content.ts'
-import { progressApi, type SavedStatuses } from '../../progress/api.ts'
+import { progressApi, type ActivityEvent, type SavedStatuses } from '../../progress/api.ts'
 import { roadmapProgressManifest, type ProgressStatus, type RoadmapId, type RoadmapProgressItem } from '../../../shared/roadmapProgress.ts'
 import { MarkdownView } from '../../components/Markdown/MarkdownView.tsx'
+import { LearningCalendar } from './LearningCalendar.tsx'
+import { ProgressDonut } from './ProgressDonut.tsx'
 import styles from './RoadmapProgressView.module.css'
+
+type ItemStatus = ProgressStatus | 'not_started'
+type StatusFilter = 'all' | ItemStatus
+type LessonFilter = 'all' | 'has_lesson' | 'unread_lesson'
+
+const STATUS_CLASSES: Record<ItemStatus, string> = {
+  not_started: styles.statusNotStarted,
+  in_progress: styles.statusInProgress,
+  completed: styles.statusCompleted,
+}
+
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'not_started', label: 'Not started' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'completed', label: 'Completed' },
+]
+
+function matchesFilters(
+  status: ItemStatus,
+  lessons: readonly TrackedLesson[] | undefined,
+  statuses: SavedStatuses,
+  statusFilter: StatusFilter,
+  lessonFilter: LessonFilter,
+) {
+  if (statusFilter !== 'all' && status !== statusFilter) return false
+  if (lessonFilter === 'has_lesson') return Boolean(lessons?.length)
+  if (lessonFilter === 'unread_lesson') return Boolean(lessons?.some((lesson) => statuses[lesson.id] !== 'completed'))
+  return true
+}
 
 const itemAnchorId = (itemId: string) => `roadmap-item-${itemId.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 
@@ -28,7 +60,7 @@ function StatusControl({
   return (
     <select
       id={itemAnchorId(itemId)}
-      className={styles.statusSelect}
+      className={`${styles.statusSelect} ${STATUS_CLASSES[status]}`}
       aria-label={`Progress status for item ${itemId}`}
       value={status}
       disabled={disabled}
@@ -49,6 +81,8 @@ type RoadmapItemState = {
   statuses: SavedStatuses
   loaded: boolean
   saving: boolean
+  statusFilter: StatusFilter
+  lessonFilter: LessonFilter
   updateStatus: (itemId: string, status: ProgressStatus | 'not_started') => void
 }
 
@@ -62,17 +96,19 @@ function RoadmapListItem({ node, children, ...props }: ComponentProps<'li'> & { 
   const item = state && sourceLine ? state.itemsBySourceLine.get(sourceLine) : undefined
   if (!state || !item) return <li {...props}>{children}</li>
   const content = Children.toArray(children).filter((child) => !(isValidElement<{ type?: string }>(child) && child.props.type === 'checkbox'))
+  const status = state.statuses[item.id] ?? 'not_started'
+  const lessons = state.lessonsByItem.get(item.id)
   return (
-    <li {...props}>
+    <li {...props} data-status={status} hidden={!matchesFilters(status, lessons, state.statuses, state.statusFilter, state.lessonFilter)}>
       <StatusControl
         roadmapId={state.roadmapId}
         itemId={item.id}
-        status={state.statuses[item.id] ?? 'not_started'}
+        status={status}
         disabled={!state.loaded || state.saving}
         onChange={state.updateStatus}
       />
       {content}
-      {state.lessonsByItem.get(item.id)?.map((lesson) => {
+      {lessons?.map((lesson) => {
         const read = state.statuses[lesson.id] === 'completed'
         return (
           <span className={styles.lessonBadge} key={lesson.id}>
@@ -108,6 +144,10 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
   const [reloads, setReloads] = useState(0)
   const [savingItem, setSavingItem] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [activity, setActivity] = useState<{ owner: string; events: ActivityEvent[] } | null>(null)
+  const [activityError, setActivityError] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [lessonFilter, setLessonFilter] = useState<LessonFilter>('all')
   const items: readonly RoadmapProgressItem[] = roadmapProgressManifest[roadmapId]
   const itemsBySourceLine = useMemo(() => new Map(items.map((item) => [item.sourceLine, item])), [items])
   const lessonsByItem = useMemo(() => {
@@ -137,6 +177,21 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
     return () => { active = false }
   }, [owner, roadmapId, reloads, markSignedOut])
 
+  // The calendar is secondary: a failure here shows its own message and never blocks the roadmap.
+  useEffect(() => {
+    if (!owner) return
+    let active = true
+    progressApi.activity(roadmapId)
+      .then((events) => {
+        if (!active) return
+        setActivity({ owner, events })
+        setActivityError('')
+      })
+      .catch(() => { if (active) setActivityError('Could not load your learning history.') })
+    return () => { active = false }
+  }, [owner, roadmapId, reloads])
+  const activityEvents = useMemo(() => (owner && activity?.owner === owner ? activity.events : []), [owner, activity])
+
   const updateStatus = useCallback(async (itemId: string, status: ProgressStatus | 'not_started') => {
     if (!owner || savingItem) return
     setSavingItem(itemId)
@@ -149,6 +204,11 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
         else next[itemId] = status
         return { owner, statuses: next }
       })
+      // Mirrors the event the server just logged, so today's calendar cell updates without a refetch.
+      setActivity((previous) => ({
+        owner,
+        events: [{ itemId, status, at: new Date().toISOString() }, ...(previous?.owner === owner ? previous.events : [])],
+      }))
     } catch (cause) {
       const expired = cause instanceof ApiError && cause.status === 401
       if (expired) markSignedOut()
@@ -176,6 +236,9 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
   const inProgressCount = items.filter((item) => statuses[item.id] === 'in_progress').length
   const nextItem = items.find((item) => statuses[item.id] === 'in_progress') ?? items.find((item) => statuses[item.id] !== 'completed')
   const readCount = lessons.filter((lesson) => statuses[lesson.id] === 'completed').length
+  const shownCount = items.filter((item) =>
+    matchesFilters(statuses[item.id] ?? 'not_started', lessonsByItem.get(item.id), statuses, statusFilter, lessonFilter)).length
+  const filtering = statusFilter !== 'all' || lessonFilter !== 'all'
 
   const itemState = useMemo<RoadmapItemState>(() => ({
     roadmapId,
@@ -184,8 +247,10 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
     statuses,
     loaded,
     saving: savingItem !== null,
+    statusFilter,
+    lessonFilter,
     updateStatus: (itemId, status) => { void updateStatus(itemId, status) },
-  }), [roadmapId, itemsBySourceLine, lessonsByItem, statuses, loaded, savingItem, updateStatus])
+  }), [roadmapId, itemsBySourceLine, lessonsByItem, statuses, loaded, savingItem, statusFilter, lessonFilter, updateStatus])
   // Parsed once per roadmap; items still update through context.
   const article = useMemo(() => <MarkdownView markdown={markdown} components={roadmapComponents} />, [markdown])
 
@@ -203,15 +268,52 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
           {isSignedIn && nextItem && <a className={styles.continueLink} href={`#${itemAnchorId(nextItem.id)}`}>Continue learning →</a>}
           {isSignedIn && !nextItem && <span className={styles.doneMessage}>Roadmap complete ✓</span>}
         </div>
-        {isSignedIn && <div className={styles.moduleProgress}>
-          {modules.map(([moduleId, moduleItems]) => {
-            const done = moduleItems.filter((item) => statuses[item.id] === 'completed').length
-            const label = moduleId === 'course' ? 'Course items' : `Module ${moduleId.slice(7)}`
-            return <div className={styles.moduleRow} key={moduleId}><span>{label}</span><span>{done}/{moduleItems.length} complete</span></div>
-          })}
+        {isSignedIn && loaded && <div className={styles.chartRow}>
+          <ProgressDonut counts={{ completed: completedCount, in_progress: inProgressCount, not_started: items.length - completedCount - inProgressCount }} />
+          <div className={styles.moduleProgress}>
+            {modules.map(([moduleId, moduleItems]) => {
+              const done = moduleItems.filter((item) => statuses[item.id] === 'completed').length
+              const label = moduleId === 'course' ? 'Course items' : `Module ${moduleId.slice(7)}`
+              return (
+                <div className={styles.moduleRow} key={moduleId}>
+                  <span>{label}</span><span>{done}/{moduleItems.length} complete</span>
+                  <span className={styles.moduleBar} aria-hidden="true"><span style={{ width: `${(done / moduleItems.length) * 100}%` }} /></span>
+                </div>
+              )
+            })}
+          </div>
         </div>}
         {error && <p className={styles.error} role="alert">{error} <button type="button" onClick={() => { setError(''); setReloads((count) => count + 1) }}>Retry</button></p>}
       </section>
+      {isSignedIn && loaded && <LearningCalendar events={activityEvents} error={activityError} />}
+      <div className={styles.filterBar} role="group" aria-label="Filter roadmap items">
+        {isSignedIn && loaded && <div className={styles.filterGroup} role="radiogroup" aria-label="Status">
+          {STATUS_FILTERS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={statusFilter === value}
+              className={`${styles.filterChip} ${value === 'all' ? '' : STATUS_CLASSES[value]}`}
+              onClick={() => setStatusFilter(value)}
+            >
+              {value !== 'all' && <span className={styles.filterDot} aria-hidden="true" />}{label}
+            </button>
+          ))}
+        </div>}
+        <label className={styles.filterSelect}>
+          <span>Lessons</span>
+          <select value={lessonFilter} onChange={(event) => setLessonFilter(event.currentTarget.value as LessonFilter)}>
+            <option value="all">All items</option>
+            <option value="has_lesson">Has a lesson</option>
+            {loaded && <option value="unread_lesson">Unread lesson</option>}
+          </select>
+        </label>
+        <span className={styles.filterCount} role="status">
+          {filtering ? `${shownCount} of ${items.length} items shown` : `${items.length} items`}
+          {filtering && <button type="button" onClick={() => { setStatusFilter('all'); setLessonFilter('all') }}>Clear</button>}
+        </span>
+      </div>
       <div className={styles.roadmapArticle}>
         <RoadmapItemContext.Provider value={itemState}>{article}</RoadmapItemContext.Provider>
       </div>
