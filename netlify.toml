@@ -13,6 +13,9 @@
   command = "npm run dev -- --host 127.0.0.1"
   targetPort = 5173
   port = 8888
+  # Open the app on http://localhost:5173, not :8888: through :8888 the SPA rewrite below also catches
+  # Vite's module requests (/main.tsx, /@vite/client) and returns index.html. Vite proxies /api to :8888.
+  autoLaunch = false
 
 [[redirects]]
   from = "/*"

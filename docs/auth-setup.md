@@ -21,7 +21,7 @@ The site has its own accounts (D-009): email + password, or Google. Users and ro
 
 ## Environment
 
-Put these in `.env` for local development (copy `.env.example`) and in Netlify's environment settings for deploys. `.env` is git-ignored. Only `VITE_` variables reach the browser bundle, so no secret may use that prefix.
+Put these in `.env` for local development (first time only: `cp -n .env.example .env`; plain `cp` would overwrite real values) and in Netlify's environment settings for deploys. `.env` is git-ignored. Only `VITE_` variables reach the browser bundle, so no secret may use that prefix.
 
 | Variable | Side | Value |
 |---|---|---|
@@ -61,7 +61,16 @@ npx netlify-cli dev        # runs the functions on :8888 and starts Vite on :517
 
 Open **http://localhost:5173**. Vite proxies `/api/*` to `netlify dev` on :8888, so the page and the API share an origin and the session cookie works without CORS. `netlify dev` also loads `.env` into the functions. `npm run dev` alone starts only the frontend: pages load but every `/api` call fails.
 
+Don't open http://localhost:8888: `netlify dev` applies the `/* → /index.html` rewrite from `netlify.toml` to Vite's module requests there, and Vite shows "Failed to parse source for import analysis … index.html". Use :5173.
+
 Checks: `npm run verify` (lint + typecheck + tests), `npm run build`.
+
+`npm run build` (also on Netlify) runs build checks from `src/backend/build/buildChecks.ts` around `vite build`:
+
+- `check:env` (before): Google Client IDs are well-formed (not the `.env.example` placeholder) and identical; Google actually knows the Client ID (skipped with a warning when offline, or with `SKIP_GOOGLE_CLIENT_CHECK=1`); `JWT_SECRET` ≥ 32 chars and a `mongodb://` / `mongodb+srv://` `MONGODB_URI` when set, and all backend variables present on Netlify (`NETLIFY=true`); no secret-looking `VITE_` variable.
+- `check:bundle` (after): no `JWT_SECRET`, `MONGODB_URI` or `GOOGLE_CLIENT_SECRET` value appears in `dist/`.
+
+A failing check stops the build and writes `.claude/lessons/<issue-id>.md` (what happened, how to fix; variable names only, never values). The file is refreshed each time the same check fails again.
 
 ## Atlas
 

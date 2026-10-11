@@ -35,6 +35,12 @@
 .statusSelect { max-width: 8.7rem; margin: 0 .35rem 0 0; padding: .15rem .25rem; border: 1px solid #aebdca; border-radius: 5px; background: #fff; color: #374151; font: inherit; font-size: .78rem; vertical-align: baseline; }
 .statusSelect:disabled { color: #6b7280; background: #f6f8fa; cursor: not-allowed; }
 .statusSelect:not(:disabled):focus-visible { outline: 3px solid #0969da; outline-offset: 2px; }
+.lessonBadge { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .35rem; margin-left: .5rem; font-size: .8rem; }
+.lessonBadge a { font-weight: 600; }
+.lessonRead,
+.lessonUnread { padding: .05rem .4rem; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.lessonRead { background: #dafbe1; color: #1a7f37; }
+.lessonUnread { background: #eef1f4; color: #59636e; }
 #roadmap-item-aws-saa-c03\:item-0001,
 [id^="roadmap-item-"] { scroll-margin-top: 1rem; }
 

@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run check:env && vite build && npm run check:bundle",
+    "check:env": "node --env-file-if-exists=.env src/backend/build/runBuildChecks.ts env",
+    "check:bundle": "node --env-file-if-exists=.env src/backend/build/runBuildChecks.ts bundle",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",

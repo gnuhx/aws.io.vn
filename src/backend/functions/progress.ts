@@ -1,5 +1,5 @@
 import type { Config } from '@netlify/functions'
-import { isTrackableProgressItem } from '../../shared/schemas/roadmap-progress.ts'
+import { isAllowedProgressStatus, isTrackableProgressItem } from '../../shared/schemas/roadmap-progress.ts'
 import { progressDeleteSchema, progressReadParamsSchema, progressUpdateSchema } from '../../shared/schemas/roadmap-progress.ts'
 import { json, readJson, withAuth } from '../middleware/http.ts'
 import { clearStatus, listStatuses, setStatus } from '../services/progress.ts'
@@ -17,7 +17,7 @@ export default withAuth(async (request, context, { userId }) => {
   if (request.method === 'PUT') {
     const body = await readJson(request)
     const parsed = progressUpdateSchema.safeParse({ ...(body && typeof body === 'object' ? body : {}), roadmapId })
-    if (!parsed.success || !isTrackableProgressItem(roadmapId, parsed.data.itemId)) {
+    if (!parsed.success || !isAllowedProgressStatus(roadmapId, parsed.data.itemId, parsed.data.status)) {
       return json({ error: 'invalid progress item or status' }, 400)
     }
     await setStatus(userId, roadmapId, parsed.data.itemId, parsed.data.status)

@@ -1,3 +1,6 @@
+import { lessonProgressManifest } from '../shared/lessonProgress.ts'
+import type { RoadmapId } from '../shared/roadmapProgress.ts'
+
 export type LessonKind = 'lesson' | 'section' | 'overview' | 'visual'
 
 export type LessonEntry = {
@@ -381,3 +384,17 @@ export const getCourseRoadmap = (topic = 'aws-saa-c03') => {
 export const getPublishedModuleOrders = (topic: string) =>
   [...new Set((getLessonCatalog()[topic] ?? []).map((lesson) => lesson.module?.order).filter((order): order is number => order !== undefined))]
     .sort((a, b) => a - b)
+
+/** The lesson's file path relative to `content/`, which keys its read-tracking ID (see shared/lessonProgress.ts). */
+export const getLessonContentPath = (lesson: LessonEntry) => lesson.filePath.split('/content/')[1] ?? lesson.filePath
+
+export type TrackedLesson = { id: string; roadmapItemId: string; title: string; href: string }
+
+/** Read-trackable lessons of a roadmap that have a lesson page, in manifest order. */
+export const getTrackedLessons = (roadmapId: RoadmapId): TrackedLesson[] => {
+  const lessonsByPath = new Map((getLessonCatalog()[roadmapId] ?? []).map((lesson) => [getLessonContentPath(lesson), lesson]))
+  return lessonProgressManifest[roadmapId].flatMap((entry) => {
+    const lesson = lessonsByPath.get(entry.path)
+    return lesson ? [{ id: entry.id, roadmapItemId: entry.roadmapItemId, title: lesson.title, href: `/${roadmapId}/${lesson.slug}` }] : []
+  })
+}

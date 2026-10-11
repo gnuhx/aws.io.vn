@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentProps } from 'react'
+import { Children, createContext, isValidElement, useCallback, useContext, useEffect, useMemo, useState, type ComponentProps } from 'react'
 import type { Components } from 'react-markdown'
 import type { Element } from 'hast'
 import { Link, useLocation } from 'react-router'
+import { ApiError } from '../../auth/api.ts'
 import { useAuth } from '../../auth/authContext.ts'
-import { roadmapProgressManifest, type ProgressStatus, type RoadmapId } from '../../../shared/roadmapProgress.ts'
+import type { TrackedLesson } from '../../content.ts'
+import { progressApi, type SavedStatuses } from '../../progress/api.ts'
+import { roadmapProgressManifest, type ProgressStatus, type RoadmapId, type RoadmapProgressItem } from '../../../shared/roadmapProgress.ts'
 import { MarkdownView } from '../../components/Markdown/MarkdownView.tsx'
 import styles from './RoadmapProgressView.module.css'
 
-type SavedStatuses = Record<string, ProgressStatus>
-type ProgressResponse = { statuses: SavedStatuses }
 const itemAnchorId = (itemId: string) => `roadmap-item-${itemId.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 
 function StatusControl({
@@ -41,71 +42,124 @@ function StatusControl({
   )
 }
 
-export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: RoadmapId; markdown: string }) {
-  const { status: authStatus, markSignedOut } = useAuth()
+type RoadmapItemState = {
+  roadmapId: RoadmapId
+  itemsBySourceLine: Map<number, RoadmapProgressItem>
+  lessonsByItem: Map<string, TrackedLesson[]>
+  statuses: SavedStatuses
+  loaded: boolean
+  saving: boolean
+  updateStatus: (itemId: string, status: ProgressStatus | 'not_started') => void
+}
+
+const RoadmapItemContext = createContext<RoadmapItemState | null>(null)
+
+// remark-gfm's task-list checkbox has no source position, so items are matched on their <li>, whose line is
+// the manifest's sourceLine; the <li> then swaps its checkbox for the status control.
+function RoadmapListItem({ node, children, ...props }: ComponentProps<'li'> & { node?: Element }) {
+  const state = useContext(RoadmapItemContext)
+  const sourceLine = node?.position?.start.line
+  const item = state && sourceLine ? state.itemsBySourceLine.get(sourceLine) : undefined
+  if (!state || !item) return <li {...props}>{children}</li>
+  const content = Children.toArray(children).filter((child) => !(isValidElement<{ type?: string }>(child) && child.props.type === 'checkbox'))
+  return (
+    <li {...props}>
+      <StatusControl
+        roadmapId={state.roadmapId}
+        itemId={item.id}
+        status={state.statuses[item.id] ?? 'not_started'}
+        disabled={!state.loaded || state.saving}
+        onChange={state.updateStatus}
+      />
+      {content}
+      {state.lessonsByItem.get(item.id)?.map((lesson) => {
+        const read = state.statuses[lesson.id] === 'completed'
+        return (
+          <span className={styles.lessonBadge} key={lesson.id}>
+            <Link to={lesson.href}>Lesson: {lesson.title}</Link>
+            {state.loaded && <span className={read ? styles.lessonRead : styles.lessonUnread}>{read ? 'Read ✓' : 'Unread'}</span>}
+          </span>
+        )
+      })}
+    </li>
+  )
+}
+
+// Stable component identities: progress changes re-render items through context instead of remounting
+// the whole roadmap (which would also drop keyboard focus from the select that was just changed).
+const roadmapComponents: Components = {
+  input: ({ node, ...props }: ComponentProps<'input'> & { node?: Element }) =>
+    node?.properties.type === 'checkbox' ? <input {...props} disabled aria-label="This roadmap item needs a progress ID" /> : <input {...props} />,
+  li: RoadmapListItem,
+}
+
+/**
+ * Roadmap items carry not_started / in_progress / completed. Published lessons are tracked separately as read
+ * (a `completed` record under the lesson's ID): they are shown next to the roadmap item they cover and counted
+ * on their own, so item completion counts and the continue target only ever look at roadmap items.
+ */
+export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roadmapId: RoadmapId; markdown: string; lessons?: TrackedLesson[] }) {
+  const { status: authStatus, user, markSignedOut } = useAuth()
   const isSignedIn = authStatus === 'signed-in'
   const location = useLocation()
-  const [statuses, setStatuses] = useState<SavedStatuses>({})
-  const [loading, setLoading] = useState(true)
+  // Loaded statuses are tagged with their owner, so nothing from another account (or signed out) is ever shown.
+  const owner = isSignedIn && user ? user.id : null
+  const [saved, setSaved] = useState<{ owner: string; statuses: SavedStatuses } | null>(null)
+  const [reloads, setReloads] = useState(0)
   const [savingItem, setSavingItem] = useState<string | null>(null)
   const [error, setError] = useState('')
-  const items = roadmapProgressManifest[roadmapId]
+  const items: readonly RoadmapProgressItem[] = roadmapProgressManifest[roadmapId]
   const itemsBySourceLine = useMemo(() => new Map(items.map((item) => [item.sourceLine, item])), [items])
+  const lessonsByItem = useMemo(() => {
+    const grouped = new Map<string, TrackedLesson[]>()
+    for (const lesson of lessons) grouped.set(lesson.roadmapItemId, [...(grouped.get(lesson.roadmapItemId) ?? []), lesson])
+    return grouped
+  }, [lessons])
+  const loaded = owner !== null && saved?.owner === owner
+  const loading = authStatus === 'loading' || (owner !== null && !loaded && !error)
+  const statuses = useMemo(() => (loaded ? saved.statuses : {}), [loaded, saved])
 
-  const fetchProgress = useCallback(async () => {
-    if (authStatus === 'loading') return
-    if (!isSignedIn) {
-      setStatuses({})
-      setLoading(false)
-      return
-    }
-
-    setLoading(true)
-    try {
-      const response = await fetch(`/api/progress/${encodeURIComponent(roadmapId)}`, { credentials: 'same-origin' })
-      if (response.status === 401) markSignedOut()
-      if (!response.ok) throw new Error(response.status === 401 ? 'Your session expired. Sign in again to load progress.' : 'Could not load saved progress.')
-      const result = await response.json() as ProgressResponse
-      setStatuses(result.statuses ?? {})
-      setError('')
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not load saved progress.')
-    } finally {
-      setLoading(false)
-    }
-  }, [authStatus, isSignedIn, markSignedOut, roadmapId])
-
-  useEffect(() => { void fetchProgress() }, [fetchProgress])
+  useEffect(() => {
+    if (!owner) return
+    let active = true
+    progressApi.list(roadmapId)
+      .then((result) => {
+        if (!active) return
+        setSaved({ owner, statuses: result })
+        setError('')
+      })
+      .catch((cause: unknown) => {
+        if (!active) return
+        const expired = cause instanceof ApiError && cause.status === 401
+        if (expired) markSignedOut()
+        setError(expired ? 'Your session expired. Sign in again to load progress.' : 'Could not load saved progress.')
+      })
+    return () => { active = false }
+  }, [owner, roadmapId, reloads, markSignedOut])
 
   const updateStatus = useCallback(async (itemId: string, status: ProgressStatus | 'not_started') => {
-    if (!isSignedIn || savingItem) return
+    if (!owner || savingItem) return
     setSavingItem(itemId)
     setError('')
     try {
-      const method = status === 'not_started' ? 'DELETE' : 'PUT'
-      const response = await fetch(`/api/progress/${encodeURIComponent(roadmapId)}`, {
-        method,
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(status === 'not_started' ? { itemId } : { itemId, status }),
-      })
-      if (response.status === 401) markSignedOut()
-      if (!response.ok) throw new Error(response.status === 401 ? 'Your session expired. Sign in again to save progress.' : 'Could not save this progress update.')
-      setStatuses((previous) => {
-        const next = { ...previous }
+      await progressApi.save(roadmapId, itemId, status)
+      setSaved((previous) => {
+        const next = { ...(previous?.owner === owner ? previous.statuses : {}) }
         if (status === 'not_started') delete next[itemId]
         else next[itemId] = status
-        return next
+        return { owner, statuses: next }
       })
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not save this progress update.')
+      const expired = cause instanceof ApiError && cause.status === 401
+      if (expired) markSignedOut()
+      setError(expired ? 'Your session expired. Sign in again to save progress.' : 'Could not save this progress update.')
     } finally {
       setSavingItem(null)
     }
-  }, [isSignedIn, markSignedOut, roadmapId, savingItem])
+  }, [owner, markSignedOut, roadmapId, savingItem])
 
   const modules = useMemo(() => {
-    const grouped = new Map<string, typeof items>()
+    const grouped = new Map<string, RoadmapProgressItem[]>()
     for (const item of items) {
       const group = grouped.get(item.moduleId) ?? []
       group.push(item)
@@ -121,25 +175,20 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
   const completedCount = items.filter((item) => statuses[item.id] === 'completed').length
   const inProgressCount = items.filter((item) => statuses[item.id] === 'in_progress').length
   const nextItem = items.find((item) => statuses[item.id] === 'in_progress') ?? items.find((item) => statuses[item.id] !== 'completed')
+  const readCount = lessons.filter((lesson) => statuses[lesson.id] === 'completed').length
 
-  const components: Components = {
-    input: ({ node, ...props }: ComponentProps<'input'> & { node?: Element }) => {
-      if (props.type !== 'checkbox') return <input {...props} />
-      const sourceLine = node?.position?.start.line
-      const item = sourceLine ? itemsBySourceLine.get(sourceLine) : undefined
-      if (!item) return <input {...props} disabled aria-label="This roadmap item needs a progress ID" />
-      const status = statuses[item.id] ?? 'not_started'
-      return (
-        <StatusControl
-          roadmapId={roadmapId}
-          itemId={item.id}
-          status={status}
-          disabled={!isSignedIn || loading || savingItem !== null}
-          onChange={(id, value) => { void updateStatus(id, value) }}
-        />
-      )
-    },
-  }
+  const itemState = useMemo<RoadmapItemState>(() => ({
+    roadmapId,
+    itemsBySourceLine,
+    lessonsByItem,
+    statuses,
+    loaded,
+    saving: savingItem !== null,
+    updateStatus: (itemId, status) => { void updateStatus(itemId, status) },
+  }), [roadmapId, itemsBySourceLine, lessonsByItem, statuses, loaded, savingItem, updateStatus])
+  // Parsed once per roadmap; items still update through context.
+  const article = useMemo(() => <MarkdownView markdown={markdown} components={roadmapComponents} />, [markdown])
+
 
   return (
     <div className={styles.progressView}>
@@ -148,7 +197,7 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
           <div>
             <p className={styles.label}>Your roadmap progress</p>
             <h2>{isSignedIn ? `${completedCount} of ${items.length} complete` : 'Read the roadmap without signing in'}</h2>
-            <p>{isSignedIn ? `${inProgressCount} in progress` : 'Sign in to save progress and continue later.'}</p>
+            <p>{isSignedIn ? `${inProgressCount} in progress · ${readCount} of ${lessons.length} lessons read` : 'Sign in to save progress and continue later.'}</p>
           </div>
           {!isSignedIn && <Link className={styles.signInLink} to={`/login?redirect=${encodeURIComponent(location.pathname)}`}>Sign in to track progress</Link>}
           {isSignedIn && nextItem && <a className={styles.continueLink} href={`#${itemAnchorId(nextItem.id)}`}>Continue learning →</a>}
@@ -161,10 +210,10 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
             return <div className={styles.moduleRow} key={moduleId}><span>{label}</span><span>{done}/{moduleItems.length} complete</span></div>
           })}
         </div>}
-        {error && <p className={styles.error} role="alert">{error} <button type="button" onClick={() => { void fetchProgress() }}>Retry</button></p>}
+        {error && <p className={styles.error} role="alert">{error} <button type="button" onClick={() => { setError(''); setReloads((count) => count + 1) }}>Retry</button></p>}
       </section>
       <div className={styles.roadmapArticle}>
-        <MarkdownView markdown={markdown} components={components} />
+        <RoadmapItemContext.Provider value={itemState}>{article}</RoadmapItemContext.Provider>
       </div>
       {loading && <p className={styles.loading} role="status">Loading saved progress…</p>}
     </div>

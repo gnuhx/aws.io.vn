@@ -1,7 +1,10 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { findLesson, getLessonCatalog, getTopicLabel, type LessonEntry } from '../../content.ts'
+import { findLessonProgressEntry } from '../../../shared/lessonProgress.ts'
+import { isRoadmapId } from '../../../shared/roadmapProgress.ts'
+import { findLesson, getLessonCatalog, getLessonContentPath, getTopicLabel, type LessonEntry } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
+import { LessonReadControl } from './LessonReadControl.tsx'
 import styles from './LessonPage.module.css'
 
 const MarkdownView = lazy(() => import('../../components/Markdown/MarkdownView.tsx').then((module) => ({ default: module.MarkdownView })))
@@ -68,6 +71,8 @@ export function LessonPage() {
       : lesson.kind === 'visual'
         ? 'Interactive visual'
         : 'Lesson'
+  // Only lessons that belong to a roadmap can be marked read; progress is scoped to that roadmap.
+  const progressEntry = isRoadmapId(topic) ? findLessonProgressEntry(topic, getLessonContentPath(lesson)) : undefined
 
   return (
     <div className={styles.page}>
@@ -129,6 +134,10 @@ export function LessonPage() {
               <div className={styles.rule} />
               <LessonContent key={lesson.slug} lesson={lesson} />
             </>
+          )}
+
+          {progressEntry && isRoadmapId(topic) && (
+            <LessonReadControl key={progressEntry.id} roadmapId={topic} lessonId={progressEntry.id} />
           )}
 
           <nav className={styles.lessonPager} aria-label="Lesson navigation">

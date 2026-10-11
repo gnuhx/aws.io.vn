@@ -119,7 +119,7 @@ MongoDB collections:
 | `jobs` | `{ status: queued \| running \| done \| failed, ... }`, only if quiz generation goes background | M5 |
 | `usage` | `{ userId \| ipHash, date, chatCount, quizCount, tokens }`, updated atomically with `$inc` | M7 |
 | `attempts` | `{ userId, quizId, answers, score, wrongQuestionIds }` | M7 |
-| `roadmap_progress` | `{ userId, roadmapId, itemId, status, createdAt, updatedAt }`, unique `(userId, roadmapId, itemId)` | TASK-009 |
+| `roadmap_progress` | `{ userId, roadmapId, itemId, status, createdAt, updatedAt }`, unique `(userId, roadmapId, itemId)`. `itemId` is a roadmap item (`<roadmap>:item-NNNN`, `src/shared/roadmapProgress.ts`) or a lesson (`<roadmap>:lesson-NNNN`, `src/shared/lessonProgress.ts`; read = `completed`, unread = no record) | TASK-009 |
 
 Atlas vector index on `chunks` (`chunks_vec`):
 
