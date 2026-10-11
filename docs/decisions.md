@@ -20,6 +20,13 @@ Template:
 
 ---
 
+## D-009 · 2026-10-11 · Proposed
+**Question:** Keep Clerk for website sign-in, or run our own auth? Supersedes D-008 if accepted.
+**Options:** (a) keep Clerk (D-008); (b) own auth in Netlify Functions: email + password (bcrypt) and Google Identity Services ID tokens verified with `google-auth-library`, users in Atlas, session as a JWT in an httpOnly cookie; (c) another managed provider (Auth0, Firebase Auth)
+**Decision:** _open_. Requested: **(b)**. No third-party identity vendor or per-user pricing, one less dashboard to configure per environment, and the auth code itself becomes learning material. Cost: we own password storage, account linking and session security, and lose features Clerk gave for free (email verification, password reset, username sign-in).
+**Consequences:** removes `@clerk/*` and `CLERK_*` / `VITE_CLERK_*` env vars; adds a `users` collection, `GOOGLE_CLIENT_ID`, `VITE_GOOGLE_CLIENT_ID`, `JWT_SECRET`; `withAuth` reads the session cookie; D-008 becomes Superseded by D-009; D-002 consequences and `docs/auth-setup.md` / `docs/architecture.md` updated. Email verification, password reset and login rate limiting need follow-up tasks.
+**Tasks:** TASK-010
+
 ## D-007 · 2026-10-03 · Accepted
 **Question:** How is backend code organised inside `src/backend/`? Netlify Functions are one file per endpoint; where do business logic, database access, auth and external clients live?
 **Options:** (a) helpers inside the functions folder (`functions/_lib/`), as first sketched; (b) layered folders next to `functions/`: thin endpoints in `functions/`, composable wrappers in `middleware/`, logic in `services/`, MongoDB access in `repositories/`, SDK clients in `clients/`; (c) one Express app wrapped in a single Netlify Function (`serverless-http`)
