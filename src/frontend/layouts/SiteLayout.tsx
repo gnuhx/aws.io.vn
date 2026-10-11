@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut, UserButton } from '@clerk/react'
+import { Show, UserButton } from '@clerk/react'
 import { Link, Outlet } from 'react-router'
 import styles from './SiteLayout.module.css'
 
@@ -11,8 +11,8 @@ function AccountActions() {
 
   return (
     <div className={styles.accountActions}>
-      <SignedOut><Link className={styles.signIn} to="/sign-in">Sign in</Link></SignedOut>
-      <SignedIn><UserButton /></SignedIn>
+      <Show when="signed-out"><Link className={styles.signIn} to="/sign-in">Sign in</Link></Show>
+      <Show when="signed-in"><UserButton /></Show>
     </div>
   )
 }
