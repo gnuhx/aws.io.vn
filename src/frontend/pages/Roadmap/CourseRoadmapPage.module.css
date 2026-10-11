@@ -73,6 +73,7 @@
 .article th { background: #f6f8fa; }
 .article input { margin-right: 0.35rem; }
 .article blockquote { border-left: 3px solid #d1d9e0; padding-left: 1rem; color: #656d76; }
+.article:has(.progressView) { padding: 0; border: 0; background: transparent; box-shadow: none; }
 
 @media (max-width: 600px) {
   .page { padding: 1.5rem 1rem 4rem; }

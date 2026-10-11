@@ -13,6 +13,11 @@ export default defineConfig({
   resolve: {
     alias: { '@shared': fromRoot('./src/shared') },
   },
+  // Dev: the browser stays on http://localhost:5173 and /api goes to `netlify dev` (port 8888), which runs the
+  // functions. Same origin for the browser, so the session cookie flows without CORS.
+  server: {
+    proxy: { '/api': 'http://localhost:8888' },
+  },
   build: {
     outDir: fromRoot('./dist'),
     emptyOutDir: true,

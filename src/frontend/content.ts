@@ -372,9 +372,11 @@ export const findLesson = (topic: string, slug: string) => {
   return lesson ?? null
 }
 
-export const getCourseRoadmap = (topic = 'aws-saa-c03') => readRawContent(
-  Object.values(topic === 'MCP' ? mcpRoadmapRawModule : roadmapRawModule)[0],
-)
+export const getCourseRoadmap = (topic = 'aws-saa-c03') => {
+  if (topic === 'MCP') return readRawContent(Object.values(mcpRoadmapRawModule)[0])
+  if (topic === 'aws-saa-c03') return readRawContent(Object.values(roadmapRawModule)[0])
+  return ''
+}
 
 export const getPublishedModuleOrders = (topic: string) =>
   [...new Set((getLessonCatalog()[topic] ?? []).map((lesson) => lesson.module?.order).filter((order): order is number => order !== undefined))]
