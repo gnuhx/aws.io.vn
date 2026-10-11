@@ -62,6 +62,18 @@ describe('publicEndpoint', () => {
     expect(response.status).toBe(403)
   })
 
+  it('rejects an Origin that differs from the request URL when it is not in ALLOWED_ORIGINS', async () => {
+    // What the functions saw when the dev proxy rewrote Host to the netlify dev port (TASK-011).
+    const proxied = new Request('http://localhost:8888/api/auth/register', {
+      method: 'POST',
+      headers: { origin: 'http://localhost:5173', 'content-type': 'application/json' },
+    })
+    expect((await endpoint(proxied, context)).status).toBe(403)
+
+    vi.stubEnv('ALLOWED_ORIGINS', 'http://localhost:5173')
+    expect((await endpoint(proxied, context)).status).toBe(200)
+  })
+
   it('rejects state-changing requests that are not JSON', async () => {
     const response = await endpoint(request({ method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' } }), context)
     expect(response.status).toBe(415)
