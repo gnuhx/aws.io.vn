@@ -1,18 +1,22 @@
-import { Show, UserButton } from '@clerk/react'
-import { Link, Outlet } from 'react-router'
+import { Link, Outlet, useLocation } from 'react-router'
+import { useAuth } from '../auth/authContext.ts'
 import styles from './SiteLayout.module.css'
 
-const clerkConfigured = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)
-
 function AccountActions() {
-  if (!clerkConfigured) {
-    return <Link className={styles.signIn} to="/sign-in">Sign in</Link>
+  const { status, user, logout } = useAuth()
+  const location = useLocation()
+
+  if (status === 'loading') return null
+  if (status === 'signed-out' || !user) {
+    const onAuthPage = location.pathname === '/login' || location.pathname === '/register'
+    const redirect = onAuthPage ? '' : `?redirect=${encodeURIComponent(location.pathname + location.search)}`
+    return <Link className={styles.signIn} to={`/login${redirect}`}>Sign in</Link>
   }
 
   return (
     <div className={styles.accountActions}>
-      <Show when="signed-out"><Link className={styles.signIn} to="/sign-in">Sign in</Link></Show>
-      <Show when="signed-in"><UserButton /></Show>
+      <Link className={styles.account} to="/account">{user.email}</Link>
+      <button type="button" className={styles.signOut} onClick={() => { void logout() }}>Sign out</button>
     </div>
   )
 }

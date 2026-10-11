@@ -20,10 +20,10 @@ Template:
 
 ---
 
-## D-009 · 2026-10-11 · Proposed
-**Question:** Keep Clerk for website sign-in, or run our own auth? Supersedes D-008 if accepted.
+## D-009 · 2026-10-11 · Accepted
+**Question:** Keep Clerk for website sign-in, or run our own auth? Supersedes D-008.
 **Options:** (a) keep Clerk (D-008); (b) own auth in Netlify Functions: email + password (bcrypt) and Google Identity Services ID tokens verified with `google-auth-library`, users in Atlas, session as a JWT in an httpOnly cookie; (c) another managed provider (Auth0, Firebase Auth)
-**Decision:** _open_. Requested: **(b)**. No third-party identity vendor or per-user pricing, one less dashboard to configure per environment, and the auth code itself becomes learning material. Cost: we own password storage, account linking and session security, and lose features Clerk gave for free (email verification, password reset, username sign-in).
+**Decision:** **(b)**, accepted 2026-10-11. No third-party identity vendor or per-user pricing, one less dashboard to configure per environment, and the auth code itself becomes learning material. Cost: we own password storage, account linking and session security, and lose features Clerk gave for free (email verification, password reset, username sign-in).
 **Consequences:** removes `@clerk/*` and `CLERK_*` / `VITE_CLERK_*` env vars; adds a `users` collection, `GOOGLE_CLIENT_ID`, `VITE_GOOGLE_CLIENT_ID`, `JWT_SECRET`; `withAuth` reads the session cookie; D-008 becomes Superseded by D-009; D-002 consequences and `docs/auth-setup.md` / `docs/architecture.md` updated. Email verification, password reset and login rate limiting need follow-up tasks.
 **Tasks:** TASK-010
 
@@ -78,7 +78,7 @@ Template:
 - Paths updated in [architecture.md](architecture.md), [roadmap.md](roadmap.md) and TASK-001…006; `CLAUDE.md` and Module 3 permission rules follow these paths
 **Tasks:** TASK-001, TASK-004, TASK-005
 
-## D-008 · 2026-10-11 · Accepted
+## D-008 · 2026-10-11 · Superseded by D-009
 **Question:** Which website identity provider supports username/email + password and Google sign-in while keeping Atlas as the progress store?
 **Options:** Clerk with its server-verifiable session tokens; another managed identity provider; custom credentials and OAuth implementation.
 **Decision:** **Clerk**, accepted 2026-10-11. Configure username and email identifiers with password authentication plus Google social sign-in. Verify Clerk session tokens in Netlify Functions; do not use the separate MCP OAuth resource-server flow for website login.
@@ -88,9 +88,9 @@ Template:
 ## D-002 · 2026-10-02 · Accepted
 **Question:** Does the site have login/users?
 **Options:** (a) reuse existing auth; (b) add auth; (c) guests only, quota by IP hash
-**Decision:** **(b) add auth**, using Clerk as recorded in D-008. The previous frontend had no identity provider to reuse; account identity is now needed for cross-device roadmap progress.
-**Consequences:** Clerk session tokens are verified by server functions; progress records are scoped to the verified Clerk subject. Public lesson and roadmap reading remains available without an account.
-**Tasks:** TASK-009
+**Decision:** **(b) add auth**, originally with Clerk (D-008), now the site's own auth (D-009). The previous frontend had no identity provider to reuse; account identity is now needed for cross-device roadmap progress.
+**Consequences:** server functions verify the session cookie (`withAuth`); progress records are scoped to the verified user id. Public lesson and roadmap reading remains available without an account.
+**Tasks:** TASK-009, TASK-010
 
 ## D-001 · 2026-10-02 · Accepted
 **Question:** Is MongoDB Atlas or self-hosted?

@@ -1,30 +1,76 @@
 # Sign-in and roadmap progress setup
 
-The site uses Clerk for website accounts and MongoDB Atlas for roadmap progress. Public roadmap browsing stays available without an account.
+The site has its own accounts (D-009): email + password, or Google. Users and roadmap progress live in MongoDB Atlas. Public lessons and roadmaps stay readable without an account.
 
-## Sign-in methods
+## How it works
 
-In the Clerk Dashboard, configure the application to support:
+| Piece | Where |
+|---|---|
+| Login / Register pages, "Continue with Google" | `src/frontend/pages/Auth/AuthPage.tsx` (`/login`, `/register`) |
+| `useAuth()`, `<AuthProvider>`, `<ProtectedRoute>` | `src/frontend/auth/` |
+| Input rules (same for form and API) | `src/shared/schemas/auth.ts` |
+| Endpoints | `src/backend/functions/auth-*.ts` → `/api/auth/{register,login,google,me,logout}` |
+| Passwords (bcrypt, cost 12), Google linking | `src/backend/services/auth/authService.ts` |
+| Session JWT + cookie | `src/backend/services/auth/sessions.ts` |
+| `withAuth` / `publicEndpoint`, CORS, CSRF checks | `src/backend/middleware/http.ts` |
 
-- Email and password.
-- Username and password, with both username and email enabled as sign-in identifiers.
-- Google as a social sign-in provider.
-
-The hosted `<SignIn />` and `<SignUp />` components display the methods enabled in that Clerk application. Google OAuth also needs the provider credentials and redirect URLs configured in Clerk/Google. Configure development, production, and any Netlify deploy-preview origins separately.
+- **Session:** an HS256 JWT (`sub` = user id, 7 days) in the `session` cookie: `HttpOnly; Secure; SameSite=Lax; Path=/`. JavaScript never sees it; the frontend asks `GET /api/auth/me` who is signed in. Logout clears the cookie. Tokens are stateless, so a copied token stays valid until it expires.
+- **Google:** the browser gets an ID token from Google Identity Services and posts only that token. The server verifies it with `google-auth-library` (signature, expiry, audience = `GOOGLE_CLIENT_ID`) and uses only the verified claims.
+- **Account linking:** if Google's *verified* email matches an existing email/password account, Google is linked to that same user. Registration doesn't verify emails, so when an unverified account gets linked its password is removed: whoever set it may not own the email. That user signs in with Google from then on.
+- **CSRF:** `SameSite=Lax`, plus every POST/PUT/DELETE must be `application/json` and, if the browser sends an `Origin`, come from this site or `ALLOWED_ORIGINS`.
 
 ## Environment
 
-Copy `.env.example` to `.env` for local development and replace the placeholders. Keep `.env` out of Git. Set the same values as server-side environment variables in Netlify, with the correct environment-specific Clerk keys and `CLERK_AUTHORIZED_PARTIES` allowlist. `VITE_CLERK_PUBLISHABLE_KEY` is intentionally public; `CLERK_SECRET_KEY` and `MONGODB_URI` must never use a `VITE_` prefix.
+Put these in `.env` for local development (copy `.env.example`) and in Netlify's environment settings for deploys. `.env` is git-ignored. Only `VITE_` variables reach the browser bundle, so no secret may use that prefix.
 
-For each deploy preview, add its exact HTTPS origin to `CLERK_AUTHORIZED_PARTIES` for that deploy context. The server checks the Clerk session token's authorized party against this list.
+| Variable | Side | Value |
+|---|---|---|
+| `VITE_GOOGLE_CLIENT_ID` | frontend | OAuth Client ID from Google Cloud (public). Without it the Google button is hidden. |
+| `GOOGLE_CLIENT_ID` | backend | The same Client ID; the server checks tokens were issued for it. |
+| `JWT_SECRET` | backend | At least 32 random characters: `openssl rand -base64 48`. Changing it signs everyone out. |
+| `MONGODB_URI`, `MONGODB_DB_NAME` | backend | Atlas connection string and database name. |
+| `ALLOWED_ORIGINS` | backend, optional | Comma-separated origins allowed to call the API cross-origin with cookies. Not needed when the site and API share an origin (local dev via the proxy, Netlify). |
 
-Run the site and functions locally with the Netlify CLI (`npx netlify-cli dev`). The frontend-only `npm run dev` remains available, but progress API calls need the function runtime.
+The Clerk variables (`VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_AUTHORIZED_PARTIES`) are no longer used; delete them from `.env` and Netlify.
+
+## Create the Google OAuth Client ID
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/) and pick or create a project.
+2. **APIs & Services → OAuth consent screen** (shown as **Google Auth Platform** in newer consoles): choose **External**, fill in the app name, support email and developer contact, and save. While the app is in **Testing**, add your Google account under **Test users** (Audience).
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID** (or **Google Auth Platform → Clients → Create client**).
+4. Application type: **Web application**. Name it, e.g. `aws.io.vn web`.
+5. **Authorized JavaScript origins**, add:
+   - `http://localhost:5173`
+   - `http://localhost` (Google Identity Services recommends it for local testing)
+   - `http://localhost:8888` (if you also open the site through `netlify dev`'s port)
+   - later: `https://aws.io.vn` and any deploy-preview origin you sign in from
+6. **Authorized redirect URIs:** leave empty. The Google button returns an ID token by popup; nothing redirects back.
+7. Create, then copy the **Client ID** into both `VITE_GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_ID`. The Client secret is not used.
+
+New origins can take a few minutes to start working. An "origin is not allowed" / `idpiframe_initialization_failed` error means the exact origin (scheme + host + port) is missing from step 5.
+
+## Run locally
+
+Use the Node version in `.nvmrc` (24). Node 20 cannot start the frontend tests (jsdom).
+
+```bash
+nvm use
+npm install
+npx netlify-cli dev        # runs the functions on :8888 and starts Vite on :5173
+```
+
+Open **http://localhost:5173**. Vite proxies `/api/*` to `netlify dev` on :8888, so the page and the API share an origin and the session cookie works without CORS. `netlify dev` also loads `.env` into the functions. `npm run dev` alone starts only the frontend: pages load but every `/api` call fails.
+
+Checks: `npm run verify` (lint + typecheck + tests), `npm run build`.
 
 ## Atlas
 
-The function creates a `roadmap_progress` collection and the unique index on first use. The Atlas database user needs read/write access to the selected database, and Atlas network access must permit the Netlify runtime. Use a restricted network policy where the deployment plan supports fixed egress; do not add a broad public allowlist for production.
+The functions create their collections and indexes on first use:
 
-The records contain only `userId` (Clerk's verified subject), `roadmapId`, `itemId`, `status`, `createdAt`, and `updatedAt`. The API never accepts a user ID from the browser.
+- `users`: unique `email` (stored lower-case), unique `googleSub` when present. Fields: `email`, `passwordHash?`, `googleSub?`, `name?`, `emailVerified`, `createdAt`, `updatedAt`.
+- `roadmap_progress`: unique `(userId, roadmapId, itemId)`; `userId` is the `users._id` from the verified session, never a value from the browser.
+
+The Atlas database user needs read/write access to the selected database, and Atlas network access must permit the Netlify runtime. Use a restricted network policy where the deployment plan supports fixed egress; do not add a broad public allowlist for production. Progress saved under Clerk user ids is not migrated.
 
 **Credential housekeeping:** the previous Atlas password was reported exposed. Rotate that database user's password in Atlas before putting a replacement into `.env` or Netlify. This repository setup does not read or reuse the ignored `atlas-credentials.env` file.
 

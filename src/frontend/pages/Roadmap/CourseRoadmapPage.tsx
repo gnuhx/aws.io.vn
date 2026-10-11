@@ -1,4 +1,3 @@
-import { lazy, Suspense } from 'react'
 import { Link, useParams } from 'react-router'
 import { getCourseRoadmap, getPublishedModuleOrders, getTopicLabel } from '../../content.ts'
 import { isRoadmapId } from '../../../shared/roadmapProgress.ts'
@@ -6,8 +5,6 @@ import { RoadmapProgressView } from './RoadmapProgressView.tsx'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import styles from './CourseRoadmapPage.module.css'
 
-const MarkdownView = lazy(() => import('../../components/Markdown/MarkdownView.tsx').then((module) => ({ default: module.MarkdownView })))
-const clerkConfigured = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)
 
 export function CourseRoadmapPage() {
   const { topic = '' } = useParams()
@@ -30,13 +27,7 @@ export function CourseRoadmapPage() {
             <strong>Published on this site:</strong> Modules {publishedModules.join(', ')}. Other modules are roadmap plans and do not yet have published lesson pages.
           </p>
         )}
-        {clerkConfigured ? (
-          <RoadmapProgressView roadmapId={topic} markdown={roadmap} />
-        ) : (
-          <Suspense fallback={<p>Loading roadmap…</p>}>
-            <MarkdownView markdown={roadmap} />
-          </Suspense>
-        )}
+        <RoadmapProgressView roadmapId={topic} markdown={roadmap} />
       </article>
     </main>
   )

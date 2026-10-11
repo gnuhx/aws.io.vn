@@ -25,7 +25,8 @@ An AI study assistant for the aws.io.vn learning site. Learners read lessons, as
                                    ├─ Q&A mode: answer only from the material + cite lesson links
                                    └─ Quiz mode: generate JSON → Zod validate → retry → take quiz → grade
                                    + quota / rate limit / daily cost ceiling
-[Learner] Clerk session ─Bearer token─► Netlify Function /api/progress/:roadmapId ─► Atlas roadmap_progress
+[Learner] /login (email+password | Google ID token) ─► /api/auth/* ─► Atlas users ─► httpOnly session cookie
+[Learner] session cookie ─► Netlify Function /api/progress/:roadmapId ─► Atlas roadmap_progress
 [Claude Code] ─MCP (stdio)─► src/backend/mcp/lesson-search ─► same retrieve() function as above
 ```
 
@@ -144,7 +145,7 @@ Threat model:
 
 Countermeasures:
 
-- Clerk session-token verification for protected roadmap progress APIs; public roadmap reading remains available without login (see D-002/D-008 in [decisions.md](decisions.md)).
+- Own auth (email + bcrypt password, Google ID tokens verified server-side) with an httpOnly JWT session cookie; protected endpoints use `withAuth`. Public lesson and roadmap reading remains available without login (see D-002/D-009 in [decisions.md](decisions.md) and [auth-setup.md](auth-setup.md)).
 - Per-user/IP quotas. Example: guests get 5 chats/day; signed-in users get 30 chats + 3 quizzes/day.
 - Input length limits and `max_tokens`.
 - A daily cost ceiling that disables Quiz mode, plus the OpenAI dashboard hard limit as the final layer.

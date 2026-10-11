@@ -1,8 +1,8 @@
-import { useAuth } from '@clerk/react'
 import { useCallback, useEffect, useMemo, useState, type ComponentProps } from 'react'
 import type { Components } from 'react-markdown'
 import type { Element } from 'hast'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
+import { useAuth } from '../../auth/authContext.ts'
 import { roadmapProgressManifest, type ProgressStatus, type RoadmapId } from '../../../shared/roadmapProgress.ts'
 import { MarkdownView } from '../../components/Markdown/MarkdownView.tsx'
 import styles from './RoadmapProgressView.module.css'
@@ -42,7 +42,9 @@ function StatusControl({
 }
 
 export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: RoadmapId; markdown: string }) {
-  const { getToken, isLoaded, isSignedIn } = useAuth()
+  const { status: authStatus, markSignedOut } = useAuth()
+  const isSignedIn = authStatus === 'signed-in'
+  const location = useLocation()
   const [statuses, setStatuses] = useState<SavedStatuses>({})
   const [loading, setLoading] = useState(true)
   const [savingItem, setSavingItem] = useState<string | null>(null)
@@ -51,7 +53,8 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
   const itemsBySourceLine = useMemo(() => new Map(items.map((item) => [item.sourceLine, item])), [items])
 
   const fetchProgress = useCallback(async () => {
-    if (!isLoaded || !isSignedIn) {
+    if (authStatus === 'loading') return
+    if (!isSignedIn) {
       setStatuses({})
       setLoading(false)
       return
@@ -59,10 +62,8 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
 
     setLoading(true)
     try {
-      const token = await getToken()
-      const response = await fetch(`/api/progress/${encodeURIComponent(roadmapId)}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
+      const response = await fetch(`/api/progress/${encodeURIComponent(roadmapId)}`, { credentials: 'same-origin' })
+      if (response.status === 401) markSignedOut()
       if (!response.ok) throw new Error(response.status === 401 ? 'Your session expired. Sign in again to load progress.' : 'Could not load saved progress.')
       const result = await response.json() as ProgressResponse
       setStatuses(result.statuses ?? {})
@@ -72,7 +73,7 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
     } finally {
       setLoading(false)
     }
-  }, [getToken, isLoaded, isSignedIn, roadmapId])
+  }, [authStatus, isSignedIn, markSignedOut, roadmapId])
 
   useEffect(() => { void fetchProgress() }, [fetchProgress])
 
@@ -81,14 +82,14 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
     setSavingItem(itemId)
     setError('')
     try {
-      const token = await getToken()
-      if (!token) throw new Error('Your session expired. Sign in again to save progress.')
       const method = status === 'not_started' ? 'DELETE' : 'PUT'
       const response = await fetch(`/api/progress/${encodeURIComponent(roadmapId)}`, {
         method,
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(status === 'not_started' ? { itemId } : { itemId, status }),
       })
+      if (response.status === 401) markSignedOut()
       if (!response.ok) throw new Error(response.status === 401 ? 'Your session expired. Sign in again to save progress.' : 'Could not save this progress update.')
       setStatuses((previous) => {
         const next = { ...previous }
@@ -101,7 +102,7 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
     } finally {
       setSavingItem(null)
     }
-  }, [getToken, isSignedIn, roadmapId, savingItem])
+  }, [isSignedIn, markSignedOut, roadmapId, savingItem])
 
   const modules = useMemo(() => {
     const grouped = new Map<string, typeof items>()
@@ -149,7 +150,7 @@ export function RoadmapProgressView({ roadmapId, markdown }: { roadmapId: Roadma
             <h2>{isSignedIn ? `${completedCount} of ${items.length} complete` : 'Read the roadmap without signing in'}</h2>
             <p>{isSignedIn ? `${inProgressCount} in progress` : 'Sign in to save progress and continue later.'}</p>
           </div>
-          {!isSignedIn && <Link className={styles.signInLink} to="/sign-in">Sign in to track progress</Link>}
+          {!isSignedIn && <Link className={styles.signInLink} to={`/login?redirect=${encodeURIComponent(location.pathname)}`}>Sign in to track progress</Link>}
           {isSignedIn && nextItem && <a className={styles.continueLink} href={`#${itemAnchorId(nextItem.id)}`}>Continue learning →</a>}
           {isSignedIn && !nextItem && <span className={styles.doneMessage}>Roadmap complete ✓</span>}
         </div>

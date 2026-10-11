@@ -12,7 +12,7 @@ created: 2026-10-11
 Learners sign up and sign in with email + password or Google through the site's own auth (httpOnly JWT cookie, users in Atlas), so the site no longer depends on Clerk.
 
 ## Context
-- D-009 (Proposed) supersedes D-008 (Clerk). D-007 fixes the backend layout: thin endpoints in `src/backend/functions/`, `withAuth(...)` / `publicEndpoint(...)` wrappers in `middleware/`, logic in `services/`, Mongo access in `repositories/`, clients in `clients/`. D-003: no separate `server/` package.
+- D-009 (Accepted 2026-10-11) supersedes D-008 (Clerk). D-007 fixes the backend layout: thin endpoints in `src/backend/functions/`, `withAuth(...)` / `publicEndpoint(...)` wrappers in `middleware/`, logic in `services/`, Mongo access in `repositories/`, clients in `clients/`. D-003: no separate `server/` package.
 - The repo already has a backend and a database, so requirement 5 of the original request ("Express in `server/`, Prisma + SQLite") does **not** apply: auth endpoints are Netlify Functions, users live in MongoDB Atlas (D-001) next to `roadmap_progress`.
 - Clerk is used today in: `src/frontend/main.tsx` (`ClerkProvider`), `src/frontend/layouts/SiteLayout.tsx` (`Show`, `UserButton`), `src/frontend/pages/Auth/SignInPage.tsx`, `src/frontend/pages/Roadmap/CourseRoadmapPage.tsx` and `RoadmapProgressView.tsx` (`useAuth().getToken`), `src/backend/functions/progress.ts` (`verifyToken` from `@clerk/backend`), `package.json`, `.env.example`, `docs/auth-setup.md`, `docs/architecture.md`, `docs/decisions.md`.
 - TASK-009 (roadmap progress) is in progress on top of Clerk; this task swaps its identity layer and keeps its acceptance criteria valid.
@@ -82,16 +82,18 @@ Learners sign up and sign in with email + password or Google through the site's 
 | 21 | Follow `docs/auth-setup.md`: register, logout, login, Continue with Google (new + linking), reload, roadmap progress | All work at `http://localhost:5173`; cookie survives reload | manual |
 
 ## Notes
-- **Blocking:** D-009 must be accepted before this task moves to `_Ready` (it reverses D-008 and touches security + the user schema).
+- D-009 accepted 2026-10-11 when implementation was requested.
 - **DB / env naming:** the request asked for `DATABASE_URL`; the repo already uses `MONGODB_URI` + `MONGODB_DB_NAME` for Atlas, so those stay. Rename only if you want the name to match the request.
 - **bcrypt package:** `bcryptjs` (pure JS) instead of native `bcrypt`, so Netlify's esbuild bundling needs no `external_node_modules` and there is no native build step. Same algorithm and `$2` hash format. bcrypt only uses the first 72 bytes, hence the 72-char max.
 - **JWT library:** `jose` (ESM, no native deps). `JWT_SECRET` ≥ 32 random chars, validated by Zod; generate with `openssl rand -base64 48`.
 - **Account-linking risk:** without email verification, someone could register a victim's email with a password before the victim ever uses Google; linking would then leave the attacker's password working on the victim's account. Mitigation in scope: when linking Google to a user whose email was never verified, clear `passwordHash` and set `emailVerified: true` (the Google identity proves ownership). The owner can still use Google; password login for that account needs the future reset flow.
 - **CSRF:** `SameSite=Lax` blocks cross-site POSTs carrying the cookie; additionally, state-changing endpoints require `Content-Type: application/json` and, when an `Origin` header is present, an origin in `ALLOWED_ORIGINS`.
 - **`Secure` on localhost:** current Chrome and Firefox accept `Secure` cookies on `http://localhost`, so the flag stays on in dev. If a browser drops it, check this first.
-- **Dev topology:** `netlify dev` (port 8888) runs the functions and starts Vite on 5173 (`netlify.toml [dev]`). Vite proxies `/api` → `http://localhost:8888`, so the browser at 5173 is same-origin with the API and needs no CORS in dev. Add both `http://localhost:5173` and `http://localhost:8888` to Google's Authorized JavaScript origins. Verify early that `netlify dev` routes `/api/*` to functions before proxying to Vite (no loop).
+- **Dev topology:** `netlify dev` (port 8888) runs the functions and starts Vite on 5173 (`netlify.toml [dev]`). Vite proxies `/api` → `http://localhost:8888`, so the browser at 5173 is same-origin with the API and needs no CORS in dev. Add both `http://localhost:5173` and `http://localhost:8888` to Google's Authorized JavaScript origins. Verified 2026-10-11: through the proxy `/api/auth/me` → 401 and invalid register → 400; an unknown `/api/*` path falls through to the SPA `index.html` (200), no loop.
 - **Logout is stateless:** the JWT stays valid until `exp` if copied elsewhere; acceptable for now (revocation is Out). Keep `exp` at 7 days.
 - **Protected routes:** lessons and roadmaps stay public (TASK-009 criterion). `ProtectedRoute` is applied to a minimal `/account` page so the redirect flow is real and testable; roadmap progress controls keep prompting "Sign in to track progress".
 - **Existing data:** `roadmap_progress` records keyed by Clerk user ids become unreachable; dev data only, no migration.
-- `.env` cannot be read or edited by Claude (`.claude/settings.json` deny rule); you remove the Clerk keys from `.env` and add the new ones yourself.
+- `.env` and `.env.example` cannot be read by Claude (`.claude/settings.json` denies `Read(./.env*)`), so both are updated by hand; the variables are listed in `docs/auth-setup.md`.
+- Run tests with Node 24 (`nvm use`); under Node 20 jsdom fails to start.
+- Pre-existing, not caused by this task: `HomePage.test.tsx` renders a `<Link>` without a router and fails; `RoadmapProgressView.tsx` has 3 type errors (readonly manifest tuples) and a `react-hooks/set-state-in-effect` lint error; `content/` lab code has lint errors. `npm run verify` stays red until those are fixed.
 - Deliverables at the end of implementation (in `docs/auth-setup.md` and the PR): Google Cloud Console steps to create the OAuth Client ID, and the commands to run frontend + backend.

@@ -1,16 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router/dom'
-import { ClerkProvider } from '@clerk/react'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+import { AuthProvider } from './auth/AuthProvider.tsx'
+import { googleClientId } from './auth/config.ts'
 import { router } from './router.tsx'
 import './styles/global.css'
 
-const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const app = <AuthProvider><RouterProvider router={router} /></AuthProvider>
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {publishableKey
-      ? <ClerkProvider publishableKey={publishableKey}><RouterProvider router={router} /></ClerkProvider>
-      : <RouterProvider router={router} />}
+    {googleClientId ? <GoogleOAuthProvider clientId={googleClientId}>{app}</GoogleOAuthProvider> : app}
   </StrictMode>,
 )
