@@ -2,7 +2,7 @@
 id: TASK-009
 type: feature
 module: none
-decisions: [D-001, D-002, D-003, D-007]
+decisions: [D-001, D-002, D-003, D-007, D-008]
 created: 2026-10-10
 ---
 
@@ -42,9 +42,10 @@ Allow a learner to sign in, track roadmap items, and resume progress across devi
 | 9 | Exercise configured auth callback and API from Netlify preview and production | Both environments authenticate and call protected API using their own settings | manual |
 
 ## Notes
-- **Blocked on D-002:** choose the website identity provider before implementation. Recommended if retaining Atlas: Clerk (or another provider whose server-side token verification works in Netlify Functions). Do not use the MCP Module 7 OAuth resource-server flow as website login. Alternative: Supabase Auth + Postgres would replace Atlas for progress storage and requires a separate architecture decision.
-- Atlas is created, but accept D-001 explicitly before treating Atlas as the committed project decision. No connection string, username, password, or token belongs in this task, Git, chat, or frontend code.
-- The Atlas credentials were exposed in a conversation attachment. Rotate the Atlas database user's password before configuring local development or Netlify; store the replacement only in an ignored local env file and Netlify server-side environment settings. Confirm Atlas network access is compatible with the chosen Netlify plan; avoid a broad public allow-list for production where fixed egress is available.
-- Roadmap item IDs must be stable across copy edits and display-title changes. Start with explicit structured metadata or a generated manifest rather than deriving identity solely from checkbox text.
-- Keep the initial schema simple: `userId`, `roadmapId`, `itemId`, `status`, `createdAt`, `updatedAt`, with a unique compound index on `(userId, roadmapId, itemId)`. Derive `userId` from the verified identity.
-- Before moving this task to `Ready`, resolve D-002, accept or reject D-001, confirm TASK-004/TASK-005 are complete or revise the dependency, and re-run the task ready-check in `docs/roadmap.md`.
+- D-001 is accepted: progress uses MongoDB Atlas.
+- D-002 is accepted: Clerk provides the website sign-in UI and session identity. Enable username + email with password and Google in the Clerk Dashboard. This is separate from MCP Module 7 OAuth.
+- Implemented code includes the progress endpoint and the minimal Netlify function routing/config needed by TASK-009. TASK-004's health endpoint/footer and TASK-005's connected site/deploy checks remain separate work; local and production callback behavior cannot be marked complete until Clerk/Atlas/Netlify settings are configured.
+- No connection string, username, password, or token belongs in this task, Git, chat, or frontend code. The ignored `atlas-credentials.env` file was not read or reused.
+- The Atlas credentials were reported exposed in a conversation attachment. Rotate the Atlas database user's password before configuring local development or Netlify; put the replacement only in `.env` and server-side Netlify environment settings. Confirm Atlas network access is compatible with the chosen Netlify plan; avoid a broad public allow-list for production where fixed egress is available.
+- Roadmap IDs are stored in `src/shared/roadmapProgress.ts`; IDs are independent of checklist wording. When adding/removing a checklist line, update the manifest's source-line lookup while preserving IDs for existing items.
+- Remaining completion work: configure Clerk dev/prod and Google OAuth, rotate and configure Atlas credentials, run the app with Netlify Functions, and exercise deploy-preview/production callbacks once TASK-005 is connected.

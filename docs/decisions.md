@@ -71,16 +71,23 @@ Template:
 - Paths updated in [architecture.md](architecture.md), [roadmap.md](roadmap.md) and TASK-001…006; `CLAUDE.md` and Module 3 permission rules follow these paths
 **Tasks:** TASK-001, TASK-004, TASK-005
 
-## D-002 · 2026-10-02 · Proposed
+## D-008 · 2026-10-11 · Accepted
+**Question:** Which website identity provider supports username/email + password and Google sign-in while keeping Atlas as the progress store?
+**Options:** Clerk with its server-verifiable session tokens; another managed identity provider; custom credentials and OAuth implementation.
+**Decision:** **Clerk**, accepted 2026-10-11. Configure username and email identifiers with password authentication plus Google social sign-in. Verify Clerk session tokens in Netlify Functions; do not use the separate MCP OAuth resource-server flow for website login.
+**Consequences:** the browser uses Clerk's publishable key and prebuilt sign-in/sign-up components; Netlify Functions keep the Clerk secret key server-side and verify authorized parties. Development, production, and deploy-preview origins need explicit Clerk/Google configuration.
+**Tasks:** TASK-009
+
+## D-002 · 2026-10-02 · Accepted
 **Question:** Does the site have login/users?
 **Options:** (a) reuse existing auth; (b) add auth; (c) guests only, quota by IP hash
-**Decision:** _open_. Recommended: **(c) for now**. The old site had no auth (frontend only, per its README), so there is nothing to reuse. Revisit before Module 7.
-**Consequences:** decides how quota and attempt history work in Module 7
-**Tasks:** —
+**Decision:** **(b) add auth**, using Clerk as recorded in D-008. The previous frontend had no identity provider to reuse; account identity is now needed for cross-device roadmap progress.
+**Consequences:** Clerk session tokens are verified by server functions; progress records are scoped to the verified Clerk subject. Public lesson and roadmap reading remains available without an account.
+**Tasks:** TASK-009
 
-## D-001 · 2026-10-02 · Proposed
+## D-001 · 2026-10-02 · Accepted
 **Question:** Is MongoDB Atlas or self-hosted?
 **Options:** (a) Atlas (free M0 tier); (b) self-hosted
-**Decision:** _open_. Recommended: **(a)**. `$vectorSearch` is an Atlas feature; M0 is free and enough for learning.
-**Consequences:** if not Atlas, the `$vectorSearch` approach in Module 5 must change
-**Tasks:** — (Module 4)
+**Decision:** **(a) MongoDB Atlas**. TASK-009 requires Atlas-backed progress and the broader architecture already uses Atlas.
+**Consequences:** progress uses the `roadmap_progress` collection in Atlas. Rotate the previously exposed database password before configuring the runtime.
+**Tasks:** TASK-009

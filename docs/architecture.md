@@ -25,6 +25,7 @@ An AI study assistant for the aws.io.vn learning site. Learners read lessons, as
                                    ├─ Q&A mode: answer only from the material + cite lesson links
                                    └─ Quiz mode: generate JSON → Zod validate → retry → take quiz → grade
                                    + quota / rate limit / daily cost ceiling
+[Learner] Clerk session ─Bearer token─► Netlify Function /api/progress/:roadmapId ─► Atlas roadmap_progress
 [Claude Code] ─MCP (stdio)─► src/backend/mcp/lesson-search ─► same retrieve() function as above
 ```
 
@@ -117,6 +118,7 @@ MongoDB collections:
 | `jobs` | `{ status: queued \| running \| done \| failed, ... }`, only if quiz generation goes background | M5 |
 | `usage` | `{ userId \| ipHash, date, chatCount, quizCount, tokens }`, updated atomically with `$inc` | M7 |
 | `attempts` | `{ userId, quizId, answers, score, wrongQuestionIds }` | M7 |
+| `roadmap_progress` | `{ userId, roadmapId, itemId, status, createdAt, updatedAt }`, unique `(userId, roadmapId, itemId)` | TASK-009 |
 
 Atlas vector index on `chunks` (`chunks_vec`):
 
@@ -142,7 +144,7 @@ Threat model:
 
 Countermeasures:
 
-- Auth that reuses the site's existing auth (see D-002 in [decisions.md](decisions.md)).
+- Clerk session-token verification for protected roadmap progress APIs; public roadmap reading remains available without login (see D-002/D-008 in [decisions.md](decisions.md)).
 - Per-user/IP quotas. Example: guests get 5 chats/day; signed-in users get 30 chats + 3 quizzes/day.
 - Input length limits and `max_tokens`.
 - A daily cost ceiling that disables Quiz mode, plus the OpenAI dashboard hard limit as the final layer.
