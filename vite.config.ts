@@ -15,8 +15,10 @@ export default defineConfig({
   },
   // Dev: the browser stays on http://localhost:5173 and /api goes to `netlify dev` (port 8888), which runs the
   // functions. Same origin for the browser, so the session cookie flows without CORS.
+  // changeOrigin must stay false (the string shorthand turns it on): the functions build request.url from
+  // the Host header, and the CSRF check compares it to the browser's Origin (TASK-011).
   server: {
-    proxy: { '/api': 'http://localhost:8888' },
+    proxy: { '/api': { target: 'http://localhost:8888', changeOrigin: false } },
   },
   build: {
     outDir: fromRoot('./dist'),

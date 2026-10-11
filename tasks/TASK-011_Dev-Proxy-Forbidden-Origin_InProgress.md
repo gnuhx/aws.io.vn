@@ -37,7 +37,7 @@ Why the TASK-010 checks missed it: the curl probes through the proxy sent no `Or
 
 **MongoDB is not the cause.** The 403 is returned before the handler and before any database call, so these requests never reach Atlas. Whether the Atlas connection works is still unknown and is only testable after this fix. If it is wrong, the symptom will be different: `503 {"error":"service is not configured"}` (missing/invalid `MONGODB_URI` / `MONGODB_DB_NAME` / `JWT_SECRET` / `GOOGLE_CLIENT_ID`) or `500 {"error":"request failed"}` with a Mongo error in the `netlify dev` terminal (bad password, IP not on the Atlas access list).
 
-## Fix scope — options (decision needed)
+## Fix scope — options (decided: (b), 2026-10-11)
 - **(a) Config only:** add `ALLOWED_ORIGINS=http://localhost:5173` to `.env`. No code change. Side effect: the API also sends CORS-with-credentials headers to that origin, which is harmless in dev. Every developer has to remember the line (it would go in `.env.example` and `docs/auth-setup.md`).
 - **(b) Keep the Host header in the proxy (recommended):** in `vite.config.ts` use `proxy: { '/api': { target: 'http://localhost:8888', changeOrigin: false } }`. The function then sees `request.url = http://localhost:5173/...`, which matches the browser's `Origin`, so the existing same-origin rule works unchanged and needs no env setting. One line plus a comment. Must confirm that `netlify dev` still routes `/api/*` to the functions when `Host` is `localhost:5173` (it routes by path, so it is expected to).
 - **(c) Trust `X-Forwarded-Host`** in `isTrustedOrigin`. Rejected: on Netlify that header comes from the edge, so trusting it in the security check widens what counts as "same origin" in production for a dev-only problem.
@@ -45,12 +45,13 @@ Why the TASK-010 checks missed it: the curl probes through the proxy sent no `Or
 - Out: changing the CSRF design, CORS for deploy previews, testing the Atlas connection itself (comes right after, see Notes).
 
 ## Regression test
-- [ ] Middleware unit test: a POST whose `Origin` (`http://localhost:5173`) differs from `request.url`'s origin (`http://localhost:8888`) and is not in `ALLOWED_ORIGINS` → 403. Pins the current rule so a later fix can't silently weaken it.
-- [ ] For (b): a test that loads `vite.config.ts` and asserts the `/api` proxy has `changeOrigin: false`. Fails on today's string shorthand.
-- [ ] For (a): the middleware test with `ALLOWED_ORIGINS=http://localhost:5173` → request reaches the handler.
+- [x] Middleware unit test (`src/backend/middleware/http.test.ts`): a POST whose `Origin` (`http://localhost:5173`) differs from `request.url`'s origin (`http://localhost:8888`) and is not in `ALLOWED_ORIGINS` → 403. Pins the current rule so a later fix can't silently weaken it.
+- [x] For (b): `src/backend/devProxy.test.ts` loads `vite.config.ts` and asserts the `/api` proxy has `changeOrigin: false`. Checked: fails with the old string shorthand, passes with the fix.
+- [x] The same middleware test also covers `ALLOWED_ORIGINS=http://localhost:5173` → request reaches the handler (option (a) stays available as a fallback).
 - [ ] Manual: with `netlify dev`, register, log out, log in, and Continue with Google from `http://localhost:5173`. Each returns 2xx and sets the `session` cookie. Also run `curl -X POST -H 'Origin: http://localhost:5173' -H 'content-type: application/json' -d '{}' http://localhost:5173/api/auth/google`: expected 400 (invalid input), not 403.
 
 ## Notes
+- Implemented (b) in `vite.config.ts`. Backend tests, typecheck and lint pass. The manual check is still open: it needs `netlify dev` running with the real `.env`.
 - The root cause was found from code (Vite and netlify-cli sources plus our middleware), without starting servers.
 - After the fix, the first real register will be the first Atlas round-trip. If it fails, check the `netlify dev` terminal for the error and the Atlas checklist in `docs/auth-setup.md`.
 - `.env` must contain `MONGODB_URI` and `MONGODB_DB_NAME`. Claude cannot read `.env*` files, so their presence has not been checked.
