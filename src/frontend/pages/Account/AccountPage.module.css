@@ -6,3 +6,5 @@
 .backLink { color: #0969da; font-size: 0.88rem; text-decoration: none; }
 .signOut { padding: 0.5rem 0.9rem; border: 1px solid #d1d9e0; border-radius: 7px; background: #f6f8fa; font: inherit; cursor: pointer; }
 .signOut:hover { background: #eef1f4; }
+.signOut { display: inline-flex; align-items: center; gap: .45rem; }
+.signOut:disabled { opacity: .7; cursor: progress; }

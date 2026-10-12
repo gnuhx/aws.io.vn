@@ -7,6 +7,8 @@ import { useAuth } from '../../auth/authContext.ts'
 import { GoogleButton } from '../../auth/GoogleButton.tsx'
 import { googleClientId } from '../../auth/config.ts'
 import { safeRedirect } from '../../auth/redirect.ts'
+import { Spinner } from '../../components/Spinner/Spinner.tsx'
+import { useToast } from '../../components/Toast/toastContext.ts'
 import styles from './AuthPage.module.css'
 
 type FieldErrors = Partial<Record<'email' | 'password', string>>
@@ -16,6 +18,7 @@ const copy = {
     title: 'Sign in to save your progress',
     submit: 'Sign in',
     busy: 'Signing in…',
+    done: 'Signed in. Welcome back!',
     switchText: 'New here?',
     switchLink: 'Create an account',
   },
@@ -23,6 +26,7 @@ const copy = {
     title: 'Create your learning account',
     submit: 'Create account',
     busy: 'Creating account…',
+    done: 'Account created. You are signed in.',
     switchText: 'Already have an account?',
     switchLink: 'Sign in',
   },
@@ -31,6 +35,7 @@ const copy = {
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const { status, login, register, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
   const [searchParams] = useSearchParams()
   const redirect = safeRedirect(searchParams.get('redirect'))
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -42,18 +47,22 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 
   if (status === 'signed-in' && !busy) return <Navigate to={redirect} replace />
 
-  async function run(action: () => Promise<void>) {
+  async function run(action: () => Promise<void>, done = text.done) {
     setBusy(true)
     setFormError('')
     try {
       await action()
+      toast.success(done)
       navigate(redirect, { replace: true })
     } catch (cause) {
       if (cause instanceof ApiError) {
         setFieldErrors({ email: cause.fields.email?.[0], password: cause.fields.password?.[0] })
         setFormError(cause.message)
+        toast.error(cause.message)
       } else {
-        setFormError('Could not reach the server. Check your connection and try again.')
+        const message = 'Could not reach the server. Check your connection and try again.'
+        setFormError(message)
+        toast.error(message)
       }
     } finally {
       setBusy(false)
@@ -87,8 +96,11 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           <>
             <div className={styles.google}>
               <GoogleButton
-                onCredential={(credential) => { void run(() => loginWithGoogle(credential)) }}
-                onError={() => setFormError('Google sign-in was cancelled or failed. Try again.')}
+                onCredential={(credential) => { void run(() => loginWithGoogle(credential), 'Signed in with Google.') }}
+                onError={() => {
+                  setFormError('Google sign-in was cancelled or failed. Try again.')
+                  toast.error('Google sign-in was cancelled or failed.')
+                }}
               />
             </div>
             <p className={styles.divider}><span>or</span></p>
@@ -120,7 +132,9 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
             : mode === 'register' && <p id="auth-password-hint" className={styles.hint}>8–72 characters.</p>}
 
           {formError && <p className={styles.formError} role="alert">{formError}</p>}
-          <button className={styles.submit} type="submit" disabled={busy}>{busy ? text.busy : text.submit}</button>
+          <button className={styles.submit} type="submit" disabled={busy} aria-busy={busy}>
+            {busy && <Spinner />}{busy ? text.busy : text.submit}
+          </button>
         </form>
         <p className={styles.switch}>{text.switchText} <Link to={switchTo}>{text.switchLink}</Link></p>
       </section>

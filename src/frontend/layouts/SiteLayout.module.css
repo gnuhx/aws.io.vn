@@ -18,3 +18,6 @@
 .account:hover { text-decoration: underline; }
 .signOut { padding: 0.45rem 0.8rem; border: 1px solid #d1d9e0; border-radius: 7px; background: #f6f8fa; color: #1f2328; font: inherit; font-size: 0.88rem; cursor: pointer; }
 .signOut:hover { background: #eef1f4; }
+.signOut { display: inline-flex; align-items: center; gap: .4rem; }
+.signOut:disabled { opacity: .7; cursor: progress; }
+.checking { display: inline-flex; align-items: center; gap: .4rem; color: #59636e; font-size: .85rem; }

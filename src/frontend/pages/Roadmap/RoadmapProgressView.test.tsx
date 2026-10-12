@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthContextValue, type AuthStatus } from '../../auth/authContext.ts'
+import { ToastProvider } from '../../components/Toast/ToastProvider.tsx'
 import { getCourseRoadmap, getTrackedLessons } from '../../content.ts'
 import { RoadmapProgressView } from './RoadmapProgressView.tsx'
 
@@ -23,7 +24,7 @@ function renderRoadmap(status: AuthStatus) {
     path: '/aws-saa-c03/roadmap',
     element: <RoadmapProgressView roadmapId="aws-saa-c03" markdown={getCourseRoadmap('aws-saa-c03')} lessons={lessons} />,
   }], { initialEntries: ['/aws-saa-c03/roadmap'] })
-  render(<AuthContext.Provider value={auth}><RouterProvider router={router} /></AuthContext.Provider>)
+  render(<ToastProvider><AuthContext.Provider value={auth}><RouterProvider router={router} /></AuthContext.Provider></ToastProvider>)
 }
 
 const statusSelects = () => screen.getAllByRole('combobox', { name: /^Progress status for item/ })
@@ -139,6 +140,35 @@ describe('RoadmapProgressView chart, filters and calendar', () => {
     const calendar = screen.getByRole('region', { name: 'Learning history' })
     expect(within(calendar).getByText('Current streak').nextSibling).toHaveTextContent('1 day')
     expect(fetchMock).toHaveBeenCalledWith('/api/progress/aws-saa-c03/activity', expect.anything())
+  })
+
+  it('shows a spinner on the item while saving, then a saved toast', async () => {
+    replyWith(statuses)
+    renderRoadmap('signed-in')
+    const select = await screen.findByRole('combobox', { name: 'Progress status for item aws-saa-c03:item-0003' })
+
+    let finishSave: (response: Response) => void = () => {}
+    fetchMock.mockImplementationOnce(() => new Promise((resolve) => { finishSave = resolve }))
+    fireEvent.change(select, { target: { value: 'completed' } })
+
+    expect(within(select.closest('li')!).getByRole('status')).toHaveTextContent('Saving…')
+    expect(select).toBeDisabled()
+
+    finishSave(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }))
+    expect(await screen.findByText('Progress saved: Completed.')).toBeInTheDocument()
+    expect(within(select.closest('li')!).queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('shows an error toast when saving fails', async () => {
+    replyWith(statuses)
+    renderRoadmap('signed-in')
+    const select = await screen.findByRole('combobox', { name: 'Progress status for item aws-saa-c03:item-0003' })
+
+    fetchMock.mockImplementationOnce(() => reply(500, { error: 'boom' }))
+    fireEvent.change(select, { target: { value: 'completed' } })
+
+    expect(await screen.findByRole('status', { name: 'Notifications' })).toHaveTextContent('Could not save this progress update.')
+    expect(screen.getByRole('alert')).toHaveTextContent('Could not save this progress update.')
   })
 
   it('shows no chart, calendar or status filter when signed out', () => {

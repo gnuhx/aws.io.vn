@@ -4,6 +4,8 @@ import type { RoadmapId } from '../../../shared/roadmapProgress.ts'
 import { ApiError } from '../../auth/api.ts'
 import { useAuth } from '../../auth/authContext.ts'
 import { progressApi } from '../../progress/api.ts'
+import { Spinner } from '../../components/Spinner/Spinner.tsx'
+import { useToast } from '../../components/Toast/toastContext.ts'
 import styles from './LessonPage.module.css'
 
 /**
@@ -13,6 +15,7 @@ import styles from './LessonPage.module.css'
 export function LessonReadControl({ roadmapId, lessonId }: { roadmapId: RoadmapId; lessonId: string }) {
   const { status: authStatus, user, markSignedOut } = useAuth()
   const location = useLocation()
+  const toast = useToast()
   // Results are tagged with the user they belong to, so a different account never sees stale state.
   const owner = authStatus === 'signed-in' && user ? user.id : null
   const [saved, setSaved] = useState<{ owner: string; read: boolean } | null>(null)
@@ -23,8 +26,10 @@ export function LessonReadControl({ roadmapId, lessonId }: { roadmapId: RoadmapI
   const failed = useCallback((cause: unknown, fallback: string) => {
     const expired = cause instanceof ApiError && cause.status === 401
     if (expired) markSignedOut()
-    setError({ owner, message: expired ? 'Your session expired. Sign in again to track lessons.' : fallback })
-  }, [owner, markSignedOut])
+    const message = expired ? 'Your session expired. Sign in again to track lessons.' : fallback
+    setError({ owner, message })
+    toast.error(message)
+  }, [owner, markSignedOut, toast])
 
   useEffect(() => {
     if (!owner) return
@@ -58,6 +63,7 @@ export function LessonReadControl({ roadmapId, lessonId }: { roadmapId: RoadmapI
     try {
       await progressApi.save(roadmapId, lessonId, read ? 'not_started' : 'completed')
       setSaved({ owner, read: !read })
+      toast.success(read ? 'Lesson marked as unread.' : 'Lesson marked as read ✓')
     } catch (cause) {
       failed(cause, 'Could not save this change. Try again.')
     } finally {
@@ -68,7 +74,7 @@ export function LessonReadControl({ roadmapId, lessonId }: { roadmapId: RoadmapI
   return (
     <section className={styles.readControl} aria-label="Lesson progress">
       <p className={styles.readStatus} role="status">
-        {!loaded ? 'Loading your progress…' : read ? 'Read ✓ — this lesson is marked as read.' : 'Not marked as read yet.'}
+        {!loaded ? <>{!currentError && <Spinner />} Loading your progress…</> : read ? 'Read ✓ — this lesson is marked as read.' : 'Not marked as read yet.'}
       </p>
       <button
         type="button"
@@ -76,7 +82,7 @@ export function LessonReadControl({ roadmapId, lessonId }: { roadmapId: RoadmapI
         disabled={!loaded || saving}
         onClick={() => { void toggle() }}
       >
-        {saving ? 'Saving…' : read ? 'Mark as unread' : 'Mark as read'}
+        {saving && <Spinner />}{saving ? 'Saving…' : read ? 'Mark as unread' : 'Mark as read'}
       </button>
       {currentError && (
         <p className={styles.readError} role="alert">

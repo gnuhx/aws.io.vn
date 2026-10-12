@@ -5,9 +5,10 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider } from './auth/AuthProvider.tsx'
 import { googleClientId } from './auth/config.ts'
 import { router } from './router.tsx'
+import { ToastProvider } from './components/Toast/ToastProvider.tsx'
 import './styles/global.css'
 
-const app = <AuthProvider><RouterProvider router={router} /></AuthProvider>
+const app = <ToastProvider><AuthProvider><RouterProvider router={router} /></AuthProvider></ToastProvider>
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

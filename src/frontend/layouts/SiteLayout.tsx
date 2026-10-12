@@ -1,12 +1,17 @@
 import { Link, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../auth/authContext.ts'
+import { useLogout } from '../auth/useLogout.ts'
+import { Spinner } from '../components/Spinner/Spinner.tsx'
 import styles from './SiteLayout.module.css'
 
 function AccountActions() {
-  const { status, user, logout } = useAuth()
+  const { status, user } = useAuth()
+  const { signOut, signingOut } = useLogout()
   const location = useLocation()
 
-  if (status === 'loading') return null
+  if (status === 'loading') {
+    return <span className={styles.checking} role="status"><Spinner /> Checking sign-in…</span>
+  }
   if (status === 'signed-out' || !user) {
     const onAuthPage = location.pathname === '/login' || location.pathname === '/register'
     const redirect = onAuthPage ? '' : `?redirect=${encodeURIComponent(location.pathname + location.search)}`
@@ -16,7 +21,9 @@ function AccountActions() {
   return (
     <div className={styles.accountActions}>
       <Link className={styles.account} to="/account">{user.email}</Link>
-      <button type="button" className={styles.signOut} onClick={() => { void logout() }}>Sign out</button>
+      <button type="button" className={styles.signOut} disabled={signingOut} aria-busy={signingOut} onClick={() => { void signOut() }}>
+        {signingOut && <Spinner />}{signingOut ? 'Signing out…' : 'Sign out'}
+      </button>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { findLessonProgressEntry } from '../../../shared/lessonProgress.ts'
 import { isRoadmapId } from '../../../shared/roadmapProgress.ts'
 import { findLesson, getLessonCatalog, getLessonContentPath, getTopicLabel, type LessonEntry } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
+import { Spinner } from '../../components/Spinner/Spinner.tsx'
 import { LessonReadControl } from './LessonReadControl.tsx'
 import styles from './LessonPage.module.css'
 
@@ -12,6 +13,7 @@ const MarkdownView = lazy(() => import('../../components/Markdown/MarkdownView.t
 function LessonContent({ lesson }: { lesson: LessonEntry }) {
   const [markdown, setMarkdown] = useState(lesson.bodyMarkdown)
   const [markdownError, setMarkdownError] = useState(false)
+  const [loadingMarkdown, setLoadingMarkdown] = useState(Boolean(lesson.markdownUrl))
 
   useEffect(() => {
     if (!lesson.markdownUrl) return
@@ -33,6 +35,9 @@ function LessonContent({ lesson }: { lesson: LessonEntry }) {
       .catch(() => {
         if (active) setMarkdownError(true)
       })
+      .finally(() => {
+        if (active) setLoadingMarkdown(false)
+      })
 
     return () => { active = false }
   }, [lesson.markdownUrl])
@@ -42,8 +47,9 @@ function LessonContent({ lesson }: { lesson: LessonEntry }) {
   }
 
   return (
-    <article className={styles.article}>
-      <Suspense fallback={<p>Loading lesson renderer…</p>}>
+    <article className={styles.article} aria-busy={loadingMarkdown}>
+      {loadingMarkdown && <p className={styles.loadingLesson}><Spinner /> Loading lesson…</p>}
+      <Suspense fallback={<p className={styles.loadingLesson}><Spinner /> Loading lesson renderer…</p>}>
         <MarkdownView markdown={markdown} />
       </Suspense>
     </article>

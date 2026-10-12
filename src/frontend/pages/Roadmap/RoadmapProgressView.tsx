@@ -8,6 +8,8 @@ import type { TrackedLesson } from '../../content.ts'
 import { progressApi, type ActivityEvent, type SavedStatuses } from '../../progress/api.ts'
 import { roadmapProgressManifest, type ProgressStatus, type RoadmapId, type RoadmapProgressItem } from '../../../shared/roadmapProgress.ts'
 import { MarkdownView } from '../../components/Markdown/MarkdownView.tsx'
+import { Spinner } from '../../components/Spinner/Spinner.tsx'
+import { useToast } from '../../components/Toast/toastContext.ts'
 import { LearningCalendar } from './LearningCalendar.tsx'
 import { ProgressDonut } from './ProgressDonut.tsx'
 import styles from './RoadmapProgressView.module.css'
@@ -20,6 +22,12 @@ const STATUS_CLASSES: Record<ItemStatus, string> = {
   not_started: styles.statusNotStarted,
   in_progress: styles.statusInProgress,
   completed: styles.statusCompleted,
+}
+
+const STATUS_LABELS: Record<ItemStatus, string> = {
+  not_started: 'Not started',
+  in_progress: 'In progress',
+  completed: 'Completed',
 }
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
@@ -80,7 +88,7 @@ type RoadmapItemState = {
   lessonsByItem: Map<string, TrackedLesson[]>
   statuses: SavedStatuses
   loaded: boolean
-  saving: boolean
+  savingItem: string | null
   statusFilter: StatusFilter
   lessonFilter: LessonFilter
   updateStatus: (itemId: string, status: ProgressStatus | 'not_started') => void
@@ -104,9 +112,10 @@ function RoadmapListItem({ node, children, ...props }: ComponentProps<'li'> & { 
         roadmapId={state.roadmapId}
         itemId={item.id}
         status={status}
-        disabled={!state.loaded || state.saving}
+        disabled={!state.loaded || state.savingItem !== null}
         onChange={state.updateStatus}
       />
+      {state.savingItem === item.id && <span className={styles.savingItem} role="status"><Spinner /> Saving…</span>}
       {content}
       {lessons?.map((lesson) => {
         const read = state.statuses[lesson.id] === 'completed'
@@ -138,6 +147,7 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
   const { status: authStatus, user, markSignedOut } = useAuth()
   const isSignedIn = authStatus === 'signed-in'
   const location = useLocation()
+  const toast = useToast()
   // Loaded statuses are tagged with their owner, so nothing from another account (or signed out) is ever shown.
   const owner = isSignedIn && user ? user.id : null
   const [saved, setSaved] = useState<{ owner: string; statuses: SavedStatuses } | null>(null)
@@ -172,10 +182,12 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
         if (!active) return
         const expired = cause instanceof ApiError && cause.status === 401
         if (expired) markSignedOut()
-        setError(expired ? 'Your session expired. Sign in again to load progress.' : 'Could not load saved progress.')
+        const message = expired ? 'Your session expired. Sign in again to load progress.' : 'Could not load saved progress.'
+        setError(message)
+        toast.error(message)
       })
     return () => { active = false }
-  }, [owner, roadmapId, reloads, markSignedOut])
+  }, [owner, roadmapId, reloads, markSignedOut, toast])
 
   // The calendar is secondary: a failure here shows its own message and never blocks the roadmap.
   useEffect(() => {
@@ -209,14 +221,17 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
         owner,
         events: [{ itemId, status, at: new Date().toISOString() }, ...(previous?.owner === owner ? previous.events : [])],
       }))
+      toast.success(`Progress saved: ${STATUS_LABELS[status]}.`)
     } catch (cause) {
       const expired = cause instanceof ApiError && cause.status === 401
       if (expired) markSignedOut()
-      setError(expired ? 'Your session expired. Sign in again to save progress.' : 'Could not save this progress update.')
+      const message = expired ? 'Your session expired. Sign in again to save progress.' : 'Could not save this progress update.'
+      setError(message)
+      toast.error(message)
     } finally {
       setSavingItem(null)
     }
-  }, [owner, markSignedOut, roadmapId, savingItem])
+  }, [owner, markSignedOut, roadmapId, savingItem, toast])
 
   const modules = useMemo(() => {
     const grouped = new Map<string, RoadmapProgressItem[]>()
@@ -246,7 +261,7 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
     lessonsByItem,
     statuses,
     loaded,
-    saving: savingItem !== null,
+    savingItem,
     statusFilter,
     lessonFilter,
     updateStatus: (itemId, status) => { void updateStatus(itemId, status) },
@@ -268,6 +283,7 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
           {isSignedIn && nextItem && <a className={styles.continueLink} href={`#${itemAnchorId(nextItem.id)}`}>Continue learning →</a>}
           {isSignedIn && !nextItem && <span className={styles.doneMessage}>Roadmap complete ✓</span>}
         </div>
+        {loading && <p className={styles.loading} role="status"><Spinner /> Loading saved progress…</p>}
         {isSignedIn && loaded && <div className={styles.chartRow}>
           <ProgressDonut counts={{ completed: completedCount, in_progress: inProgressCount, not_started: items.length - completedCount - inProgressCount }} />
           <div className={styles.moduleProgress}>
@@ -317,7 +333,6 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
       <div className={styles.roadmapArticle}>
         <RoadmapItemContext.Provider value={itemState}>{article}</RoadmapItemContext.Provider>
       </div>
-      {loading && <p className={styles.loading} role="status">Loading saved progress…</p>}
     </div>
   )
 }
