@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library'
 
-export type GoogleIdentity = { sub: string; email: string; emailVerified: boolean; name: string | null }
+export type GoogleIdentity = { sub: string; email: string; emailVerified: boolean; name: string | null; picture: string | null }
 
 export class InvalidGoogleTokenError extends Error {}
 
@@ -24,5 +24,7 @@ export async function verifyGoogleIdToken(idToken: string, clientId: string): Pr
     email: payload.email.toLowerCase(),
     emailVerified: payload.email_verified === true,
     name: payload.name ?? null,
+    // Only https URLs are kept: the avatar is rendered as an <img src> on our pages.
+    picture: payload.picture?.startsWith('https://') ? payload.picture : null,
   }
 }

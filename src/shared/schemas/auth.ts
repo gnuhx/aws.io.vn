@@ -34,4 +34,12 @@ export const googleLoginSchema = z.object({ credential: z.string().min(1).max(40
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 
-export type PublicUser = { id: string; email: string; name: string | null }
+export type PublicUser = {
+  id: string
+  email: string
+  name: string | null
+  /** Google profile photo (https), or null: the UI then shows initials. */
+  avatarUrl: string | null
+  /** False for Google-only accounts, which may set a first password without a current one. */
+  hasPassword: boolean
+}

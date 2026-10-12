@@ -12,22 +12,36 @@ function memoryRepository() {
     findByGoogleSub: async (sub) => rows.find((row) => row.googleSub === sub) ?? null,
     create: async (user: NewUser) => {
       if (rows.some((row) => row.email === user.email)) throw new DuplicateEmailError()
-      const created = { ...user, id: String(rows.length + 1) }
+      const created: User = { ...user, id: String(rows.length + 1), hobbies: [], techStack: [], bio: '' }
       rows.push(created)
       return created
     },
-    linkGoogle: async (id, { googleSub, name, clearPassword }) => {
+    linkGoogle: async (id, { googleSub, name, avatarUrl, clearPassword }) => {
       const row = rows.find((candidate) => candidate.id === id)
       if (!row) return null
-      Object.assign(row, { googleSub, name, emailVerified: true }, clearPassword ? { passwordHash: null } : {})
+      Object.assign(row, { googleSub, name, emailVerified: true }, avatarUrl ? { avatarUrl } : {}, clearPassword ? { passwordHash: null } : {})
       return row
+    },
+    setAvatar: async (id, avatarUrl) => {
+      const row = rows.find((candidate) => candidate.id === id)
+      if (row) row.avatarUrl = avatarUrl
+    },
+    updateProfile: async (id, profile) => {
+      const row = rows.find((candidate) => candidate.id === id)
+      if (!row) return null
+      Object.assign(row, profile)
+      return row
+    },
+    setPasswordHash: async (id, passwordHash) => {
+      const row = rows.find((candidate) => candidate.id === id)
+      if (row) row.passwordHash = passwordHash
     },
   }
   return { repo, rows }
 }
 
 const googleIdentity = (overrides: Partial<GoogleIdentity> = {}): GoogleIdentity => ({
-  sub: 'google-sub-1', email: 'a@x.io', emailVerified: true, name: 'Ada', ...overrides,
+  sub: 'google-sub-1', email: 'a@x.io', emailVerified: true, name: 'Ada', picture: null, ...overrides,
 })
 
 describe('authService', () => {
@@ -74,7 +88,7 @@ describe('authService', () => {
     })
 
     it('returns null for a Google-only account', async () => {
-      rows.push({ id: '9', email: 'g@x.io', name: null, passwordHash: null, googleSub: 's', emailVerified: true })
+      rows.push({ id: '9', email: 'g@x.io', name: null, passwordHash: null, googleSub: 's', emailVerified: true, avatarUrl: null, hobbies: [], techStack: [], bio: '' })
       expect(await service.login({ email: 'g@x.io', password: 'anything' })).toBeNull()
     })
   })
@@ -113,6 +127,64 @@ describe('authService', () => {
       expect(await service.loginWithGoogle('valid-token')).toEqual({ ok: false, reason: 'email_unverified' })
       expect(rows).toHaveLength(1)
       expect(rows[0].googleSub).toBeNull()
+    })
+
+    it('stores the Google photo for new users and refreshes it on later sign-ins', async () => {
+      identity = googleIdentity({ picture: 'https://lh3.googleusercontent.com/a/one' })
+      await service.loginWithGoogle('valid-token')
+      expect(rows[0].avatarUrl).toBe('https://lh3.googleusercontent.com/a/one')
+
+      identity = googleIdentity({ picture: 'https://lh3.googleusercontent.com/a/two' })
+      const again = await service.loginWithGoogle('valid-token')
+      expect(rows[0].avatarUrl).toBe('https://lh3.googleusercontent.com/a/two')
+      expect(again.ok && again.user.avatarUrl).toBe('https://lh3.googleusercontent.com/a/two')
+    })
+
+    it('adds the Google photo when linking an existing account', async () => {
+      await service.register({ email: 'a@x.io', password: 'correct horse' })
+      identity = googleIdentity({ picture: 'https://lh3.googleusercontent.com/a/one' })
+      await service.loginWithGoogle('valid-token')
+      expect(rows[0].avatarUrl).toBe('https://lh3.googleusercontent.com/a/one')
+    })
+  })
+
+  describe('updateProfile', () => {
+    it('stores the profile fields for the user', async () => {
+      const user = await service.register({ email: 'a@x.io', password: 'correct horse' })
+      const updated = await service.updateProfile(user!.id, { name: 'Ada', hobbies: ['chess'], techStack: ['AWS', 'React'], bio: 'Hi' })
+      expect(updated).toMatchObject({ name: 'Ada', hobbies: ['chess'], techStack: ['AWS', 'React'], bio: 'Hi' })
+    })
+
+    it('returns null for a user that no longer exists', async () => {
+      expect(await service.updateProfile('missing', { name: null, hobbies: [], techStack: [], bio: '' })).toBeNull()
+    })
+  })
+
+  describe('changePassword', () => {
+    it('replaces the hash when the current password is right', async () => {
+      const user = await service.register({ email: 'a@x.io', password: 'correct horse' })
+      expect(await service.changePassword(user!.id, { currentPassword: 'correct horse', newPassword: 'battery staple' })).toEqual({ ok: true })
+      expect(await service.login({ email: 'a@x.io', password: 'battery staple' })).not.toBeNull()
+      expect(await service.login({ email: 'a@x.io', password: 'correct horse' })).toBeNull()
+    })
+
+    it('refuses a missing, wrong or unchanged current password and keeps the old hash', async () => {
+      const user = await service.register({ email: 'a@x.io', password: 'correct horse' })
+      const before = rows[0].passwordHash
+      expect(await service.changePassword(user!.id, { newPassword: 'battery staple' })).toEqual({ ok: false, reason: 'current_required' })
+      expect(await service.changePassword(user!.id, { currentPassword: 'nope', newPassword: 'battery staple' })).toEqual({ ok: false, reason: 'wrong_password' })
+      expect(await service.changePassword(user!.id, { currentPassword: 'correct horse', newPassword: 'correct horse' })).toEqual({ ok: false, reason: 'same_password' })
+      expect(rows[0].passwordHash).toBe(before)
+    })
+
+    it('lets a Google-only account set a first password', async () => {
+      await service.loginWithGoogle('valid-token')
+      expect(await service.changePassword(rows[0].id, { newPassword: 'battery staple' })).toEqual({ ok: true })
+      expect(await service.login({ email: 'a@x.io', password: 'battery staple' })).not.toBeNull()
+    })
+
+    it('answers not_found for a deleted user', async () => {
+      expect(await service.changePassword('missing', { newPassword: 'battery staple' })).toEqual({ ok: false, reason: 'not_found' })
     })
   })
 })

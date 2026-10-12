@@ -17,8 +17,8 @@ const reply = (status: number, body: unknown) =>
 function renderRoadmap(status: AuthStatus) {
   const auth: AuthContextValue = {
     status,
-    user: status === 'signed-in' ? { id: 'u1', email: 'a@x.io', name: null } : null,
-    register: vi.fn(), login: vi.fn(), loginWithGoogle: vi.fn(), logout: vi.fn(), markSignedOut: vi.fn(),
+    user: status === 'signed-in' ? { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true } : null,
+    register: vi.fn(), login: vi.fn(), loginWithGoogle: vi.fn(), logout: vi.fn(), markSignedOut: vi.fn(), updateUser: vi.fn(),
   }
   const router = createMemoryRouter([{
     path: '/aws-saa-c03/roadmap',

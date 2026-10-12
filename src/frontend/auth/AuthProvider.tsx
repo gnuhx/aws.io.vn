@@ -40,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     markSignedOut,
+    updateUser: setUser,
   }), [markSignedOut, signIn, status, user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

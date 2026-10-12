@@ -22,7 +22,10 @@ const { default: logout } = await import('../auth-logout.ts')
 
 const SECRET = 'test-secret-that-is-at-least-32-characters-long'
 const context = { params: {} } as unknown as Context
-const user: User = { id: 'u1', email: 'a@x.io', name: null, passwordHash: '$2b$12$hash', googleSub: null, emailVerified: false }
+const user: User = {
+  id: 'u1', email: 'a@x.io', name: null, passwordHash: '$2b$12$hash', googleSub: null, emailVerified: false,
+  avatarUrl: null, hobbies: [], techStack: [], bio: '',
+}
 
 const post = (body: unknown, raw = false) => new Request('https://aws.io.vn/api/auth/x', {
   method: 'POST',
@@ -42,7 +45,7 @@ describe('POST /api/auth/register', () => {
     authService.register.mockResolvedValue(user)
     const response = await register(post({ email: 'A@X.io', password: 'correct horse' }), context)
     expect(response.status).toBe(201)
-    expect(await response.json()).toEqual({ user: { id: 'u1', email: 'a@x.io', name: null } })
+    expect(await response.json()).toEqual({ user: { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true } })
     expect(response.headers.get('set-cookie')).toMatch(/^session=.+; Path=\/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800$/)
     expect(authService.register).toHaveBeenCalledWith({ email: 'a@x.io', password: 'correct horse' })
   })
@@ -111,7 +114,7 @@ describe('GET /api/auth/me and POST /api/auth/logout', () => {
     authService.findUser.mockResolvedValue(user)
     const response = await me(get(`session=${await createSessionToken('u1', SECRET)}`), context)
     expect(response.status).toBe(200)
-    expect(await response.json()).toEqual({ user: { id: 'u1', email: 'a@x.io', name: null } })
+    expect(await response.json()).toEqual({ user: { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true } })
     expect(authService.findUser).toHaveBeenCalledWith('u1')
   })
 

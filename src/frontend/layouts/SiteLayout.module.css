@@ -14,8 +14,13 @@
 .accountActions { display: flex; align-items: center; gap: 0.8rem; }
 .signIn { padding: 0.45rem 0.8rem; border: 1px solid #0969da; border-radius: 7px; color: #0969da; font-size: 0.88rem; font-weight: 650; text-decoration: none; }
 .signIn:hover { background: #f0f6ff; }
-.account { max-width: 14rem; overflow: hidden; color: #1f2328; font-size: 0.88rem; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
-.account:hover { text-decoration: underline; }
+.account { display: inline-flex; align-items: center; gap: .5rem; max-width: 16rem; color: #1f2328; font-size: 0.88rem; text-decoration: none; }
+.account span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account:hover span { text-decoration: underline; }
+
+@media (max-width: 520px) {
+  .account span { display: none; }
+}
 .signOut { padding: 0.45rem 0.8rem; border: 1px solid #d1d9e0; border-radius: 7px; background: #f6f8fa; color: #1f2328; font: inherit; font-size: 0.88rem; cursor: pointer; }
 .signOut:hover { background: #eef1f4; }
 .signOut { display: inline-flex; align-items: center; gap: .4rem; }

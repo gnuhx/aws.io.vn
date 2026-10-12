@@ -14,7 +14,7 @@ export class ApiError extends Error {
 type ErrorBody = { error?: string; fields?: Record<string, string[] | undefined> }
 
 // Same-origin requests send the httpOnly session cookie automatically; JS never sees the token.
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     ...init,
     credentials: 'same-origin',

@@ -8,7 +8,7 @@ import { TestsPage } from './pages/Tests/TestsPage.tsx'
 import { CourseLayout } from './layouts/CourseLayout.tsx'
 import { SiteLayout } from './layouts/SiteLayout.tsx'
 import { AuthPage } from './pages/Auth/AuthPage.tsx'
-import { AccountPage } from './pages/Account/AccountPage.tsx'
+import { SettingsPage } from './pages/Settings/SettingsPage.tsx'
 import { ProtectedRoute } from './auth/ProtectedRoute.tsx'
 
 export const router = createBrowserRouter([
@@ -18,7 +18,8 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'login', element: <AuthPage mode="login" /> },
       { path: 'register', element: <AuthPage mode="register" /> },
-      { path: 'account', element: <ProtectedRoute><AccountPage /></ProtectedRoute> },
+      { path: 'settings', element: <ProtectedRoute><SettingsPage /></ProtectedRoute> },
+      { path: 'account', element: <Navigate to="/settings" replace /> },
       // Earlier sign-in paths, kept so existing links still work.
       { path: 'sign-in/*', element: <Navigate to="/login" replace /> },
       { path: 'sign-up/*', element: <Navigate to="/register" replace /> },

@@ -10,6 +10,7 @@ The site has its own accounts (D-009): email + password, or Google. Users and ro
 | `useAuth()`, `<AuthProvider>`, `<ProtectedRoute>` | `src/frontend/auth/` |
 | Input rules (same for form and API) | `src/shared/schemas/auth.ts` |
 | Endpoints | `src/backend/functions/auth-*.ts` → `/api/auth/{register,login,google,me,logout}` |
+| Profile + password change (TASK-015) | `src/backend/functions/profile*.ts` → `/api/profile` (GET/PUT), `/api/profile/password` (POST); rules in `src/shared/schemas/profile.ts` |
 | Passwords (bcrypt, cost 12), Google linking | `src/backend/services/auth/authService.ts` |
 | Session JWT + cookie | `src/backend/services/auth/sessions.ts` |
 | `withAuth` / `publicEndpoint`, CORS, CSRF checks | `src/backend/middleware/http.ts` |
@@ -17,6 +18,8 @@ The site has its own accounts (D-009): email + password, or Google. Users and ro
 - **Session:** an HS256 JWT (`sub` = user id, 7 days) in the `session` cookie: `HttpOnly; Secure; SameSite=Lax; Path=/`. JavaScript never sees it; the frontend asks `GET /api/auth/me` who is signed in. Logout clears the cookie. Tokens are stateless, so a copied token stays valid until it expires.
 - **Google:** the browser gets an ID token from Google Identity Services and posts only that token. The server verifies it with `google-auth-library` (signature, expiry, audience = `GOOGLE_CLIENT_ID`) and uses only the verified claims.
 - **Account linking:** if Google's *verified* email matches an existing email/password account, Google is linked to that same user. Registration doesn't verify emails, so when an unverified account gets linked its password is removed: whoever set it may not own the email. That user signs in with Google from then on.
+- **Avatar:** the verified token's `picture` (https only) is stored as `avatarUrl` and refreshed on every Google sign-in. There are no avatar uploads.
+- **Password change:** accounts with a password must give the current one. Google-only accounts can set a first password without one. Other sessions stay valid until they expire (stateless JWT).
 - **CSRF:** `SameSite=Lax`, plus every POST/PUT/DELETE must be `application/json` and, if the browser sends an `Origin`, come from this site or `ALLOWED_ORIGINS`.
 
 ## Environment

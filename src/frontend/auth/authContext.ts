@@ -12,6 +12,8 @@ export type AuthContextValue = {
   logout: () => Promise<void>
   /** Call after an API reports 401 so the UI shows the signed-out state. */
   markSignedOut: () => void
+  /** Replace the signed-in user after a profile change, so the header shows the new name. */
+  updateUser: (user: PublicUser) => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
