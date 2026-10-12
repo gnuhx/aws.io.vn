@@ -12,7 +12,7 @@ function memoryRepository() {
     findByGoogleSub: async (sub) => rows.find((row) => row.googleSub === sub) ?? null,
     create: async (user: NewUser) => {
       if (rows.some((row) => row.email === user.email)) throw new DuplicateEmailError()
-      const created: User = { ...user, id: String(rows.length + 1), hobbies: [], techStack: [], bio: '' }
+      const created: User = { ...user, id: String(rows.length + 1), hobbies: [], techStack: [], bio: '', resumeReading: false }
       rows.push(created)
       return created
     },
@@ -35,6 +35,12 @@ function memoryRepository() {
     setPasswordHash: async (id, passwordHash) => {
       const row = rows.find((candidate) => candidate.id === id)
       if (row) row.passwordHash = passwordHash
+    },
+    setResumeReading: async (id, resumeReading) => {
+      const row = rows.find((candidate) => candidate.id === id)
+      if (!row) return null
+      row.resumeReading = resumeReading
+      return row
     },
   }
   return { repo, rows }
@@ -88,7 +94,7 @@ describe('authService', () => {
     })
 
     it('returns null for a Google-only account', async () => {
-      rows.push({ id: '9', email: 'g@x.io', name: null, passwordHash: null, googleSub: 's', emailVerified: true, avatarUrl: null, hobbies: [], techStack: [], bio: '' })
+      rows.push({ id: '9', email: 'g@x.io', name: null, passwordHash: null, googleSub: 's', emailVerified: true, avatarUrl: null, hobbies: [], techStack: [], bio: '', resumeReading: false })
       expect(await service.login({ email: 'g@x.io', password: 'anything' })).toBeNull()
     })
   })

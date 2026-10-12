@@ -10,7 +10,7 @@ const fetchMock = vi.fn<typeof fetch>()
 const reply = (status: number, body: unknown) =>
   Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } }))
 
-const user: PublicUser = { id: 'u1', email: 'ada@x.io', name: 'Ada', avatarUrl: null, hasPassword: true }
+const user: PublicUser = { id: 'u1', email: 'ada@x.io', name: 'Ada', avatarUrl: null, hasPassword: true, preferences: { resumeReading: false } }
 const profile = { hobbies: ['Chess'], techStack: ['AWS'], bio: 'Learning SAA-C03.' }
 
 function renderSettings(account: PublicUser = user) {
@@ -102,5 +102,22 @@ describe('SettingsPage', () => {
 
     await waitFor(() => expect(notifications()).toHaveTextContent('Password set.'))
     expect(JSON.parse(String(callsTo('/api/profile/password')[0][1]?.body))).toEqual({ newPassword: 'battery staple' })
+  })
+
+  it('turns resume reading off, which deletes saved positions on the server', async () => {
+    const reader = { ...user, preferences: { resumeReading: true } }
+    fetchMock.mockImplementation((input) => String(input) === '/api/profile/preferences'
+      ? reply(200, { user: { ...reader, preferences: { resumeReading: false } } })
+      : reply(200, { user: reader, profile }))
+    const { updateUser } = renderSettings(reader)
+
+    const toggle = await screen.findByRole('switch', { name: 'Resume where I left off' })
+    expect(toggle).toBeChecked()
+    fireEvent.click(toggle)
+
+    await waitFor(() => expect(notifications()).toHaveTextContent('Your saved reading positions were deleted.'))
+    expect(JSON.parse(String(callsTo('/api/profile/preferences')[0][1]?.body))).toEqual({ resumeReading: false })
+    expect(updateUser).toHaveBeenCalledWith({ ...reader, preferences: { resumeReading: false } })
+    expect(toggle).not.toBeChecked()
   })
 })

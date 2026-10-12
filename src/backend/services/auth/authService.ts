@@ -14,6 +14,7 @@ export const toPublicUser = (user: User): PublicUser => ({
   name: user.name,
   avatarUrl: user.avatarUrl,
   hasPassword: user.passwordHash !== null,
+  preferences: { resumeReading: user.resumeReading },
 })
 
 export const toProfile = (user: User): Profile => ({ hobbies: user.hobbies, techStack: user.techStack, bio: user.bio })

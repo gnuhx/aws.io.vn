@@ -42,4 +42,5 @@ export type PublicUser = {
   avatarUrl: string | null
   /** False for Google-only accounts, which may set a first password without a current one. */
   hasPassword: boolean
+  preferences: { resumeReading: boolean }
 }

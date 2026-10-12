@@ -12,7 +12,7 @@ function LoginProbe() {
 function renderAt(status: AuthStatus) {
   const auth: AuthContextValue = {
     status,
-    user: status === 'signed-in' ? { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true } : null,
+    user: status === 'signed-in' ? { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true, preferences: { resumeReading: false } } : null,
     register: vi.fn(), login: vi.fn(), loginWithGoogle: vi.fn(), logout: vi.fn(), markSignedOut: vi.fn(), updateUser: vi.fn(),
   }
   const router = createMemoryRouter([

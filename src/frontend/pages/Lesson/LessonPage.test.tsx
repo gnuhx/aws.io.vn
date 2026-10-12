@@ -19,7 +19,7 @@ const progressCalls = () => fetchMock.mock.calls.filter(([input]) => String(inpu
 function renderLesson(status: AuthStatus, path = LESSON_PATH, markSignedOut = vi.fn()) {
   const auth: AuthContextValue = {
     status,
-    user: status === 'signed-in' ? { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true } : null,
+    user: status === 'signed-in' ? { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true, preferences: { resumeReading: false } } : null,
     register: vi.fn(), login: vi.fn(), loginWithGoogle: vi.fn(), logout: vi.fn(), markSignedOut, updateUser: vi.fn(),
   }
   const router = createMemoryRouter([{ path: '/:topic/:slug', element: <LessonPage /> }], { initialEntries: [path] })

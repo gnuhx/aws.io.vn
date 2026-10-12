@@ -243,6 +243,50 @@ function PasswordSection({ email, hasPassword, onPasswordSet }: { email: string;
   )
 }
 
+function ReadingSection({ enabled, onSaved }: { enabled: boolean; onSaved: (user: PublicUser) => void }) {
+  const toast = useToast()
+  const failed = useFailure()
+  const [saving, setSaving] = useState(false)
+
+  async function toggle(resumeReading: boolean) {
+    setSaving(true)
+    try {
+      onSaved(await profileApi.setPreferences({ resumeReading }))
+      toast.success(resumeReading ? 'Resume reading is on.' : 'Resume reading is off. Your saved reading positions were deleted.')
+    } catch (cause) {
+      failed(cause, 'Could not update this setting. Try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section id="reading" className={styles.card} aria-labelledby="reading-heading">
+      <header className={styles.cardHeader}>
+        <h2 id="reading-heading">Reading</h2>
+        <p>How lessons open.</p>
+      </header>
+      <label className={styles.switchRow}>
+        <input
+          type="checkbox"
+          role="switch"
+          className={styles.switch}
+          checked={enabled}
+          disabled={saving}
+          aria-describedby="settings-resume-hint"
+          onChange={(event) => { void toggle(event.currentTarget.checked) }}
+        />
+        <span className={styles.switchLabel}>Resume where I left off {saving && <Spinner />}</span>
+      </label>
+      <p id="settings-resume-hint" className={styles.hint}>
+        {enabled
+          ? 'We remember the section you were reading in each course and scroll back to it. Turning this off deletes all saved positions.'
+          : 'Off: lessons always open at the top and we don’t track where you are reading.'}
+      </p>
+    </section>
+  )
+}
+
 export function SettingsPage() {
   const { updateUser } = useAuth()
   const { signOut, signingOut } = useLogout()
@@ -284,6 +328,7 @@ export function SettingsPage() {
           )}
           <nav aria-label="Settings sections">
             <a href="#profile">Public profile</a>
+            <a href="#reading">Reading</a>
             <a href="#password">Password</a>
             <a href="#session">Session</a>
           </nav>
@@ -302,6 +347,7 @@ export function SettingsPage() {
             <>
               {/* Keyed by the saved profile, so a save resets the form's "unsaved changes" baseline. */}
               <ProfileSection key={JSON.stringify(toForm(data.user, data.profile))} user={data.user} initial={toForm(data.user, data.profile)} onSaved={saved} />
+              <ReadingSection enabled={data.user.preferences.resumeReading} onSaved={(user) => saved(user, data.profile)} />
               <PasswordSection
                 email={data.user.email}
                 hasPassword={data.user.hasPassword}

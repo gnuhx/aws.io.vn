@@ -39,3 +39,6 @@ export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
 
 export type Profile = { hobbies: string[]; techStack: string[]; bio: string }
+
+export const preferencesSchema = z.object({ resumeReading: z.boolean() }).strict()
+export type PreferencesInput = z.infer<typeof preferencesSchema>

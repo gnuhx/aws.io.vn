@@ -13,6 +13,8 @@ export type User = {
   hobbies: string[]
   techStack: string[]
   bio: string
+  /** "Resume where I left off". Off unless the user turns it on. */
+  resumeReading: boolean
 }
 
 export type NewUser = Pick<User, 'email' | 'name' | 'passwordHash' | 'googleSub' | 'emailVerified' | 'avatarUrl'>
@@ -30,6 +32,7 @@ export interface UserRepository {
   setAvatar(id: string, avatarUrl: string | null): Promise<void>
   updateProfile(id: string, profile: ProfileFields): Promise<User | null>
   setPasswordHash(id: string, passwordHash: string): Promise<void>
+  setResumeReading(id: string, resumeReading: boolean): Promise<User | null>
 }
 
 type UserDocument = {
@@ -43,6 +46,7 @@ type UserDocument = {
   hobbies?: string[]
   techStack?: string[]
   bio?: string
+  resumeReading?: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -58,6 +62,7 @@ const toUser = (doc: UserDocument): User => ({
   hobbies: doc.hobbies ?? [],
   techStack: doc.techStack ?? [],
   bio: doc.bio ?? '',
+  resumeReading: doc.resumeReading ?? false,
 })
 
 let collectionPromise: Promise<Collection<UserDocument>> | undefined
@@ -150,5 +155,15 @@ export const mongoUserRepository: UserRepository = {
 
   async setPasswordHash(id, passwordHash) {
     await (await users()).updateOne({ _id: new ObjectId(id) }, { $set: { passwordHash, updatedAt: new Date() } })
+  },
+
+  async setResumeReading(id, resumeReading) {
+    if (!ObjectId.isValid(id)) return null
+    const doc = await (await users()).findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { resumeReading, updatedAt: new Date() } },
+      { returnDocument: 'after' },
+    )
+    return doc ? toUser(doc) : null
   },
 }

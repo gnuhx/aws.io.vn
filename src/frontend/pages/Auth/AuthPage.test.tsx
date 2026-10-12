@@ -46,7 +46,7 @@ describe('AuthPage', () => {
 
   it('signs in and returns to the page in ?redirect=', async () => {
     fetchMock.mockImplementation((input) => {
-      if (String(input) === '/api/auth/login') return reply(200, { user: { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true } })
+      if (String(input) === '/api/auth/login') return reply(200, { user: { id: 'u1', email: 'a@x.io', name: null, avatarUrl: null, hasPassword: true, preferences: { resumeReading: false } } })
       return reply(401, { error: 'unauthorized' })
     })
     renderPage('login', `/login?redirect=${encodeURIComponent('/MCP/roadmap')}`)

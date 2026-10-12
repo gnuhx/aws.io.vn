@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router'
 import { getLessonCatalog, getPublishedModuleOrders, getTopicLabel } from '../../content.ts'
 import { McpModuleWrapup } from '../../components/McpModuleWrapup/McpModuleWrapup.tsx'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
+import { ContinueReading } from '../../reading/ContinueReading.tsx'
 import styles from './TopicPage.module.css'
 
 export function TopicPage() {
@@ -37,6 +38,7 @@ export function TopicPage() {
           <span>{lessons.length} content pages</span>
           {sortedModules.length > 0 && <span>{sortedModules.length} {sortedModules.length === 1 ? 'module' : 'modules'}</span>}
         </div>
+        <ContinueReading topic={topic} lessons={lessons} />
         {topic === 'aws-saa-c03' && (
           <Link className={styles.roadmapLink} to="/aws-saa-c03/roadmap">View full course roadmap ↗</Link>
         )}

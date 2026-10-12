@@ -20,7 +20,7 @@ const SECRET = 'test-secret-that-is-at-least-32-characters-long'
 const context = { params: {} } as unknown as Context
 const user: User = {
   id: 'u1', email: 'a@x.io', name: 'Ada', passwordHash: '$2b$12$hash', googleSub: null, emailVerified: false,
-  avatarUrl: 'https://lh3.googleusercontent.com/a/x', hobbies: ['chess'], techStack: ['AWS'], bio: 'Hi',
+  avatarUrl: 'https://lh3.googleusercontent.com/a/x', hobbies: ['chess'], techStack: ['AWS'], bio: 'Hi', resumeReading: false,
 }
 
 async function request(method: string, path: string, body?: unknown, signedIn = true) {
@@ -48,7 +48,7 @@ describe('/api/profile', () => {
     authService.findUser.mockResolvedValue(user)
     const response = await profile(await request('GET', '/api/profile'), context)
     expect(await response.json()).toEqual({
-      user: { id: 'u1', email: 'a@x.io', name: 'Ada', avatarUrl: 'https://lh3.googleusercontent.com/a/x', hasPassword: true },
+      user: { id: 'u1', email: 'a@x.io', name: 'Ada', avatarUrl: 'https://lh3.googleusercontent.com/a/x', hasPassword: true, preferences: { resumeReading: false } },
       profile: { hobbies: ['chess'], techStack: ['AWS'], bio: 'Hi' },
     })
     expect(authService.findUser).toHaveBeenCalledWith('u1')

@@ -1,19 +1,30 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { findLessonProgressEntry } from '../../../shared/lessonProgress.ts'
 import { isRoadmapId } from '../../../shared/roadmapProgress.ts'
 import { findLesson, getLessonCatalog, getLessonContentPath, getTopicLabel, type LessonEntry } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import { Spinner } from '../../components/Spinner/Spinner.tsx'
+import { useResumeReading } from '../../reading/useResumeReading.ts'
 import { LessonReadControl } from './LessonReadControl.tsx'
 import styles from './LessonPage.module.css'
 
 const MarkdownView = lazy(() => import('../../components/Markdown/MarkdownView.tsx').then((module) => ({ default: module.MarkdownView })))
 
-function LessonContent({ lesson }: { lesson: LessonEntry }) {
+/** Mounted inside the Suspense boundary: its effect runs only once the lazy Markdown renderer has rendered. */
+function Rendered({ onRendered }: { onRendered: () => void }) {
+  useEffect(onRendered, [onRendered])
+  return null
+}
+
+function LessonContent({ topic, lesson }: { topic: string; lesson: LessonEntry }) {
   const [markdown, setMarkdown] = useState(lesson.bodyMarkdown)
   const [markdownError, setMarkdownError] = useState(false)
   const [loadingMarkdown, setLoadingMarkdown] = useState(Boolean(lesson.markdownUrl))
+  const [rendered, setRendered] = useState(false)
+  const markRendered = useCallback(() => setRendered(true), [])
+  const articleRef = useRef<HTMLElement>(null)
+  useResumeReading({ topic, lessonSlug: lesson.slug, containerRef: articleRef, contentReady: rendered && !loadingMarkdown && !markdownError })
 
   useEffect(() => {
     if (!lesson.markdownUrl) return
@@ -47,10 +58,11 @@ function LessonContent({ lesson }: { lesson: LessonEntry }) {
   }
 
   return (
-    <article className={styles.article} aria-busy={loadingMarkdown}>
+    <article ref={articleRef} className={styles.article} aria-busy={loadingMarkdown}>
       {loadingMarkdown && <p className={styles.loadingLesson}><Spinner /> Loading lesson…</p>}
       <Suspense fallback={<p className={styles.loadingLesson}><Spinner /> Loading lesson renderer…</p>}>
         <MarkdownView markdown={markdown} />
+        <Rendered onRendered={markRendered} />
       </Suspense>
     </article>
   )
@@ -138,7 +150,7 @@ export function LessonPage() {
               <h1 className={styles.title}>{lesson.title}</h1>
               <p className={styles.summary}>{lesson.summary}</p>
               <div className={styles.rule} />
-              <LessonContent key={lesson.slug} lesson={lesson} />
+              <LessonContent key={lesson.slug} topic={topic} lesson={lesson} />
             </>
           )}
 

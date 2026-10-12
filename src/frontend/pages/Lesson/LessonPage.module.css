@@ -202,6 +202,8 @@
   letter-spacing: -0.025em;
   line-height: 1.3;
 }
+/* The sticky .topbar is 3.75rem tall: keep resumed or #linked headings visible below it. */
+.article :is(h1, h2, h3, h4) { scroll-margin-top: 4.75rem; }
 .article h1 { font-size: 1.75rem; }
 .article h2 { padding-bottom: 0.45rem; border-bottom: 1px solid #d8dee4; font-size: 1.35rem; }
 .article h3 { font-size: 1.1rem; }

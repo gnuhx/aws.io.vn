@@ -11,6 +11,7 @@ The site has its own accounts (D-009): email + password, or Google. Users and ro
 | Input rules (same for form and API) | `src/shared/schemas/auth.ts` |
 | Endpoints | `src/backend/functions/auth-*.ts` → `/api/auth/{register,login,google,me,logout}` |
 | Profile + password change (TASK-015) | `src/backend/functions/profile*.ts` → `/api/profile` (GET/PUT), `/api/profile/password` (POST); rules in `src/shared/schemas/profile.ts` |
+| Resume reading (TASK-016) | `src/backend/functions/reading.ts` → `/api/reading/:topic` (GET, PUT; POST for `sendBeacon`), `profile-preferences.ts` → `/api/profile/preferences` (PUT; turning `resumeReading` off deletes every saved position) |
 | Passwords (bcrypt, cost 12), Google linking | `src/backend/services/auth/authService.ts` |
 | Session JWT + cookie | `src/backend/services/auth/sessions.ts` |
 | `withAuth` / `publicEndpoint`, CORS, CSRF checks | `src/backend/middleware/http.ts` |
