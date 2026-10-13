@@ -22,9 +22,9 @@ Investigation on 2026-10-13 found verify red for three reasons unrelated to app 
 - Out: new tests; CI workflow (TASK-019)
 
 ## Acceptance criteria
-- [ ] Given Node 24 and a `.env` with a real `VITE_GOOGLE_CLIENT_ID`, when I run `npm run verify`, then it exits 0
-- [ ] Given lesson sample code in `content/` with lint errors, when I run `npm run lint`, then those files are not checked
-- [ ] Given Node 20, when I run `npm ci`, then it fails with a clear engine error
+- [x] Given Node 24 and a `.env` with a real `VITE_GOOGLE_CLIENT_ID`, when I run `npm run verify`, then it exits 0
+- [x] Given lesson sample code in `content/` with lint errors, when I run `npm run lint`, then those files are not checked
+- [x] Given Node 20, when I run `npm ci`, then it fails with a clear engine error
 
 ## Test cases
 | # | Input / action | Expected result | Type |
@@ -33,6 +33,9 @@ Investigation on 2026-10-13 found verify red for three reasons unrelated to app 
 | 2 | `npm run lint` | 0 errors, `content/` not listed | manual |
 | 3 | `nvm use 20 && npm ci` | engine error | manual |
 | 4 | AuthPage tests with `VITE_GOOGLE_CLIENT_ID=x` exported | still pass | unit |
+
+## Completion
+- 2026-10-13: Verified `npm run verify` on Node 24.21.0 with the local `.env`; lint and typecheck passed, and all 219 tests passed. Confirmed Node 20.20.1 is rejected with `EBADENGINE` by `npm ci --dry-run`; `content/` is excluded from ESLint. `npm run verify` on Node 20 still reaches the known jsdom `markAsUncloneable` runtime error, so use `nvm use 24` before running it.
 
 ## Notes
 - Smallest and most urgent: every other test task depends on a green gate.

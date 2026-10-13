@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from '../../auth/AuthProvider.tsx'
 import { AuthPage } from './AuthPage.tsx'
 
+vi.mock('../../auth/config.ts', () => ({ googleClientId: undefined }))
+
 const fetchMock = vi.fn<typeof fetch>()
 
 function reply(status: number, body: unknown) {

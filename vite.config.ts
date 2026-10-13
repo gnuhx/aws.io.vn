@@ -29,6 +29,7 @@ export default defineConfig({
   // and alias above (extends: true) but resets root to the repo, since Vite's root is
   // src/frontend and backend tests would otherwise never be found.
   test: {
+    maxWorkers: 4,
     projects: [
       {
         extends: true,
