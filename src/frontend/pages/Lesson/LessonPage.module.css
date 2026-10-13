@@ -47,6 +47,7 @@
   top: 5.75rem;
   align-self: start;
   max-height: calc(100vh - 7rem);
+  max-height: calc(100dvh - 7rem);
   overflow-y: auto;
   padding: 0.25rem 0.1rem 1rem;
 }
@@ -153,7 +154,9 @@
   display: block;
   width: 100%;
   height: calc(100vh - 7.25rem);
-  min-height: 600px;
+  /* Both header bars (~7.25rem) stay visible; dvh follows mobile/iPad toolbars as they show and hide. */
+  height: calc(100dvh - 7.25rem);
+  min-height: 420px;
   border: 0;
   background: #fff;
 }
@@ -282,16 +285,25 @@
 .pagerLink strong { font-size: 0.85rem; font-weight: 600; }
 .pagerNext { margin-left: auto; text-align: right; }
 
-@media (max-width: 800px) {
+/* One column up to iPad landscape: with the 250px sidebar, iPad Air/Pro portrait left only ~460px for the article. */
+@media (max-width: 1024px) {
   .layout,
   .layoutWide { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1.2rem 1.25rem 4rem; }
   .sidebar { position: static; max-height: none; padding-bottom: 1rem; border-bottom: 1px solid #d8dee4; }
   .backLink { margin-bottom: 1rem; }
   .sidebarTitle { margin-bottom: 0.65rem; }
-  .lessonNav { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .lessonNav { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: .75rem; }
+  .navDetails { border: 1px solid #d1d9e0; border-radius: 8px; background: #f6f8fa; }
+  .navDetails summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: .5rem .85rem; color: #1f2328; font-size: .9rem; font-weight: 650; cursor: pointer; list-style: none; }
+  .navDetails summary::-webkit-details-marker { display: none; }
+  .navDetails summary::after { content: '▾'; color: #59636e; transition: transform .15s; }
+  .navDetails[open] summary::after { transform: rotate(180deg); }
+  .navDetails summary:focus-visible { outline: 3px solid #0969da; outline-offset: 2px; border-radius: 8px; }
+  .navDetails nav { padding: 0 .85rem .85rem; }
+  .navDetails .navLabel { display: none; }
   .main { padding-top: 1rem; }
   .article { font-size: 0.98rem; }
-  .interactiveFrame { height: calc(100svh - 12rem); min-height: 520px; }
+  .interactiveFrame { height: calc(100svh - 12rem); min-height: 420px; }
   .interactiveToolbar { align-items: flex-start; }
 }
 

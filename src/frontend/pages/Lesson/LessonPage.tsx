@@ -5,6 +5,7 @@ import { isRoadmapId } from '../../../shared/roadmapProgress.ts'
 import { findLesson, getLessonCatalog, getLessonContentPath, getTopicLabel, type LessonEntry } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import { Spinner } from '../../components/Spinner/Spinner.tsx'
+import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
 import { useResumeReading } from '../../reading/useResumeReading.ts'
 import { LessonReadControl } from './LessonReadControl.tsx'
 import styles from './LessonPage.module.css'
@@ -68,9 +69,13 @@ function LessonContent({ topic, lesson }: { topic: string; lesson: LessonEntry }
   )
 }
 
+const COMPACT_LAYOUT = '(max-width: 1024px)'
+
 export function LessonPage() {
   const { topic = '', slug = '' } = useParams()
   const lesson = findLesson(topic, slug)
+  // Same width as the single-column breakpoint in LessonPage.module.css.
+  const compact = useMediaQuery(COMPACT_LAYOUT)
 
   if (!lesson) return <NotFoundPage />
 
@@ -89,6 +94,26 @@ export function LessonPage() {
       : lesson.kind === 'visual'
         ? 'Interactive visual'
         : 'Lesson'
+  const navLabel = lesson.kind === 'section' ? 'Sections' : 'Lessons'
+  const lessonNav = (
+    <nav>
+      <p className={styles.navLabel}>{navLabel}</p>
+      <ol className={styles.lessonNav}>
+        {moduleLessons.map((entry, index) => (
+          <li key={entry.slug}>
+            <Link
+              aria-current={entry.slug === lesson.slug ? 'page' : undefined}
+              className={`${styles.lessonNavLink} ${entry.slug === lesson.slug ? styles.lessonNavActive : ''}`}
+              to={`/${topic}/${entry.slug}`}
+            >
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              {entry.title}
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
   // Only lessons that belong to a roadmap can be marked read; progress is scoped to that roadmap.
   const progressEntry = isRoadmapId(topic) ? findLessonProgressEntry(topic, getLessonContentPath(lesson)) : undefined
 
@@ -105,23 +130,14 @@ export function LessonPage() {
           <Link to={`/${topic}`} className={styles.backLink}>← Course overview</Link>
           <p className={styles.sidebarEyebrow}>{lesson.module ? `Module ${lesson.module.order}` : 'Lessons'}</p>
           <h2 className={styles.sidebarTitle}>{lesson.module?.title ?? pageTitle}</h2>
-          <nav>
-            <p className={styles.navLabel}>{lesson.kind === 'section' ? 'Sections' : 'Lessons'}</p>
-            <ol className={styles.lessonNav}>
-              {moduleLessons.map((entry, index) => (
-                <li key={entry.slug}>
-                  <Link
-                    aria-current={entry.slug === lesson.slug ? 'page' : undefined}
-                    className={`${styles.lessonNavLink} ${entry.slug === lesson.slug ? styles.lessonNavActive : ''}`}
-                    to={`/${topic}/${entry.slug}`}
-                  >
-                    <span>{String(index + 1).padStart(2, '0')}</span>
-                    {entry.title}
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          </nav>
+          {compact ? (
+            // One column: the article must come first, so the module's lesson list starts collapsed.
+            // Keyed by lesson so picking a lesson from the list closes it again on the next page.
+            <details key={lesson.slug} className={styles.navDetails}>
+              <summary>{navLabel} in this module ({moduleLessons.length})</summary>
+              {lessonNav}
+            </details>
+          ) : lessonNav}
         </aside>
 
         <main className={styles.main}>

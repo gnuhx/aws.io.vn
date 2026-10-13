@@ -27,6 +27,8 @@ export function ProgressDonut({ counts }: { counts: StatusCounts }) {
     offset: visible.slice(0, index).reduce((sum, { key }) => sum + (counts[key] / total) * CIRCUMFERENCE, 0),
   }))
   const focus = SEGMENTS.find(({ key }) => key === active)
+  // Touch screens have no hover: a tap highlights a status, a second tap clears it.
+  const toggle = (key: keyof StatusCounts) => setActive((current) => (current === key ? null : key))
 
   return (
     <div className={styles.donutBlock}>
@@ -48,6 +50,7 @@ export function ProgressDonut({ counts }: { counts: StatusCounts }) {
               strokeDashoffset={-offset}
               onMouseEnter={() => setActive(key)}
               onMouseLeave={() => setActive(null)}
+              onClick={() => toggle(key)}
             />
           ))}
         </svg>
@@ -63,6 +66,7 @@ export function ProgressDonut({ counts }: { counts: StatusCounts }) {
             className={active === key ? styles.legendActive : undefined}
             onMouseEnter={() => setActive(key)}
             onMouseLeave={() => setActive(null)}
+            onClick={() => toggle(key)}
           >
             <span className={`${styles.swatch} ${className}`} aria-hidden="true" />
             <span className={styles.legendLabel}>{label}</span>

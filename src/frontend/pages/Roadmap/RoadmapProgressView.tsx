@@ -271,7 +271,7 @@ export function RoadmapProgressView({ roadmapId, markdown, lessons = [] }: { roa
 
 
   return (
-    <div className={styles.progressView}>
+    <div className={styles.progressView} data-progress-view>
       <section className={styles.summary} aria-label="Roadmap progress summary">
         <div className={styles.summaryHeading}>
           <div>

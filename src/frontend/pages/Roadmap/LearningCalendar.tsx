@@ -87,13 +87,15 @@ export function LearningCalendar({ events, error, today: todayProp }: { events: 
               style={{ gridColumn: week + 2, gridRow: date.getDay() + 2 }}
               title={`${dayLabel(date)}: ${plural(count, 'update')}`}
               onMouseEnter={() => setHovered({ date, count })}
+              // Touch screens have no hover (and no title tooltip): a tap shows the same caption.
+              onClick={() => setHovered({ date, count })}
             />
           )))}
         </div>
       </div>
       <div className={styles.calendarFooter}>
         <span className={styles.hoverCaption} aria-live="polite">
-          {hovered ? `${dayLabel(hovered.date)} · ${plural(hovered.count, 'update')}` : 'Hover a day to see its updates.'}
+          {hovered ? `${dayLabel(hovered.date)} · ${plural(hovered.count, 'update')}` : 'Hover or tap a day to see its updates.'}
         </span>
         <span className={styles.scale} aria-hidden="true">
           Less {LEVEL_CLASSES.map((className) => <span key={className} className={`${styles.day} ${className}`} />)} More

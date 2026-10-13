@@ -66,3 +66,16 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Touch devices: iOS Safari zooms the page when a field under 16px gets focus, and the user must pinch out
+ * after every roadmap status change. !important because CSS-module class selectors (e.g. .statusSelect) are more
+ * specific than these element selectors, and this rule has to win everywhere on touch screens.
+ */
+@media (pointer: coarse) {
+  input:not([type='checkbox'], [type='radio'], [type='range']),
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}

@@ -32,3 +32,8 @@
 @media (prefers-reduced-motion: reduce) {
   .bubble { animation: none; transition: none; right: 16px; bottom: 16px; left: auto !important; top: auto !important; }
 }
+
+/* Phones: a bubble wandering over the text covers what is being read; park it in the corner instead. */
+@media (max-width: 700px) {
+  .bubble { animation: none; transition: transform .18s ease; right: 16px; bottom: 16px; left: auto !important; top: auto !important; }
+}

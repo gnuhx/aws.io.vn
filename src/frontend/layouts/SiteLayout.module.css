@@ -26,3 +26,9 @@
 .signOut { display: inline-flex; align-items: center; gap: .4rem; }
 .signOut:disabled { opacity: .7; cursor: progress; }
 .checking { display: inline-flex; align-items: center; gap: .4rem; color: #59636e; font-size: .85rem; }
+
+@media (pointer: coarse) {
+  .signIn,
+  .signOut { display: inline-flex; align-items: center; min-height: 40px; }
+  .account { min-height: 40px; }
+}

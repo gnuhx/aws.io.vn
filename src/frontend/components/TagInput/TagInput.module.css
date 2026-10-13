@@ -10,3 +10,9 @@
 .suggestions { display: flex; flex-wrap: wrap; gap: .35rem; }
 .suggestions button { padding: .15rem .55rem; border: 1px dashed #aebdca; border-radius: 999px; background: #fff; color: #424a53; font: inherit; font-size: .78rem; cursor: pointer; }
 .suggestions button:hover { border-color: #0969da; color: #0969da; }
+
+@media (pointer: coarse) {
+  .tag { padding-block: .3rem; }
+  .tag button { width: 2rem; height: 2rem; }
+  .suggestions button { min-height: 36px; padding-inline: .8rem; }
+}

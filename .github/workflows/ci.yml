@@ -1,0 +1,48 @@
+# PR-level CI (TASK-019). Runs the same steps as `npm run verify` + `npm run build` (D-006),
+# split into separate steps so the PR check names which gate failed.
+# Netlify still builds and deploys on its own; this workflow never deploys.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, development]
+  workflow_dispatch:
+
+# A newer push to the same PR/branch cancels the run still in progress.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      # No .env and NETLIFY unset in CI, so the env checks only validate what is set (buildChecks.ts);
+      # the bundle check still scans dist/ for leaked secrets.
+      - name: Build
+        run: npm run build

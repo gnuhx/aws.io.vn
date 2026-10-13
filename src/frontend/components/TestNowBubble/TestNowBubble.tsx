@@ -57,7 +57,8 @@ export function TestNowBubble() {
   useEffect(() => {
     reducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     dodgeLimit.current = 1 + Math.floor(Math.random() * 7)
-    if (reducedMotion.current) return
+    // Phones park the bubble in the corner (see the CSS), so there is nothing to animate.
+    if (reducedMotion.current || window.matchMedia('(max-width: 700px)').matches) return
 
     moveRef.current = move
     timer.current = window.setTimeout(move, 1000)

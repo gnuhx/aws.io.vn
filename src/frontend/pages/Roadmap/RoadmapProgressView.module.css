@@ -8,6 +8,9 @@
 .continueLink { display: inline-flex; flex: 0 0 auto; padding: .55rem .8rem; border-radius: 7px; background: #0969da; color: #fff; font-size: .88rem; font-weight: 650; text-decoration: none; }
 .signInLink:hover,
 .continueLink:hover { background: #0757b5; color: #fff; }
+/* The roadmap page styles every `.article a` blue; these links sit on a blue background and must stay white. */
+.summary a.signInLink,
+.summary a.continueLink { color: #fff; }
 .doneMessage { color: #386641; font-weight: 700; }
 .moduleProgress { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .5rem; margin-top: 1rem; }
 .moduleRow { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .65rem; border: 1px solid #d8e2ee; border-radius: 7px; background: #fff; color: #59636e; font-size: .78rem; }
@@ -84,4 +87,21 @@
 @media (max-width: 650px) {
   .chartRow { grid-template-columns: 1fr; }
   .filterCount { margin-left: 0; }
+}
+
+/* Fingers need bigger targets than a mouse pointer (~40px); desktop keeps the compact list. */
+@media (pointer: coarse) {
+  .statusSelect { min-height: 40px; max-width: 10rem; padding: .3rem .45rem; }
+  .filterChip { min-height: 40px; padding: .4rem .85rem; }
+  .filterSelect select { min-height: 40px; }
+  .filterCount button { min-height: 36px; padding: .3rem .7rem; }
+  .error button { min-height: 36px; }
+}
+
+/* Phones: keep the sticky filter bar two rows high. Status chips swipe sideways instead of wrapping. */
+@media (max-width: 640px) {
+  .filterBar { gap: .5rem .75rem; padding: .5rem .6rem; }
+  .filterGroup { flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -.6rem; padding: 0 .6rem; }
+  .filterGroup::-webkit-scrollbar { display: none; }
+  .filterChip { flex: 0 0 auto; }
 }

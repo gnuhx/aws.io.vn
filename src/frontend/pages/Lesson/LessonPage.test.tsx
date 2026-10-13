@@ -96,3 +96,26 @@ describe('LessonPage read tracking', () => {
     expect(progressCalls()).toEqual([])
   })
 })
+
+describe('LessonPage layout', () => {
+  const stubWidth = (compact: boolean) =>
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: compact && query === '(max-width: 1024px)', addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+
+  it('collapses the module lesson list on phones and tablets so the article comes first', () => {
+    stubWidth(true)
+    renderLesson('signed-out')
+
+    const summary = screen.getByText(/^Lessons in this module \(\d+\)$/)
+    const details = summary.closest('details')!
+    expect(details).not.toHaveAttribute('open')
+    expect(details).toContainElement(screen.getByRole('link', { current: 'page' }))
+  })
+
+  it('keeps the plain sidebar list on wide screens', () => {
+    stubWidth(false)
+    renderLesson('signed-out')
+
+    expect(screen.queryByText(/in this module/)).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { current: 'page' }).closest('details')).toBeNull()
+  })
+})

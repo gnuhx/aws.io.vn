@@ -17,6 +17,17 @@
   to { opacity: 1; transform: none; }
 }
 
-@media (max-width: 650px) {
-  .region { right: 1rem; left: 1rem; width: auto; }
+/* Phones: show at the top, so toasts never sit on top of the bottom-corner "Test now" bubble or the thumb area. */
+@media (max-width: 700px) {
+  .region { top: .75rem; right: .75rem; bottom: auto; left: .75rem; width: auto; }
+  .toast { animation-name: toast-in-top; }
+}
+
+@keyframes toast-in-top {
+  from { opacity: 0; transform: translateY(-.5rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (pointer: coarse) {
+  .close { min-width: 40px; min-height: 40px; margin: -.55rem -.5rem -.55rem 0; }
 }
