@@ -33,7 +33,9 @@ D-006 chose the Netlify build gate now and PR-level CI in Module 6. TASK-005 (Ne
 | 4 | try to merge a red PR | blocked | manual |
 
 ## Notes
-- Needs decision: pull this forward from Module 6 now, or wait? (amend D-006 if pulled forward)
-- Needs decision: branch protection on `main` is a repo setting change on GitHub (outward-facing); do it yourself or allow me via `gh`.
 - Target ≤ 3 min per run.
-- 2026-10-13: `.github/workflows/ci.yml` drafted (lint → typecheck → test → build, Node from `.nvmrc`, npm cache, cancel superseded runs, read-only token). Checked locally on a clean checkout of 5076b4b with no `.env`: build passes, 216/216 tests pass. The Lint step will fail until TASK-018 ignores `content/`. Branch protection not set yet.
+- 2026-10-14: Pulled PR CI forward from Module 6; D-006 amended. TASK-018 is Done, so lint now excludes `content/`.
+- `.github/workflows/ci.yml` is already committed: PRs and pushes to `main`/`development` run lint, typecheck, unit tests and build with Node from `.nvmrc`, npm cache and read-only token. The verify job's check name is `CI / verify`.
+- Remaining: configure `main` branch protection to require `CI / verify`, then confirm the check appears on a PR. This workspace has no `gh` executable, so the GitHub repository setting cannot be changed here.
+- 2026-10-14 verification: Node 24.21.0 `npm run verify` passed (lint, typecheck, 219/219 tests); `npm run build` passed including env and bundle checks. GitHub Actions run 38432071092 for `development` SHA `46cbe955d4cc6351236375204a007dde0f404947` passed all steps. That SHA is also the head of open PR #5; no `pull_request` event run exists yet. GitHub's unauthenticated API refuses access to branch protection settings (401), so that acceptance criterion remains unverified.
+- 2026-10-13: Previous local check on a clean checkout of 5076b4b with no `.env` reported build passing and 216/216 tests passing. This predates TASK-018.
