@@ -20,10 +20,10 @@ docs/LESSON_TEMPLATE.md (frontmatter + structure), D-005. Depends on TASK-001, T
 
 ## Acceptance criteria
 - [ ] Given `content/aws-saa-c03/01-iam-intro.md` with valid frontmatter, when I open `/aws-saa-c03/01-iam-intro`, then its title and `##` sections render
-- [ ] Given 3 lessons with `order` 2, 1, 3, when I open the topic page, then they're listed in order 1, 2, 3
-- [ ] Given an unknown topic or slug, when I open its URL, then the not-found page shows (not a blank page)
-- [ ] Given a lesson with missing `title` or an unknown `topic`, when I run `npm run verify`, then it fails and names the file and field
-- [ ] Given a topic with no lessons, when I open the topic page, then an empty state shows
+- [x] Given 3 lessons with `order` 2, 1, 3, when I open the topic page, then they're listed in order 1, 2, 3
+- [x] Given an unknown topic or slug, when I open its URL, then the not-found page shows (not a blank page)
+- [x] Given a lesson with missing `title` or an unknown `topic`, when I run `npm run verify`, then it fails and names the file and field
+- [x] Given a topic with no lessons, when I open the topic page, then an empty state shows
 
 ## Test cases
 | # | Input / action | Expected result | Type |
@@ -34,8 +34,9 @@ docs/LESSON_TEMPLATE.md (frontmatter + structure), D-005. Depends on TASK-001, T
 | 4 | schema: `topic: "aws"` | Zod error mentions `topic` | unit |
 | 5 | content validation over real `content/**/*.md` | all files pass | unit |
 | 6 | render lesson page with fixture | title + headings in document | component |
-| 7 | render `/nope/nope` | not-found text shown | component |
+| 7 | render `/nope` and `/nope/nope` | not-found text shown | component |
 | 8 | open one real lesson on the dev server | renders | manual |
+| 9 | render topic page for a topic with no lessons | empty-state text shown | component |
 
 ## Notes
 - D-005 accepted 2026-10-03. Still waits on TASK-001 and TASK-002.
