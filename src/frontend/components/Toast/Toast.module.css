@@ -1,0 +1,33 @@
+.region { position: fixed; z-index: 50; right: 1rem; bottom: 1rem; display: grid; gap: .5rem; width: min(22rem, calc(100vw - 2rem)); pointer-events: none; }
+.toast { display: flex; align-items: flex-start; gap: .6rem; padding: .7rem .75rem; border: 1px solid #d1d9e0; border-left-width: 4px; border-radius: 8px; background: #fff; box-shadow: 0 6px 18px rgb(31 35 40 / 14%); color: #1f2328; font-size: .9rem; pointer-events: auto; animation: toast-in .18s ease-out; }
+.success { border-left-color: #1a7f37; }
+.error { border-left-color: #cf222e; }
+.info { border-left-color: #0969da; }
+.icon { display: inline-grid; flex: 0 0 auto; width: 1.25rem; height: 1.25rem; place-items: center; border-radius: 50%; color: #fff; font-size: .75rem; font-weight: 800; }
+.success .icon { background: #1a7f37; }
+.error .icon { background: #cf222e; }
+.info .icon { background: #0969da; }
+.message { flex: 1; margin: 0; line-height: 1.4; }
+.close { flex: 0 0 auto; padding: 0 .3rem; border: 0; background: none; color: #59636e; font: inherit; font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.close:hover { color: #1f2328; }
+.close:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; border-radius: 4px; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(.5rem); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Phones: show at the top, so toasts never sit on top of the bottom-corner "Test now" bubble or the thumb area. */
+@media (max-width: 700px) {
+  .region { top: .75rem; right: .75rem; bottom: auto; left: .75rem; width: auto; }
+  .toast { animation-name: toast-in-top; }
+}
+
+@keyframes toast-in-top {
+  from { opacity: 0; transform: translateY(-.5rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (pointer: coarse) {
+  .close { min-width: 40px; min-height: 40px; margin: -.55rem -.5rem -.55rem 0; }
+}

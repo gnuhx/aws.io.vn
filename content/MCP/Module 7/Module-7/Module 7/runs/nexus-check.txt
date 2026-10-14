@@ -1,0 +1,9 @@
+❯ git apply m7-scopes.patch && pnpm check 2>&1 | grep -E "^OK|FAILED|typecheck: Done"
+packages/shared typecheck: Done
+apps/cli typecheck: Done
+apps/mcp-server typecheck: Done
+OK: smoke xanh
+OK: 10/10 đạt
+OK: 6/6 file đúng thư mục
+OK: 9/9 đúng như mong đợi
+OK: agent 4/4

@@ -1,0 +1,2 @@
+❯ node traps/body-consumed.ts
+400 sau 56ms: {"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error: Invalid JSON"},"id":null}

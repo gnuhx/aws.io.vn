@@ -1,3 +1,13 @@
+---
+title: EC2 Lifecycle & Pricing
+slug: ec2-lifecycle-pricing
+topic: aws-saa-c03
+order: 36
+module: 2
+moduleTitle: Compute & Identity Foundations
+kind: section
+---
+
 # Module 2 — Amazon EC2 · Part 2: Lifecycle & Pricing
 Bài 2.36–2.43 · Domain thi: High-Performing Architectures 24% · Resilient Architectures 26% · Cost-Optimized Architectures 20%
 

@@ -1,0 +1,55 @@
+# Chạy mỗi khi mở/cập nhật Pull Request và khi merge vào main.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:                      # push liên tục thì huỷ lượt chạy cũ, đỡ tốn phút
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:                          # cửa 1: nhanh (~1 phút) — sai là dừng sớm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4          # đọc version từ "packageManager" trong package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile # lockfile lệch là fail, không tự cài bản khác
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm coverage                  # unit + component test
+      - run: pnpm build
+
+  e2e:                            # cửa 2: chậm hơn — chỉ chạy khi cửa 1 xanh
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4    # fail thì tải báo cáo + trace về xem
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  deploy:                         # cửa 3: chỉ khi đã merge vào main VÀ mọi test xanh
+    needs: [check, e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploy ở đây (Vercel / Netlify / S3 / server công ty)…"

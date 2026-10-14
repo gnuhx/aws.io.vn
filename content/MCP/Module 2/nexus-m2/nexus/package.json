@@ -1,0 +1,19 @@
+{
+  "name": "nexus",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "smoke": "pnpm --filter @nexus/mcp-server smoke",
+    "check": "pnpm typecheck && pnpm smoke",
+    "build": "pnpm --filter @nexus/mcp-server build && pnpm --filter @nexus/web build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}

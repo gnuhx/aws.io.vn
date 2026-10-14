@@ -1,0 +1,37 @@
+Vẽ cho tôi 1 file HTML minh họa [CHỦ ĐỀ CỦA BẠN], theo đúng phong cách sau:
+
+PHONG CÁCH THỊ GIÁC — "Editorial AWS Terminal" (nền sáng, thay cho bản Technical Blueprint nền navy)
+- Nền: sáng, off-white (#FAFAF7), KHÔNG dùng nền navy/dark mode. Card/box nền trắng thuần (#FFFFFF) đặt trên nền off-white — cảm giác "giấy trên giấy" nhẹ, kiểu Medium/editorial, không phải dashboard.
+- Full-bleed 100% chiều rộng thật: KHÔNG có container max-width nào bọc toàn trang (không max-width + margin:0 auto). Toàn bộ layout dùng width:100% với padding theo đơn vị vw (vd 4vw hai bên) để tự co giãn theo màn hình, không tạo khoảng trắng thừa 2 bên, không scroll ngang.
+- Font:
+  - 'Source Serif 4' cho heading và nội dung câu hỏi/đoạn văn chính — tạo cảm giác đọc bài báo.
+  - 'Inter' cho mô tả phụ, đoạn giải thích dài, subtitle.
+  - 'IBM Plex Mono' cho MỌI nhãn/tag/badge/số liệu/nút bấm/số thứ tự — đây là chi tiết giữ cảm giác terminal/Linux xuyên suốt, chữ hoa + letter-spacing nhẹ (.03em-.06em) cho các label mono.
+- Có đúng 1 dòng "command line" giả dạng terminal ngay dưới header, dùng font mono, ký tự `$` đầu dòng tô màu cam, còn lại màu xám nhạt trên nền squid-ink của header. Ví dụ: `$ ./run-exam --flag=value --mode=hardmode`.
+- Bảng màu (NGỮ NGHĨA, không trang trí):
+  - Cam AWS #FF9900 (nền dim #FFF4E0, viền #e6890a) = accent chính, nút CTA, trạng thái "khó/cảnh báo".
+  - Squid-ink #232F3E = header/topbar, nút chính, text nhấn mạnh đậm.
+  - Xanh lá #1a7f4e (nền dim #eaf7f0) = đúng/thành công/dễ.
+  - Cam đất #b1490f (nền dim #fdece1) = sai/lỗi — KHÔNG dùng đỏ gắt.
+  - Tím #5b4b8a và xanh dương #0a6e8c (mỗi màu có nền dim riêng) = 2 nhóm phân loại phụ (domain/category thứ 3 và thứ 4 nếu có).
+  - Border/divider: hairline 1px solid màu be nhạt #e6e2d8 — không dùng border dày, không dùng dashed trừ khi thật sự cần khung riêng biệt.
+- Bo góc nhẹ 3-4px cho mọi box, không đổ bóng nặng (box-shadow gần như không dùng, chỉ dựa vào border mảnh để phân tách).
+- Nút chính (CTA): nền squid-ink chữ trắng, hover đổi nền sang cam + chữ squid-ink. Nút phụ: nền trong suốt, viền mảnh be nhạt, hover đổi nền squid-ink chữ trắng. Toàn bộ text nút dùng mono, chữ hoa, letter-spacing nhẹ.
+- Badge/tag (domain, độ khó...): dạng pill bo tròn hoàn toàn, viền 1px màu theo semantic ở trên, nền dim tương ứng, chữ mono nhỏ (10.5-11px).
+
+CẤU TRÚC TƯƠNG TÁC (giữ như logic gốc, áp dụng lên theme mới)
+- Nếu có NHIỀU chủ đề con: dùng tab lớn nằm ngang trên cùng (tiêu đề in đậm serif + phụ đề nhỏ mono 1 dòng).
+- Nếu có 2-4 KỊCH BẢN cần so sánh: dùng nút toggle ngang (sub-tabs, style nút phụ nói trên), bấm là vẽ lại toàn bộ nội dung/diagram theo state mới — KHÔNG dùng dropdown.
+- Nếu là QUY TRÌNH NHIỀU BƯỚC hoặc bộ câu hỏi tuần tự: dùng stepper — nút "← Trước / Tiếp →" (style nút phụ) + dấu chấm tròn nhỏ hiển thị vị trí hiện tại (chấm màu be nhạt mặc định, tô cam khi đang ở đó, tô xanh lá/cam đất sau khi trả lời đúng/sai).
+- Nếu nội dung chỉ là DANH SÁCH liệt kê ngắn: dùng card grid đơn giản trên nền trắng, viền hairline, không cần SVG.
+- Luôn có 1 khối "info-panel" dạng bài báo (nền trắng hơi ngả be #fbfaf6, border-top hairline) ngay dưới nội dung chính: tiêu đề mono viết hoa + đoạn giải thích serif/sans + (nếu cần) khối phụ kiểu "Vì sao lựa chọn khác nghe có lý nhưng sai" (viền trái cam đất) và khối "chốt hạ" 1 câu (viền trái cam, nền cam dim).
+
+NỘI DUNG
+- Giữ đúng ẩn dụ/domain đang dùng xuyên suốt nếu có (hỏi lại tôi nếu chưa rõ).
+- Ưu tiên câu văn đủ dài để giải thích rõ, không nhồi chữ kiểu diagram — theme này thiên về đọc (editorial), không phải nhìn lướt như blueprint.
+- Luôn kèm 1 câu "chốt hạ" ngắn dễ nhớ ở cuối mỗi đơn vị nội dung (câu hỏi/section) để phân biệt khái niệm dễ nhầm.
+
+YÊU CẦU KỸ THUẬT
+- 1 file HTML duy nhất, JS thuần (không React), style dùng CSS variables để dễ đổi màu/font.
+- Toàn bộ nội dung tiếng Việt.
+- Trước khi giao file, tự kiểm tra cú pháp JS (không được để sót dấu đóng mảng/object trùng lặp khi ghép các khối code lại) — lỗi "Unexpected token ']'" hoặc "X is not defined" thường do ghép code thủ công bị dư/thiếu dấu đóng.

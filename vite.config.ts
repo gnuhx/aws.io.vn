@@ -13,6 +13,13 @@ export default defineConfig({
   resolve: {
     alias: { '@shared': fromRoot('./src/shared') },
   },
+  // Dev: the browser stays on http://localhost:5173 and /api goes to `netlify dev` (port 8888), which runs the
+  // functions. Same origin for the browser, so the session cookie flows without CORS.
+  // changeOrigin must stay false (the string shorthand turns it on): the functions build request.url from
+  // the Host header, and the CSRF check compares it to the browser's Origin (TASK-011).
+  server: {
+    proxy: { '/api': { target: 'http://localhost:8888', changeOrigin: false } },
+  },
   build: {
     outDir: fromRoot('./dist'),
     emptyOutDir: true,
@@ -22,6 +29,31 @@ export default defineConfig({
   // and alias above (extends: true) but resets root to the repo, since Vite's root is
   // src/frontend and backend tests would otherwise never be found.
   test: {
+    maxWorkers: 4,
+    coverage: {
+      include: ['**/*.{ts,tsx}', 'src/**/*.{ts,tsx}'],
+      exclude: [
+        '**/*.test.{ts,tsx}',
+        '**/*.d.ts',
+        '**/test/**',
+        '../backend/functions/__tests__/**',
+        '../backend/repositories/**',
+        'src/backend/repositories/**',
+        'main.tsx',
+        'src/frontend/main.tsx',
+        '../../vite.config.ts',
+        'vite.config.ts',
+      ],
+      allowExternal: true,
+      reportsDirectory: fromRoot('./coverage'),
+      reporter: ['text', 'html', 'json-summary'],
+      thresholds: {
+        '../shared/**': { lines: 95, perFile: { lines: 95 } },
+        '../backend/services/**': { lines: 90, perFile: { lines: 45 } },
+        '../backend/functions/**': { lines: 95, perFile: { lines: 85 } },
+        '**/*.{ts,tsx}': { lines: 75 },
+      },
+    },
     projects: [
       {
         extends: true,

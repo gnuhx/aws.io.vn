@@ -1,0 +1,19 @@
+{
+  "name": "nexus",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "smoke": "pnpm --filter @nexus/mcp-server smoke",
+    "check": "pnpm typecheck && pnpm smoke && pnpm verify",
+    "verify": "pnpm --filter @nexus/mcp-server verify"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "6.0.3"
+  }
+}

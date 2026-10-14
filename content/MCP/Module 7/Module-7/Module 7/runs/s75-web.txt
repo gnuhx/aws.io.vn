@@ -1,0 +1,27 @@
+❯ node scripts/s75-web.ts
+— 1. Handler là 1 hàm: Request vào, Response ra (không cổng, không Express) —
+initialize → 200 text/event-stream · mcp-session-id: (không có — stateless)
+tools/list → 5 tool · ttlMs=300000 · cacheScope=public
+✓ không auth: list giống nhau cho mọi người → public
+Origin lạ → 403 {"jsonrpc":"2.0","error":{"code":-32000,"message":"Origin không được phép: https://evil.e…
+✓ guard dùng chung lõi với Express
+
+— 2. Cùng handler, bật OAuth —
+không token → 401 · www-authenticate: Bearer resource_metadata="http://localhost/.well-known/oauth-protected-resource/mcp", scope="nexus:read nexus:write"
+token nexus:read → nexus_whoami, nexus_list_tasks, nexus_generate_report · cacheScope=private
+✓ list lọc theo token → private (gateway không được chia sẻ cho người khác)
+
+— 3. Chạy trên Node (adapter @hono/node-server), client SDK v1 —
+SDK 1.30.1 listTools: 5 tool (field lạ ttlMs/cacheScope bị bỏ qua, không lỗi) · progress @217ms, @416ms, @620ms
+✓ client cũ vẫn chạy với server có field mới; progress vẫn stream
+
+— 4. Client tôn trọng ttlMs (đồng hồ giả) —
+t=0s get → network
+t=60s get → cache
+t=299.999s get → cache
+t=300s get → network
+t=310s list_changed → invalidate
+t=310.001s get → network
+t=700s get (server sập) → stale
+✓ 6 lần cần list → 4 lần ra mạng (1 lần thất bại dùng bản cũ)
+OK: S7.5 web + cache 5/5

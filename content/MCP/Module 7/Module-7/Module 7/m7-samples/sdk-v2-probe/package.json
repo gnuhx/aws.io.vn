@@ -1,0 +1,8 @@
+{
+  "name": "m7-sdk-v2-probe",
+  "private": true,
+  "type": "module",
+  "description": "So sánh: cùng server viết bằng SDK v2 (spec 2026-07-28) — chỉ để đọc khác biệt, không phải code bài",
+  "dependencies": { "@modelcontextprotocol/server": "2.3.1", "zod": "4.6.5" },
+  "devDependencies": { "@types/node": "22.20.5", "typescript": "6.0.3" }
+}

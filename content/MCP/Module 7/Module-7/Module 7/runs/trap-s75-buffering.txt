@@ -1,0 +1,4 @@
+❯ BUFFERING=on IGNORE_ACCEL=1 bash scripts/s75-nginx.sh 2>&1 | grep -E "progress|OAuth flow"; BUFFERING=on bash scripts/s75-nginx.sh 2>&1 | grep -E "progress"
+    progress đến @1019ms, @1020ms, @1020ms, @1020ms · xong @1020ms
+OK: OAuth flow 3/3
+    progress đến @264ms, @512ms, @763ms, @1017ms · xong @1018ms

@@ -1,0 +1,25 @@
+❯ node scripts/s74-auth.ts
+— Không token —
+401 WWW-Authenticate: Bearer resource_metadata="http://127.0.0.1:3401/.well-known/oauth-protected-resource/mcp", scope="nexus:read nexus:write"
+✓ 401 chỉ đường tới Protected Resource Metadata
+GET /.well-known/oauth-protected-resource/mcp → 200 {"resource":"http://127.0.0.1:3401/mcp","authorization_servers":["http://127.0.0.1:3400"],"scopes_supported":["nexus:read","nexus:write"],"bearer_methods_supported":["header"],"resource_name":"Nexus MCP (M7 sample)"}
+✓ PRM nói: hỏi token ở http://127.0.0.1:3400
+
+— Token sai đủ kiểu —
+✓ 401 aud là API khác (token passthrough)     error="invalid_token", error_description="invalid aud"
+✓ 401 hết hạn 1 phút trước                    error="invalid_token", error_description="token expired"
+✓ 401 ký bằng khóa khác, cùng kid             error="invalid_token", error_description="bad signature"
+✓ 401 issuer khác                             error="invalid_token", error_description="invalid iss"
+✓ 401 chuỗi rác                               error="invalid_token", error_description="ERR_JWS_INVALID"
+✓ 403 chỉ có nexus:write, thiếu nexus:read    error="insufficient_scope"
+
+— Tool theo scope —
+nexus:read             → nexus_whoami, nexus_list_tasks, nexus_generate_report
+  gọi thẳng nexus_create_task → [isError] MCP error -32602: Tool nexus_create_task not found
+✓ token chỉ đọc: tool ghi không có trong tools/list, gọi thẳng cũng không được
+nexus:read nexus:write → nexus_whoami, nexus_list_tasks, nexus_generate_report, nexus_create_task, nexus_delete_task
+  nexus_whoami → {"instance":"RS","subject":"lan","scopes":["nexus:read","nexus:write"],"sessionId":null}
+✓ token có nexus:write thấy tool ghi
+
+log RS: [RS] MCP stateless tại http://127.0.0.1:3401/mcp (OAuth bật)
+OK: S7.4 10/10

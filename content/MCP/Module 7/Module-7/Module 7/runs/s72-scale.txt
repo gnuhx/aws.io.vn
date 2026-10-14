@@ -1,0 +1,35 @@
+❯ node scripts/s72-scale.ts
+— Stateless × 2 instance, round-robin —
+tools/list: 5 tool
+create → instance A · list → instance B thấy: Gọi lại khách Cà phê Phố Cổ | Chốt hợp đồng Tạp hóa Cô Ba | Gọi khách mới ở Đà Nẵng
+LB: initialize → :3201 · notifications/initialized → :3202 · GET → :3201 · tools/list → :3202 · tools/call → :3201 · tools/call → :3202
+✓ ghi ở 1 instance, đọc ở instance kia vẫn thấy (store dùng chung)
+✓ request rải đều 2 instance
+
+— Progress qua HTTP (SSE trên response của chính POST đó) —
+progress: 1/4 @262ms · 2/4 @510ms · 3/4 @762ms · 4/4 @1015ms
+kết quả @1016ms: {"instance":"A","steps":4,"open":3,"done":1}
+✓ 4 progress đến TỪNG CÁI trước kết quả
+
+— Hủy và mất kết nối (report 10 bước × 250 ms) —
+(1) client: McpError: MCP error -32001: AbortError: This operation was aborted
+    LB: tools/call → :3202 · notifications/cancelled → :3201
+    server: A [A] report xong 4/4 bước · B [B] report xong 10/10 bước
+✓ stateless: cancelled tới server MỚI (không biết request) → tool chạy hết 10 bước
+(2) client đóng kết nối: AbortError
+    server: [A] report dừng ở bước 3/10: signal abort (client hủy hoặc mất kết nối)
+✓ mất kết nối → res 'close' → transport.close() → signal abort → tool dừng thật
+
+— Stateless + server hỏi ngược (elicitation) —
+client khai elicitation lúc initialize · delete t1 → [isError] Client này không hỏi được người dùng (không có elicitation) nên không xóa. Đánh dấu xong bằng cách khác.
+✓ stateless: server của request này KHÔNG thấy initialize → không biết capability client
+
+— Stateful: cùng hủy (1), cùng 1 instance —
+server: [S] report dừng ở bước 3/10: signal abort (client hủy hoặc mất kết nối)
+✓ stateful: cancelled tới đúng session → tool dừng
+
+— Stateful × 2 instance, round-robin —
+client: Streamable HTTP error: Error POSTing to endpoint: {"jsonrpc":"2.0","error":{"code":-32001,"message":"Session not found: hết hạn hoặc thuộc instance khác — client phải initialize lại"},"id":null}
+LB: initialize → :3211 · notifications/initialized → :3212
+✓ stateful sau round-robin: session tạo ở A, request kế rơi vào B → 404
+OK: S7.2 8/8

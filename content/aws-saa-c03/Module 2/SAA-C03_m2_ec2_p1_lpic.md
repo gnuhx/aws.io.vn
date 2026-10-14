@@ -1,3 +1,13 @@
+---
+title: EC2 Core & Networking
+slug: ec2-core-networking
+topic: aws-saa-c03
+order: 17
+module: 2
+moduleTitle: Compute & Identity Foundations
+kind: section
+---
+
 # Module 2 — Amazon EC2 · Part 1: Core & Networking
 Bài 2.17–2.35 · Domain thi: High-Performing Architectures 24% · Resilient Architectures 26%
 

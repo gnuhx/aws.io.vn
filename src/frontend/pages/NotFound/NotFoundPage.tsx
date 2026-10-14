@@ -1,12 +1,11 @@
 import { Link } from 'react-router'
-import styles from './NotFoundPage.module.css'
 
 export function NotFoundPage() {
   return (
-    <main className={styles.page}>
-      <h1>Page not found</h1>
-      <p>There is no lesson or topic at this address.</p>
-      <Link to="/">Go to all topics</Link>
+    <main style={{ maxWidth: '48rem', margin: '4rem auto', padding: '0 1rem' }}>
+      <h1>Lesson not found</h1>
+      <p>The topic or lesson you requested is not available yet.</p>
+      <Link to="/">Back to learning paths</Link>
     </main>
   )
 }

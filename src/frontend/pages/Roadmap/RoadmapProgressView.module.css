@@ -1,0 +1,107 @@
+.progressView { display: grid; gap: 1.25rem; }
+.summary { padding: 1.2rem 1.4rem; border: 1px solid #c8d8e9; border-radius: 12px; background: #f5f9ff; }
+.summaryHeading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.label { margin: 0 0 0.3rem; color: #59636e; font-size: 0.72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.summary h2 { margin: 0; font-size: 1.25rem; }
+.summaryHeading p:last-child { margin: .35rem 0 0; color: #59636e; }
+.signInLink,
+.continueLink { display: inline-flex; flex: 0 0 auto; padding: .55rem .8rem; border-radius: 7px; background: #0969da; color: #fff; font-size: .88rem; font-weight: 650; text-decoration: none; }
+.signInLink:hover,
+.continueLink:hover { background: #0757b5; color: #fff; }
+/* The roadmap page styles every `.article a` blue; these links sit on a blue background and must stay white. */
+.summary a.signInLink,
+.summary a.continueLink { color: #fff; }
+.doneMessage { color: #386641; font-weight: 700; }
+.moduleProgress { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .5rem; margin-top: 1rem; }
+.moduleRow { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem .65rem; border: 1px solid #d8e2ee; border-radius: 7px; background: #fff; color: #59636e; font-size: .78rem; }
+.moduleRow span:last-child { color: #1f2328; font-weight: 650; white-space: nowrap; }
+.error,
+.manifestError { margin: .8rem 0 0; color: #9b2c20; font-size: .9rem; }
+.error button { margin-left: .4rem; padding: .2rem .55rem; border: 1px solid #9b2c20; border-radius: 5px; background: #fff; color: #9b2c20; cursor: pointer; }
+.loading { display: flex; align-items: center; gap: .5rem; margin: .8rem 0 0; color: #59636e; font-size: .88rem; }
+.savingItem { display: inline-flex; align-items: center; gap: .3rem; margin-right: .4rem; color: #0969da; font-size: .75rem; font-weight: 600; }
+.roadmapArticle { padding: clamp(1.2rem, 3vw, 2.4rem); border: 1px solid #d1d9e0; border-radius: 12px; background: #fff; box-shadow: 0 1px 2px rgb(31 35 40 / 4%); font-size: .94rem; line-height: 1.65; }
+.roadmapArticle h1,
+.roadmapArticle h2,
+.roadmapArticle h3 { margin: 2.2rem 0 .8rem; line-height: 1.3; scroll-margin-top: 1rem; }
+.roadmapArticle h1 { font-size: 1.7rem; }
+.roadmapArticle h2 { padding-bottom: .45rem; border-bottom: 1px solid #d8dee4; font-size: 1.35rem; }
+.roadmapArticle h3 { font-size: 1.05rem; }
+.roadmapArticle p { color: #424a53; }
+.roadmapArticle ul,
+.roadmapArticle ol { padding-left: 1.5rem; }
+.roadmapArticle li { margin: .25rem 0; }
+.roadmapArticle a { color: #0969da; }
+.roadmapArticle table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
+.roadmapArticle th,
+.roadmapArticle td { padding: .45rem .65rem; border: 1px solid #d1d9e0; text-align: left; }
+.roadmapArticle th { background: #f6f8fa; }
+.statusSelect { max-width: 8.7rem; margin: 0 .35rem 0 0; padding: .15rem .25rem; border: 1px solid #aebdca; border-radius: 5px; background: #fff; color: #374151; font: inherit; font-size: .78rem; vertical-align: baseline; }
+.statusSelect:disabled { color: #6b7280; background: #f6f8fa; cursor: not-allowed; }
+.statusSelect:not(:disabled):focus-visible { outline: 3px solid #0969da; outline-offset: 2px; }
+.lessonBadge { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .35rem; margin-left: .5rem; font-size: .8rem; }
+.lessonBadge a { font-weight: 600; }
+.lessonRead,
+.lessonUnread { padding: .05rem .4rem; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.lessonRead { background: #dafbe1; color: #1a7f37; }
+.lessonUnread { background: #eef1f4; color: #59636e; }
+#roadmap-item-aws-saa-c03\:item-0001,
+[id^="roadmap-item-"] { scroll-margin-top: 1rem; }
+
+@media (max-width: 650px) {
+  .summaryHeading { align-items: flex-start; flex-direction: column; }
+  .roadmapArticle { padding: 1rem; }
+  .statusSelect { max-width: 8rem; font-size: .72rem; }
+}
+
+/* Status colors (good #0ca30c, warning #fab219, neutral gray); the text label always stays visible. */
+.statusNotStarted { --status-color: #c4ccd5; }
+.statusInProgress { --status-color: #fab219; }
+.statusCompleted { --status-color: #0ca30c; }
+.statusSelect.statusNotStarted { border-color: #aebdca; background: #fff; color: #424a53; }
+.statusSelect.statusInProgress { border-color: #d4940a; background: #fff5d6; color: #6b4a00; font-weight: 650; }
+.statusSelect.statusCompleted { border-color: #0ca30c; background: #dafbe1; color: #116329; font-weight: 650; }
+.statusSelect:disabled.statusInProgress,
+.statusSelect:disabled.statusCompleted { opacity: .75; }
+
+.chartRow { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1.5rem; margin-top: 1rem; }
+.chartRow .moduleProgress { margin-top: 0; }
+.moduleRow { flex-wrap: wrap; }
+.moduleBar { flex: 1 0 100%; height: 4px; overflow: hidden; border-radius: 999px; background: #eef1f4; }
+.moduleBar span { display: block; height: 100%; border-radius: 999px; background: #0ca30c; }
+
+.filterBar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; padding: .65rem .8rem; border: 1px solid #d1d9e0; border-radius: 10px; background: rgb(255 255 255 / 95%); backdrop-filter: blur(4px); }
+.filterGroup { display: flex; flex-wrap: wrap; gap: .35rem; }
+.filterChip { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .65rem; border: 1px solid #d1d9e0; border-radius: 999px; background: #fff; color: #424a53; font: inherit; font-size: .8rem; cursor: pointer; }
+.filterChip:hover { border-color: #8c959f; }
+.filterChip[aria-checked="true"] { border-color: #1f2328; background: #1f2328; color: #fff; }
+.filterChip:focus-visible,
+.filterSelect select:focus-visible { outline: 3px solid #0969da; outline-offset: 2px; }
+.filterDot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--status-color); }
+.filterSelect { display: inline-flex; align-items: center; gap: .4rem; color: #59636e; font-size: .8rem; }
+.filterSelect select { padding: .25rem .4rem; border: 1px solid #d1d9e0; border-radius: 6px; background: #fff; color: #1f2328; font: inherit; }
+.filterCount { display: inline-flex; align-items: center; gap: .5rem; margin-left: auto; color: #59636e; font-size: .8rem; }
+.filterCount button { padding: .15rem .5rem; border: 1px solid #d1d9e0; border-radius: 5px; background: #fff; color: #0969da; font: inherit; cursor: pointer; }
+.roadmapArticle li[hidden] { display: none; }
+
+@media (max-width: 650px) {
+  .chartRow { grid-template-columns: 1fr; }
+  .filterCount { margin-left: 0; }
+}
+
+/* Fingers need bigger targets than a mouse pointer (~40px); desktop keeps the compact list. */
+@media (pointer: coarse) {
+  .statusSelect { min-height: 40px; max-width: 10rem; padding: .3rem .45rem; }
+  .filterChip { min-height: 40px; padding: .4rem .85rem; }
+  .filterSelect select { min-height: 40px; }
+  .filterCount button { min-height: 36px; padding: .3rem .7rem; }
+  .error button { min-height: 36px; }
+}
+
+/* Phones: keep the sticky filter bar two rows high. Status chips swipe sideways instead of wrapping. */
+@media (max-width: 640px) {
+  .filterBar { gap: .5rem .75rem; padding: .5rem .6rem; }
+  .filterGroup { flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -.6rem; padding: 0 .6rem; }
+  .filterGroup::-webkit-scrollbar { display: none; }
+  .filterChip { flex: 0 0 auto; }
+}

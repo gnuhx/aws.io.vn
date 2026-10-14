@@ -1,0 +1,5 @@
+.continue { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .6rem; margin-top: 1rem; padding: .65rem .9rem; border: 1px solid #b6e3ff; border-radius: 9px; background: #ddf4ff; color: #0a3069; text-decoration: none; }
+.continue:hover { border-color: #0969da; }
+.continue:focus-visible { outline: 3px solid #0969da; outline-offset: 2px; }
+.label { color: #0550ae; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.arrow { color: #0969da; }

@@ -20,6 +20,13 @@ Template:
 
 ---
 
+## D-009 · 2026-10-11 · Accepted
+**Question:** Keep Clerk for website sign-in, or run our own auth? Supersedes D-008.
+**Options:** (a) keep Clerk (D-008); (b) own auth in Netlify Functions: email + password (bcrypt) and Google Identity Services ID tokens verified with `google-auth-library`, users in Atlas, session as a JWT in an httpOnly cookie; (c) another managed provider (Auth0, Firebase Auth)
+**Decision:** **(b)**, accepted 2026-10-11. No third-party identity vendor or per-user pricing, one less dashboard to configure per environment, and the auth code itself becomes learning material. Cost: we own password storage, account linking and session security, and lose features Clerk gave for free (email verification, password reset, username sign-in).
+**Consequences:** removes `@clerk/*` and `CLERK_*` / `VITE_CLERK_*` env vars; adds a `users` collection, `GOOGLE_CLIENT_ID`, `VITE_GOOGLE_CLIENT_ID`, `JWT_SECRET`; `withAuth` reads the session cookie; D-008 becomes Superseded by D-009; D-002 consequences and `docs/auth-setup.md` / `docs/architecture.md` updated. Email verification, password reset and login rate limiting need follow-up tasks.
+**Tasks:** TASK-010
+
 ## D-007 · 2026-10-03 · Accepted
 **Question:** How is backend code organised inside `src/backend/`? Netlify Functions are one file per endpoint; where do business logic, database access, auth and external clients live?
 **Options:** (a) helpers inside the functions folder (`functions/_lib/`), as first sketched; (b) layered folders next to `functions/`: thin endpoints in `functions/`, composable wrappers in `middleware/`, logic in `services/`, MongoDB access in `repositories/`, SDK clients in `clients/`; (c) one Express app wrapped in a single Netlify Function (`serverless-http`)
@@ -38,12 +45,12 @@ Template:
 - `retrieve()` moves from `functions/_lib/rag/` to `services/retrieval/`; architecture.md and roadmap updated.
 **Tasks:** TASK-004 (first endpoint follows this layout)
 
-## D-006 · 2026-10-02 · Accepted
-**Question:** How do we make sure nothing broken reaches production, before Module 6 adds GitHub Actions CI?
+## D-006 · 2026-10-02 · Accepted (amended 2026-10-14)
+**Question:** How do we make sure nothing broken reaches production?
 **Options:** (a) no automation until M6; (b) gate in the Netlify build: `npm run verify` (lint + typecheck + unit tests + content validation) runs before `vite build`, so a failure blocks the deploy; plus a post-deploy smoke test; (c) full GitHub Actions CI now
-**Decision:** **(b)**, accepted 2026-10-04. Every deploy, preview or production, is gated with zero extra infrastructure. Smoke tests run from a small GitHub Action on Netlify's deployment status. M6 still teaches PR-level CI on top.
-**Consequences:** test stack = Vitest + React Testing Library + jsdom; `npm run verify` is the single gate command used by Netlify now and by CI in M6; E2E (Playwright) deferred until there is UI worth clicking through
-**Tasks:** TASK-002, TASK-005, TASK-006
+**Decision:** **(b)**, accepted 2026-10-04. Every deploy, preview or production, is gated with zero extra infrastructure. Smoke tests run from a small GitHub Action on Netlify's deployment status. Amended 2026-10-14: pull PR-level GitHub Actions CI forward from Module 6 (TASK-019), retaining the Netlify build gate.
+**Consequences:** test stack = Vitest + React Testing Library + jsdom; `npm run verify` is Netlify's gate; GitHub Actions runs lint, typecheck, coverage-enabled tests and build as separate named steps; E2E (Playwright) deferred until there is UI worth clicking through
+**Tasks:** TASK-002, TASK-005, TASK-006, TASK-019, TASK-020
 
 ## D-005 · 2026-10-02 · Accepted
 **Question:** Frontend libraries not covered by the design: router, styling, lesson rendering
@@ -71,16 +78,23 @@ Template:
 - Paths updated in [architecture.md](architecture.md), [roadmap.md](roadmap.md) and TASK-001…006; `CLAUDE.md` and Module 3 permission rules follow these paths
 **Tasks:** TASK-001, TASK-004, TASK-005
 
-## D-002 · 2026-10-02 · Proposed
+## D-008 · 2026-10-11 · Superseded by D-009
+**Question:** Which website identity provider supports username/email + password and Google sign-in while keeping Atlas as the progress store?
+**Options:** Clerk with its server-verifiable session tokens; another managed identity provider; custom credentials and OAuth implementation.
+**Decision:** **Clerk**, accepted 2026-10-11. Configure username and email identifiers with password authentication plus Google social sign-in. Verify Clerk session tokens in Netlify Functions; do not use the separate MCP OAuth resource-server flow for website login.
+**Consequences:** the browser uses Clerk's publishable key and prebuilt sign-in/sign-up components; Netlify Functions keep the Clerk secret key server-side and verify authorized parties. Development, production, and deploy-preview origins need explicit Clerk/Google configuration.
+**Tasks:** TASK-009
+
+## D-002 · 2026-10-02 · Accepted
 **Question:** Does the site have login/users?
 **Options:** (a) reuse existing auth; (b) add auth; (c) guests only, quota by IP hash
-**Decision:** _open_. Recommended: **(c) for now**. The old site had no auth (frontend only, per its README), so there is nothing to reuse. Revisit before Module 7.
-**Consequences:** decides how quota and attempt history work in Module 7
-**Tasks:** —
+**Decision:** **(b) add auth**, originally with Clerk (D-008), now the site's own auth (D-009). The previous frontend had no identity provider to reuse; account identity is now needed for cross-device roadmap progress.
+**Consequences:** server functions verify the session cookie (`withAuth`); progress records are scoped to the verified user id. Public lesson and roadmap reading remains available without an account.
+**Tasks:** TASK-009, TASK-010
 
-## D-001 · 2026-10-02 · Proposed
+## D-001 · 2026-10-02 · Accepted
 **Question:** Is MongoDB Atlas or self-hosted?
 **Options:** (a) Atlas (free M0 tier); (b) self-hosted
-**Decision:** _open_. Recommended: **(a)**. `$vectorSearch` is an Atlas feature; M0 is free and enough for learning.
-**Consequences:** if not Atlas, the `$vectorSearch` approach in Module 5 must change
-**Tasks:** — (Module 4)
+**Decision:** **(a) MongoDB Atlas**. TASK-009 requires Atlas-backed progress and the broader architecture already uses Atlas.
+**Consequences:** progress uses the `roadmap_progress` collection in Atlas. Rotate the previously exposed database password before configuring the runtime.
+**Tasks:** TASK-009

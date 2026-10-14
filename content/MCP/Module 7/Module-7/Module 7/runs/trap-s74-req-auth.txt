@@ -1,0 +1,2 @@
+❯ npx tsc -p traps/tsc/tsconfig.json
+traps/tsc/req-auth.ts(2,78): error TS2339: Property 'auth' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.

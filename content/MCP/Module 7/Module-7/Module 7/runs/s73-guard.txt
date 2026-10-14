@@ -1,0 +1,19 @@
+❯ node scripts/s73-guard.ts
+✓ 200 CLI/Claude Desktop (không Origin)         
+✓ 200 web app được phép                         
+✓ 403 trang lạ gọi thẳng                          Origin không được phép: https://evil.example
+✓ 403 origin giả dạng tiền tố                     Origin không được phép: http://localhost:5173.evil.example
+✓ 403 sai cổng                                    Origin không được phép: http://localhost:5174
+✓ 403 origin null (iframe sandbox, file://)       Origin không được phép: null
+✓ 403 DNS rebinding: Host của kẻ tấn công         Host không được phép: rebind.attacker.example:3301
+✓ 403 rebinding, trình duyệt cũ không gửi Origin  Host không được phép: rebind.attacker.example:3301
+✓ 403 Host 127.0.0.1.nip.io                       Host không được phép: 127.0.0.1.nip.io:3301
+
+— Bind 127.0.0.1: gọi từ IP khác của máy —
+http://192.0.2.2:3301/mcp → ECONNREFUSED
+✓ máy khác trong mạng không chạm tới được
+
+— Từ chối khởi động: 0.0.0.0 mà không bật auth —
+exit=1 · từ chối: bind 0.0.0.0 mà không bật auth — ai trong mạng cũng gọi được tool
+✓ fail fast thay vì mở tool cho cả mạng
+OK: S7.3 11/11

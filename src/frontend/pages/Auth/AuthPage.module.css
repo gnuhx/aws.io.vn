@@ -1,0 +1,22 @@
+.page { min-height: 80vh; padding: 3rem 1rem 5rem; background: #f6f8fa; color: #1f2328; }
+.intro { width: min(100%, 430px); margin: 0 auto 1.5rem; }
+.intro h1 { margin: 1.3rem 0 0.6rem; font-size: clamp(1.7rem, 4vw, 2.3rem); letter-spacing: -0.04em; }
+.intro p { margin: 0; color: #59636e; line-height: 1.55; }
+.backLink { color: #0969da; font-size: 0.88rem; text-decoration: none; }
+.backLink:hover { text-decoration: underline; }
+.card { width: min(100%, 430px); margin: 0 auto; padding: 1.6rem; border: 1px solid #d1d9e0; border-radius: 12px; background: #fff; }
+.google { display: flex; justify-content: center; min-height: 44px; }
+.divider { display: flex; align-items: center; gap: 0.8rem; margin: 1.2rem 0; color: #59636e; font-size: 0.85rem; }
+.divider::before, .divider::after { content: ''; flex: 1; border-top: 1px solid #d1d9e0; }
+.form { display: grid; gap: 0.35rem; }
+.form label { margin-top: 0.6rem; font-size: 0.9rem; font-weight: 650; }
+.form input { padding: 0.6rem 0.7rem; border: 1px solid #d1d9e0; border-radius: 7px; font: inherit; }
+.form input:focus { outline: 2px solid #0969da; outline-offset: 1px; }
+.form input[aria-invalid='true'] { border-color: #cf222e; }
+.fieldError, .formError { margin: 0.1rem 0 0; color: #cf222e; font-size: 0.85rem; }
+.formError { margin-top: 0.8rem; }
+.hint { margin: 0.1rem 0 0; color: #59636e; font-size: 0.85rem; }
+.submit { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; margin-top: 1rem; padding: 0.65rem; border: 0; border-radius: 7px; background: #0969da; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
+.submit:disabled { opacity: 0.65; cursor: progress; }
+.switch { margin: 1.2rem 0 0; color: #59636e; font-size: 0.9rem; text-align: center; }
+.switch a { color: #0969da; }

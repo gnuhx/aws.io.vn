@@ -1,3 +1,13 @@
+---
+title: Elastic Load Balancing and Auto Scaling
+slug: elastic-load-balancing-auto-scaling
+topic: aws-saa-c03
+order: 44
+module: 2
+moduleTitle: Compute & Identity Foundations
+kind: section
+---
+
 # Module 2 — Elastic Load Balancing and Auto Scaling
 Bài 2.44–2.62 · Domain thi: Resilient Architectures 26% · High-Performing Architectures 24%
 

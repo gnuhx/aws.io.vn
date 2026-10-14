@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "nexus": {
+      "command": "/ABSOLUTE/PATH/TO/node",
+      "args": ["/ABSOLUTE/PATH/TO/nexus/apps/mcp-server/src/index.ts"],
+      "env": {
+        "NEXUS_DATA": "mongo",
+        "MONGODB_URI": "mongodb://localhost:27017/?directConnection=true"
+      }
+    }
+  }
+}

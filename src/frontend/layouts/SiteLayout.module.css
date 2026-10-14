@@ -1,0 +1,34 @@
+.header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  min-height: 3.4rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem max(1rem, calc((100vw - 1200px) / 2));
+  border-bottom: 1px solid #d1d9e0;
+  background: #fff;
+}
+
+.brand { color: #1f2328; font-weight: 750; text-decoration: none; }
+.accountActions { display: flex; align-items: center; gap: 0.8rem; }
+.signIn { padding: 0.45rem 0.8rem; border: 1px solid #0969da; border-radius: 7px; color: #0969da; font-size: 0.88rem; font-weight: 650; text-decoration: none; }
+.signIn:hover { background: #f0f6ff; }
+.account { display: inline-flex; align-items: center; gap: .5rem; max-width: 16rem; color: #1f2328; font-size: 0.88rem; text-decoration: none; }
+.account span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account:hover span { text-decoration: underline; }
+
+@media (max-width: 520px) {
+  .account span { display: none; }
+}
+.signOut { padding: 0.45rem 0.8rem; border: 1px solid #d1d9e0; border-radius: 7px; background: #f6f8fa; color: #1f2328; font: inherit; font-size: 0.88rem; cursor: pointer; }
+.signOut:hover { background: #eef1f4; }
+.signOut { display: inline-flex; align-items: center; gap: .4rem; }
+.signOut:disabled { opacity: .7; cursor: progress; }
+.checking { display: inline-flex; align-items: center; gap: .4rem; color: #59636e; font-size: .85rem; }
+
+@media (pointer: coarse) {
+  .signIn,
+  .signOut { display: inline-flex; align-items: center; min-height: 40px; }
+  .account { min-height: 40px; }
+}
