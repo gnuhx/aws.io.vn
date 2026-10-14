@@ -30,6 +30,30 @@ export default defineConfig({
   // src/frontend and backend tests would otherwise never be found.
   test: {
     maxWorkers: 4,
+    coverage: {
+      include: ['**/*.{ts,tsx}', 'src/**/*.{ts,tsx}'],
+      exclude: [
+        '**/*.test.{ts,tsx}',
+        '**/*.d.ts',
+        '**/test/**',
+        '../backend/functions/__tests__/**',
+        '../backend/repositories/**',
+        'src/backend/repositories/**',
+        'main.tsx',
+        'src/frontend/main.tsx',
+        '../../vite.config.ts',
+        'vite.config.ts',
+      ],
+      allowExternal: true,
+      reportsDirectory: fromRoot('./coverage'),
+      reporter: ['text', 'html', 'json-summary'],
+      thresholds: {
+        '../shared/**': { lines: 95, perFile: { lines: 95 } },
+        '../backend/services/**': { lines: 90, perFile: { lines: 45 } },
+        '../backend/functions/**': { lines: 95, perFile: { lines: 85 } },
+        '**/*.{ts,tsx}': { lines: 75 },
+      },
+    },
     projects: [
       {
         extends: true,

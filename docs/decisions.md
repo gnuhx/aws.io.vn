@@ -49,8 +49,8 @@ Template:
 **Question:** How do we make sure nothing broken reaches production?
 **Options:** (a) no automation until M6; (b) gate in the Netlify build: `npm run verify` (lint + typecheck + unit tests + content validation) runs before `vite build`, so a failure blocks the deploy; plus a post-deploy smoke test; (c) full GitHub Actions CI now
 **Decision:** **(b)**, accepted 2026-10-04. Every deploy, preview or production, is gated with zero extra infrastructure. Smoke tests run from a small GitHub Action on Netlify's deployment status. Amended 2026-10-14: pull PR-level GitHub Actions CI forward from Module 6 (TASK-019), retaining the Netlify build gate.
-**Consequences:** test stack = Vitest + React Testing Library + jsdom; `npm run verify` is the single gate command used by Netlify and GitHub Actions; E2E (Playwright) deferred until there is UI worth clicking through
-**Tasks:** TASK-002, TASK-005, TASK-006, TASK-019
+**Consequences:** test stack = Vitest + React Testing Library + jsdom; `npm run verify` is Netlify's gate; GitHub Actions runs lint, typecheck, coverage-enabled tests and build as separate named steps; E2E (Playwright) deferred until there is UI worth clicking through
+**Tasks:** TASK-002, TASK-005, TASK-006, TASK-019, TASK-020
 
 ## D-005 · 2026-10-02 · Accepted
 **Question:** Frontend libraries not covered by the design: router, styling, lesson rendering

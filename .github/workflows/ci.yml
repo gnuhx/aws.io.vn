@@ -1,4 +1,4 @@
-# PR-level CI (TASK-019). Runs the same steps as `npm run verify` + `npm run build` (D-006),
+# PR-level CI (TASK-019). Runs lint, typecheck, coverage-enabled tests (TASK-020) and build (D-006),
 # split into separate steps so the PR check names which gate failed.
 # Netlify still builds and deploys on its own; this workflow never deploys.
 name: CI
@@ -40,7 +40,16 @@ jobs:
         run: npm run typecheck
 
       - name: Unit tests
-        run: npm test
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          if-no-files-found: warn
+          retention-days: 14
 
       # No .env and NETLIFY unset in CI, so the env checks only validate what is set (buildChecks.ts);
       # the bundle check still scans dist/ for leaked secrets.
