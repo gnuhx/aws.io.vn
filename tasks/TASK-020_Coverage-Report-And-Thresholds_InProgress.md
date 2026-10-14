@@ -21,13 +21,14 @@ TASK-002 deferred coverage "until there is real code to cover". There now is (au
 ## Acceptance criteria
 - [x] Given `npm run test:coverage`, when it finishes, then a per-file summary prints and `coverage/` has an HTML report
 - [x] Given a new service file with no tests, when coverage runs, then it fails below the threshold and names the folder
-- [ ] Given CI, when the job finishes, then the HTML report is downloadable from the run
+- [x] Given CI, when the job finishes, then the HTML report is downloadable from the run
 
 ## Test cases
 | # | Input / action | Expected result | Type | Result |
 |---|---|---|---|---|
 | 1 | run coverage on current code | passes at the agreed floor | manual | pass: 219 tests; 81.96% line coverage; HTML report generated |
 | 2 | add an untested `services/dummy.ts` | fails, names the threshold | manual | pass: failed at `../backend/services/**` per-file threshold; probe removed |
+| 3 | CI run completes | coverage artifact is downloadable | manual | pass: [CI run](https://github.com/gnuhx/aws.io.vn/actions/runs/38532558798) uploaded unexpired `coverage-report` artifact |
 
 ## Notes
 - 2026-10-14 baseline: 219 tests pass; source coverage is 81.96% lines overall. Repositories and their coverage are excluded for TASK-021.
@@ -35,4 +36,4 @@ TASK-002 deferred coverage "until there is real code to cover". There now is (au
 - `npm run test:coverage` prints the per-file text report and writes HTML/JSON reports to ignored root `coverage/`. The V8 provider is version-aligned with Vitest.
 - `npm ci`, lint, typecheck and build pass on Node 24.21.0.
 - Verified that adding a temporary untested `src/backend/services/coverage-probe.ts` makes coverage fail at the 45% per-file floor and names the `../backend/services/**` threshold; the probe was removed afterward.
-- CI now runs `npm run test:coverage` and uploads `coverage/` as the `coverage-report` artifact for 14 days, including on test failure. The artifact upload still needs a GitHub Actions run to verify it is downloadable.
+- CI runs `npm run test:coverage` and uploads `coverage/` as the `coverage-report` artifact for 14 days, including on test failure. Verified in run 38532558798; the artifact is available and unexpired.
