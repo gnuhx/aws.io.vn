@@ -27,6 +27,9 @@ export const progressApi = {
     request<unknown>(roadmapId, status === 'not_started'
       ? { method: 'DELETE', body: JSON.stringify({ itemId }) }
       : { method: 'PUT', body: JSON.stringify({ itemId, status }) }),
+  /** Marks several lessons read in one request. Already-read lessons stay read, so retrying is safe. */
+  markLessonsRead: (roadmapId: RoadmapId, lessonIds: readonly string[]) =>
+    request<unknown>(roadmapId, { method: 'POST', body: JSON.stringify({ lessonIds }) }),
   /** Status changes from the last year, newest first. */
   activity: (roadmapId: RoadmapId) =>
     request<{ activity?: ActivityEvent[] }>(roadmapId, {}, '/activity').then((body) => body.activity ?? []),

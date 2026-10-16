@@ -1,8 +1,9 @@
 import type { Config } from '@netlify/functions'
-import { isAllowedProgressStatus, isTrackableProgressItem } from '../../shared/schemas/roadmap-progress.ts'
+import { isLessonProgressId } from '../../shared/lessonProgress.ts'
+import { isAllowedProgressStatus, isTrackableProgressItem, lessonsReadSchema } from '../../shared/schemas/roadmap-progress.ts'
 import { progressDeleteSchema, progressReadParamsSchema, progressUpdateSchema } from '../../shared/schemas/roadmap-progress.ts'
 import { json, readJson, withAuth } from '../middleware/http.ts'
-import { clearStatus, listStatuses, setStatus } from '../services/progress.ts'
+import { clearStatus, listStatuses, markLessonsRead, setStatus } from '../services/progress.ts'
 
 // The owner always comes from the verified session cookie, never from the request.
 export default withAuth(async (request, context, { userId }) => {
@@ -22,6 +23,17 @@ export default withAuth(async (request, context, { userId }) => {
     }
     await setStatus(userId, roadmapId, parsed.data.itemId, parsed.data.status)
     return json({ itemId: parsed.data.itemId, status: parsed.data.status })
+  }
+
+  // Marks several lessons read at once. All-or-nothing: one unknown or non-lesson ID rejects the whole request.
+  if (request.method === 'POST') {
+    const body = await readJson(request)
+    const parsed = lessonsReadSchema.safeParse({ ...(body && typeof body === 'object' ? body : {}), roadmapId })
+    if (!parsed.success || !parsed.data.lessonIds.every((lessonId) => isLessonProgressId(roadmapId, lessonId))) {
+      return json({ error: 'invalid lesson ids' }, 400)
+    }
+    await markLessonsRead(userId, roadmapId, parsed.data.lessonIds)
+    return json({ lessonIds: [...new Set(parsed.data.lessonIds)], status: 'completed' })
   }
 
   if (request.method === 'DELETE') {

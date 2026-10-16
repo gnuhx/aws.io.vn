@@ -1,13 +1,24 @@
 import { Link, useParams } from 'react-router'
-import { getLessonCatalog, getPublishedModuleOrders, getTopicLabel } from '../../content.ts'
+import { findLessonProgressEntry } from '../../../shared/lessonProgress.ts'
+import { isRoadmapId } from '../../../shared/roadmapProgress.ts'
+import { getLessonCatalog, getLessonContentPath, getPublishedModuleOrders, getTopicLabel, type LessonEntry } from '../../content.ts'
 import { McpModuleWrapup } from '../../components/McpModuleWrapup/McpModuleWrapup.tsx'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import { ContinueReading } from '../../reading/ContinueReading.tsx'
+import { ModuleReadAction } from './ModuleReadAction.tsx'
+import { useLessonReadState } from './useLessonReadState.ts'
 import styles from './TopicPage.module.css'
 
 export function TopicPage() {
   const { topic = '' } = useParams()
   const lessons = getLessonCatalog()[topic] ?? []
+  const roadmapId = isRoadmapId(topic) ? topic : null
+  const readState = useLessonReadState(roadmapId)
+
+  // Only lessons with a progress-manifest entry can be marked read; other materials are left out of the count.
+  const trackedIds = (moduleLessons: LessonEntry[]) => roadmapId
+    ? moduleLessons.flatMap((lesson) => findLessonProgressEntry(roadmapId, getLessonContentPath(lesson))?.id ?? [])
+    : []
 
   if (!lessons.length) return <NotFoundPage />
 
@@ -53,6 +64,12 @@ export function TopicPage() {
       </header>
 
       <div className={styles.curriculum}>
+        {readState.loadError && (
+          <p className={styles.progressError} role="alert">
+            {readState.loadError}
+            {readState.owner && <button type="button" onClick={readState.reload}>Retry</button>}
+          </p>
+        )}
         {sortedModules.map(([order, group]) => (
           <section className={styles.module} key={order}>
             <div className={styles.moduleHeading}>
@@ -61,7 +78,10 @@ export function TopicPage() {
                 <p className={styles.moduleKicker}>Module {order}</p>
                 <h2>{group.title}</h2>
               </div>
-              <span className={styles.lessonCount}>{group.lessons.length} materials</span>
+              <div className={styles.moduleMeta}>
+                <span className={styles.lessonCount}>{group.lessons.length} materials</span>
+                <ModuleReadAction moduleName={`Module ${order}`} lessonIds={trackedIds(group.lessons)} state={readState} />
+              </div>
             </div>
             <ol className={styles.lessonList}>
               {group.lessons.sort((a, b) => a.order - b.order).map((lesson, index) => (

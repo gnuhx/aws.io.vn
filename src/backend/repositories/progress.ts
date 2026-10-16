@@ -39,6 +39,22 @@ export async function setStatus(userId: string, roadmapId: string, itemId: strin
   )
 }
 
+/**
+ * Saves each item as `completed` unless it already has a record, which stays untouched (so repeats are no-ops).
+ * Returns the IDs that were newly saved.
+ */
+export async function insertCompleted(userId: string, roadmapId: string, itemIds: readonly string[]) {
+  const now = new Date()
+  const result = await (await progress()).bulkWrite(itemIds.map((itemId) => ({
+    updateOne: {
+      filter: { userId, roadmapId, itemId },
+      update: { $setOnInsert: { status: 'completed' as const, createdAt: now, updatedAt: now } },
+      upsert: true,
+    },
+  })), { ordered: false })
+  return Object.keys(result.upsertedIds).map((index) => itemIds[Number(index)])
+}
+
 export async function clearStatus(userId: string, roadmapId: string, itemId: string) {
   await (await progress()).deleteOne({ userId, roadmapId, itemId })
 }
