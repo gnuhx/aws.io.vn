@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { buildLessonIndex, findLesson, LessonParseError, parseLesson } from './parse.ts'
+import { isTopic } from '../schemas/lesson.ts'
+
+describe('isTopic', () => {
+  it('recognizes supported topics and rejects unknown values', () => {
+    expect(isTopic('reactjs')).toBe(true)
+    expect(isTopic(undefined)).toBe(false)
+    expect(isTopic('MCP')).toBe(false)
+  })
+})
 
 function lessonFile(frontmatter: string, body = '# Title\n\n## Concept\nText.\n') {
   return `---\n${frontmatter}\n---\n${body}`
