@@ -40,7 +40,9 @@ describe('user repository with MongoDB', () => {
   })
 
   it('persists user fields and applies defaults to older or partial documents', async () => {
+    // Tests share one database, so this user needs an email the earlier test didn't create.
     const created = await repository.create(user({
+      email: 'partial@example.com',
       name: null,
       avatarUrl: null,
       passwordHash: null,
