@@ -72,7 +72,20 @@ export default defineConfig({
           root: fromRoot('./'),
           // Shared code must run in Node too, so it is tested here without a DOM.
           include: ['src/backend/**/*.test.ts', 'src/shared/**/*.test.ts'],
+          exclude: ['src/backend/repositories/**/*.integration.test.ts'],
           environment: 'node',
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'repository-integration',
+          root: fromRoot('./'),
+          include: ['src/backend/repositories/**/*.integration.test.ts'],
+          environment: 'node',
+          maxWorkers: 1,
+          testTimeout: 30000,
+          hookTimeout: 120000,
         },
       },
     ],

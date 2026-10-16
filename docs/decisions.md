@@ -20,6 +20,13 @@ Template:
 
 ---
 
+## D-010 · 2026-10-15 · Accepted
+**Question:** How should repository integration tests get an isolated MongoDB and run in CI?
+**Options:** (a) `mongodb-memory-server` with a real ephemeral `mongod`; (b) a MongoDB service container in GitHub Actions, requiring local Docker for parity. Run integration tests in the default suite or as a separate Vitest project.
+**Decision:** Use `mongodb-memory-server-core` to start a real local MongoDB process, with a unique database per integration test file. Keep repository integration tests in a separately named Vitest project with `npm run test:integration`; run it as its own CI step.
+**Consequences:** tests do not need Atlas credentials or Docker. The first run downloads a MongoDB binary; CI caches it. Unit and coverage commands remain limited to the frontend/backend unit projects.
+**Tasks:** TASK-021
+
 ## D-009 · 2026-10-11 · Accepted
 **Question:** Keep Clerk for website sign-in, or run our own auth? Supersedes D-008.
 **Options:** (a) keep Clerk (D-008); (b) own auth in Netlify Functions: email + password (bcrypt) and Google Identity Services ID tokens verified with `google-auth-library`, users in Atlas, session as a JWT in an httpOnly cookie; (c) another managed provider (Auth0, Firebase Auth)
@@ -49,7 +56,7 @@ Template:
 **Question:** How do we make sure nothing broken reaches production?
 **Options:** (a) no automation until M6; (b) gate in the Netlify build: `npm run verify` (lint + typecheck + unit tests + content validation) runs before `vite build`, so a failure blocks the deploy; plus a post-deploy smoke test; (c) full GitHub Actions CI now
 **Decision:** **(b)**, accepted 2026-10-04. Every deploy, preview or production, is gated with zero extra infrastructure. Smoke tests run from a small GitHub Action on Netlify's deployment status. Amended 2026-10-14: pull PR-level GitHub Actions CI forward from Module 6 (TASK-019), retaining the Netlify build gate.
-**Consequences:** test stack = Vitest + React Testing Library + jsdom; `npm run verify` is Netlify's gate; GitHub Actions runs lint, typecheck, coverage-enabled tests and build as separate named steps; E2E (Playwright) deferred until there is UI worth clicking through
+**Consequences:** test stack = Vitest + React Testing Library + jsdom; `npm run verify` is Netlify's gate; GitHub Actions runs lint, typecheck, unit coverage, repository integration tests and build as separate named steps; E2E (Playwright) deferred until there is UI worth clicking through
 **Tasks:** TASK-002, TASK-005, TASK-006, TASK-019, TASK-020
 
 ## D-005 · 2026-10-02 · Accepted
