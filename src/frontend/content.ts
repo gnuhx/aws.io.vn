@@ -318,6 +318,8 @@ export const getLessonCatalog = () => {
   const catalog: Record<string, LessonEntry[]> = {}
   for (const [filePath, rawFile] of Object.entries(rawContentModules)) {
     const relativePath = filePath.split('/content/')[1] ?? ''
+    // Ignore duplicate files created by downloads (for example, "lesson (1).md").
+    if (/ \(\d+\)\.md$/i.test(relativePath)) continue
     if (relativePath === 'aws-saa-c03/Module 5/SAA-C03_m5_danh-sach-bai.md') continue
 
     const rawContent = readRawContent(rawFile)
