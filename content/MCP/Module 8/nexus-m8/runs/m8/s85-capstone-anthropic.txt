@@ -1,0 +1,10 @@
+❯ ANTHROPIC_API_KEY=sk-ant-khong-hop-le node scripts/capstone.ts --llm anthropic --only 1,5
+✗  1. Doanh thu tháng 9/2026 (đơn đã thanh toán) là bao nhiêu?
+     tool: — · 1 lượt LLM
+     agent: [llm_error] LLM 401 authentication_error: invalid x-api-key
+     đúng : 601.400.000 ₫
+✗  5. Lan còn bao nhiêu việc chưa xong?
+     tool: — · 1 lượt LLM
+     agent: [llm_error] LLM 401 authentication_error: invalid x-api-key
+     đúng : 133 việc (todo + doing)
+FAILED: capstone 0/2 (--llm anthropic) — đạt khi ≥ 8/10

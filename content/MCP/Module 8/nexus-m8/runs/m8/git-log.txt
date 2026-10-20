@@ -1,0 +1,8 @@
+❯ git log --oneline
+4d475aa M8 S8.5: bundle publish (esbuild, bin, .npmrc, README kết nối), publish:check qua npx, capstone 10 câu; list_tasks thêm total + status=open
+7e74329 M8 S8.4: nexus_generate_report dạng Task (experimental/tasks.ts, NEXUS_TASKS), MCP Apps nexus_revenue_chart + ui://, test + task-demo
+f31cf74 M8 S8.3: @nexus/telemetry (OTel, _meta traceparent), instrument tool/sampling/repository, trace-demo + test
+fe321e8 M8 S8.2: prompt injection (cus_031), untrusted marking, confirm ở host, NEXUS_SCOPES, tool guard (lint + pin), THREAT-MODEL.md
+ff32389 M8 S8.1: test ma trận 12 tool × 3 loại + test bảo mật; sửa find_orders from>to
+c2b51c7 M7 baseline (nexus-m6 + m7-scopes.patch)
+da90eb3 M6 (nexus-m6 từ repo)

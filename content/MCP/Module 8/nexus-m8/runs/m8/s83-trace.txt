@@ -1,0 +1,56 @@
+❯ node scripts/trace-demo.ts
+43 span · 2 service · $TMPDIR/nexus-trace-qz6Udr/spans.jsonl
+
+trace 4fa659409cf5…
+agent.run                                              host   +  0.00   87.1 ms │████████████████████████████│
+├─ chat scripted:hanoi-top                             host   +  49.0   0.46 ms │               █            │
+├─ tools/call nexus_list_customers                     host   +  51.0   8.20 ms │                ███         │
+│  └─ tools/call nexus_list_customers                  server +  54.0   1.69 ms │                 █          │
+│     └─ customers.list                                server +  55.0   0.32 ms │                 █          │
+├─ chat scripted:hanoi-top                             host   +  59.0   0.66 ms │                  █         │
+├─ tools/call nexus_find_orders                        host   +  60.0   3.51 ms │                   █        │
+│  └─ tools/call nexus_find_orders                     server +  61.0   0.44 ms │                   █        │
+│     └─ orders.find                                   server +  61.0   0.18 ms │                   █        │
+├─ tools/call nexus_find_orders                        host   +  60.0   5.97 ms │                   ██       │
+│  └─ tools/call nexus_find_orders                     server +  63.0   1.45 ms │                    █       │
+│     └─ orders.find                                   server +  63.0   0.89 ms │                    █       │
+├─ tools/call nexus_find_orders                        host   +  61.0   5.81 ms │                   ██       │
+│  └─ tools/call nexus_find_orders                     server +  63.0   1.20 ms │                    █       │
+│     └─ orders.find                                   server +  64.0   0.80 ms │                    █       │
+├─ tools/call nexus_find_orders                        host   +  61.0   5.79 ms │                   ██       │
+│  └─ tools/call nexus_find_orders                     server +  64.0   1.00 ms │                    █       │
+│     └─ orders.find                                   server +  64.0   0.53 ms │                    █       │
+├─ tools/call nexus_find_orders                        host   +  61.0   5.71 ms │                   ██       │
+│  └─ tools/call nexus_find_orders                     server +  64.0   0.80 ms │                    █       │
+│     └─ orders.find                                   server +  64.0   0.44 ms │                    █       │
+├─ tools/call nexus_find_orders                        host   +  61.0   6.04 ms │                   ██       │
+│  └─ tools/call nexus_find_orders                     server +  64.0   0.74 ms │                    █       │
+│     └─ orders.find                                   server +  64.0   0.38 ms │                    █       │
+├─ tools/call nexus_find_orders                        host   +  61.0   6.04 ms │                   ██       │
+│  └─ tools/call nexus_find_orders                     server +  64.0   0.63 ms │                    █       │
+│     └─ orders.find                                   server +  64.0   0.40 ms │                    █       │
+├─ chat scripted:hanoi-top                             host   +  67.0   0.80 ms │                     █      │
+├─ tools/call nexus_list_tasks                         host   +  68.0   3.54 ms │                     ██     │
+│  └─ tools/call nexus_list_tasks                      server +  69.0   0.67 ms │                      █     │
+│     └─ tasks.page                                    server +  69.0   0.40 ms │                      █     │
+├─ tools/call nexus_list_tasks                         host   +  69.0   3.73 ms │                      █     │
+│  └─ tools/call nexus_list_tasks                      server +  71.0   0.33 ms │                      █     │
+│     └─ tasks.page                                    server +  71.0   0.22 ms │                      █     │
+└─ chat scripted:hanoi-top                             host   +  73.0   14.7 ms │                       █████│
+
+trace 2296b6d53971…
+ui: bấm 'Bổ sung hồ sơ' cus_027                        host   +  0.00    615 ms │████████████████████████████│
+└─ tools/call nexus_enrich_customer                    host   +  1.00    615 ms │████████████████████████████│
+   └─ tools/call nexus_enrich_customer                 server +  1.00    613 ms │████████████████████████████│
+      ├─ customers.get                                 server +  1.00   0.04 ms │█                           │
+      └─ sampling/createMessage                        server +  2.00    611 ms │████████████████████████████│
+         └─ sampling/createMessage                     host   +  8.00    602 ms │████████████████████████████│
+            ├─ người dùng duyệt                        host   +  8.00    601 ms │████████████████████████████│
+            └─ chat scripted:enrich                    host   +   610   0.25 ms │                           █│
+
+span server tools/call: 11 · nối được vào span host: 11/11
+tool chậm nhất: nexus_enrich_customer — 612.65 ms (1 lần gọi)
+    99.8%  sampling/createMessage [server] 611.47 ms
+     0.0%  customers.get [server] 0.04 ms
+   self (code của tool): 1.14 ms
+OK: trace đầu-cuối, chỉ ra được tool chậm nhất và lý do

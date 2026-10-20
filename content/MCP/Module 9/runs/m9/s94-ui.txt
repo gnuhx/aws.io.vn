@@ -1,0 +1,14 @@
+❯ python3 scripts/login.py lan@nexus.dev sai-mat-khau-1
+chưa đăng nhập, mở /acme/dashboard → đang ở /login
+đăng nhập lan@nexus.dev → /login · lỗi: Sai email hoặc mật khẩu
+❯ python3 scripts/login.py minh@nexus.dev mat-khau-minh-123 /acme/dashboard /bean-co/chat
+chưa đăng nhập, mở /acme/dashboard → đang ở /login
+đăng nhập minh@nexus.dev → / 
+   sidebar: Acme Coffee
+   /acme/dashboard → HTTP 200 · h1: Acme Coffee · nút Xóa: không
+   /bean-co/chat → HTTP 404 · h1: Không có workspace này · nút Xóa: không
+❯ python3 scripts/login.py lan@nexus.dev mat-khau-lan-123 /acme/dashboard
+chưa đăng nhập, mở /acme/dashboard → đang ở /login
+đăng nhập lan@nexus.dev → / 
+   sidebar: Acme Coffee
+   /acme/dashboard → HTTP 200 · h1: Acme Coffee · nút Xóa: có

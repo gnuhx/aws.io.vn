@@ -1,0 +1,14 @@
+❯ ls "app/(app)" "app/(app)/[workspace]"
+app/(app):
+[workspace]
+layout.tsx
+page.tsx
+
+app/(app)/[workspace]:
+chat
+dashboard
+layout.tsx
+not-found.tsx
+❯ python3 scripts/see.py /nope/chat
+/nope/chat → HTTP 404
+  h1   : 404

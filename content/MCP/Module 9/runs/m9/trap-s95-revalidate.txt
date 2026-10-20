@@ -1,0 +1,7 @@
+❯ ./scripts/dash.sh lan /acme/dashboard
+lan   /acme/dashboard     0.273s  tin nhắn = 1
+❯ curl -s -b .cookies/lan -X POST localhost:3009/acme/chat -H "Next-Action: $(node scripts/action-id.mjs sendMessageAction)" -H 'content-type: text/plain;charset=UTF-8' --data '["acme","Chốt doanh thu tháng 10"]' | grep -o '{"ok":[^}]*}'
+{"ok":true}
+❯ ./scripts/dash.sh lan /acme/dashboard; sleep 1; ./scripts/dash.sh lan /acme/dashboard
+lan   /acme/dashboard     0.267s  tin nhắn = 1
+lan   /acme/dashboard     0.270s  tin nhắn = 2

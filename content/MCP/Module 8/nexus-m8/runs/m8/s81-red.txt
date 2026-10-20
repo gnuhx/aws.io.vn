@@ -1,0 +1,100 @@
+❯ pnpm --filter @nexus/mcp-server test
+
+> @nexus/mcp-server@ test /home/claude/nexus/apps/mcp-server
+> node --test --test-reporter=spec "test/**/*.test.ts"
+
+▶ nexus_ping
+  ✔ ok (22.437585ms)
+  ﹣ input (0.128923ms) # n/a — không có inputSchema — SDK bỏ qua arguments
+  ﹣ business (0.073642ms) # n/a — không có nhánh lỗi: chỉ báo server còn sống
+✔ nexus_ping (23.401792ms)
+▶ nexus_get_time
+  ✔ ok (3.759928ms)
+  ﹣ input (0.128842ms) # n/a — không có inputSchema
+  ﹣ business (0.106748ms) # n/a — không có nhánh lỗi
+✔ nexus_get_time (4.339232ms)
+▶ nexus_list_customers
+  ✔ ok (4.054879ms)
+  ✔ input (3.713349ms)
+  ﹣ business (0.187858ms) # n/a — lọc ra 0 khách là kết quả hợp lệ (total: 0), không phải lỗi
+✔ nexus_list_customers (8.402939ms)
+▶ nexus_get_customer
+  ✔ ok (8.494905ms)
+  ✔ input (2.257544ms)
+  ✔ business (2.129852ms)
+✔ nexus_get_customer (13.026227ms)
+▶ nexus_enrich_customer
+  ✔ ok (4.574691ms)
+  ✔ input (3.137884ms)
+  ✔ business (2.138629ms)
+✔ nexus_enrich_customer (10.062151ms)
+▶ nexus_revenue_by
+  ✔ ok (3.472175ms)
+  ✔ input (2.10719ms)
+  ✔ business (1.763189ms)
+✔ nexus_revenue_by (7.485405ms)
+▶ nexus_find_orders
+  ✔ ok (6.000349ms)
+  ✔ input (2.15908ms)
+  ✖ business (3.495824ms)
+✖ nexus_find_orders (11.863867ms)
+▶ nexus_list_tasks
+  ✔ ok (3.089042ms)
+  ✔ input (1.707965ms)
+  ✔ business (1.89136ms)
+✔ nexus_list_tasks (6.864885ms)
+▶ nexus_create_task
+  ✔ ok (1.858908ms)
+  ✔ input (7.751878ms)
+  ✔ business (6.344982ms)
+✔ nexus_create_task (16.149238ms)
+▶ nexus_update_task
+  ✔ ok (2.272965ms)
+  ✔ input (1.776639ms)
+  ✔ business (1.799115ms)
+✔ nexus_update_task (6.006128ms)
+▶ nexus_delete_task
+  ✔ ok (13.836861ms)
+  ✔ input (1.824421ms)
+  ✔ business (1.661513ms)
+✔ nexus_delete_task (17.475877ms)
+▶ nexus_export_tasks
+  ✔ ok (26.440606ms)
+  ✔ input (4.999124ms)
+  ✔ business (27.87527ms)
+✔ nexus_export_tasks (59.585286ms)
+✔ tools/list không có tool nào ngoài ma trận (server thêm tool mà chưa có test → đỏ) (56.151229ms)
+ℹ tests 37
+ℹ suites 12
+ℹ pass 31
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 5
+ℹ todo 0
+ℹ duration_ms 641.458875
+
+✖ failing tests:
+
+test at test/tools.test.ts:162:7
+✖ business (3.495824ms)
+  AssertionError [ERR_ASSERTION]: mong isError, nhận: {"matched":0,"totalAmount":0,"sample":[]}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at businessError (file:///home/claude/nexus/apps/mcp-server/test/harness.ts:86:10)
+      at business (file:///home/claude/nexus/apps/mcp-server/test/tools.test.ts:77:33)
+      at async TestContext.<anonymous> (file:///home/claude/nexus/apps/mcp-server/test/tools.test.ts:165:11)
+      at async Test.run (node:internal/test_runner/test:1054:7)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+/home/claude/nexus/apps/mcp-server:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @nexus/mcp-server@ test: `node --test --test-reporter=spec "test/**/*.test.ts"`
+Exit status 1

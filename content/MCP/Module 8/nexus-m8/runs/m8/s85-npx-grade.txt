@@ -1,0 +1,12 @@
+❯ node /home/claude/nexus/apps/cli/scripts/grade.ts --server "npx -y --package=/home/claude/nexus/apps/mcp-server/publish/nexus-demo-mcp-server-0.8.0.tgz nexus-mcp"
+✓ initialize: khai báo tools, resources, prompts, completions (0 ms)
+✓ mọi tool có description ≥ 40 ký tự (nói khi nào nên gọi) (0 ms)
+✓ mọi tool khai báo readOnlyHint; tool xóa có destructiveHint (0 ms)
+✓ input sai → kết quả isError chứa -32602 (callTool KHÔNG ném) (9 ms)
+✓ tool không tồn tại → isError “not found” (1 ms)
+✓ lỗi nghiệp vụ có hướng dẫn bước tiếp (nhắc tool khác) (1 ms)
+✓ phân trang: 1000 id duy nhất, trang cuối không có nextCursor (64 ms)
+✓ tool xóa: client không hỏi được người dùng → không xóa (3 ms)
+✓ completion: lọc theo chữ đang gõ (2 ms)
+✓ stdout sạch: 0 lỗi parse JSON-RPC
+OK: 10/10 đạt

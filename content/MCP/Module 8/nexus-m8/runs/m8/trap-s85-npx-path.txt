@@ -1,0 +1,2 @@
+❯ npx -y /home/claude/nexus/apps/mcp-server/publish/nexus-demo-mcp-server-0.8.0.tgz < /dev/null
+sh: 1: /home/claude/nexus/apps/mcp-server/publish/nexus-demo-mcp-server-0.8.0.tgz: Permission denied

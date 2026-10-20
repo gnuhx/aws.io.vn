@@ -1,0 +1,6 @@
+❯ python3 scripts/form.py "Trà Đá|tra-da"
+gửi name='Trà Đá' slug='tra-da' → nút: 'Đang tạo…' disabled=True
+   lỗi dưới field: Có lỗi: Error: NEXT_REDIRECT
+❯ curl -s localhost:3009/ | grep -o "tra-da/chat\">[^<]*"
+tra-da/chat">Trà Đá
+tra-da/chat">Trà Đá

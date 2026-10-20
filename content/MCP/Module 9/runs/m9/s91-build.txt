@@ -1,0 +1,7 @@
+❯ npx tsc --noEmit -p tsconfig.json && echo "tsc strict: 0 lỗi"
+tsc strict: 0 lỗi
+❯ npx next build 2>&1 | grep -A3 "Route (app)"
+Route (app)
+┌ ƒ /
+└ ○ /_not-found
+

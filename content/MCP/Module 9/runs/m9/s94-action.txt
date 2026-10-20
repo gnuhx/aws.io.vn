@@ -1,0 +1,5 @@
+❯ node scripts/action-id.mjs deleteWorkspaceAction
+40e1f02a46d7cb8abc1a14aa8513edc7a01246626a
+❯ curl -s -b .cookies/minh -X POST localhost:3009/acme/dashboard -H "Next-Action: $(node scripts/action-id.mjs deleteWorkspaceAction)" -H 'content-type: text/plain;charset=UTF-8' --data '["acme"]'
+0:{"a":"$@1","q":"","i":false,"b":"eXlK5vDZecnio7msWWGxV"}
+1:{"ok":false,"error":"Chỉ owner được làm việc này"}

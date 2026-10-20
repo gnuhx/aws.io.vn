@@ -1,0 +1,3 @@
+❯ node traps/s83-context-leak.ts
+in-memory  client trace 130545da228c… · server thấy 130545da228c7b6161964a… → NỐI ĐƯỢC (dù không truyền gì)
+stdio      client trace 0c742c9f9491… · server thấy (không có span active) → ĐỨT

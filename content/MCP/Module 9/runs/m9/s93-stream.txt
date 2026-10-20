@@ -1,0 +1,20 @@
+❯ curl -sN -X POST localhost:3009/api/chat -H "content-type: application/json" -d '{"workspace":"acme","text":"Doanh thu tuần này?"}' | node scripts/stamp.mjs
++ 321 ms  "Bạn "
++ 382 ms  "hỏi: "
++ 443 ms  "\"Doanh "
++ 504 ms  "thu "
++ 565 ms  "tuần "
++ 625 ms  "này?\". "
++ 685 ms  "Tuần "
++ 747 ms  "này "
++ 808 ms  "Acme "
++ 868 ms  "có "
++ 929 ms  "42 "
++ 989 ms  "đơn, "
++1051 ms  "doanh "
++1111 ms  "thu "
++1171 ms  "18,6 "
++1233 ms  "triệu."
+❯ curl -s -X POST localhost:3009/api/chat -H "content-type: application/json" -d '{"workspace":"ACME!","text":""}' -w "\nHTTP %{http_code}\n"
+{"error":[{"origin":"string","code":"invalid_format","format":"regex","pattern":"/^[a-z0-9]+(?:-[a-z0-9]+)*$/","path":["workspace"],"message":"Chỉ chữ thường, số và dấu gạch ngang, ví dụ acme-coffee"},{"origin":"string","code":"too_small","minimum":1,"inclusive":true,"path":["text"],"message":"Too small: expected string to have >=1 characters"}]}
+HTTP 400

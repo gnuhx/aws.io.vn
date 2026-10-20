@@ -1,0 +1,5 @@
+❯ timeout 5 node traps/s84-taskstore-timer.ts; echo "exit=$? (124 = bị timeout giết sau 5 s)"; timeout 5 node traps/s84-taskstore-timer.ts --cleanup; echo "exit=$?"
+task 56d3680f… completed — hết code, process có thoát không?
+exit=124 (124 = bị timeout giết sau 5 s)
+task 6f64dcbd… completed — hết code, process có thoát không?
+exit=0

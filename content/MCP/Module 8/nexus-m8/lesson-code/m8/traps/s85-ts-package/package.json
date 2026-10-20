@@ -1,0 +1,7 @@
+{
+  "name": "s85-ts-package",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": { "s85-ts": "src/cli.ts" },
+  "files": ["src"]
+}

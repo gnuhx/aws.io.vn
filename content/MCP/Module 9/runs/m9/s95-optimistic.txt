@@ -1,0 +1,4 @@
+❯ python3 scripts/optimistic.py lan@nexus.dev mat-khau-lan-123 /acme/chat "Ai trực ca tối?"
+trước khi gửi: 2 tin
++    63 ms  thấy tin 'Ai trực ca tối?' (đang gửi: 1)
++   878 ms  server xác nhận, danh sách thật: 3 tin

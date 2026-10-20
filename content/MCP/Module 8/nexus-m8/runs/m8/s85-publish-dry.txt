@@ -1,0 +1,6 @@
+❯ env -u NPM_TOKEN npm publish --dry-run 2>&1 | tail -3; env -u NPM_TOKEN npm whoami 2>&1 | head -2
+npm notice
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access (dry-run)
++ @nexus-demo/mcp-server@0.8.0
+npm error code E401
+npm error 401 Unauthorized - GET https://registry.npmjs.org/-/whoami

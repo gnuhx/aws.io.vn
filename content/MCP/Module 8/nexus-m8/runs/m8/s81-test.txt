@@ -1,0 +1,93 @@
+❯ pnpm --filter @nexus/mcp-server test
+
+> @nexus/mcp-server@ test /home/claude/nexus/apps/mcp-server
+> node --test --test-reporter=spec "test/**/*.test.ts"
+
+▶ ghi file (M5 · S5.1)
+  ✔ tên file độc bị schema chặn: "../../etc/passwd" (33.151033ms)
+  ✔ tên file độc bị schema chặn: "..%2f..%2fx.csv" (4.587708ms)
+  ✔ tên file độc bị schema chặn: "/tmp/x.csv" (4.900839ms)
+  ✔ tên file độc bị schema chặn: "a/b.csv" (4.002057ms)
+  ✔ tên file độc bị schema chặn: "x.csv\u0000.txt" (5.631517ms)
+  ✔ tên file độc bị schema chặn: "X.CSV" (3.22087ms)
+  ✔ symlink đặt sẵn trong thư mục export không bị ghi xuyên qua (29.46176ms)
+  ✔ CSV injection: ô bắt đầu bằng = bị vô hiệu bằng dấu ' (8.660807ms)
+✔ ghi file (M5 · S5.1) (95.515898ms)
+▶ cursor ký HMAC (M6 · S6.4)
+  ✔ sửa 1 ký tự của nextCursor → bị từ chối, không lộ dữ liệu (7.357658ms)
+✔ cursor ký HMAC (M6 · S6.4) (7.724249ms)
+▶ hành động phá hủy (M6 · S6.3)
+  ✔ người dùng bấm Từ chối → không xóa, model được dặn đừng gọi lại (18.356226ms)
+✔ hành động phá hủy (M6 · S6.3) (18.494327ms)
+▶ scope (M7 · S7.4)
+  ✔ token chỉ nexus:read: tools/list không có tool ghi, gọi thẳng tên → not found (49.032862ms)
+✔ scope (M7 · S7.4) (49.153823ms)
+▶ nexus_ping
+  ✔ ok (24.760638ms)
+  ﹣ input (0.167344ms) # n/a — không có inputSchema — SDK bỏ qua arguments
+  ﹣ business (0.083012ms) # n/a — không có nhánh lỗi: chỉ báo server còn sống
+✔ nexus_ping (25.913599ms)
+▶ nexus_get_time
+  ✔ ok (6.056741ms)
+  ﹣ input (0.112008ms) # n/a — không có inputSchema
+  ﹣ business (0.065003ms) # n/a — không có nhánh lỗi
+✔ nexus_get_time (6.517221ms)
+▶ nexus_list_customers
+  ✔ ok (3.990501ms)
+  ✔ input (4.687082ms)
+  ﹣ business (0.210936ms) # n/a — lọc ra 0 khách là kết quả hợp lệ (total: 0), không phải lỗi
+✔ nexus_list_customers (9.319154ms)
+▶ nexus_get_customer
+  ✔ ok (9.262951ms)
+  ✔ input (2.82378ms)
+  ✔ business (2.188156ms)
+✔ nexus_get_customer (14.498821ms)
+▶ nexus_enrich_customer
+  ✔ ok (4.955171ms)
+  ✔ input (3.057485ms)
+  ✔ business (2.19131ms)
+✔ nexus_enrich_customer (10.429749ms)
+▶ nexus_revenue_by
+  ✔ ok (3.504782ms)
+  ✔ input (2.079284ms)
+  ✔ business (1.890819ms)
+✔ nexus_revenue_by (7.621381ms)
+▶ nexus_find_orders
+  ✔ ok (2.618463ms)
+  ✔ input (2.046187ms)
+  ✔ business (1.579327ms)
+✔ nexus_find_orders (6.431786ms)
+▶ nexus_list_tasks
+  ✔ ok (3.672979ms)
+  ✔ input (1.812747ms)
+  ✔ business (1.98232ms)
+✔ nexus_list_tasks (7.608713ms)
+▶ nexus_create_task
+  ✔ ok (1.881752ms)
+  ✔ input (1.8913ms)
+  ✔ business (8.209177ms)
+✔ nexus_create_task (12.194442ms)
+▶ nexus_update_task
+  ✔ ok (2.196947ms)
+  ✔ input (1.613881ms)
+  ✔ business (1.68959ms)
+✔ nexus_update_task (5.652273ms)
+▶ nexus_delete_task
+  ✔ ok (14.09937ms)
+  ✔ input (1.398709ms)
+  ✔ business (1.366989ms)
+✔ nexus_delete_task (16.982588ms)
+▶ nexus_export_tasks
+  ✔ ok (26.273036ms)
+  ✔ input (3.978466ms)
+  ✔ business (16.598033ms)
+✔ nexus_export_tasks (47.160838ms)
+✔ tools/list không có tool nào ngoài ma trận (server thêm tool mà chưa có test → đỏ) (46.085553ms)
+ℹ tests 48
+ℹ suites 16
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 5
+ℹ todo 0
+ℹ duration_ms 1156.928698

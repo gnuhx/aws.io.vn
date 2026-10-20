@@ -1,0 +1,27 @@
+❯ node --test traps/s81-expect-throw.test.ts
+TAP version 13
+# Subtest: title quá ngắn → callTool ném lỗi?
+not ok 1 - title quá ngắn → callTool ném lỗi?
+  ---
+  duration_ms: 22.363797
+  type: 'test'
+  location: '/home/claude/lesson-code/m8/traps/s81-expect-throw.test.ts:6:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///home/claude/lesson-code/m8/traps/s81-expect-throw.test.ts:8:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 262.481926

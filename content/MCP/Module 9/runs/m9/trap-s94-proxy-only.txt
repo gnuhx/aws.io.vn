@@ -1,0 +1,3 @@
+❯ curl -s localhost:3009/api/workspaces/acme -w "\n  ← ẩn danh, HTTP %{http_code}\n"
+{"id":"ws_1","slug":"acme","name":"Acme Coffee","createdAt":"2026-09-01T00:00:00.000Z","members":[{"workspaceId":"ws_1","email":"lan@nexus.dev","role":"owner"},{"workspaceId":"ws_1","email":"minh@nexus.dev","role":"member"}]}
+  ← ẩn danh, HTTP 200

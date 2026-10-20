@@ -1,0 +1,13 @@
+❯ ./scripts/signin.sh lan an
+lan: đăng nhập 200
+an: đăng nhập 200
+❯ ./scripts/dash.sh lan /acme/dashboard; ./scripts/dash.sh lan /acme/dashboard; ./scripts/dash.sh an /bean-co/dashboard
+lan   /acme/dashboard     1.027s  tin nhắn = 1
+lan   /acme/dashboard     0.263s  tin nhắn = 1
+an    /bean-co/dashboard  0.874s  tin nhắn = 1
+❯ curl -s -b .cookies/lan -X POST localhost:3009/acme/chat -H "Next-Action: $(node scripts/action-id.mjs sendMessageAction)" -H 'content-type: text/plain;charset=UTF-8' --data '["acme","Chốt doanh thu tháng 10"]' | grep -o '{"ok":[^}]*}'
+{"ok":true}
+❯ ./scripts/dash.sh lan /acme/dashboard; ./scripts/dash.sh lan /acme/dashboard; ./scripts/dash.sh an /bean-co/dashboard
+lan   /acme/dashboard     0.871s  tin nhắn = 2
+lan   /acme/dashboard     0.264s  tin nhắn = 2
+an    /bean-co/dashboard  0.260s  tin nhắn = 1

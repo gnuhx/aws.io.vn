@@ -1,0 +1,9 @@
+❯ for u in lan minh an; do curl -s -o /dev/null -w "đăng ký $u: %{http_code}\n" -X POST localhost:3009/api/auth/sign-up/email -H "content-type: application/json" -d "{\"email\":\"$u@nexus.dev\",\"password\":\"mat-khau-$u-123\",\"name\":\"$u\"}"; done
+đăng ký lan: 200
+đăng ký minh: 200
+đăng ký an: 200
+❯ curl -s -i -c .cookies/lan -X POST localhost:3009/api/auth/sign-in/email -H "content-type: application/json" -d '{"email":"lan@nexus.dev","password":"mat-khau-lan-123"}' | grep -i -E "^HTTP|^set-cookie"
+HTTP/1.1 200 OK
+set-cookie: better-auth.session_token=ZoYbpJsAl0p4fPnWg3AQ1ArXZ3U01ay2.7kJFazsLmi86%2Bxcbng80cyGaBiYclwCmLXPm1K4RxLE%3D; Max-Age=604800; Path=/; HttpOnly; SameSite=Lax
+❯ curl -s -o /dev/null -c .cookies/minh -X POST localhost:3009/api/auth/sign-in/email -H "content-type: application/json" -d '{"email":"minh@nexus.dev","password":"mat-khau-minh-123"}' -w "minh đăng nhập: %{http_code}\n"
+minh đăng nhập: 200

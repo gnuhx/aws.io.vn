@@ -1,0 +1,61 @@
+❯ node --test traps/s81-shared-state.test.ts; node --test --test-name-pattern="đếm" traps/s81-shared-state.test.ts
+TAP version 13
+# Subtest: tạo việc mới
+ok 1 - tạo việc mới
+  ---
+  duration_ms: 3.615523
+  type: 'test'
+  ...
+# Subtest: đếm việc: seed có 2 việc
+not ok 2 - đếm việc: seed có 2 việc
+  ---
+  duration_ms: 2.812259
+  type: 'test'
+  location: '/home/claude/lesson-code/m8/traps/s81-shared-state.test.ts:14:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   count: 3
+    -   count: 2
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    count: 2
+  actual:
+    count: 3
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/claude/lesson-code/m8/traps/s81-shared-state.test.ts:16:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 250.558263
+TAP version 13
+# Subtest: đếm việc: seed có 2 việc
+ok 1 - đếm việc: seed có 2 việc
+  ---
+  duration_ms: 4.305025
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 249.517379

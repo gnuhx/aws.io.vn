@@ -1,0 +1,5 @@
+❯ npx next build 2>&1 | grep -A3 "^Error: Only\|^Error: Turbopack"
+Error: Turbopack build failed with 3 errors:
+./apps/web/lib/actions/workspaces.ts:7:1
+Error: Only async functions are allowed to be exported in a "use server" file.
+   5 | import { createWorkspace, SlugTakenError } from "@/lib/db/workspaces";

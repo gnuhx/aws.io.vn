@@ -1,0 +1,10 @@
+❯ npx tsc --noEmit -p tsconfig.json && echo "tsc: 0 lỗi"
+tsc: 0 lỗi
+❯ curl -s -o /dev/null -w "HTTP %{http_code}\n" localhost:3009/
+HTTP 500
+❯ grep -m1 -A4 "Event handlers" server.log
+⨯ Error: Event handlers cannot be passed to Client Component props.
+  {name: ..., onPin: function onPin}
+                     ^^^^^^^^^^^^^^
+If you need interactivity, consider converting part of this to a Client Component.
+    at ignore-listed frames {

@@ -1,0 +1,16 @@
+❯ node traps/s82-exec-injection.ts
+── exec + chuỗi
+   bình thường      ref="HEAD"                           2fad39b sửa lỗi | fc89da8 thêm báo cáo | b5d8e0c khởi tạo
+   shell injection  ref="HEAD; echo PWNED > pwned.txt"   2fad39b sửa lỗi | fc89da8 thêm báo cáo | b5d8e0c khởi tạo
+                    ✗ file bị tạo trên máy server: pwned.txt
+   option injection ref="--output=leak.txt"              (rỗng)
+                    ✗ file bị tạo trên máy server: leak.txt
+── execFile + mảng
+   bình thường      ref="HEAD"                           2fad39b sửa lỗi | fc89da8 thêm báo cáo | b5d8e0c khởi tạo
+   shell injection  ref="HEAD; echo PWNED > pwned.txt"   [isError] Command failed: git log --oneline -n 3 HEAD; echo PWNED > pwned.txt
+   option injection ref="--output=leak.txt"              (rỗng)
+                    ✗ file bị tạo trên máy server: leak.txt
+── execFile + allowlist + --end-of-options
+   bình thường      ref="HEAD"                           2fad39b sửa lỗi | fc89da8 thêm báo cáo | b5d8e0c khởi tạo
+   shell injection  ref="HEAD; echo PWNED > pwned.txt"   [isError] ref không hợp lệ: "HEAD; echo PWNED > pwned.txt"
+   option injection ref="--output=leak.txt"              [isError] ref không hợp lệ: "--output=leak.txt"
