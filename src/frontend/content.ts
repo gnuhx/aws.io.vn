@@ -27,6 +27,10 @@ const rawContentModules = import.meta.glob([
   '!../../content/aws-saa-c03/roadmap.md',
   '!../../content/aws-saa-c03/Module */**',
   '!../../content/MCP/roadmap.md',
+  '!../../content/reactjs/roadmap.md',
+  // Nested git repos committed as gitlinks: their files exist only in a local checkout, never in CI or the deploy.
+  '!../../content/MCP/Module 8/nexus-m8/nexus/**',
+  '!../../content/MCP/Module 9/nexus/**',
 ], {
   eager: true,
   query: '?raw',
@@ -42,7 +46,15 @@ const mcpRoadmapRawModule = import.meta.glob('../../content/MCP/roadmap.md', {
   query: '?raw',
 }) as Record<string, unknown>
 
-const mcpHtmlAssets = import.meta.glob('../../content/MCP/**/*.html', {
+const reactRoadmapRawModule = import.meta.glob('../../content/reactjs/roadmap.md', {
+  eager: true,
+  query: '?raw',
+}) as Record<string, unknown>
+
+// Courses whose `Module N/Module-N-*.md` pages ship with a same-named interactive HTML lesson.
+const moduleHtmlTopics = new Set(['MCP', 'reactjs'])
+
+const moduleHtmlAssets = import.meta.glob(['../../content/MCP/**/*.html', '../../content/reactjs/Module */*.html'], {
   eager: true,
   query: '?url',
   import: 'default',
@@ -115,6 +127,29 @@ const mcpModuleTitles: Record<number, string> = {
   5: 'MCP with real data',
   6: 'MCP client & agent',
   7: 'Remote MCP, Auth & Deploy',
+  8: 'Quality, Security & Ecosystem',
+  9: 'Next.js in depth & Auth',
+}
+
+const reactModuleTitles: Record<number, string> = {
+  1: 'Components, JSX & Props',
+  2: 'Advanced Hooks',
+  3: 'App-level State',
+  4: 'Routing',
+  5: 'Data Fetching',
+  6: 'Styling',
+  7: 'Performance & Design Patterns',
+  8: 'TypeScript with React',
+  9: 'Testing',
+  10: 'Deployment & Build',
+  11: 'Next.js App Router',
+  12: 'Portfolio Projects',
+  13: 'Architecture & AI Code Review',
+}
+
+const topicModuleTitles: Record<string, Record<number, string>> = {
+  MCP: mcpModuleTitles,
+  reactjs: reactModuleTitles,
 }
 
 const rootModuleNumbers: Record<string, number> = {
@@ -219,7 +254,8 @@ const parseSummary = (raw: string) => {
   const firstMeaningful = lines.find((line) => line.trim() && !line.startsWith('#'))
   if (!firstMeaningful) return 'Lesson overview'
 
-  return stripHtml(firstMeaningful).slice(0, 160)
+  // Drop a leading blockquote marker and wrapping emphasis (`> ...`, `_..._`) so the summary reads as plain text.
+  return stripHtml(firstMeaningful).replace(/^>\s*/, '').replace(/^([_*]+)(.+)\1$/, '$2').slice(0, 160)
 }
 
 const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => {
@@ -242,12 +278,12 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
   const module = Number.isFinite(moduleOrder) && moduleOrder > 0
     ? {
         slug: `module-${moduleOrder}`,
-        title: moduleTitle ?? (topic === 'MCP' ? mcpModuleTitles[moduleOrder] : moduleTitles[moduleOrder]) ?? `Module ${moduleOrder}`,
+        title: moduleTitle ?? (topicModuleTitles[topic] ?? moduleTitles)[moduleOrder] ?? `Module ${moduleOrder}`,
         order: moduleOrder,
       }
     : undefined
   const rawTitle = getFrontMatterValue(raw, 'title') ??
-    (topic === 'MCP' ? raw.match(/^#\s+([^\n]+)/m)?.[1]?.replace(/^Module\s+\d+\s*[—–-]\s*/i, '') : undefined) ??
+    (moduleHtmlTopics.has(topic) ? raw.match(/^#\s+([^\n]+)/m)?.[1]?.replace(/^Module\s+\d+\s*[—–·-]\s*/i, '') : undefined) ??
     raw.match(/<title>([^<]+)<\/title>/i)?.[1] ??
     filename.replace(/\.[^.]+$/, '').replace(/^[0-9]+[-_\s]*/, '')
   const title = rawTitle.trim() || 'Untitled lesson'
@@ -267,7 +303,7 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
     order: parseOrder(filePath, raw),
     module,
     kind,
-    interactiveHtmlUrl: topic === 'MCP' ? mcpHtmlAssets[filePath.replace(/\.md$/, '.html')] : undefined,
+    interactiveHtmlUrl: moduleHtmlTopics.has(topic) ? moduleHtmlAssets[filePath.replace(/\.md$/, '.html')] : undefined,
     filePath,
     source: 'markdown',
     bodyMarkdown,
@@ -378,6 +414,7 @@ export const findLesson = (topic: string, slug: string) => {
 export const getCourseRoadmap = (topic = 'aws-saa-c03') => {
   if (topic === 'MCP') return readRawContent(Object.values(mcpRoadmapRawModule)[0])
   if (topic === 'aws-saa-c03') return readRawContent(Object.values(roadmapRawModule)[0])
+  if (topic === 'reactjs') return readRawContent(Object.values(reactRoadmapRawModule)[0])
   return ''
 }
 

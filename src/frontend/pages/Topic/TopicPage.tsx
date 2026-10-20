@@ -44,7 +44,9 @@ export function TopicPage() {
         <h1>{label}</h1>
         <p className={styles.intro}>{topic === 'MCP'
           ? 'Build a production-ready MCP server with Node.js and TypeScript, then connect it to a client and deploy it.'
-          : 'A clear path through the concepts, one focused lesson at a time.'}</p>
+          : topic === 'reactjs'
+            ? 'From components and hooks to app state, data fetching, Next.js and reviewing AI-generated React code.'
+            : 'A clear path through the concepts, one focused lesson at a time.'}</p>
         <div className={styles.courseMeta}>
           <span>{lessons.length} content pages</span>
           {sortedModules.length > 0 && <span>{sortedModules.length} {sortedModules.length === 1 ? 'module' : 'modules'}</span>}
@@ -60,6 +62,9 @@ export function TopicPage() {
             </p>
             <Link className={styles.roadmapLink} to="/MCP/roadmap">View the complete course roadmap ↗</Link>
           </>
+        )}
+        {topic === 'reactjs' && (
+          <Link className={styles.roadmapLink} to="/reactjs/roadmap">View the complete course roadmap ↗</Link>
         )}
       </header>
 

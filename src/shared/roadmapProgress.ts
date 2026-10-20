@@ -2501,6 +2501,243 @@ export const roadmapProgressManifest = {
       "moduleId": "course",
       "sourceLine": 786
     }
+  ],
+  "reactjs": [
+    {
+      "id": "reactjs:item-0001",
+      "moduleId": "module-0",
+      "sourceLine": 17
+    },
+    {
+      "id": "reactjs:item-0002",
+      "moduleId": "module-0",
+      "sourceLine": 20
+    },
+    {
+      "id": "reactjs:item-0003",
+      "moduleId": "module-0",
+      "sourceLine": 23
+    },
+    {
+      "id": "reactjs:item-0004",
+      "moduleId": "module-0",
+      "sourceLine": 26
+    },
+    {
+      "id": "reactjs:item-0005",
+      "moduleId": "module-1",
+      "sourceLine": 32
+    },
+    {
+      "id": "reactjs:item-0006",
+      "moduleId": "module-1",
+      "sourceLine": 36
+    },
+    {
+      "id": "reactjs:item-0007",
+      "moduleId": "module-1",
+      "sourceLine": 39
+    },
+    {
+      "id": "reactjs:item-0008",
+      "moduleId": "module-1",
+      "sourceLine": 42
+    },
+    {
+      "id": "reactjs:item-0009",
+      "moduleId": "module-2",
+      "sourceLine": 50
+    },
+    {
+      "id": "reactjs:item-0010",
+      "moduleId": "module-2",
+      "sourceLine": 53
+    },
+    {
+      "id": "reactjs:item-0011",
+      "moduleId": "module-2",
+      "sourceLine": 57
+    },
+    {
+      "id": "reactjs:item-0012",
+      "moduleId": "module-2",
+      "sourceLine": 60
+    },
+    {
+      "id": "reactjs:item-0013",
+      "moduleId": "module-2",
+      "sourceLine": 63
+    },
+    {
+      "id": "reactjs:item-0014",
+      "moduleId": "module-2",
+      "sourceLine": 67
+    },
+    {
+      "id": "reactjs:item-0015",
+      "moduleId": "module-3",
+      "sourceLine": 73
+    },
+    {
+      "id": "reactjs:item-0016",
+      "moduleId": "module-3",
+      "sourceLine": 77
+    },
+    {
+      "id": "reactjs:item-0017",
+      "moduleId": "module-3",
+      "sourceLine": 79
+    },
+    {
+      "id": "reactjs:item-0018",
+      "moduleId": "module-3",
+      "sourceLine": 83
+    },
+    {
+      "id": "reactjs:item-0019",
+      "moduleId": "module-4",
+      "sourceLine": 97
+    },
+    {
+      "id": "reactjs:item-0020",
+      "moduleId": "module-4",
+      "sourceLine": 100
+    },
+    {
+      "id": "reactjs:item-0021",
+      "moduleId": "module-4",
+      "sourceLine": 104
+    },
+    {
+      "id": "reactjs:item-0022",
+      "moduleId": "module-4",
+      "sourceLine": 106
+    },
+    {
+      "id": "reactjs:item-0023",
+      "moduleId": "module-4",
+      "sourceLine": 109
+    },
+    {
+      "id": "reactjs:item-0024",
+      "moduleId": "module-5",
+      "sourceLine": 115
+    },
+    {
+      "id": "reactjs:item-0025",
+      "moduleId": "module-5",
+      "sourceLine": 117
+    },
+    {
+      "id": "reactjs:item-0026",
+      "moduleId": "module-5",
+      "sourceLine": 121
+    },
+    {
+      "id": "reactjs:item-0027",
+      "moduleId": "module-6",
+      "sourceLine": 128
+    },
+    {
+      "id": "reactjs:item-0028",
+      "moduleId": "module-6",
+      "sourceLine": 131
+    },
+    {
+      "id": "reactjs:item-0029",
+      "moduleId": "module-6",
+      "sourceLine": 133
+    },
+    {
+      "id": "reactjs:item-0030",
+      "moduleId": "module-7",
+      "sourceLine": 139
+    },
+    {
+      "id": "reactjs:item-0031",
+      "moduleId": "module-7",
+      "sourceLine": 143
+    },
+    {
+      "id": "reactjs:item-0032",
+      "moduleId": "module-8",
+      "sourceLine": 149
+    },
+    {
+      "id": "reactjs:item-0033",
+      "moduleId": "module-9",
+      "sourceLine": 156
+    },
+    {
+      "id": "reactjs:item-0034",
+      "moduleId": "module-10",
+      "sourceLine": 162
+    },
+    {
+      "id": "reactjs:item-0035",
+      "moduleId": "module-11",
+      "sourceLine": 171
+    },
+    {
+      "id": "reactjs:item-0036",
+      "moduleId": "module-11",
+      "sourceLine": 174
+    },
+    {
+      "id": "reactjs:item-0037",
+      "moduleId": "module-11",
+      "sourceLine": 176
+    },
+    {
+      "id": "reactjs:item-0038",
+      "moduleId": "module-11",
+      "sourceLine": 178
+    },
+    {
+      "id": "reactjs:item-0039",
+      "moduleId": "module-11",
+      "sourceLine": 180
+    },
+    {
+      "id": "reactjs:item-0040",
+      "moduleId": "module-12",
+      "sourceLine": 187
+    },
+    {
+      "id": "reactjs:item-0041",
+      "moduleId": "module-12",
+      "sourceLine": 188
+    },
+    {
+      "id": "reactjs:item-0042",
+      "moduleId": "module-12",
+      "sourceLine": 189
+    },
+    {
+      "id": "reactjs:item-0043",
+      "moduleId": "module-12",
+      "sourceLine": 190
+    },
+    {
+      "id": "reactjs:item-0044",
+      "moduleId": "module-12",
+      "sourceLine": 191
+    },
+    {
+      "id": "reactjs:item-0045",
+      "moduleId": "module-13",
+      "sourceLine": 198
+    },
+    {
+      "id": "reactjs:item-0046",
+      "moduleId": "module-13",
+      "sourceLine": 203
+    },
+    {
+      "id": "reactjs:item-0047",
+      "moduleId": "module-13",
+      "sourceLine": 216
+    }
   ]
 } as const satisfies Record<string, readonly RoadmapProgressItem[]>
 
