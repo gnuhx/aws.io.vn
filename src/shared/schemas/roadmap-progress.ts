@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { isLessonProgressId } from '../lessonProgress.ts'
 import { isRoadmapId, isRoadmapItemId, type ProgressStatus } from '../roadmapProgress.ts'
 
-export const roadmapIdSchema = z.enum(['aws-saa-c03', 'MCP', 'reactjs'])
+export const roadmapIdSchema = z.enum(['aws-saa-c03', 'MCP', 'reactjs', 'terraform'])
 export const progressStatusSchema = z.enum(['in_progress', 'completed'])
 
 export const progressReadParamsSchema = z.object({ roadmapId: roadmapIdSchema })

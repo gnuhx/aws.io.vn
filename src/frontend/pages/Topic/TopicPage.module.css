@@ -228,6 +228,20 @@
 
 .lessonList li + li { border-top: 1px solid #d8dee4; }
 
+.lessonSection {
+  margin: 0;
+  padding: 0.85rem 1.35rem 0.45rem;
+  border-top: 1px solid #d8dee4;
+  background: #f6f8fa;
+  color: #59636e;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lessonSection + .lessonList { border-top: 1px solid #d8dee4; }
+
 .lessonLink {
   display: flex;
   align-items: center;

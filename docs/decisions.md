@@ -20,6 +20,13 @@ Template:
 
 ---
 
+## D-011 · 2026-10-23 · Accepted
+**Question:** Can the Terraform course (Packt's *Mastering Terraform* repo) be published, and in which language?
+**Options:** (a) publish as-is in English; (b) rewrite/translate into Vietnamese notes; (c) keep private
+**Decision:** **(a) publish as-is in English.** The source repo is MIT-licensed (© 2024 Packt), which allows publishing and modifying with the notice kept. Translating ~122k words is a separate project.
+**Consequences:** `content/terraform/LICENSE` keeps the notice; the topic page and roadmap credit the book and license. A Vietnamese version, if wanted later, is new work under its own tasks.
+**Tasks:** TASK-029, TASK-033
+
 ## D-010 · 2026-10-15 · Accepted
 **Question:** How should repository integration tests get an isolated MongoDB and run in CI?
 **Options:** (a) `mongodb-memory-server` with a real ephemeral `mongod`; (b) a MongoDB service container in GitHub Actions, requiring local Docker for parity. Run integration tests in the default suite or as a separate Vitest project.

@@ -1,7 +1,8 @@
+import { Fragment } from 'react'
 import { Link, useParams } from 'react-router'
 import { findLessonProgressEntry } from '../../../shared/lessonProgress.ts'
 import { isRoadmapId } from '../../../shared/roadmapProgress.ts'
-import { getLessonCatalog, getLessonContentPath, getPublishedModuleOrders, getTopicLabel, type LessonEntry } from '../../content.ts'
+import { getLessonCatalog, getLessonContentPath, getPublishedModuleOrders, getTopicLabel, groupLessonsBySection, type LessonEntry } from '../../content.ts'
 import { McpModuleWrapup } from '../../components/McpModuleWrapup/McpModuleWrapup.tsx'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import { ContinueReading } from '../../reading/ContinueReading.tsx'
@@ -46,7 +47,9 @@ export function TopicPage() {
           ? 'Build a production-ready MCP server with Node.js and TypeScript, then connect it to a client and deploy it.'
           : topic === 'reactjs'
             ? 'From components and hooks to app state, data fetching, Next.js and reviewing AI-generated React code.'
-            : 'A clear path through the concepts, one focused lesson at a time.'}</p>
+            : topic === 'terraform'
+              ? 'From Terraform architecture and HCL to building VM, container and serverless solutions on AWS, Azure and Google Cloud, then importing, operating and certifying.'
+              : 'A clear path through the concepts, one focused lesson at a time.'}</p>
         <div className={styles.courseMeta}>
           <span>{lessons.length} content pages</span>
           {sortedModules.length > 0 && <span>{sortedModules.length} {sortedModules.length === 1 ? 'module' : 'modules'}</span>}
@@ -65,6 +68,14 @@ export function TopicPage() {
         )}
         {topic === 'reactjs' && (
           <Link className={styles.roadmapLink} to="/reactjs/roadmap">View the complete course roadmap ↗</Link>
+        )}
+        {topic === 'terraform' && (
+          <Link className={styles.roadmapLink} to="/terraform/roadmap">View the complete course roadmap ↗</Link>
+        )}
+        {topic === 'terraform' && (
+          <p className={styles.publishStatus}>
+            Based on <a href="https://www.packtpub.com/en-us/product/mastering-terraform-9781835086018" target="_blank" rel="noreferrer"><cite>Mastering Terraform</cite></a> by Mark Tinderholt, © 2024 Packt, used under the MIT License.
+          </p>
         )}
       </header>
 
@@ -88,20 +99,25 @@ export function TopicPage() {
                 <ModuleReadAction moduleName={`Module ${order}`} lessonIds={trackedIds(group.lessons)} state={readState} />
               </div>
             </div>
-            <ol className={styles.lessonList}>
-              {group.lessons.sort((a, b) => a.order - b.order).map((lesson, index) => (
-                <li key={lesson.slug}>
-                  <Link className={styles.lessonLink} to={`/${topic}/${lesson.slug}`}>
-                    <span className={styles.lessonIndex}>{String(index + 1).padStart(2, '0')}</span>
-                    <span className={styles.lessonCopy}>
-                      <strong>{lesson.title}</strong>
-                      <span>{lesson.kind === 'overview' ? 'Overview · ' : lesson.kind === 'visual' ? 'Interactive visual · ' : lesson.kind === 'section' ? 'Section · ' : 'Lesson · '}{lesson.summary}</span>
-                    </span>
-                    <span className={styles.arrow} aria-hidden="true">↗</span>
-                  </Link>
-                </li>
-              ))}
-            </ol>
+            {groupLessonsBySection(group.lessons.sort((a, b) => a.order - b.order)).map((sectionGroup) => (
+              <Fragment key={sectionGroup.section?.order ?? 'lessons'}>
+                {sectionGroup.section && <h3 className={styles.lessonSection}>{sectionGroup.section.title}</h3>}
+                <ol className={styles.lessonList}>
+                  {sectionGroup.lessons.map((lesson) => (
+                    <li key={lesson.slug}>
+                      <Link className={styles.lessonLink} to={`/${topic}/${lesson.slug}`}>
+                        <span className={styles.lessonIndex}>{String(group.lessons.indexOf(lesson) + 1).padStart(2, '0')}</span>
+                        <span className={styles.lessonCopy}>
+                          <strong>{lesson.title}</strong>
+                          <span>{lesson.kind === 'overview' ? 'Overview · ' : lesson.kind === 'visual' ? 'Interactive visual · ' : lesson.kind === 'section' ? 'Section · ' : 'Lesson · '}{lesson.summary}</span>
+                        </span>
+                        <span className={styles.arrow} aria-hidden="true">↗</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </Fragment>
+            ))}
             {topic === 'MCP' && (
               <McpModuleWrapup
                 module={order}

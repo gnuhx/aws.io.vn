@@ -14,6 +14,11 @@ export type LessonEntry = {
     title: string
     order: number
   }
+  /** A titled group of lessons inside a module (chapter-layout courses only). */
+  section?: {
+    title: string
+    order: number
+  }
   kind: LessonKind
   interactiveHtmlUrl?: string
   markdownUrl?: string
@@ -31,10 +36,29 @@ const rawContentModules = import.meta.glob([
   // Nested git repos committed as gitlinks: their files exist only in a local checkout, never in CI or the deploy.
   '!../../content/MCP/Module 8/nexus-m8/nexus/**',
   '!../../content/MCP/Module 9/nexus/**',
+  // Byte-identical copy of `MCP/Module 7/Module-7-Remote-Auth-Deploy.md` that would share its slug (its m7-samples README stays a lesson).
+  '!../../content/MCP/Module 7/Module-7/Module 7/Module-7-Remote-Auth-Deploy.md',
+  // Chapter-layout course, loaded by `chapterContentModules` below.
+  '!../../content/terraform/**',
 ], {
   eager: true,
   query: '?raw',
 }) as Record<string, unknown>
+
+// Courses laid out as `Chapter NN - <Title>/<S>. <Section>/<L>. <Lesson>.md`, with diagrams in `Chapter NN - <Title>/images/`.
+// Unreleased: only the dev server (and tests) load terraform, so production builds don't ship its text or images.
+// TASK-033 removes the `import.meta.env.DEV` guards to release it.
+const chapterContentModules = (import.meta.env.DEV
+  ? import.meta.glob('../../content/terraform/Chapter */*/*.md', { eager: true, query: '?raw' })
+  : {}) as Record<string, unknown>
+
+const chapterImageAssets = (import.meta.env.DEV
+  ? import.meta.glob('../../content/terraform/Chapter */images/*.png', { eager: true, query: '?url', import: 'default' })
+  : {}) as Record<string, string>
+
+const terraformRoadmapRawModule = (import.meta.env.DEV
+  ? import.meta.glob('../../content/terraform/roadmap.md', { eager: true, query: '?raw' })
+  : {}) as Record<string, unknown>
 
 const roadmapRawModule = import.meta.glob('../../content/aws-saa-c03/roadmap.md', {
   eager: true,
@@ -251,7 +275,8 @@ const parseSummary = (raw: string) => {
   if (!normalized) return 'Lesson overview'
 
   const lines = normalized.split(/\n+/)
-  const firstMeaningful = lines.find((line) => line.trim() && !line.startsWith('#'))
+  // Skip headings, images, code fences and link definitions (`[image-1]: ...`), which read badly as a summary.
+  const firstMeaningful = lines.find((line) => line.trim() && !/^(#|!\[|```|\[[^\]]+\]:)/.test(line.trim()))
   if (!firstMeaningful) return 'Lesson overview'
 
   // Drop a leading blockquote marker and wrapping emphasis (`> ...`, `_..._`) so the summary reads as plain text.
@@ -310,6 +335,61 @@ const parseLessonEntry = (filePath: string, raw: string): LessonEntry | null => 
   }
 }
 
+// Folder names can't hold "/", so "CI/CD" is written "CI - CD" on disk.
+const chapterFolderTitle = (value: string) => value.replace(/\bCI - CD\b/g, 'CI/CD').trim()
+
+/** Parses `<topic>/Chapter NN - <Title>/<S>. <Section>/<L>. <Lesson>.md`; order and slug come from the path only. */
+export const parseChapterLesson = (filePath: string, raw: string): LessonEntry | null => {
+  const [topic, chapterDir, sectionDir, filename] = filePath.split('/content/')[1]?.split('/') ?? []
+  const chapter = chapterDir?.match(/^Chapter (\d+) - (.+)$/)
+  const section = sectionDir?.match(/^(\d+)\. (.+)$/)
+  const file = filename?.match(/^(\d+)\. (.+)\.md$/)
+  if (!topic || !chapter || !section || !file) return null
+
+  const chapterOrder = Number(chapter[1])
+  const sectionTitle = chapterFolderTitle(section[2])
+  const sectionSlug = normalizeSlug(sectionTitle)
+  const fileSlug = normalizeSlug(file[2])
+  const heading = raw.match(/^#\s+(.+)$/m)?.[1].replace(/\\(.)/g, '$1').trim()
+
+  return {
+    topic,
+    slug: `ch${String(chapterOrder).padStart(2, '0')}-${fileSlug === sectionSlug ? sectionSlug : `${sectionSlug}-${fileSlug}`}`,
+    title: heading || file[2],
+    summary: parseSummary(raw),
+    order: Number(section[1]) * 100 + Number(file[1]),
+    module: { slug: `module-${chapterOrder}`, title: chapterFolderTitle(chapter[2]), order: chapterOrder },
+    section: { title: sectionTitle, order: Number(section[1]) },
+    kind: 'lesson',
+    filePath,
+    source: 'markdown',
+    bodyMarkdown: raw.replace(/^#\s+[^\n]+\n+/, '').trim(),
+  }
+}
+
+/** Resolves a relative image path in a lesson's Markdown to its bundled URL; other URLs are returned unchanged. */
+export const resolveLessonAssetUrl = (lesson: Pick<LessonEntry, 'filePath'>, url: string) => {
+  if (/^([a-z][a-z0-9+.-]*:|\/|#)/i.test(url)) return url
+
+  const parts = lesson.filePath.split('/').slice(0, -1)
+  for (const segment of decodeURI(url).split('/')) {
+    if (segment === '..') parts.pop()
+    else if (segment !== '.') parts.push(segment)
+  }
+  return chapterImageAssets[parts.join('/')] ?? url
+}
+
+export type LessonGroup = { section?: LessonEntry['section']; lessons: LessonEntry[] }
+
+/** Splits ordered lessons into runs that share a section; lessons without sections form one untitled group. */
+export const groupLessonsBySection = (lessons: LessonEntry[]): LessonGroup[] =>
+  lessons.reduce<LessonGroup[]>((groups, lesson) => {
+    const last = groups.at(-1)
+    if (last && last.section?.order === lesson.section?.order) last.lessons.push(lesson)
+    else groups.push({ section: lesson.section, lessons: [lesson] })
+    return groups
+  }, [])
+
 let lessonCatalogCache: Record<string, LessonEntry[]> | null = null
 
 export const getLessonCatalog = () => {
@@ -326,6 +406,13 @@ export const getLessonCatalog = () => {
     if (!rawContent) continue
 
     const lesson = parseLessonEntry(filePath, rawContent)
+    if (!lesson) continue
+    catalog[lesson.topic] ??= []
+    catalog[lesson.topic].push(lesson)
+  }
+
+  for (const [filePath, rawFile] of Object.entries(chapterContentModules)) {
+    const lesson = parseChapterLesson(filePath, readRawContent(rawFile))
     if (!lesson) continue
     catalog[lesson.topic] ??= []
     catalog[lesson.topic].push(lesson)
@@ -394,6 +481,7 @@ export const getTopicLabel = (topic: string) => {
     'context-engineering': 'Context Engineering',
     reactjs: 'ReactJS',
     'agentic-ai-code': 'Agentic AI Code',
+    terraform: 'Terraform',
   }
 
   return topicMap[topic] ?? topic.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
@@ -417,6 +505,7 @@ export const getCourseRoadmap = (topic = 'aws-saa-c03') => {
   if (topic === 'MCP') return readRawContent(Object.values(mcpRoadmapRawModule)[0])
   if (topic === 'aws-saa-c03') return readRawContent(Object.values(roadmapRawModule)[0])
   if (topic === 'reactjs') return readRawContent(Object.values(reactRoadmapRawModule)[0])
+  if (topic === 'terraform') return readRawContent(Object.values(terraformRoadmapRawModule)[0])
   return ''
 }
 
