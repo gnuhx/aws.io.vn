@@ -1,0 +1,5 @@
+❯ npx next build 2>&1 | grep -B2 -A1 "must be a Client Component"
+Error: Turbopack build failed with 1 error:
+./apps/web/app/(app)/[workspace]/dashboard/error.tsx:2:1
+Error: apps/web/app/(app)/[workspace]/dashboard/error.tsx must be a Client Component. Add the "use client" directive the top of the file to resolve this issue.
+    Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client

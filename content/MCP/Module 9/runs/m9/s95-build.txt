@@ -1,0 +1,14 @@
+❯ npx next build 2>&1 | grep -A12 "Route (app)"
+Route (app)
+┌ ◐ /
+├ ○ /_not-found
+├   /[workspace]/chat
+│ └ ◐ /[workspace]/chat
+├   /[workspace]/dashboard
+│ └ ◐ /[workspace]/dashboard
+├ ƒ /api/auth/[...all]
+├ ƒ /api/chat
+├ ƒ /api/workspaces/[slug]
+└ ○ /login
+
+

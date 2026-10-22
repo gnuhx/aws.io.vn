@@ -1,0 +1,14 @@
+❯ npx tsc --noEmit -p tsconfig.json
+app/(app)/[workspace]/chat/page.tsx:4:40 - error TS2339: Property 'workspace' does not exist on type 'Promise<{ workspace: string; }>'.
+
+4   const ws = await getWorkspace(params.workspace); // quen tay từ Next 14 / ASP.NET route value
+                                         ~~~~~~~~~
+
+  app/(app)/[workspace]/chat/page.tsx:4:40
+    4   const ws = await getWorkspace(params.workspace); // quen tay từ Next 14 / ASP.NET route value
+                                             ~~~~~~~~~
+    Did you forget to use 'await'?
+
+
+Found 1 error in app/(app)/[workspace]/chat/page.tsx:4
+

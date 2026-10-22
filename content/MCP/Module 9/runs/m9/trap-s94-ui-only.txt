@@ -1,0 +1,5 @@
+❯ curl -s -b .cookies/minh -X POST localhost:3009/acme/dashboard -H "Next-Action: $(node scripts/action-id.mjs deleteWorkspaceAction)" -H 'content-type: text/plain;charset=UTF-8' --data '["acme"]'
+0:{"a":"$@1","q":"","i":false,"b":"059ver9rBpl_3NXIXNuTg"}
+1:{"ok":true}
+❯ curl -s -b .cookies/lan -o /dev/null localhost:3009/acme/chat -w "lan (owner) mở /acme/chat: HTTP %{http_code}\n"
+lan (owner) mở /acme/chat: HTTP 404

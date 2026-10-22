@@ -1,0 +1,18 @@
+1280px · 5 bài                          : OK (8 mục/bài, đáy = 100%, mục TOC cuối ✓, không cuộn ngang, chữ SVG nhỏ nhất 12px)
+id trùng                                : không
+link màu xanh mặc định                  : 0
+Copy editor                             : nút='Copied ✓' · khớp code=True · dòng đầu: 'import { listWorkspaces } from "@/lib/db/workspace'
+   sau 1,5 s                            : Copy
+Copy TERMINAL (chỉ lệnh)                : 'npx tsc --noEmit -p tsconfig.json && echo "tsc strict: 0 lỗi"\nnpx next build 2>&'
+editor nhiều tab: bấm tab 2             : s92-c1 → panel 1
+trắc nghiệm sai → đúng                  : '✗ Chưa đúng — đáp án B.' → '✓ Đúng.'
+sidebar sau khi đọc hết 9.1             : đã xong | đang học | sắp tới | sắp tới | sắp tới
+   dòng vị trí                          : Đã học: 9.1 · Đang học: 9.2 · Sắp tới: 9.3, 9.4, 9.5
+   giữa bài                             : 26% · Bạn đang ở: 9.2 › 4. Ví dụ thực tế · đậm='4. Ví dụ thực tế' · ✓=3
+reload: ô tick nhớ / bài đang mở        : s92-ac1=True · s92
+link sâu #s94-4-ví-dụ-thực-tế           : s94 · đậm='4. Ví dụ thực tế'
+360px · 5 bài                           : OK (8 mục/bài, đáy = 100%, mục TOC cuối ✓, không cuộn ngang, chữ SVG nhỏ nhất 12px)
+360px: lưới bài / code cuộn trong khung : cột=162.5px 162.5px · code scrollW/clientW=[678, 326]
+không JS                                : bài hiện 5 · sơ đồ 10 · panel code 27/27
+console errors/warnings: không
+KẾT LUẬN: ĐẠT

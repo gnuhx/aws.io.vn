@@ -1,0 +1,3 @@
+❯ node traps/s84-poll-interval.ts
+không đặt pollInterval  → client cũ chờ 1004 ms cho việc 300 ms
+pollInterval: 250        → client cũ chờ 503 ms

@@ -2501,6 +2501,790 @@ export const roadmapProgressManifest = {
       "moduleId": "course",
       "sourceLine": 786
     }
+  ],
+  "reactjs": [
+    {
+      "id": "reactjs:item-0001",
+      "moduleId": "module-0",
+      "sourceLine": 17
+    },
+    {
+      "id": "reactjs:item-0002",
+      "moduleId": "module-0",
+      "sourceLine": 20
+    },
+    {
+      "id": "reactjs:item-0003",
+      "moduleId": "module-0",
+      "sourceLine": 23
+    },
+    {
+      "id": "reactjs:item-0004",
+      "moduleId": "module-0",
+      "sourceLine": 26
+    },
+    {
+      "id": "reactjs:item-0005",
+      "moduleId": "module-1",
+      "sourceLine": 32
+    },
+    {
+      "id": "reactjs:item-0006",
+      "moduleId": "module-1",
+      "sourceLine": 36
+    },
+    {
+      "id": "reactjs:item-0007",
+      "moduleId": "module-1",
+      "sourceLine": 39
+    },
+    {
+      "id": "reactjs:item-0008",
+      "moduleId": "module-1",
+      "sourceLine": 42
+    },
+    {
+      "id": "reactjs:item-0009",
+      "moduleId": "module-2",
+      "sourceLine": 50
+    },
+    {
+      "id": "reactjs:item-0010",
+      "moduleId": "module-2",
+      "sourceLine": 53
+    },
+    {
+      "id": "reactjs:item-0011",
+      "moduleId": "module-2",
+      "sourceLine": 57
+    },
+    {
+      "id": "reactjs:item-0012",
+      "moduleId": "module-2",
+      "sourceLine": 60
+    },
+    {
+      "id": "reactjs:item-0013",
+      "moduleId": "module-2",
+      "sourceLine": 63
+    },
+    {
+      "id": "reactjs:item-0014",
+      "moduleId": "module-2",
+      "sourceLine": 67
+    },
+    {
+      "id": "reactjs:item-0015",
+      "moduleId": "module-3",
+      "sourceLine": 73
+    },
+    {
+      "id": "reactjs:item-0016",
+      "moduleId": "module-3",
+      "sourceLine": 77
+    },
+    {
+      "id": "reactjs:item-0017",
+      "moduleId": "module-3",
+      "sourceLine": 79
+    },
+    {
+      "id": "reactjs:item-0018",
+      "moduleId": "module-3",
+      "sourceLine": 83
+    },
+    {
+      "id": "reactjs:item-0019",
+      "moduleId": "module-4",
+      "sourceLine": 97
+    },
+    {
+      "id": "reactjs:item-0020",
+      "moduleId": "module-4",
+      "sourceLine": 100
+    },
+    {
+      "id": "reactjs:item-0021",
+      "moduleId": "module-4",
+      "sourceLine": 104
+    },
+    {
+      "id": "reactjs:item-0022",
+      "moduleId": "module-4",
+      "sourceLine": 106
+    },
+    {
+      "id": "reactjs:item-0023",
+      "moduleId": "module-4",
+      "sourceLine": 109
+    },
+    {
+      "id": "reactjs:item-0024",
+      "moduleId": "module-5",
+      "sourceLine": 115
+    },
+    {
+      "id": "reactjs:item-0025",
+      "moduleId": "module-5",
+      "sourceLine": 117
+    },
+    {
+      "id": "reactjs:item-0026",
+      "moduleId": "module-5",
+      "sourceLine": 121
+    },
+    {
+      "id": "reactjs:item-0027",
+      "moduleId": "module-6",
+      "sourceLine": 128
+    },
+    {
+      "id": "reactjs:item-0028",
+      "moduleId": "module-6",
+      "sourceLine": 131
+    },
+    {
+      "id": "reactjs:item-0029",
+      "moduleId": "module-6",
+      "sourceLine": 133
+    },
+    {
+      "id": "reactjs:item-0030",
+      "moduleId": "module-7",
+      "sourceLine": 139
+    },
+    {
+      "id": "reactjs:item-0031",
+      "moduleId": "module-7",
+      "sourceLine": 143
+    },
+    {
+      "id": "reactjs:item-0032",
+      "moduleId": "module-8",
+      "sourceLine": 149
+    },
+    {
+      "id": "reactjs:item-0033",
+      "moduleId": "module-9",
+      "sourceLine": 156
+    },
+    {
+      "id": "reactjs:item-0034",
+      "moduleId": "module-10",
+      "sourceLine": 162
+    },
+    {
+      "id": "reactjs:item-0035",
+      "moduleId": "module-11",
+      "sourceLine": 171
+    },
+    {
+      "id": "reactjs:item-0036",
+      "moduleId": "module-11",
+      "sourceLine": 174
+    },
+    {
+      "id": "reactjs:item-0037",
+      "moduleId": "module-11",
+      "sourceLine": 176
+    },
+    {
+      "id": "reactjs:item-0038",
+      "moduleId": "module-11",
+      "sourceLine": 178
+    },
+    {
+      "id": "reactjs:item-0039",
+      "moduleId": "module-11",
+      "sourceLine": 180
+    },
+    {
+      "id": "reactjs:item-0040",
+      "moduleId": "module-12",
+      "sourceLine": 187
+    },
+    {
+      "id": "reactjs:item-0041",
+      "moduleId": "module-12",
+      "sourceLine": 188
+    },
+    {
+      "id": "reactjs:item-0042",
+      "moduleId": "module-12",
+      "sourceLine": 189
+    },
+    {
+      "id": "reactjs:item-0043",
+      "moduleId": "module-12",
+      "sourceLine": 190
+    },
+    {
+      "id": "reactjs:item-0044",
+      "moduleId": "module-12",
+      "sourceLine": 191
+    },
+    {
+      "id": "reactjs:item-0045",
+      "moduleId": "module-13",
+      "sourceLine": 198
+    },
+    {
+      "id": "reactjs:item-0046",
+      "moduleId": "module-13",
+      "sourceLine": 203
+    },
+    {
+      "id": "reactjs:item-0047",
+      "moduleId": "module-13",
+      "sourceLine": 216
+    }
+  ],
+  "terraform": [
+    {
+      "id": "terraform:item-0001",
+      "moduleId": "module-1",
+      "sourceLine": 10
+    },
+    {
+      "id": "terraform:item-0002",
+      "moduleId": "module-1",
+      "sourceLine": 11
+    },
+    {
+      "id": "terraform:item-0003",
+      "moduleId": "module-1",
+      "sourceLine": 12
+    },
+    {
+      "id": "terraform:item-0004",
+      "moduleId": "module-1",
+      "sourceLine": 13
+    },
+    {
+      "id": "terraform:item-0005",
+      "moduleId": "module-1",
+      "sourceLine": 14
+    },
+    {
+      "id": "terraform:item-0006",
+      "moduleId": "module-1",
+      "sourceLine": 15
+    },
+    {
+      "id": "terraform:item-0007",
+      "moduleId": "module-2",
+      "sourceLine": 21
+    },
+    {
+      "id": "terraform:item-0008",
+      "moduleId": "module-2",
+      "sourceLine": 22
+    },
+    {
+      "id": "terraform:item-0009",
+      "moduleId": "module-2",
+      "sourceLine": 23
+    },
+    {
+      "id": "terraform:item-0010",
+      "moduleId": "module-2",
+      "sourceLine": 24
+    },
+    {
+      "id": "terraform:item-0011",
+      "moduleId": "module-2",
+      "sourceLine": 25
+    },
+    {
+      "id": "terraform:item-0012",
+      "moduleId": "module-2",
+      "sourceLine": 26
+    },
+    {
+      "id": "terraform:item-0013",
+      "moduleId": "module-2",
+      "sourceLine": 27
+    },
+    {
+      "id": "terraform:item-0014",
+      "moduleId": "module-2",
+      "sourceLine": 28
+    },
+    {
+      "id": "terraform:item-0015",
+      "moduleId": "module-2",
+      "sourceLine": 29
+    },
+    {
+      "id": "terraform:item-0016",
+      "moduleId": "module-3",
+      "sourceLine": 35
+    },
+    {
+      "id": "terraform:item-0017",
+      "moduleId": "module-3",
+      "sourceLine": 36
+    },
+    {
+      "id": "terraform:item-0018",
+      "moduleId": "module-3",
+      "sourceLine": 37
+    },
+    {
+      "id": "terraform:item-0019",
+      "moduleId": "module-3",
+      "sourceLine": 38
+    },
+    {
+      "id": "terraform:item-0020",
+      "moduleId": "module-3",
+      "sourceLine": 39
+    },
+    {
+      "id": "terraform:item-0021",
+      "moduleId": "module-3",
+      "sourceLine": 40
+    },
+    {
+      "id": "terraform:item-0022",
+      "moduleId": "module-4",
+      "sourceLine": 46
+    },
+    {
+      "id": "terraform:item-0023",
+      "moduleId": "module-4",
+      "sourceLine": 47
+    },
+    {
+      "id": "terraform:item-0024",
+      "moduleId": "module-4",
+      "sourceLine": 48
+    },
+    {
+      "id": "terraform:item-0025",
+      "moduleId": "module-4",
+      "sourceLine": 49
+    },
+    {
+      "id": "terraform:item-0026",
+      "moduleId": "module-4",
+      "sourceLine": 50
+    },
+    {
+      "id": "terraform:item-0027",
+      "moduleId": "module-5",
+      "sourceLine": 56
+    },
+    {
+      "id": "terraform:item-0028",
+      "moduleId": "module-5",
+      "sourceLine": 57
+    },
+    {
+      "id": "terraform:item-0029",
+      "moduleId": "module-5",
+      "sourceLine": 58
+    },
+    {
+      "id": "terraform:item-0030",
+      "moduleId": "module-5",
+      "sourceLine": 59
+    },
+    {
+      "id": "terraform:item-0031",
+      "moduleId": "module-5",
+      "sourceLine": 60
+    },
+    {
+      "id": "terraform:item-0032",
+      "moduleId": "module-5",
+      "sourceLine": 61
+    },
+    {
+      "id": "terraform:item-0033",
+      "moduleId": "module-5",
+      "sourceLine": 62
+    },
+    {
+      "id": "terraform:item-0034",
+      "moduleId": "module-5",
+      "sourceLine": 63
+    },
+    {
+      "id": "terraform:item-0035",
+      "moduleId": "module-5",
+      "sourceLine": 64
+    },
+    {
+      "id": "terraform:item-0036",
+      "moduleId": "module-6",
+      "sourceLine": 70
+    },
+    {
+      "id": "terraform:item-0037",
+      "moduleId": "module-6",
+      "sourceLine": 71
+    },
+    {
+      "id": "terraform:item-0038",
+      "moduleId": "module-6",
+      "sourceLine": 72
+    },
+    {
+      "id": "terraform:item-0039",
+      "moduleId": "module-6",
+      "sourceLine": 73
+    },
+    {
+      "id": "terraform:item-0040",
+      "moduleId": "module-7",
+      "sourceLine": 79
+    },
+    {
+      "id": "terraform:item-0041",
+      "moduleId": "module-7",
+      "sourceLine": 80
+    },
+    {
+      "id": "terraform:item-0042",
+      "moduleId": "module-7",
+      "sourceLine": 81
+    },
+    {
+      "id": "terraform:item-0043",
+      "moduleId": "module-7",
+      "sourceLine": 82
+    },
+    {
+      "id": "terraform:item-0044",
+      "moduleId": "module-7",
+      "sourceLine": 83
+    },
+    {
+      "id": "terraform:item-0045",
+      "moduleId": "module-7",
+      "sourceLine": 84
+    },
+    {
+      "id": "terraform:item-0046",
+      "moduleId": "module-8",
+      "sourceLine": 90
+    },
+    {
+      "id": "terraform:item-0047",
+      "moduleId": "module-8",
+      "sourceLine": 91
+    },
+    {
+      "id": "terraform:item-0048",
+      "moduleId": "module-8",
+      "sourceLine": 92
+    },
+    {
+      "id": "terraform:item-0049",
+      "moduleId": "module-8",
+      "sourceLine": 93
+    },
+    {
+      "id": "terraform:item-0050",
+      "moduleId": "module-8",
+      "sourceLine": 94
+    },
+    {
+      "id": "terraform:item-0051",
+      "moduleId": "module-8",
+      "sourceLine": 95
+    },
+    {
+      "id": "terraform:item-0052",
+      "moduleId": "module-9",
+      "sourceLine": 101
+    },
+    {
+      "id": "terraform:item-0053",
+      "moduleId": "module-9",
+      "sourceLine": 102
+    },
+    {
+      "id": "terraform:item-0054",
+      "moduleId": "module-9",
+      "sourceLine": 103
+    },
+    {
+      "id": "terraform:item-0055",
+      "moduleId": "module-9",
+      "sourceLine": 104
+    },
+    {
+      "id": "terraform:item-0056",
+      "moduleId": "module-9",
+      "sourceLine": 105
+    },
+    {
+      "id": "terraform:item-0057",
+      "moduleId": "module-9",
+      "sourceLine": 106
+    },
+    {
+      "id": "terraform:item-0058",
+      "moduleId": "module-10",
+      "sourceLine": 112
+    },
+    {
+      "id": "terraform:item-0059",
+      "moduleId": "module-10",
+      "sourceLine": 113
+    },
+    {
+      "id": "terraform:item-0060",
+      "moduleId": "module-10",
+      "sourceLine": 114
+    },
+    {
+      "id": "terraform:item-0061",
+      "moduleId": "module-10",
+      "sourceLine": 115
+    },
+    {
+      "id": "terraform:item-0062",
+      "moduleId": "module-10",
+      "sourceLine": 116
+    },
+    {
+      "id": "terraform:item-0063",
+      "moduleId": "module-10",
+      "sourceLine": 117
+    },
+    {
+      "id": "terraform:item-0064",
+      "moduleId": "module-11",
+      "sourceLine": 123
+    },
+    {
+      "id": "terraform:item-0065",
+      "moduleId": "module-11",
+      "sourceLine": 124
+    },
+    {
+      "id": "terraform:item-0066",
+      "moduleId": "module-11",
+      "sourceLine": 125
+    },
+    {
+      "id": "terraform:item-0067",
+      "moduleId": "module-11",
+      "sourceLine": 126
+    },
+    {
+      "id": "terraform:item-0068",
+      "moduleId": "module-11",
+      "sourceLine": 127
+    },
+    {
+      "id": "terraform:item-0069",
+      "moduleId": "module-11",
+      "sourceLine": 128
+    },
+    {
+      "id": "terraform:item-0070",
+      "moduleId": "module-12",
+      "sourceLine": 134
+    },
+    {
+      "id": "terraform:item-0071",
+      "moduleId": "module-12",
+      "sourceLine": 135
+    },
+    {
+      "id": "terraform:item-0072",
+      "moduleId": "module-12",
+      "sourceLine": 136
+    },
+    {
+      "id": "terraform:item-0073",
+      "moduleId": "module-12",
+      "sourceLine": 137
+    },
+    {
+      "id": "terraform:item-0074",
+      "moduleId": "module-12",
+      "sourceLine": 138
+    },
+    {
+      "id": "terraform:item-0075",
+      "moduleId": "module-12",
+      "sourceLine": 139
+    },
+    {
+      "id": "terraform:item-0076",
+      "moduleId": "module-13",
+      "sourceLine": 145
+    },
+    {
+      "id": "terraform:item-0077",
+      "moduleId": "module-13",
+      "sourceLine": 146
+    },
+    {
+      "id": "terraform:item-0078",
+      "moduleId": "module-13",
+      "sourceLine": 147
+    },
+    {
+      "id": "terraform:item-0079",
+      "moduleId": "module-13",
+      "sourceLine": 148
+    },
+    {
+      "id": "terraform:item-0080",
+      "moduleId": "module-13",
+      "sourceLine": 149
+    },
+    {
+      "id": "terraform:item-0081",
+      "moduleId": "module-13",
+      "sourceLine": 150
+    },
+    {
+      "id": "terraform:item-0082",
+      "moduleId": "module-14",
+      "sourceLine": 156
+    },
+    {
+      "id": "terraform:item-0083",
+      "moduleId": "module-14",
+      "sourceLine": 157
+    },
+    {
+      "id": "terraform:item-0084",
+      "moduleId": "module-14",
+      "sourceLine": 158
+    },
+    {
+      "id": "terraform:item-0085",
+      "moduleId": "module-14",
+      "sourceLine": 159
+    },
+    {
+      "id": "terraform:item-0086",
+      "moduleId": "module-14",
+      "sourceLine": 160
+    },
+    {
+      "id": "terraform:item-0087",
+      "moduleId": "module-14",
+      "sourceLine": 161
+    },
+    {
+      "id": "terraform:item-0088",
+      "moduleId": "module-15",
+      "sourceLine": 167
+    },
+    {
+      "id": "terraform:item-0089",
+      "moduleId": "module-15",
+      "sourceLine": 168
+    },
+    {
+      "id": "terraform:item-0090",
+      "moduleId": "module-15",
+      "sourceLine": 169
+    },
+    {
+      "id": "terraform:item-0091",
+      "moduleId": "module-15",
+      "sourceLine": 170
+    },
+    {
+      "id": "terraform:item-0092",
+      "moduleId": "module-15",
+      "sourceLine": 171
+    },
+    {
+      "id": "terraform:item-0093",
+      "moduleId": "module-15",
+      "sourceLine": 172
+    },
+    {
+      "id": "terraform:item-0094",
+      "moduleId": "module-16",
+      "sourceLine": 178
+    },
+    {
+      "id": "terraform:item-0095",
+      "moduleId": "module-16",
+      "sourceLine": 179
+    },
+    {
+      "id": "terraform:item-0096",
+      "moduleId": "module-16",
+      "sourceLine": 180
+    },
+    {
+      "id": "terraform:item-0097",
+      "moduleId": "module-16",
+      "sourceLine": 181
+    },
+    {
+      "id": "terraform:item-0098",
+      "moduleId": "module-16",
+      "sourceLine": 182
+    },
+    {
+      "id": "terraform:item-0099",
+      "moduleId": "module-16",
+      "sourceLine": 183
+    },
+    {
+      "id": "terraform:item-0100",
+      "moduleId": "module-17",
+      "sourceLine": 189
+    },
+    {
+      "id": "terraform:item-0101",
+      "moduleId": "module-17",
+      "sourceLine": 190
+    },
+    {
+      "id": "terraform:item-0102",
+      "moduleId": "module-17",
+      "sourceLine": 191
+    },
+    {
+      "id": "terraform:item-0103",
+      "moduleId": "module-17",
+      "sourceLine": 192
+    },
+    {
+      "id": "terraform:item-0104",
+      "moduleId": "module-17",
+      "sourceLine": 193
+    },
+    {
+      "id": "terraform:item-0105",
+      "moduleId": "module-18",
+      "sourceLine": 199
+    },
+    {
+      "id": "terraform:item-0106",
+      "moduleId": "module-18",
+      "sourceLine": 200
+    },
+    {
+      "id": "terraform:item-0107",
+      "moduleId": "module-18",
+      "sourceLine": 201
+    },
+    {
+      "id": "terraform:item-0108",
+      "moduleId": "module-18",
+      "sourceLine": 202
+    },
+    {
+      "id": "terraform:item-0109",
+      "moduleId": "module-18",
+      "sourceLine": 203
+    }
   ]
 } as const satisfies Record<string, readonly RoadmapProgressItem[]>
 

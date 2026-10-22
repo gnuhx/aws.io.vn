@@ -1,0 +1,7 @@
+{
+  "name": "s85-no-shebang",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": { "s85-ns": "dist/cli.js" },
+  "files": ["dist"]
+}

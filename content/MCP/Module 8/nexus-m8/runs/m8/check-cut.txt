@@ -1,0 +1,36 @@
+❯ pnpm check
+> nexus@ check /home/claude/nexus
+> nexus@ typecheck /home/claude/nexus
+> nexus@ test /home/claude/nexus
+> @nexus/mcp-server@ test /home/claude/nexus/apps/mcp-server
+ℹ tests 62
+ℹ pass 55
+ℹ fail 0
+ℹ skipped 7
+> nexus@ smoke /home/claude/nexus
+> @nexus/mcp-server@ smoke /home/claude/nexus/apps/mcp-server
+OK: smoke xanh
+> nexus@ grade /home/claude/nexus
+> @nexus/cli@ grade /home/claude/nexus/apps/cli
+✓ stdout sạch: 0 lỗi parse JSON-RPC
+OK: 10/10 đạt
+> nexus@ roots /home/claude/nexus
+OK: 6/6 file đúng thư mục
+> nexus@ cursor /home/claude/nexus
+OK: 9/9 đúng như mong đợi
+> nexus@ agent /home/claude/nexus
+OK: agent 4/4
+> nexus@ injection /home/claude/nexus
+OK: injection 4/4 kịch bản đúng như mong đợi — chỉ C và D chặn được
+> nexus@ guard /home/claude/nexus
+OK: tool guard 8/8
+> nexus@ trace /home/claude/nexus
+OK: trace đầu-cuối, chỉ ra được tool chậm nhất và lý do
+> nexus@ tasks /home/claude/nexus
+OK: tasks + apps 5/5
+> nexus@ capstone /home/claude/nexus
+OK: capstone 10/10 (--llm scripted) — đạt khi ≥ 8/10
+> nexus@ publish:check /home/claude/nexus
+> @nexus/mcp-server@ publish:check /home/claude/nexus/apps/mcp-server
+✓ stdout sạch: 0 lỗi parse JSON-RPC
+OK: 10/10 đạt

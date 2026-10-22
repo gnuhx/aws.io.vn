@@ -1,0 +1,4 @@
+❯ npx -y --package=./s85-no-shebang-1.0.0.tgz s85-ns
+/home/claude/.npm/_npx/dd622eeaf96ed92e/node_modules/.bin/s85-ns: 1: //: Permission denied
+import-im6.q16: unable to open X server `' @ error/import.c/ImportImageCommand/346.
+/home/claude/.npm/_npx/dd622eeaf96ed92e/node_modules/.bin/s85-ns: 3: Syntax error: word unexpected (expecting ")")

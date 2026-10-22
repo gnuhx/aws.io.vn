@@ -1,0 +1,7 @@
+❯ python3 scripts/form.py "A|Bad Slug!" "Acme 2|acme" "Cà phê Sữa|cafe-sua"
+gửi name='A' slug='Bad Slug!' → nút: 'Đang tạo…' disabled=True
+   lỗi dưới field: Tên tối thiểu 2 ký tự · Chỉ chữ thường, số và dấu gạch ngang, ví dụ acme-coffee
+gửi name='Acme 2' slug='acme' → nút: 'Đang tạo…' disabled=True
+   lỗi dưới field: "acme" đã có người dùng
+gửi name='Cà phê Sữa' slug='cafe-sua' → nút: 'Đang tạo…' disabled=True
+   chuyển tới: /cafe-sua/chat · h1: Cà phê Sữa

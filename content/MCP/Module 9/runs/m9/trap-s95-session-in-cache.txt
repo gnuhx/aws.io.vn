@@ -1,0 +1,7 @@
+❯ npx tsc --noEmit -p tsconfig.json && echo "tsc strict: 0 lỗi"
+tsc strict: 0 lỗi
+❯ ./scripts/dash.sh lan /acme/dashboard
+lan   /acme/dashboard     0.271s  tin nhắn = ?
+❯ grep -m1 -A1 "use cache" server.log
+⨯ Error: Route "/[workspace]/dashboard": `headers()` can't be read inside `"use cache"`. Read it outside the cached function and pass what you need as an argument.
+Learn more: https://nextjs.org/docs/messages/next-request-in-use-cache

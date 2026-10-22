@@ -1,0 +1,12 @@
+❯ python3 scripts/see.py /acme/chat /nope/chat "/acme/dashboard?fail=db"
+/acme/chat → HTTP 200
+  h1   : Acme Coffee
+/nope/chat → HTTP 404
+  h1   : Không có workspace này
+/acme/dashboard?fail=db → HTTP 200
+  h1   : Acme Coffee
+  alert: Không tải được dashboard. Mã lỗi: 4106609883 |  | Minified React error #441; visit https://react.dev/errors/441 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. |  | Thử lại
+❯ grep -A2 "Mongo timeout" server.log
+⨯ Error: Mongo timeout sau 5000ms (host db:27017)
+    at d (.next/server/chunks/ssr/[root-of-the-server]__11pl7t2bepxtp._.js:1:370) {
+  digest: '4106609883'

@@ -1,0 +1,10 @@
+❯ for u in /acme/chat /nope/chat /acme/dashboard; do curl -s -o /dev/null -w "$u  %{http_code}  ttfb=%{time_starttransfer}s  total=%{time_total}s\n" localhost:3009$u; done
+/acme/chat  200  ttfb=0.184209s  total=0.294269s
+/nope/chat  404  ttfb=0.145970s  total=0.146355s
+/acme/dashboard  200  ttfb=0.139902s  total=0.740124s
+❯ curl -sN localhost:3009/acme/dashboard | grep -o 'Đang tính số liệu…\|<dd>[^<]*'
+Đang tính số liệu…
+Đang tính số liệu…
+<dd>1
+<dd>2
+<dd>2026-10-14T09:00:00.000Z

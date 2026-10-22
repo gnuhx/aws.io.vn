@@ -1,0 +1,10 @@
+❯ python3 apps-host/host_check.py /tmp/ui.json s84-chart.png
+postMessage: ← ui/initialize → result#1 ← ui/notifications/initialized → ui/notifications/tool-result ← ui/notifications/size-changed
+tiêu đề: Doanh thu 2026-04 → 2026-09 · 6 cột
+   2026-04  403.550.000 ₫
+   2026-05  709.650.000 ₫
+   2026-06  890.600.000 ₫
+   2026-07  600.450.000 ₫
+   2026-08  488.050.000 ₫
+   2026-09  601.400.000 ₫
+ảnh: s84-chart.png

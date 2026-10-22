@@ -13,6 +13,10 @@ coverage/
 # Deploy
 .netlify/
 
+# Local nested Nexus checkouts (not available in Netlify builds)
+/content/MCP/Module 8/nexus-m8/nexus/
+/content/MCP/Module 9/nexus/
+
 # Env & secrets
 .env*
 *.env
@@ -39,3 +43,8 @@ CLAUDE.local.md
 .DS_Store
 Thumbs.db
 client_secret_*.json
+
+# Terraform state and working dirs (course sample code must never ship state)
+*.tfstate
+*.tfstate.*
+.terraform/

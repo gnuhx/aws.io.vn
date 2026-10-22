@@ -1,0 +1,13 @@
+❯ node scripts/build-publish.ts && cd publish && npm pack 2>&1 | grep -E 'Tarball|kB|name:|total files|^nexus'
+✓ publish/dist/nexus-mcp.js · 81.1 KB · 55 file nguồn (gói kèm workspace: shared, telemetry)
+  external (npm cài khi chạy): @modelcontextprotocol/ext-apps, @modelcontextprotocol/sdk, @opentelemetry/api, @opentelemetry/core, @opentelemetry/resources, @opentelemetry/sdk-trace-base, @opentelemetry/sdk-trace-node, zod
+npm notice Tarball Contents
+npm notice 3.3kB README.md
+npm notice 83.0kB dist/nexus-mcp.js
+npm notice Tarball Details
+npm notice name: @nexus-demo/mcp-server
+npm notice filename: nexus-demo-mcp-server-0.8.0.tgz
+npm notice package size: 27.7 kB
+npm notice unpacked size: 87.2 kB
+npm notice total files: 3
+nexus-demo-mcp-server-0.8.0.tgz

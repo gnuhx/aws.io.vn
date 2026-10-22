@@ -1,0 +1,3 @@
+❯ curl -s localhost:3009/ | grep -o '<li><a href="[^"]*">[^<]*'
+<li><a href="/acme/chat">Acme Coffee
+<li><a href="/bean-co/chat">Bean &amp; Co

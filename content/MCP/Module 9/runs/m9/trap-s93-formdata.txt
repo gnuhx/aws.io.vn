@@ -1,0 +1,12 @@
+❯ npx tsc --noEmit -p tsconfig.json
+lib/actions/workspaces.ts:20:27 - error TS2345: Argument of type '{ name: FormDataEntryValue | null; slug: FormDataEntryValue | null; }' is not assignable to parameter of type '{ name: string; slug: string; }'.
+  Types of property 'name' are incompatible.
+    Type 'FormDataEntryValue | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+
+20     await createWorkspace(parsed.data, "lan@nexus.dev"); // S9.4: lấy từ session
+                             ~~~~~~~~~~~
+
+
+Found 1 error in lib/actions/workspaces.ts:20
+

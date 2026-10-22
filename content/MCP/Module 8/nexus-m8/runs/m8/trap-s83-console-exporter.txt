@@ -1,0 +1,5 @@
+❯ node traps/s83-console-exporter.ts
+client.onerror #1: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+client.onerror #2: Unexpected token 'r', "  resource: {" is not valid JSON
+client.onerror #3: Unexpected token 'a', "    attributes: {" is not valid JSON
+kết quả tool: pong · dòng rác trên stdout: 23

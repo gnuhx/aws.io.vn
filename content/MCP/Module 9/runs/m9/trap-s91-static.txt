@@ -1,0 +1,11 @@
+❯ npx next build 2>&1 | grep -A3 "Route (app)"
+Route (app)
+┌ ○ /
+└ ○ /_not-found
+
+❯ curl -sI localhost:3009/ | grep -i -E "^HTTP|x-nextjs"
+HTTP/1.1 200 OK
+x-nextjs-cache: HIT
+x-nextjs-prerender: 1
+x-nextjs-prerender: 1
+x-nextjs-stale-time: 300

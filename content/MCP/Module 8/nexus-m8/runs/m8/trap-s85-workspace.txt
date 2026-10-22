@@ -1,0 +1,6 @@
+❯ cd naive && npm pkg set version=0.8.0 && npm pkg delete private && grep workspace package.json && npm pack 2>&1 | tail -1 && cd ../consumer && npm install ../naive/nexus-mcp-server-0.8.0.tgz 2>&1 | grep -v 'complete log'; echo "npm exit=${PIPESTATUS[0]}"; pnpm add ../naive/nexus-mcp-server-0.8.0.tgz 2>&1 | grep ERR_
+    "@nexus/shared": "workspace:*",
+    "@nexus/telemetry": "workspace:*",
+nexus-mcp-server-0.8.0.tgz
+npm exit=1
+ ERR_PNPM_WORKSPACE_PKG_NOT_FOUND  In : "@nexus/shared@workspace:*" is in the dependencies but no package named "@nexus/shared" is present in the workspace

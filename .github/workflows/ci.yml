@@ -20,7 +20,7 @@ permissions:
 jobs:
   verify:
     name: verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
@@ -29,6 +29,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+
+      - name: Cache MongoDB test binary
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci
@@ -42,9 +48,12 @@ jobs:
       - name: Unit tests
         run: npm run test:coverage
 
+      - name: Repository integration tests
+        run: npm run test:integration
+
       - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('coverage/**') != ''
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: coverage/

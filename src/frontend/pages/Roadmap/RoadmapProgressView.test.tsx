@@ -36,7 +36,8 @@ beforeEach(() => {
 })
 afterEach(() => { vi.unstubAllGlobals() })
 
-describe('RoadmapProgressView lessons', () => {
+// Each test renders the full 305-item roadmap (3–4 s alone); under full-suite load that crosses vitest's 5 s default.
+describe('RoadmapProgressView lessons', { timeout: 15_000 }, () => {
   it('lets signed-out visitors browse lessons from the roadmap without loading progress', () => {
     renderRoadmap('signed-out')
 
@@ -80,7 +81,7 @@ function replyWith(statuses: Record<string, string>, activity: unknown[] = []) {
     String(input).endsWith('/activity') ? reply(200, { activity }) : reply(200, { statuses }))
 }
 
-describe('RoadmapProgressView chart, filters and calendar', () => {
+describe('RoadmapProgressView chart, filters and calendar', { timeout: 15_000 }, () => {
   const statuses = { 'aws-saa-c03:item-0001': 'completed', 'aws-saa-c03:item-0002': 'in_progress' }
 
   it('colors each status select by its value', async () => {

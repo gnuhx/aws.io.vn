@@ -1,0 +1,8 @@
+❯ npx next build 2>&1 | grep -E "^Error|^\./apps|^It should"
+Error: Turbopack build failed with 4 errors:
+./apps/web/lib/db/store.ts:1:1
+./apps/web/lib/db/workspaces.ts:1:1
+./apps/web/lib/db/store.ts:1:1
+It should only be used from a Server Component.
+./apps/web/lib/db/workspaces.ts:1:1
+It should only be used from a Server Component.

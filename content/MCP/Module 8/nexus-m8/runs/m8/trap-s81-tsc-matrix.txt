@@ -1,0 +1,3 @@
+❯ npx tsc -p traps-tsc/tsconfig.json
+traps-tsc/matrix-missing.ts(9,3): error TS1360: Type '{ nexus_ping: { ok: () => Promise<void>; input: { na: string; }; }; nexus_get_time: { ok: () => Promise<void>; input: { na: string; }; }; }' does not satisfy the expected type 'Record<ToolName, Row>'.
+  Property 'nexus_export_tasks' is missing in type '{ nexus_ping: { ok: () => Promise<void>; input: { na: string; }; }; nexus_get_time: { ok: () => Promise<void>; input: { na: string; }; }; }' but required in type 'Record<ToolName, Row>'.

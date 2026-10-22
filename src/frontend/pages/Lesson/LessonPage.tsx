@@ -1,8 +1,8 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { findLessonProgressEntry } from '../../../shared/lessonProgress.ts'
 import { isRoadmapId } from '../../../shared/roadmapProgress.ts'
-import { findLesson, getLessonCatalog, getLessonContentPath, getTopicLabel, type LessonEntry } from '../../content.ts'
+import { findLesson, getLessonCatalog, getLessonContentPath, getTopicLabel, groupLessonsBySection, resolveLessonAssetUrl, type LessonEntry } from '../../content.ts'
 import { NotFoundPage } from '../NotFound/NotFoundPage.tsx'
 import { Spinner } from '../../components/Spinner/Spinner.tsx'
 import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
@@ -24,6 +24,7 @@ function LessonContent({ topic, lesson }: { topic: string; lesson: LessonEntry }
   const [loadingMarkdown, setLoadingMarkdown] = useState(Boolean(lesson.markdownUrl))
   const [rendered, setRendered] = useState(false)
   const markRendered = useCallback(() => setRendered(true), [])
+  const resolveUrl = useCallback((url: string) => resolveLessonAssetUrl(lesson, url), [lesson])
   const articleRef = useRef<HTMLElement>(null)
   useResumeReading({ topic, lessonSlug: lesson.slug, containerRef: articleRef, contentReady: rendered && !loadingMarkdown && !markdownError })
 
@@ -62,7 +63,7 @@ function LessonContent({ topic, lesson }: { topic: string; lesson: LessonEntry }
     <article ref={articleRef} className={styles.article} aria-busy={loadingMarkdown}>
       {loadingMarkdown && <p className={styles.loadingLesson}><Spinner /> Loading lesson…</p>}
       <Suspense fallback={<p className={styles.loadingLesson}><Spinner /> Loading lesson renderer…</p>}>
-        <MarkdownView markdown={markdown} />
+        <MarkdownView markdown={markdown} resolveUrl={resolveUrl} />
         <Rendered onRendered={markRendered} />
       </Suspense>
     </article>
@@ -98,20 +99,25 @@ export function LessonPage() {
   const lessonNav = (
     <nav>
       <p className={styles.navLabel}>{navLabel}</p>
-      <ol className={styles.lessonNav}>
-        {moduleLessons.map((entry, index) => (
-          <li key={entry.slug}>
-            <Link
-              aria-current={entry.slug === lesson.slug ? 'page' : undefined}
-              className={`${styles.lessonNavLink} ${entry.slug === lesson.slug ? styles.lessonNavActive : ''}`}
-              to={`/${topic}/${entry.slug}`}
-            >
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              {entry.title}
-            </Link>
-          </li>
-        ))}
-      </ol>
+      {groupLessonsBySection(moduleLessons).map((group) => (
+        <Fragment key={group.section?.order ?? 'lessons'}>
+          {group.section && <p className={styles.navSection}>{group.section.title}</p>}
+          <ol className={styles.lessonNav}>
+            {group.lessons.map((entry) => (
+              <li key={entry.slug}>
+                <Link
+                  aria-current={entry.slug === lesson.slug ? 'page' : undefined}
+                  className={`${styles.lessonNavLink} ${entry.slug === lesson.slug ? styles.lessonNavActive : ''}`}
+                  to={`/${topic}/${entry.slug}`}
+                >
+                  <span>{String(moduleLessons.indexOf(entry) + 1).padStart(2, '0')}</span>
+                  {entry.title}
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </Fragment>
+      ))}
     </nav>
   )
   // Only lessons that belong to a roadmap can be marked read; progress is scoped to that roadmap.
@@ -161,7 +167,7 @@ export function LessonPage() {
                 <span className={styles.metaDot}>·</span>
                 <span>{itemLabel} {String(currentIndex + 1).padStart(2, '0')}</span>
                 <span className={styles.metaDot}>·</span>
-                <span>Study notes</span>
+                <span>{lesson.section?.title ?? 'Study notes'}</span>
               </div>
               <h1 className={styles.title}>{lesson.title}</h1>
               <p className={styles.summary}>{lesson.summary}</p>

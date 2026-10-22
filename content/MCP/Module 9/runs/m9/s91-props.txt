@@ -1,0 +1,7 @@
+❯ curl -s localhost:3009/ | grep -o 'null,{\\"name\\":\\"[A-Z][^}]*}'
+null,{\"name\":\"Next.MetadataOutlet\",\"children\":\"$@9\"}
+null,{\"name\":\"Next.Metadata\",\"children\":\"$Lf\"}
+null,{\"name\":\"Acme Coffee\"}
+null,{\"name\":\"Bean \u0026 Co\"}
+❯ grep -rl "aria-pressed" .next/static/chunks
+.next/static/chunks/0w8f10_5r2h1e.js

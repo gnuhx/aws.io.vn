@@ -1,0 +1,6 @@
+❯ npx -y --package=./s85-ts-package-1.0.0.tgz s85-ts 2>&1 | head -5
+node:internal/modules/typescript:156
+    throw new ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING(filename);
+          ^
+
+Error [ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING]: Stripping types is currently unsupported for files under node_modules, for "file:///home/claude/.npm/_npx/0738aa85dd7115f9/node_modules/s85-ts-package/src/cli.ts"

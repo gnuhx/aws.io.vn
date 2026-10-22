@@ -1,0 +1,8 @@
+❯ npx next build 2>&1 | grep -A6 "Route (app)"
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /[workspace]/chat
+├ ƒ /[workspace]/dashboard
+└ ○ /login
+

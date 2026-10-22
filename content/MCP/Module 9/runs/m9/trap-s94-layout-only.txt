@@ -1,0 +1,6 @@
+❯ curl -s -b .cookies/lan localhost:3009/bean-co/chat -o page.html -w "HTTP %{http_code}\n"
+HTTP 404
+❯ grep -o "Khách nào sắp hết hạn?" page.html | head -1
+Khách nào sắp hết hạn?
+❯ grep -o "an@nexus.dev" page.html | head -1
+an@nexus.dev

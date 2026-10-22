@@ -6,6 +6,7 @@ const progressService = vi.hoisted(() => ({
   listStatuses: vi.fn(),
   setStatus: vi.fn(),
   clearStatus: vi.fn(),
+  markLessonsRead: vi.fn(),
   listActivity: vi.fn(),
 }))
 vi.mock('../../services/progress.ts', () => progressService)
@@ -35,6 +36,7 @@ function call(method: string, { cookie, body, roadmapId = 'aws-saa-c03' }: { coo
 const nothingWritten = () => {
   expect(progressService.setStatus).not.toHaveBeenCalled()
   expect(progressService.clearStatus).not.toHaveBeenCalled()
+  expect(progressService.markLessonsRead).not.toHaveBeenCalled()
 }
 
 beforeEach(() => {
@@ -111,6 +113,41 @@ describe('lesson read tracking', () => {
     const response = await call('PUT', { cookie: await cookieFor('u1'), body: { itemId: ITEM, status: 'in_progress' } })
     expect(response.status).toBe(200)
     expect(progressService.setStatus).toHaveBeenCalledWith('u1', 'aws-saa-c03', ITEM, 'in_progress')
+  })
+})
+
+describe('bulk lesson read (POST)', () => {
+  const LESSON_2 = 'aws-saa-c03:lesson-0002'
+
+  it('is 401 without a session cookie', async () => {
+    expect((await call('POST', { body: { lessonIds: [LESSON] } })).status).toBe(401)
+    nothingWritten()
+  })
+
+  it('marks every listed lesson read for the cookie user, ignoring duplicates', async () => {
+    const response = await call('POST', { cookie: await cookieFor('u1'), body: { lessonIds: [LESSON, LESSON_2, LESSON] } })
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ lessonIds: [LESSON, LESSON_2], status: 'completed' })
+    expect(progressService.markLessonsRead).toHaveBeenCalledWith('u1', 'aws-saa-c03', [LESSON, LESSON_2, LESSON])
+    expect(progressService.setStatus).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['an unknown lesson ID', [LESSON, 'aws-saa-c03:lesson-9999']],
+    ['a roadmap item ID', [LESSON, ITEM]],
+    ['a lesson ID from another roadmap', [LESSON, 'MCP:lesson-0001']],
+    ['no IDs', []],
+    ['a non-string ID', [LESSON, 7]],
+  ])('rejects the whole request for %s without writing', async (_label, lessonIds) => {
+    const response = await call('POST', { cookie: await cookieFor('u1'), body: { lessonIds } })
+    expect(response.status).toBe(400)
+    nothingWritten()
+  })
+
+  it('rejects extra fields such as a client-supplied user ID', async () => {
+    const response = await call('POST', { cookie: await cookieFor('u1'), body: { lessonIds: [LESSON], userId: 'victim' } })
+    expect(response.status).toBe(400)
+    nothingWritten()
   })
 })
 

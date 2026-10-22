@@ -1,0 +1,9 @@
+❯ curl -sI localhost:3009/acme/chat | grep -i -E "^HTTP|^location"
+HTTP/1.1 307 Temporary Redirect
+location: /login
+❯ curl -s -X DELETE localhost:3009/api/workspaces/acme -w "  ← ẩn danh, HTTP %{http_code}\n"
+{"error":"Chưa đăng nhập"}  ← ẩn danh, HTTP 401
+❯ curl -s -b .cookies/minh -X DELETE localhost:3009/api/workspaces/acme -w "  ← minh (member), HTTP %{http_code}\n"
+{"error":"Chỉ owner được làm việc này"}  ← minh (member), HTTP 403
+❯ curl -s -b .cookies/lan -o /dev/null localhost:3009/bean-co/chat -w "lan mở /bean-co/chat (không phải thành viên): HTTP %{http_code}\n"
+lan mở /bean-co/chat (không phải thành viên): HTTP 404
